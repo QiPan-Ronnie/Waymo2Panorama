@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Data (large)
+data/raw/
+data/argoverse2/
+data/waymo/
+data/nuscenes/
+**/*.tfrecord
+**/*.npz
+**/*.npy
+**/*.ply
+**/*.pcd
+**/*.bag
+**/*.feather
+
+# Image dumps (keep mini samples only)
+data/*/full/
+data/*/large/
+
+# Outputs
+outputs/
+logs/
+checkpoints/
+**/*.ckpt
+**/*.safetensors
+**/*.pth
+
+# Video
+*.mp4
+*.mov
+*.avi
+*.webm
+
+# Misc
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Keep
+!data/mini/**
+!data/README.md
+!**/.gitkeep
