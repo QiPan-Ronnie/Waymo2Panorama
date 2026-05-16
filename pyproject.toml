@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "waymo2panorama"
+version = "0.1.0"
+description = "Multi-camera autonomous-driving → 360 ERP panorama stitching"
+requires-python = ">=3.10"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "QiPan-Ronnie" }]
+dependencies = [
+    "av2>=0.3",
+    "numpy>=1.26",
+    "opencv-python>=4.9",
+    "scipy>=1.11",
+    "imageio[ffmpeg]>=2.34",
+    "pyyaml>=6.0",
+    "tqdm>=4.66",
+    "matplotlib>=3.7",
+    "pillow>=10.0",
+    "pandas>=2.0",
+    "pyarrow>=14.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.4", "ruff>=0.4"]
+
+[tool.setuptools.packages.find]
+where = ["code"]
+include = ["waymo2panorama*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
