@@ -59,11 +59,18 @@ def render_camera_to_erp(
     img_f32 = image.astype(np.float32)
 
     # 1) Build ERP pixel grid -> (theta, phi)
+    # ERP convention: u increases rightward, mapping to LEFT side of ego (AV2 ego y = +left)
+    # at u < W/2 and RIGHT side of ego at u > W/2. Center column u = W/2 = forward (theta = 0).
+    # Going right in the image is a CW rotation in ego ground plane (theta decreasing).
+    # WHY: with AV2's right-handed ego frame (x forward, y LEFT, z up) and a viewer who
+    # "unrolls" the world by sweeping their gaze RIGHT, theta must DECREASE as u increases.
+    # The pre-2026-05-19 version had `theta = (u + 0.5)/W * 2pi - pi` which inverted this,
+    # producing a horizontally mirrored ERP (visible as backwards text in storefronts).
     u_idx = np.arange(w_erp, dtype=np.float64)
     v_idx = np.arange(h_erp, dtype=np.float64)
     uu, vv = np.meshgrid(u_idx, v_idx)
-    theta = (uu + 0.5) / w_erp * (2.0 * np.pi) - np.pi          # azimuth in (-pi, pi]
-    phi = (np.pi / 2.0) - (vv + 0.5) / h_erp * np.pi              # elevation in (pi/2, -pi/2)
+    theta = np.pi - (uu + 0.5) / w_erp * (2.0 * np.pi)             # azimuth in [pi, -pi)
+    phi = (np.pi / 2.0) - (vv + 0.5) / h_erp * np.pi               # elevation in (pi/2, -pi/2)
 
     # 2) Unit ray in ego frame
     cos_phi = np.cos(phi)
