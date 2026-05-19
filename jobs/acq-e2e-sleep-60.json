@@ -1,0 +1,11 @@
+{
+  "id": "acq-e2e-sleep-60",
+  "cmd": [
+    "bash",
+    "-c",
+    "echo 'ACQ E2E START'; date; for i in 1 2; do sleep 30; echo \"tick $i at $(date +%H:%M:%S)\"; done; touch /tmp/acq-e2e-sleep-60.done; echo 'ACQ E2E END'; date"
+  ],
+  "done_marker": "/tmp/acq-e2e-sleep-60.done",
+  "timeout_s": 120,
+  "created_at": "2026-05-19T22:26:26.491021+00:00"
+}
