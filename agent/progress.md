@@ -1,5 +1,9 @@
 # Waymo2Panorama Progress
 
+> **Latest: 2026-05-19 22:35 UTC** — Phase 1 done (v0.1-l1-mvp). W2P-004 Drive queue validated. W2P-005 agent-colab-queue v0.1.0 extracted + MCP server shipped. Patched to v0.1.1 (subprocess robustness). E2E test partially validated (submit wrote spec but server died on commit; manually fixed; the W2P-004 worker picked up the test job at 22:35:11 and is processing it). **Phase 2 D1 awaiting user wake-up.**
+
+
+
 ## Active state
 
 - Phase 0 (repo bootstrap) — **COMPLETE** (commit `4d534f2`)
