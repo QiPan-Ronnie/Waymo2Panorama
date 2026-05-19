@@ -1,3 +1,8 @@
+# Baidu Sync lock files (BaiduSyncdisk on Windows)
+*.baiduyun.uploading.cfg
+*.baiduyun.downloading.cfg
+*.baidu.tmp
+
 # Python
 __pycache__/
 *.pyc
