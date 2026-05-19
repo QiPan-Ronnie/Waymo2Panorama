@@ -126,6 +126,25 @@ to re-run the worker cell.
 `!touch /content/drive/MyDrive/koi_waymo2pano_colab/worker/stop.flag` (in a Colab cell)
 or just interrupt the worker cell via Colab UI.
 
+## Validation log
+
+### 2026-05-19 — initial end-to-end test
+
+| Step | Time | Evidence |
+|---|---|---|
+| Worker started in Colab | 21:39:07 | `results/` + `worker/` auto-created on Drive |
+| Agent pushed test spec | 21:39:30 | commit `dab1066` (`jobs/test-stability-sleep-180.json`) |
+| Worker claimed job | 21:40:00 | result.json `state=claimed` then `running`, PID=24658 |
+| Subprocess ticked at 21:40:30, 21:41:00, 21:41:30, 21:42:00, 21:42:30, 21:43:00 | log_tail in result.json |
+| Job done | 21:43:07 | `state=done`, `exit_code=0`, `elapsed_s=187.58`, `marker_exists=True`, `pid_alive=False` |
+| Agent read state | 2 polls, each in <1 s | `mcp__claude_ai_Google_Drive__download_file_content` |
+
+End-to-end wall clock 197 s. Zero `colab-mcp` calls in the data path. `colab-mcp`
+was completely disconnected during the run (its only role was opening the notebook
+tab earlier; the worker cell ran independently after that).
+
+**Architecture verdict: production-ready for Phase 2+.**
+
 ## When to use what
 
 | Workflow                                  | Use this                                |
