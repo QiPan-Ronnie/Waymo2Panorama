@@ -62,17 +62,47 @@ These are what L1 leaves on the table for Phase 2 to fix.
 
 ---
 
-## L1 v2 (after `885b5da`) — TBD
+## L1 v2 (commit `885b5da`) — verified 2026-05-19
 
-After git pull on Colab + re-run Cell 9, capture:
+After git pull on Colab + re-run via the W2P-003 submit/poll pattern, the v2 first
+frame was captured and visually verified.
 
-- [ ] Text orientation: storefronts read normally left-to-right
-- [ ] Forward view at ERP center stays forward (sanity check the fix didn't break placement)
-- [ ] Same F1–F6 failure modes (these don't change with the mirror fix)
-- [ ] Replace the v1 mosaic in this doc with the v2 mosaic once captured
-- [ ] If text still mirrored: investigate further (camera-frame convention may differ from
-      OpenCV; AV2 docs suggest sensor-frame is `x=forward, z=up` but image projection still
-      uses standard OpenCV pinhole — check empirically)
+### Mirror fix verification
+
+- ✅ "locustprojects" storefront reads left-to-right
+- ✅ "Kartell" sign on right side of forward view reads normally
+- ✅ White SUV with cypress trees now appears on the **right** half of ERP (correct;
+  matches the `ring_side_right` and `ring_rear_right` camera content from the spike
+  mosaic)
+- ✅ ERP center column shows road extending forward with traffic light overhead
+- ✅ Scene topology matches reality: front_left storefront on left half; rear cones
+  at extreme left+right (wrapping)
+
+### Failure modes confirmed in v2 (F1-F6)
+
+| # | Observed in v2 |
+|---|---|
+| F1 black bands top/bottom | yes — narrow vertical FoV of each ring cam |
+| F2 black gaps between cones | yes — small gaps visible between adjacent cones |
+| F3 exposure mismatch | yes — `front_right` "Kartell" wall noticeably darker than `front_center` road |
+| F4 pink/purple stripes at cone bottoms | **yes — newly identified** | The car body / hood color (subtle pink/violet) leaks into the bottom edge of each cone. Confirms need for ego masks. **However**, Phase 2 3D-aware fusion will assign low confidence to these pixels (they're geometrically inconsistent with the surrounding ground plane), so **F4 is expected to self-resolve in Phase 2** without explicit ego masks. Holding masks back as a fallback. |
+| F5 parallax ghosts | low — cone overlap minimal, ghosts hidden in gaps |
+| F6 cone narrower than HFoV | minor — cos² weight falloff working as designed |
+
+### Decision
+
+L1 baseline is **COMPLETE** as a deliverable. The pipeline:
+1. Reads AV2 7 ring cams correctly
+2. Projects each onto an ERP sphere with correct azimuth orientation
+3. Blends via multi-band with ERP wrap padding
+4. Produces a recognizable 360 driving panorama
+
+Cosmetic improvements (ego masks for F4, histogram match for F3) are deferred —
+Phase 2's 3D-aware fusion is the right place to address those root causes, not
+patches on top of L1.
+
+**Phase 1 milestone tag**: `v0.1-l1-mvp` (set at commit advancing past colab_jobs
+log-buffer fix).
 
 ---
 

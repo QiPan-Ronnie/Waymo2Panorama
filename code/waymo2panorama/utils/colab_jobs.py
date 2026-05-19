@@ -97,9 +97,14 @@ def start_job(
         Job dataclass with `pid` and metadata. Cell can return this.
     """
     Path(log_path).parent.mkdir(parents=True, exist_ok=True)
-    log_fd = open(log_path, "w", buffering=1)  # line-buffered for quick tail visibility
+    # Open log in binary write mode so the subprocess can write bytes directly without
+    # Python text-mode buffering shenanigans. We separately flush via bufsize=0 on Popen.
+    log_fd = open(log_path, "wb", buffering=0)
 
     full_env = os.environ.copy()
+    # PYTHONUNBUFFERED forces the child Python (if any) to flush stdout/stderr per line.
+    # Effective only if the subprocess is a Python interpreter; harmless otherwise.
+    full_env.setdefault("PYTHONUNBUFFERED", "1")
     if env:
         full_env.update(env)
 
@@ -107,6 +112,7 @@ def start_job(
         cmd,
         stdout=log_fd,
         stderr=subprocess.STDOUT,
+        bufsize=0,                # no Python-level buffering
         start_new_session=True,   # detach from this Python process
         env=full_env,
     )
