@@ -160,3 +160,58 @@ A Claude Code restart is required after changing the config for the new MCP serv
 - Patch applies only to upstream commit `b9ab389`; when upstream advances, rebase the fork.
 - The fix is small (2 files / +131 −7 lines) and backward-compatible (only adds an optional
   kwarg; preserves bool return type).
+
+---
+
+## W2P-002 — robustness patch (2026-05-19)
+
+After W2P-001 was live, two additional failure modes appeared during Phase 1 L1 baseline:
+
+1. **Long cell ops dropped MCP transport.** Running Cell 9 (L1 baseline, ~3 min on CPU)
+   left the Claude Code harness unable to find cell-op tools afterwards: `ToolSearch`
+   succeeded but every `mcp__colab-mcp__get_cells` / `run_code_cell` / etc returned
+   `Unknown tool: <name>`. The colab-mcp process itself was still alive (verified via
+   `Get-Process`). The colab-mcp log showed continued `ListToolsRequest` traffic.
+   Symptom is on the Claude Code harness stdio side; Claude Code restart is required
+   to recover this session.
+
+2. **Tab refresh got rejected.** After F5 reload of the Colab tab to recover the FE,
+   the new WebSocket connection from the reloaded tab found `connection_lock` still
+   held by the now-stale handler and was rejected with close code 1013 ("Server is
+   busy"). The log line `13:40:26 connection open` confirmed the new tab eventually
+   did reconnect on a subsequent retry, but the recovery was non-deterministic.
+
+### Patch (commit in fork, push to QiPan-Ronnie/colab-mcp)
+
+Three changes to `src/colab_mcp/websocket_server.py`:
+
+| Change | Before | After | Why |
+|---|---|---|---|
+| `ping_interval` | default 20 s | **30 s** | Reduce ping traffic during quiet periods |
+| `ping_timeout` | default 20 s | **600 s** | Tolerate 10 min of Colab JS being blocked by a running cell |
+| `max_size` | default 1 MiB | **16 MiB** | Allow large cell outputs (e.g. inline mp4 frames) |
+| `_connection_handler` lock behaviour | reject new conn with 1013 | **displace stale handler** | Tab refresh always succeeds on first try |
+| Connect/disconnect logging | minimal | per-event with reason | Operational visibility for future W2P-XXX issues |
+
+The displace-stale logic clears `connection_live`, closes the existing
+`read_stream_writer`, recreates the stream pair, sleeps 200 ms for the old handler
+to unwind, then acquires the lock for the new connection.
+
+### What this does NOT fix
+
+Claude Code's harness-side stdio loss after a long blocking tool call. The colab-mcp
+process is alive but the harness cannot reach it. This is a Claude Code issue, not a
+colab-mcp issue. **Workaround**: restart Claude Code after long cell ops if MCP tools
+stop working. After restart, `uvx` will rebuild colab-mcp (source hash changed) and
+the new session will pick up the W2P-002 patch automatically.
+
+### Operational rule for this project
+
+- Phase 1 L1 baseline runs are short enough (~3 min) that one long cell is OK.
+- Phase 2 (Pi3/DVGT 7-cam inference) per-frame is ~30 s; per-clip ~5 min. Plan around
+  it: don't expect MCP to drive multi-minute runs reliably. Either (a) launch the cell
+  via MCP then disconnect and have the user check Drive for output, or (b) restart
+  Claude Code between long runs.
+- Whenever the agent sees "Unknown tool: <colab-mcp-name>" after a successful first
+  batch, assume the harness lost the stdio link and prompt the user to restart Claude
+  Code rather than fighting `ToolSearch` re-loads.
