@@ -1,7 +1,8 @@
 # W2P-001 — `colab-mcp` `open_colab_browser_connection` opens new empty notebook
 
-**Status**: Diagnosed, workaround documented, upstream patch sketched.
-**Date**: 2026-05-16
+**Status**: **PATCHED.** Forked + fixed at <https://github.com/QiPan-Ronnie/colab-mcp> (commit `aa6ad7f`, 2026-05-19). Local install also live at `koi chen/tools/colab-mcp/`. Claude Code MCP config switched to local fork. See "Resolution" section at bottom.
+**Date discovered**: 2026-05-16
+**Date patched**: 2026-05-19
 **Discovered during**: Phase 0.5 spike Cell 6 → Cell 7 (when re-establishing MCP connection after losing it briefly).
 
 ## Symptom
@@ -104,3 +105,58 @@ Scanned `googlecolab/colab-mcp` issues #76–#89 (full current list at time of i
   - `src/colab_mcp/websocket_server.py` (single connection_lock, SCRATCH_PATH)
   - `src/colab_mcp/__init__.py` (wiring)
 - Pi3 phase MCP handoff: `../../../01-pi3/agent/pi3_handoff.md` §4.2 (mentions dynamic-tools registration; doesn't mention this bug because Pi3 phase used only one Colab tab session and never re-invoked).
+
+---
+
+## Resolution (2026-05-19)
+
+Cloned upstream `googlecolab/colab-mcp` (at upstream commit `b9ab389`) to
+`koi chen/tools/colab-mcp/` and applied the minimal patch sketched above to
+`src/colab_mcp/session.py`. Patch is committed as `aa6ad7f` in our fork at
+<https://github.com/QiPan-Ronnie/colab-mcp>.
+
+### Patched behavior
+
+`open_colab_browser_connection` now accepts an optional `notebook_url: str | None = None`:
+
+| Call form | Behavior |
+|---|---|
+| `open_colab_browser_connection()` (no arg) | **No new tab opened.** Reports proxy fragment (`#mcpProxyToken=...&mcpProxyPort=...`) via `ctx.report_progress`. User appends fragment to URL of their existing Colab tab and reloads. |
+| `open_colab_browser_connection(notebook_url="https://colab.research.google.com/drive/<ID>")` | Opens that specific notebook with fragment appended. |
+| Already connected (any form) | Returns `True`, no-op. |
+
+The 60-second wait in `ColabProxyMiddleware.on_call_tool` is unchanged.
+
+### Active install
+
+`C:\Users\14294\.claude.json` `mcpServers["colab-mcp"]` was changed from:
+
+```json
+"args": ["git+https://github.com/googlecolab/colab-mcp"]
+```
+
+to (local path):
+
+```json
+"args": [
+  "--from",
+  "D:\\BaiduSyncdisk\\2024 to future\\koi chen\\tools\\colab-mcp",
+  "colab-mcp"
+]
+```
+
+Equivalent GitHub-fork form (if local path becomes inconvenient):
+
+```json
+"args": ["--from", "git+https://github.com/QiPan-Ronnie/colab-mcp", "colab-mcp"]
+```
+
+A Claude Code restart is required after changing the config for the new MCP server to load.
+
+### Future
+
+- Submit upstream PR to `googlecolab/colab-mcp` once we've used the fork in production for
+  a few weeks and have collected feedback.
+- Patch applies only to upstream commit `b9ab389`; when upstream advances, rebase the fork.
+- The fix is small (2 files / +131 −7 lines) and backward-compatible (only adds an optional
+  kwarg; preserves bool return type).
