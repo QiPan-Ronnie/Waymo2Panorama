@@ -1,0 +1,12 @@
+{
+  "id": "test-stability-sleep-180",
+  "created_at": "2026-05-19T16:00:00Z",
+  "purpose": "W2P-004 stability validation: 180s sleep with periodic ticks. Tests that worker pulls within 10s, claims, runs, and updates result.json every ~3s during a multi-minute job. Agent verifies via Drive MCP read_file_content (NO colab-mcp).",
+  "cmd": [
+    "bash",
+    "-c",
+    "echo 'STABILITY TEST STARTED'; date; for i in 1 2 3 4 5 6; do sleep 30; echo \"tick $i at $(date +%H:%M:%S)\"; done; touch /tmp/test-stability-sleep-180.done; echo 'STABILITY TEST DONE'; date"
+  ],
+  "done_marker": "/tmp/test-stability-sleep-180.done",
+  "timeout_s": 300
+}
