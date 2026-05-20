@@ -1,0 +1,14 @@
+{
+  "id": "phase2-dvgt-one-frame-v7",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; export HF_HOME=/content/drive/MyDrive/koi_waymo2pano_colab/hf_cache; LOG_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; DVGT_REPO=/content/code/external/DVGT; [ -d \"$DVGT_REPO/.git\" ] || git clone --depth 1 https://github.com/wzzheng/DVGT.git \"$DVGT_REPO\"; DINO_DIR=$DVGT_REPO/third_party/dinov3; [ -d \"$DINO_DIR/.git\" ] || git clone --depth 1 https://github.com/facebookresearch/dinov3.git \"$DINO_DIR\"; if [ -f \"$DVGT_REPO/requirements.txt\" ]; then pip install -q -r \"$DVGT_REPO/requirements.txt\" 2>&1 | tail -3 || true; fi; pip install -q -r \"$DINO_DIR/requirements.txt\" 2>&1 | tail -3 || true; pip install -q torchmetrics iopath huggingface_hub safetensors av2 pandas scipy 'Pillow>=10' opencv-python einops 2>&1 | tail -3; DINO_CKPT_DIR=$DVGT_REPO/ckpt/dino_v3; DINO_CKPT_FILE=$DINO_CKPT_DIR/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth; mkdir -p \"$DINO_CKPT_DIR\"; if [ ! -f \"$DINO_CKPT_FILE\" ] || [ \"$(stat -c '%s' $DINO_CKPT_FILE 2>/dev/null || echo 0)\" -lt 100000000 ]; then echo '=== authed download of dinov3 ViT-L/16 via huggingface_hub ==='; python -c 'from huggingface_hub import hf_hub_download; import shutil, os; p = hf_hub_download(repo_id=\"facebook/dinov3-vitl16-pretrain-lvd1689m\", filename=\"dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth\"); shutil.copy(p, os.environ[\"DINO_CKPT_FILE\"]); print(\"copied to\", os.environ[\"DINO_CKPT_FILE\"])' 2>&1; fi; export DINO_CKPT_FILE; python -c \"import os; p = os.environ['DINO_CKPT_FILE']; print('dinov3 weight size MB:', os.path.getsize(p)/1024/1024 if os.path.exists(p) else 'MISSING')\"; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/dvgt_one_frame; mkdir -p \"$OUT\"; cd \"$DVGT_REPO\" && python /content/Waymo2Panorama/scripts/phase2/run_dvgt_one_frame.py --log-dir \"$LOG_DIR\" --output-dir \"$OUT\" --dvgt-repo \"$DVGT_REPO\" --w2p-code /content/Waymo2Panorama/code --ckpt-hf-repo RainyNight/DVGT-1 --device cuda 2>&1 | tee /tmp/dvgt-one-frame-v7.log; touch /tmp/phase2-dvgt-one-frame-v7.done"
+  ],
+  "done_marker": "/tmp/phase2-dvgt-one-frame-v7.done",
+  "env": {
+    "DINO_CKPT_FILE": "/content/code/external/DVGT/ckpt/dino_v3/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth"
+  },
+  "timeout_s": 1500,
+  "created_at": "2026-05-20T06:33:19.727473+00:00"
+}
