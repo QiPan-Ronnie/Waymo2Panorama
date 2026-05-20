@@ -1,0 +1,11 @@
+{
+  "id": "phase2-dvgt-one-frame-v4",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; export HF_HOME=/content/drive/MyDrive/koi_waymo2pano_colab/hf_cache; LOG_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; DVGT_REPO=/content/code/external/DVGT; DINO_DIR=$DVGT_REPO/third_party/dinov3; echo '=== installing dinov3 requirements + torchmetrics ==='; pip install -q -r \"$DINO_DIR/requirements.txt\" 2>&1 | tail -10 || echo 'dinov3 requirements had warnings, continuing'; pip install -q torchmetrics 2>&1 | tail -3; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/dvgt_one_frame; mkdir -p \"$OUT\"; cd \"$DVGT_REPO\" && python /content/Waymo2Panorama/scripts/phase2/run_dvgt_one_frame.py --log-dir \"$LOG_DIR\" --output-dir \"$OUT\" --dvgt-repo \"$DVGT_REPO\" --w2p-code /content/Waymo2Panorama/code --ckpt-hf-repo RainyNight/DVGT-1 --device cuda 2>&1 | tee /tmp/dvgt-one-frame-v4.log; touch /tmp/phase2-dvgt-one-frame-v4.done"
+  ],
+  "done_marker": "/tmp/phase2-dvgt-one-frame-v4.done",
+  "timeout_s": 600,
+  "created_at": "2026-05-20T05:38:35.195139+00:00"
+}
