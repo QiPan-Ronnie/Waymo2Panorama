@@ -1,0 +1,12 @@
+{
+  "id": "phase3-p3.1b-batch-cycle-v3",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.1b_cycle; mkdir -p \"$OUT\"; python scripts/phase3/batch_eval_cycle.py --multi-anchor-dir /content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.1_multi_anchor --output-dir \"$OUT\" --eval-script scripts/phase2/eval_cycle_consistency.py --python python 2>&1 | tee /tmp/p3.1b-cycle-v3.log"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.1b_cycle/aggregate.json",
+  "log_path": "/tmp/p3.1b-cycle-v3.log",
+  "timeout_s": 900,
+  "created_at": "2026-05-20T23:29:20.042498+00:00"
+}
