@@ -1,0 +1,11 @@
+{
+  "id": "phase2-pi3-one-frame",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; export HF_HOME=/content/drive/MyDrive/koi_waymo2pano_colab/hf_cache; mkdir -p \"$HF_HOME\"; LOG_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; [ -d \"$LOG_DIR/sensors/cameras/ring_front_center\" ] || { echo 'AV2 log dir missing'; ls /content/drive/MyDrive/koi_waymo2pano_colab/data/ 2>&1; exit 2; }; pip install -q huggingface_hub safetensors plyfile einops av2 pandas scipy 'Pillow>=10' opencv-python 2>&1 | tail -5; PI3_REPO=/content/01-pi3-Pi3; [ -d \"$PI3_REPO\" ] || git clone --depth 1 https://github.com/yyfan2014/Pi3.git \"$PI3_REPO\" 2>/dev/null || git clone --depth 1 https://github.com/yyfz/Pi3.git \"$PI3_REPO\" 2>/dev/null || true; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/pi3_one_frame; mkdir -p \"$OUT\"; cd /content/Waymo2Panorama && python scripts/phase2/run_pi3_one_frame.py --log-dir \"$LOG_DIR\" --output-dir \"$OUT\" --pi3-repo \"$PI3_REPO\" --device cuda 2>&1 | tee /tmp/pi3-one-frame.log; touch /tmp/phase2-pi3-one-frame.done"
+  ],
+  "done_marker": "/tmp/phase2-pi3-one-frame.done",
+  "timeout_s": 900,
+  "created_at": "2026-05-20T05:25:06.509548+00:00"
+}
