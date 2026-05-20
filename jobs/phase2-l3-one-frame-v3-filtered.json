@@ -1,0 +1,11 @@
+{
+  "id": "phase2-l3-one-frame-v3-filtered",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; PI3_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/pi3_one_frame; LOG_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/l3_one_frame_filtered; mkdir -p \"$OUT\"; cd /content/Waymo2Panorama && python scripts/phase2/run_l3_one_frame.py --pi3-dir \"$PI3_DIR\" --log-dir \"$LOG_DIR\" --output-dir \"$OUT\" --anchor-idx 0 --erp-h 1024 --erp-w 2048 --conf-threshold 0.5 --max-distance-m 40 2>&1 | tee /tmp/l3-v3-filtered.log; touch /tmp/phase2-l3-one-frame-v3-filtered.done"
+  ],
+  "done_marker": "/tmp/phase2-l3-one-frame-v3-filtered.done",
+  "timeout_s": 300,
+  "created_at": "2026-05-20T07:07:04.903011+00:00"
+}
