@@ -103,10 +103,11 @@ def main() -> int:
             if ar["mean"] is None:
                 print(f"{b:<10}{'--':>16}{'--':>16}{'--':>16}{'--':>18}{na:>12}")
             else:
-                print(f"{b:<10}{f'{ar[\"mean\"]:.3f}±{ar[\"std\"]:.3f}':>16}"
-                      f"{f'{d1[\"mean\"]:.3f}±{d1[\"std\"]:.3f}':>16}"
-                      f"{f'{bp[\"mean\"]:+.1f}±{bp[\"std\"]:.1f}':>16}"
-                      f"{f'{lm[\"mean\"]:.2f}±{lm[\"std\"]:.2f}':>18}{na:>12}")
+                ar_s = "%.3f+/-%.3f" % (ar["mean"], ar["std"])
+                d1_s = "%.3f+/-%.3f" % (d1["mean"], d1["std"])
+                bp_s = "%+.1f+/-%.1f" % (bp["mean"], bp["std"])
+                lm_s = "%.2f+/-%.2f" % (lm["mean"], lm["std"])
+                print(f"{b:<10}{ar_s:>16}{d1_s:>16}{bp_s:>16}{lm_s:>18}{na:>12}")
     return 0
 
 
