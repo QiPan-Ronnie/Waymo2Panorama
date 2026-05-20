@@ -1,0 +1,12 @@
+{
+  "id": "phase3-w1-trend-viz",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.1b_trends; mkdir -p \"$OUT\"; python scripts/phase3/plot_multi_anchor_trends.py --lidar-aggregate /content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.1b_lidar/aggregate.json --cycle-aggregate /content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.1b_cycle/aggregate.json --output-dir \"$OUT\" 2>&1 | tee /tmp/p3-trends.log"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.1b_trends/cycle_trends.png",
+  "log_path": "/tmp/p3-trends.log",
+  "timeout_s": 120,
+  "created_at": "2026-05-20T23:34:38.794098+00:00"
+}
