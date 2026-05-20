@@ -1,0 +1,11 @@
+{
+  "id": "acq-mcp-v011-verify",
+  "cmd": [
+    "bash",
+    "-c",
+    "echo 'v011 verify start'; date; touch /tmp/acq-mcp-v011-verify.done; echo 'v011 verify done'"
+  ],
+  "done_marker": "/tmp/acq-mcp-v011-verify.done",
+  "timeout_s": 30,
+  "created_at": "2026-05-20T00:42:40.127334+00:00"
+}
