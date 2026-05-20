@@ -57,6 +57,8 @@ def main() -> int:
     ap.add_argument("--w2p-code", default=None)
     ap.add_argument("--skip-l1", action="store_true",
                     help="skip L1 baseline re-render (for faster L3-only iteration)")
+    ap.add_argument("--hybrid-weight-saturate", type=float, default=0.5,
+                    help="L3 weight value at which hybrid uses 100%% L3; below this, blends with L1")
     args = ap.parse_args()
 
     here = Path(__file__).resolve().parent
@@ -159,14 +161,39 @@ def main() -> int:
         l1_erp_u8 = np.clip(l1_rgb, 0, 255).astype(np.uint8)
         Image.fromarray(l1_erp_u8).save(out_dir / "l1_erp.png")
 
-    # ---- 6. Side-by-side comparison ----
+    # ---- 6. Hybrid: L1 as base + L3 override where confident ----
+    hybrid_erp_u8 = None
+    if l1_erp_u8 is not None:
+        # alpha = soft-blend weight in [0, 1]. Use L3 weight saturated at
+        # `hybrid_weight_saturate` so even modest L3 coverage shows through.
+        sat = max(1e-6, args.hybrid_weight_saturate)
+        alpha = np.clip(erp_w / sat, 0.0, 1.0).astype(np.float32)
+        # L1 is in 0..255 float scale (came from L1's pipeline); L3 was 0..1 then *255
+        l1_f = l1_erp_u8.astype(np.float32)
+        l3_f = erp_rgb_u8.astype(np.float32)
+        hybrid = alpha[..., None] * l3_f + (1.0 - alpha[..., None]) * l1_f
+        hybrid_erp_u8 = np.clip(hybrid, 0, 255).astype(np.uint8)
+        Image.fromarray(hybrid_erp_u8).save(out_dir / "hybrid_erp.png")
+        print(f"[l3] wrote hybrid -> {out_dir / 'hybrid_erp.png'}")
+
+    # ---- 7. Three-panel comparison (L1 / L3 / Hybrid) ----
     if l1_erp_u8 is not None:
         gap = 8
         label_h = 40
-        combined_h = label_h + erp_hw[0] + gap + label_h + erp_hw[0]
+        n_panels = 3 if hybrid_erp_u8 is not None else 2
+        combined_h = n_panels * (label_h + erp_hw[0]) + (n_panels - 1) * gap
         combined = np.full((combined_h, erp_hw[1], 3), 32, dtype=np.uint8)
+
+        labels = [
+            "L1 (sphere projection, parallax-naive)",
+            "L3 (Pi3 + Sim3 + lift-and-project, 3D-aware)",
+        ]
+        panels = [l1_erp_u8, erp_rgb_u8]
+        if hybrid_erp_u8 is not None:
+            labels.append(f"Hybrid (L1 base + L3 override, alpha=clip(L3w/{args.hybrid_weight_saturate}))")
+            panels.append(hybrid_erp_u8)
+
         try:
-            # Optionally render labels via PIL
             from PIL import ImageDraw, ImageFont
             img = Image.fromarray(combined)
             draw = ImageDraw.Draw(img)
@@ -174,18 +201,19 @@ def main() -> int:
                 font = ImageFont.truetype("DejaVuSans.ttf", 28)
             except (OSError, IOError):
                 font = ImageFont.load_default()
-            draw.text((10, 5), "L1 (sphere projection, parallax-naive)", fill=(255, 255, 255), font=font)
-            draw.text((10, label_h + erp_hw[0] + gap + 5),
-                      "L3 (Pi3 + Sim3 + lift-and-project, 3D-aware)",
-                      fill=(255, 255, 0), font=font)
-            combined = np.array(img)  # copy, not view (asarray of PIL is read-only)
+            colors = [(255, 255, 255), (255, 255, 0), (0, 255, 200)]
+            for i, label in enumerate(labels):
+                y = i * (label_h + erp_hw[0] + gap) + 5
+                draw.text((10, y), label, fill=colors[i % len(colors)], font=font)
+            combined = np.array(img)
         except Exception:
             pass
-        combined[label_h:label_h + erp_hw[0]] = l1_erp_u8
-        combined[label_h + erp_hw[0] + gap + label_h:
-                 label_h + erp_hw[0] + gap + label_h + erp_hw[0]] = erp_rgb_u8
+
+        for i, panel in enumerate(panels):
+            y0 = i * (label_h + erp_hw[0] + gap) + label_h
+            combined[y0:y0 + erp_hw[0]] = panel
         Image.fromarray(combined).save(out_dir / "l1_vs_l3.png")
-        print(f"[l3] wrote side-by-side -> {out_dir / 'l1_vs_l3.png'}")
+        print(f"[l3] wrote 3-panel comparison -> {out_dir / 'l1_vs_l3.png'}")
 
     # ---- 7. Summary JSON ----
     summary = {
