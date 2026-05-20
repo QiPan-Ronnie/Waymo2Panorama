@@ -1,0 +1,11 @@
+{
+  "id": "phase2-hf-auth-probe",
+  "cmd": [
+    "bash",
+    "-c",
+    "echo '=== huggingface-cli whoami ==='; huggingface-cli whoami 2>&1; echo '=== gated model probe (HEAD only, no full download) ==='; python -c \"from huggingface_hub import HfApi, hf_hub_download; api=HfApi(); print('whoami:', api.whoami() if api.whoami() else 'not logged in'); import os; print('TOKEN env present:', 'HF_TOKEN' in os.environ); print('cached token file exists:', os.path.exists(os.path.expanduser('~/.cache/huggingface/token')))\" 2>&1; touch /tmp/phase2-hf-auth-probe.done"
+  ],
+  "done_marker": "/tmp/phase2-hf-auth-probe.done",
+  "timeout_s": 60,
+  "created_at": "2026-05-20T06:18:09.989175+00:00"
+}
