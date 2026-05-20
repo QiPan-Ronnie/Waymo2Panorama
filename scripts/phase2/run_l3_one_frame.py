@@ -57,8 +57,15 @@ def main() -> int:
     ap.add_argument("--w2p-code", default=None)
     ap.add_argument("--skip-l1", action="store_true",
                     help="skip L1 baseline re-render (for faster L3-only iteration)")
+    ap.add_argument("--hybrid-mask-threshold", type=float, default=0.05,
+                    help="L3 weight above this -> use L3 (hard binary mask); below -> use L1. "
+                         "Lower = more L3 coverage. Soft blend introduces double-images "
+                         "when L1 and L3 place objects at different ERP locations, so we use hard mask.")
+    ap.add_argument("--hybrid-dilate-px", type=int, default=2,
+                    help="dilate L3 mask by this many pixels to ensure L3 fully covers each object "
+                         "(prevents leakage of L1's misplaced version around L3's correct version)")
     ap.add_argument("--hybrid-weight-saturate", type=float, default=0.5,
-                    help="L3 weight value at which hybrid uses 100%% L3; below this, blends with L1")
+                    help="(unused after hard-mask refactor; kept for arg compat)")
     args = ap.parse_args()
 
     here = Path(__file__).resolve().parent
@@ -161,19 +168,40 @@ def main() -> int:
         l1_erp_u8 = np.clip(l1_rgb, 0, 255).astype(np.uint8)
         Image.fromarray(l1_erp_u8).save(out_dir / "l1_erp.png")
 
-    # ---- 6. Hybrid: L1 as base + L3 override where confident ----
+    # ---- 6. Hybrid: L1 as base + L3 hard override where confident ----
+    #
+    # IMPORTANT: do NOT soft-alpha-blend L1 and L3 — they place the same physical
+    # object at different ERP locations (that's the whole point of L3), so a
+    # naive blend produces visible double-images ("two white cars" failure mode).
+    # Use a hard binary mask instead: where L3 has confident content, fully
+    # replace L1; otherwise keep L1. Optional dilation softens the seam.
     hybrid_erp_u8 = None
+    hybrid_mask = None
     if l1_erp_u8 is not None:
-        # alpha = soft-blend weight in [0, 1]. Use L3 weight saturated at
-        # `hybrid_weight_saturate` so even modest L3 coverage shows through.
-        sat = max(1e-6, args.hybrid_weight_saturate)
-        alpha = np.clip(erp_w / sat, 0.0, 1.0).astype(np.float32)
-        # L1 is in 0..255 float scale (came from L1's pipeline); L3 was 0..1 then *255
-        l1_f = l1_erp_u8.astype(np.float32)
-        l3_f = erp_rgb_u8.astype(np.float32)
-        hybrid = alpha[..., None] * l3_f + (1.0 - alpha[..., None]) * l1_f
-        hybrid_erp_u8 = np.clip(hybrid, 0, 255).astype(np.uint8)
+        l3_mask = erp_w > args.hybrid_mask_threshold
+
+        if args.hybrid_dilate_px > 0:
+            try:
+                import cv2  # noqa: PLC0415
+                k = args.hybrid_dilate_px
+                kernel = np.ones((2 * k + 1, 2 * k + 1), dtype=np.uint8)
+                l3_mask_dil = cv2.dilate(l3_mask.astype(np.uint8), kernel).astype(bool)
+            except Exception:
+                l3_mask_dil = l3_mask
+        else:
+            l3_mask_dil = l3_mask
+
+        # Hard override: L3 wins on mask, else L1
+        hybrid = np.where(l3_mask_dil[..., None], erp_rgb_u8, l1_erp_u8)
+        hybrid_erp_u8 = hybrid.astype(np.uint8)
+        hybrid_mask = l3_mask_dil
         Image.fromarray(hybrid_erp_u8).save(out_dir / "hybrid_erp.png")
+        # Save the mask too (for debugging)
+        mask_vis = (l3_mask_dil.astype(np.uint8) * 255)
+        Image.fromarray(mask_vis).save(out_dir / "hybrid_mask.png")
+        coverage = float(l3_mask_dil.sum()) / l3_mask_dil.size
+        print(f"[l3] hybrid mask coverage: {coverage:.3%} (threshold={args.hybrid_mask_threshold}, "
+              f"dilate={args.hybrid_dilate_px}px)")
         print(f"[l3] wrote hybrid -> {out_dir / 'hybrid_erp.png'}")
 
     # ---- 7. Three-panel comparison (L1 / L3 / Hybrid) ----
@@ -190,7 +218,7 @@ def main() -> int:
         ]
         panels = [l1_erp_u8, erp_rgb_u8]
         if hybrid_erp_u8 is not None:
-            labels.append(f"Hybrid (L1 base + L3 override, alpha=clip(L3w/{args.hybrid_weight_saturate}))")
+            labels.append(f"Hybrid (L1 base, L3 HARD override where weight > {args.hybrid_mask_threshold}, dilate {args.hybrid_dilate_px}px)")
             panels.append(hybrid_erp_u8)
 
         try:
