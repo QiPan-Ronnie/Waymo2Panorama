@@ -1,0 +1,11 @@
+{
+  "id": "acq-stress-3-longcmd",
+  "cmd": [
+    "bash",
+    "-c",
+    "for i in 1 2 3 4 5; do echo step $i; sleep 2; done; touch /tmp/acq-stress-3-longcmd.done"
+  ],
+  "done_marker": "/tmp/acq-stress-3-longcmd.done",
+  "timeout_s": 60,
+  "created_at": "2026-05-20T01:07:26.791361+00:00"
+}
