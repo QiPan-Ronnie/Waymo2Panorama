@@ -164,6 +164,7 @@
 
 | Date (UTC) | Update |
 |---|---|
+| 2026-05-20 23:14 | **Phase 3 启动 + P3.3 完成 (CPU)**: depth-binned metrics 证实 Pi3 系统性低估**不是** P2.11 selection-bias 假说, 是真有 depth-dependent 压缩 — bias -12.8% (近场) → -33.8% (远场)。 `notes/phase3_progress_partial.md` + `scripts/phase3/`。 P3.1 multi-anchor Pi3 等 A100 (probe 显示当前是 CPU runtime)。 |
 | 2026-05-20 22:51 | **P2.11 Pi3 vs LiDAR 完成**: 99k 匹配点, overall abs_rel 0.215, RMSE 7.70m, δ<1.25 65.3%。 关键发现 Pi3 系统性低估 ~25%, 近场 (<15m) δ<1.25≈0.9 (SOTA 级), 远场 (>20m) 跌到 0.22-0.58。 `notes/pi3_vs_lidar_report.md` + `scripts/phase2/eval_pi3_vs_lidar.py`。 Colab CPU 43.7s。 |
 | 2026-05-20 09:01 | **P2.7 cycle-consistency 完成**: L1 mean PSNR 11.78 vs L3 8.65 → -3.13 dB, L3 量化也输给 L1。 写 `notes/l3_evaluation_report.md`, tag `v0.2-l3-mvp`, Phase 2 主线收官。 |
 | 2026-05-20 08:45 | 给 Koi 的 week-1 handoff PDF 完成 (含图嵌入)。 完整版 + 精简版双输出。 `deliverables/_render_pdf.py` 自动化渲染脚本。 |
