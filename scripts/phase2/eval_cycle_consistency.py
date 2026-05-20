@@ -237,11 +237,15 @@ def _make_bars_png(
     psnr_l3: list[float],
     out_path: Path,
 ) -> None:
-    """Cheap horizontal bar chart without matplotlib. Each row: cam name + L1 bar (white) + L3 bar (yellow)."""
+    """Cheap horizontal bar chart without matplotlib. Each row: cam name + L1 bar (white) + L3 bar (yellow).
+    NaN-safe: a NaN PSNR (degenerate cam with zero intersection mask) is drawn as zero-length bar with 'nan' label.
+    """
     cell_h = 30
     name_w = 240
     bar_w = 400
-    max_psnr = max(max(psnr_l1, default=0), max(psnr_l3, default=0), 30.0)
+    finite_l1 = [v for v in psnr_l1 if isinstance(v, (int, float)) and np.isfinite(v)]
+    finite_l3 = [v for v in psnr_l3 if isinstance(v, (int, float)) and np.isfinite(v)]
+    max_psnr = max(max(finite_l1, default=0), max(finite_l3, default=0), 30.0)
     H = (len(cams) + 2) * cell_h + 40
     W = name_w + bar_w * 2 + 40
     img = Image.new("RGB", (W, H), color=(20, 20, 24))
@@ -257,12 +261,16 @@ def _make_bars_png(
     for i, cam in enumerate(cams):
         y = 50 + i * cell_h
         draw.text((10, y + 4), cam, fill=(220, 220, 220), font=font)
-        l1_len = int(bar_w * psnr_l1[i] / max_psnr)
+        l1v = psnr_l1[i]
+        l1_finite = isinstance(l1v, (int, float)) and np.isfinite(l1v)
+        l1_len = int(bar_w * l1v / max_psnr) if l1_finite else 0
         draw.rectangle([(name_w, y), (name_w + l1_len, y + cell_h // 2 - 2)], fill=(240, 240, 240))
-        draw.text((name_w + l1_len + 6, y), f"{psnr_l1[i]:.2f}", fill=(200, 200, 200), font=font)
-        l3_len = int(bar_w * psnr_l3[i] / max_psnr)
+        draw.text((name_w + l1_len + 6, y), f"{l1v:.2f}" if l1_finite else "nan", fill=(200, 200, 200), font=font)
+        l3v = psnr_l3[i]
+        l3_finite = isinstance(l3v, (int, float)) and np.isfinite(l3v)
+        l3_len = int(bar_w * l3v / max_psnr) if l3_finite else 0
         draw.rectangle([(name_w, y + cell_h // 2 + 2), (name_w + l3_len, y + cell_h - 2)], fill=(255, 220, 70))
-        draw.text((name_w + l3_len + 6, y + cell_h // 2 + 2), f"{psnr_l3[i]:.2f}", fill=(255, 200, 100), font=font)
+        draw.text((name_w + l3_len + 6, y + cell_h // 2 + 2), f"{l3v:.2f}" if l3_finite else "nan", fill=(255, 200, 100), font=font)
     img.save(out_path)
 
 

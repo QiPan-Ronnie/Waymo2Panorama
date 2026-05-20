@@ -54,7 +54,8 @@ def main() -> int:
         per_anchor[anchor_idx] = metrics
         if "mean" in metrics:
             m = metrics["mean"]
-            print(f"  L1 PSNR={m.get('psnr_l1', 'NA')} L3 PSNR={m.get('psnr_l3', 'NA')}")
+            print(f"  L1 PSNR={m.get('PSNR_L1', 'NA')} L3 PSNR={m.get('PSNR_L3', 'NA')} "
+                  f"d={m.get('PSNR_delta_L3_minus_L1', 'NA')}")
 
     out = {
         "n_anchors": len(per_anchor),
