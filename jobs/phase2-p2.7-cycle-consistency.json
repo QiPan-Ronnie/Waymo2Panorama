@@ -1,0 +1,11 @@
+{
+  "id": "phase2-p2.7-cycle-consistency",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; pip install -q scikit-image 2>&1 | tail -3; PI3_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/pi3_one_frame; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/cycle_consistency; mkdir -p \"$OUT\"; cd /content/Waymo2Panorama && python scripts/phase2/eval_cycle_consistency.py --pi3-dir \"$PI3_DIR\" --output-dir \"$OUT\" --conf-threshold 0.3 --min-distance-m 0.5 --max-distance-m 60 --save-recon-pngs 2>&1 | tee /tmp/cycle.log; touch /tmp/phase2-p2.7-cycle-consistency.done"
+  ],
+  "done_marker": "/tmp/phase2-p2.7-cycle-consistency.done",
+  "timeout_s": 600,
+  "created_at": "2026-05-20T08:58:33.998453+00:00"
+}
