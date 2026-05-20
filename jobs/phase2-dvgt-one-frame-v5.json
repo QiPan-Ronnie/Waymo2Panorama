@@ -1,0 +1,11 @@
+{
+  "id": "phase2-dvgt-one-frame-v5",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; export HF_HOME=/content/drive/MyDrive/koi_waymo2pano_colab/hf_cache; LOG_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; DVGT_REPO=/content/code/external/DVGT; DINO_CKPT_DIR=$DVGT_REPO/ckpt/dino_v3; DINO_CKPT_FILE=$DINO_CKPT_DIR/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth; mkdir -p \"$DINO_CKPT_DIR\"; if [ ! -f \"$DINO_CKPT_FILE\" ]; then echo '=== downloading dinov3 ViT-L/16 weights ==='; for URL in https://dl.fbaipublicfiles.com/dinov3/dinov3_vitl16/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth https://huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m/resolve/main/pytorch_model.bin; do echo \"trying $URL\"; if wget -q -O \"$DINO_CKPT_FILE\" \"$URL\"; then SZ=$(stat -c '%s' \"$DINO_CKPT_FILE\" 2>/dev/null || echo 0); if [ \"$SZ\" -gt 10000000 ]; then echo \"downloaded $URL size=$SZ\"; break; else echo \"too small ($SZ bytes), trying next\"; rm -f \"$DINO_CKPT_FILE\"; fi; fi; done; fi; [ -f \"$DINO_CKPT_FILE\" ] && [ \"$(stat -c '%s' $DINO_CKPT_FILE)\" -gt 10000000 ] || { echo 'dinov3 weights could not be downloaded'; exit 5; }; echo 'dinov3 weights present:'; ls -la \"$DINO_CKPT_FILE\"; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/dvgt_one_frame; mkdir -p \"$OUT\"; cd \"$DVGT_REPO\" && python /content/Waymo2Panorama/scripts/phase2/run_dvgt_one_frame.py --log-dir \"$LOG_DIR\" --output-dir \"$OUT\" --dvgt-repo \"$DVGT_REPO\" --w2p-code /content/Waymo2Panorama/code --ckpt-hf-repo RainyNight/DVGT-1 --device cuda 2>&1 | tee /tmp/dvgt-one-frame-v5.log; touch /tmp/phase2-dvgt-one-frame-v5.done"
+  ],
+  "done_marker": "/tmp/phase2-dvgt-one-frame-v5.done",
+  "timeout_s": 900,
+  "created_at": "2026-05-20T05:40:42.809018+00:00"
+}
