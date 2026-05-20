@@ -1,0 +1,11 @@
+{
+  "id": "phase2-hf-auth-probe-v2",
+  "cmd": [
+    "bash",
+    "-c",
+    "echo 'HF_TOKEN in env:' ${HF_TOKEN:+yes ($(echo $HF_TOKEN | head -c 4)...$(echo $HF_TOKEN | tail -c 5))} ${HF_TOKEN:-no}; python -c \"from huggingface_hub import HfApi; api=HfApi(); info=api.whoami(); print('logged in as:', info.get('name', '?'), 'type:', info.get('type', '?'))\" 2>&1; touch /tmp/phase2-hf-auth-probe-v2.done"
+  ],
+  "done_marker": "/tmp/phase2-hf-auth-probe-v2.done",
+  "timeout_s": 30,
+  "created_at": "2026-05-20T06:31:11.157625+00:00"
+}
