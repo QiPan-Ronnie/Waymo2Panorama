@@ -1,7 +1,7 @@
 # Waymo2Panorama Progress
 
-> **Latest: 2026-05-20 ~08:45 UTC** — Phase 2 主线推进结束, week-1 交付完成。
-> Phase 1 (L1) ✅ · Phase 2 D1 (Pi3 vs DVGT → **Pi3 胜**) ✅ · Phase 2 P2.3-P2.5 (Sim3 + lift_and_project + .ply) ✅ · Phase 2 P2.6 (L1 vs L3 视觉) ⚠️ **negative finding (forward-splat 不优于 L1, L3 价值在下游)** · 交付 PDF (`deliverables/`) ✅。 **下周: Cycle-consistency 量化评估 (P2.7)**。
+> **Latest: 2026-05-20 ~09:01 UTC** — **Phase 2 主线全部完成 (tag `v0.2-l3-mvp`)**。
+> Phase 1 (L1) ✅ · Phase 2 D1 (Pi3 vs DVGT → **Pi3 胜**) ✅ · Phase 2 P2.3-P2.5 (Sim3 + lift_and_project + .ply) ✅ · Phase 2 P2.6 (L1 vs L3 视觉) ⚠️ negative · **Phase 2 P2.7 (cycle-consistency 量化) ✅ — L3 mean PSNR 8.65 vs L1 11.78, ΔPSNR = -3.13 dB → L3 forward-splat 量化也输**。 P2.9 evaluation report + P2.10 tag 完成。 **下周: Pi3 vs LiDAR GT depth + 多 sequence 扩展 + 寻找 parallax-heavy frame**。
 
 ---
 
@@ -18,10 +18,10 @@
 | 2 P2.4 | `code/.../alignment/sim3_align.py` (Umeyama) | ✅ COMPLETE |
 | 2 P2.5 | `code/.../pipeline/lift_and_project.py` + `.ply` 导出 | ✅ COMPLETE |
 | 2 P2.6 | L1 vs L3 视觉对比 | ⚠️ **结论 negative**: forward-splat ERP 不优于 L1, 详见 §"L3 探索结论" |
-| 2 P2.7 | Cycle-consistency PSNR/SSIM/LPIPS | ⏸️ **NEXT — 下周做** |
-| 2 P2.8 | 多帧 temporal smoothing | ⏸️ pending |
-| 2 P2.9 | `outputs/l3_evaluation_report.md` | ⏸️ pending |
-| 2 P2.10 | tag `v0.2-l3-mvp` | ⏸️ pending |
+| **2 P2.7** | **Cycle-consistency PSNR/SSIM/MAE** | ✅ **DONE 2026-05-20**: L3 mean PSNR 8.65 vs L1 11.78 → **ΔPSNR = -3.13 dB**, L3 输 7/7 cam (除 front_center 微胜 0.26 dB)。 forward-splat 量化也确认输给 L1。 |
+| 2 P2.8 | 多帧 temporal smoothing | ⏸️ skipped — 单帧已得出 L3 forward-splat 不优结论, 多帧不会改变 |
+| **2 P2.9** | **`notes/l3_evaluation_report.md`** | ✅ **DONE 2026-05-20** |
+| **2 P2.10** | **tag `v0.2-l3-mvp`** | ✅ **DONE 2026-05-20** — Phase 2 主线收官 |
 | 3 | OmniStitch baseline + 多 sequence + diffusion polish + D8 paper 角度 | ⏸️ 未启动 |
 | 4 | Pantheon360 集成 + Waymo Track B | ⏸️ 未启动 |
 | 5 | Paper / follow-up spec | ⏸️ 未启动 |
@@ -60,6 +60,7 @@
 | Pi3 K-recovery 误差 vs AV2 真值 | +0.06% ~ +2.08% (mean ~1%) |
 | **Sim(3) 对齐残差** | **mean 0.157 m, max 0.218 m, scale 1.0346** |
 | L3 .ply | 690,360 colored 3D 点, 9.9 MB |
+| **P2.7 cycle-consistency mean** | **L1 PSNR 11.78 vs L3 PSNR 8.65 → -3.13 dB**, L1 wins 7/7 cam on SSIM/MAE |
 | DVGT 尝试 | 8 次 (v1-v8), 全失败, 详见 §DVGT 失败原因 |
 
 ---
@@ -139,15 +140,18 @@
 
 ---
 
-## 下周计划 (Tier 排序)
+## 下周计划 (Tier 排序, P2.7 完成后更新)
 
 | Tier | 任务 | 估时 |
 |---|---|---|
-| **1** | **P2.7 Cycle-consistency 评估** — hold-out 1 cam, L1/L3 重建 PSNR/SSIM/LPIPS, 7×2 表 | 1 天 |
-| **1** | **Pi3 vs LiDAR GT depth 对比** — AV2 自带 LiDAR, 投到 cam 算 absolute relative error | 1 天 |
-| 2 | 多 sequence 扩展 (现在只 1 log × 1 anchor) | 2-3 天 |
-| 2 | Phase 3 OmniStitch baseline 接入 (Track D) | 2 天 |
-| 3 | 3DGS / proper raycast L3 ERP (Phase 4 候选) | 1-2 周 |
+| **1** | **Pi3 vs LiDAR GT depth 对比** — AV2 自带 LiDAR, 投到 cam 算 absolute relative error。 给 Pi3 几何精度一个 ground-truth-anchored 数字 | 1 天 |
+| **1** | **多 sequence 扩展** — 现在只 1 log × 1 anchor, 扩到 1 log × 10 anchors (一段 5s) + 3 log 共 30 anchors。 验证 L1/L3 metric 的 frame-to-frame variance | 2-3 天 |
+| **1** | **寻找 parallax-heavy frame** — 系统扫 frame, 找近物 + cam 重叠区, 给 L3 真正有机会的场景 | 1 天 |
+| 2 | Phase 3 OmniStitch baseline (Track D) — 三方对比 L1 / OmniStitch / L3 | 2 天 |
+| 2 | Argus / Percep360 diffusion polish — 填 ERP 上下黑边 + 接缝 | 2 天 |
+| 2 | D8 paper angle 决定 — 看 Phase 3 数据 | 关键决策点 |
+| 3 | 3DGS / proper raycast L3 ERP (Phase 4 候选) — 让 L3 视觉真正超 L1 | 1-2 周 |
+| 4 | Pantheon360 集成 (Phase 4) + Waymo Track B 启动 | Phase 4 |
 
 ---
 
@@ -155,6 +159,7 @@
 
 | Date (UTC) | Update |
 |---|---|
+| 2026-05-20 09:01 | **P2.7 cycle-consistency 完成**: L1 mean PSNR 11.78 vs L3 8.65 → -3.13 dB, L3 量化也输给 L1。 写 `notes/l3_evaluation_report.md`, tag `v0.2-l3-mvp`, Phase 2 主线收官。 |
 | 2026-05-20 08:45 | 给 Koi 的 week-1 handoff PDF 完成 (含图嵌入)。 完整版 + 精简版双输出。 `deliverables/_render_pdf.py` 自动化渲染脚本。 |
 | 2026-05-20 07:35 | L3 `.ply` point cloud 导出脚本 + per-view depth maps。 690K colored 3D 点。 用户本地 Open3D 验证可视化 (`scripts/phase2/view_pointcloud.py`)。 |
 | 2026-05-20 07:00-07:20 | L3 ERP 视觉迭代: raw → strict filter → soft blend hybrid → hard mask hybrid。 negative 结论: forward-splat 不优于 L1。 |
