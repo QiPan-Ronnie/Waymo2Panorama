@@ -78,7 +78,8 @@
 | **P3.1b cycle 10-anchor mean** | **L1 PSNR 12.34 ± 1.31, L3 PSNR 9.19 ± 1.18, ΔPSNR -3.15 ± 0.72** (L3 loses 10/10) |
 | **P3.1b best anchor** | 180: abs_rel 0.139, δ<1.25 0.866 (≈KITTI-tuned SOTA) |
 | **P3.1b worst anchor** | 270: abs_rel 0.283, δ<1.25 0.412 |
-| **P3.3 depth-bin bias** | -12.8% (<5m) → -33.8% (>40m), 单调恶化 → Pi3 真有 depth-dependent 压缩 |
+| **P3.3 depth-bin bias** (anchor 0) | -12.8% (<5m) → -33.8% (>40m), 单调恶化 → Pi3 真有 depth-dependent 压缩 |
+| **P3.3 depth-bin bias** (10-anchor mean) | -10.2% ± 11.2 (<5m) → -23.7% ± 6.8 (>40m), 单调模式 10/10 anchor 都成立, slope 结构性 |
 | DVGT 尝试 | 8 次 (v1-v8), 全失败, 详见 §DVGT 失败原因 |
 
 ---

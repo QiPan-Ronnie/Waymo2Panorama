@@ -164,6 +164,54 @@ We can now make four ground-truth-anchored, multi-anchor-validated claims about 
 
 ---
 
+## 6.5 Addendum — Bonus runs (after main report committed)
+
+### Visual: per-anchor trend plots (commit `dfbbc39`)
+
+Two 4-panel and 2-panel PNGs were rendered via `scripts/phase3/plot_multi_anchor_trends.py`:
+
+| File | Content |
+|---|---|
+| `outputs/phase3/p3.1b_trends/lidar_trends.png` | abs_rel / RMSE / δ-thresholds / Pi3 vs LiDAR mean depth, per-anchor with ±1σ band |
+| `outputs/phase3/p3.1b_trends/cycle_trends.png` | L1 vs L3 PSNR side-by-side + ΔPSNR bar chart with mean line |
+
+These visuals make the "L3 loses 10/10" and "Pi3 depth quality is anchor-dependent" stories one-glance readable.
+
+### Multi-anchor depth-binned eval — P3.3 generalizes (commit `4ef4d9a`)
+
+P3.3 was originally run only on anchor 0 (single frame). The follow-up question was whether the **depth-dependent bias slope** is anchor-specific or structural to Pi3.
+
+Re-ran `eval_pi3_lidar_binned.py` on all 10 anchors and aggregated:
+
+| LiDAR bin (m) | abs_rel μ±σ | δ<1.25 μ±σ | **Bias % μ±σ** | n_anchors |
+|---|---:|---:|---:|---:|
+| [0.5, 5) | 0.205 ± 0.073 | 0.711 ± 0.307 | **−10.2 ± 11.2** | 10 |
+| [5, 10) | 0.177 ± 0.048 | 0.773 ± 0.152 | **−16.3 ± 5.8** | 10 |
+| [10, 20) | 0.223 ± 0.055 | 0.639 ± 0.164 | **−20.2 ± 6.7** | 10 |
+| [20, 40) | 0.212 ± 0.058 | 0.633 ± 0.218 | **−21.1 ± 5.8** | 10 |
+| [40, 60) | 0.237 ± 0.069 | 0.547 ± 0.237 | **−23.7 ± 6.8** | 10 |
+
+**Findings**:
+
+1. **The monotonic bias-with-depth pattern holds in 10/10 anchors**. Slope is structural: from −10% (near) to −24% (far) on average. Std/|mean| ratio is 25-110% — there is variance, but the *direction* is unambiguous.
+
+2. **Anchor 0 was on the heavier side at far range** (−33.8% at >40m vs typical −23.7%) — i.e., the single-frame P3.3 report over-stated the worst case. Mean far-field bias is *only* −24%, not −34%. Still bad enough that Pantheon360 / 3DGS far-field consumers need LiDAR fusion.
+
+3. **abs_rel is roughly flat across bins** (0.18 - 0.24) because absolute error scales with distance, so the relative form normalizes. This is why **δ thresholds are the better quality signal** for spotting the monocular cliff.
+
+4. The bin [0.5, 5) has the *largest* std on bias (±11.2%) — likely because few near-field LiDAR points per anchor, so per-anchor estimates are noisy. The far bin std is small (±6.8%), so the −24% mean far bias is well-estimated.
+
+| File | Description |
+|---|---|
+| Drive: `outputs/phase3/p3.3_binned_multi_anchor/aggregate_binned.json` | Full per-anchor + per-bin aggregate |
+| Drive: `outputs/phase3/p3.3_binned_multi_anchor/anchor_<idx>/binned_metrics.{json,png}` | Per-anchor 10 sub-results |
+
+### Bug fixed in `batch_eval_binned.py` (commit `4ef4d9a`)
+
+First submission crashed with `SyntaxError: unexpected character after line continuation` from nested f-string with escaped quotes (`f'{ar[\"mean\"]:.3f}±{ar[\"std\"]:.3f}'` inside another f-string). Replaced with `%`-formatting via intermediate variables; same content, less parse risk.
+
+---
+
 ## 7. Files
 
 | File | Description |
@@ -173,11 +221,15 @@ We can now make four ground-truth-anchored, multi-anchor-validated claims about 
 | `scripts/phase3/batch_eval_cycle.py` | Wraps `eval_cycle_consistency.py` over anchor_*/ |
 | `scripts/phase3/eval_pi3_lidar_binned.py` | P3.3 depth-binned Pi3 vs LiDAR (CPU) |
 | `scripts/phase3/probe_runtime.py` | Reports GPU/CPU/memory for routing |
+| `scripts/phase3/plot_multi_anchor_trends.py` | Trend PNG renderer for §6.5 |
+| `scripts/phase3/batch_eval_binned.py` | Multi-anchor depth-bin batch for §6.5 |
 | `scripts/phase2/eval_cycle_consistency.py` | Cycle-consistency (now NaN-safe, commit `aeaeb0a`) |
 | Drive: `outputs/phase3/p3.1_multi_anchor/anchor_<idx>/` | Per-anchor Pi3 outputs (10 dirs) |
 | Drive: `outputs/phase3/p3.1b_lidar/aggregate.json` | Per-anchor + agg LiDAR metrics |
 | Drive: `outputs/phase3/p3.1b_cycle/aggregate.json` | Per-anchor cycle metrics |
-| Drive: `outputs/phase3/p3.3_binned_anchor0/` | P3.3 depth-binned (json + png) |
+| Drive: `outputs/phase3/p3.3_binned_anchor0/` | P3.3 depth-binned (anchor 0 single, json + png) |
+| Drive: `outputs/phase3/p3.3_binned_multi_anchor/` | P3.3 depth-binned over all 10 anchors (§6.5) |
+| Drive: `outputs/phase3/p3.1b_trends/{lidar_trends,cycle_trends}.png` | Per-anchor trend plots (§6.5) |
 | `notes/pi3_vs_lidar_report.md` | P2.11 single anchor (companion) |
 | `notes/l3_evaluation_report.md` | P2.7 single anchor (companion) |
 | `notes/phase3_progress_partial.md` | Interim (P3.3 only) — kept for history |
