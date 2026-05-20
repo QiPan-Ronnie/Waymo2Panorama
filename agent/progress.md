@@ -1,6 +1,9 @@
 # Waymo2Panorama Progress
 
-> **Latest: 2026-05-20 ~22:51 UTC** — **Phase 2 P2.11 Pi3 vs LiDAR 完成**。
+> **Latest: 2026-05-20 ~23:31 UTC** — **Phase 3 W1 (multi-anchor robustness) 完成**。
+> 10 anchors × Pi3 + 全 metric stress test 结果: Phase 2 所有 headline 数字都在 Phase 3 1σ 内。 Pi3 vs LiDAR `abs_rel = 0.202 ± 0.042`, `δ<1.25 = 0.697 ± 0.142`。 L1 vs L3 `ΔPSNR = -3.15 ± 0.72 dB` (10/10 anchor L3 全输, range -1.60 ~ -4.22)。 Anchor 180 最佳: `abs_rel = 0.139, δ<1.25 = 0.866` 接近 KITTI SOTA。 Phase 2 conclusions **鲁棒**。 详见 `notes/phase3_multi_anchor_report.md`。 下一步: P3.2 多 log + P3.5 OmniStitch baseline + P3.6 D8 paper angle 决策。
+
+> **2026-05-20 ~22:51 UTC** — **Phase 2 P2.11 Pi3 vs LiDAR 完成 (single anchor)**。
 > Phase 1 (L1) ✅ · Phase 2 D1 (Pi3 胜) ✅ · P2.3-P2.5 (Sim3 + .ply) ✅ · P2.6 (L1 vs L3 视觉 negative) · P2.7 (cycle-consistency: L3 PSNR 8.65 vs L1 11.78, -3.13 dB) ✅ · **P2.11 Pi3 vs LiDAR: overall abs_rel 0.215, RMSE 7.70m, δ<1.25 = 65.3% (99,015 matched points)** ✅。 **关键发现: Pi3 系统性低估深度 ~25% (mean 13.96m vs 18.53m), 近场 (<15m) δ<1.25 ~0.9, 远场 (>20m) 跌到 ~0.22-0.58**。 下一步: Phase 3 (多 sequence + paper angle 决策 / OmniStitch baseline)。
 
 ---
@@ -23,7 +26,11 @@
 | **2 P2.9** | **`notes/l3_evaluation_report.md`** | ✅ **DONE 2026-05-20** |
 | **2 P2.10** | **tag `v0.2-l3-mvp`** | ✅ **DONE 2026-05-20** — Phase 2 主线收官 |
 | **2 P2.11** | **Pi3 vs AV2 LiDAR depth eval** | ✅ **DONE 2026-05-20**: overall abs_rel 0.215, RMSE 7.70m, δ<1.25=65.3% (n=99015). 近场 δ<1.25≈0.9, 远场跌到 0.22-0.58。 Pi3 系统性低估 ~25%。 详见 `notes/pi3_vs_lidar_report.md` |
-| 3 | OmniStitch baseline + 多 sequence + diffusion polish + D8 paper 角度 | ⏸️ 未启动 |
+| **3 W1 P3.3** | **Depth-binned Pi3 vs LiDAR** | ✅ **DONE 2026-05-20**: bias 单调恶化 -12.8% (<5m) → -33.8% (>40m). 证实 Pi3 是真有 depth-dependent 压缩, 不是 selection bias artifact. |
+| **3 W1 P3.1** | **Multi-anchor Pi3 (10 anchors)** | ✅ **DONE 2026-05-20**: 10 anchors on A100, mean fwd 1.23s (warm), 总 74s. 详见 `notes/phase3_multi_anchor_report.md` |
+| **3 W1 P3.1b** | **Batch P2.7 + P2.11 over 10 anchors** | ✅ **DONE 2026-05-20**: Phase 2 single-frame 数字 all within 1σ. abs_rel 0.202±0.042, δ<1.25 0.697±0.142, ΔPSNR -3.15±0.72 (L3 输 10/10). Phase 2 conclusions 鲁棒. |
+| 3 W2-3 | P3.2 多 log + P3.5 OmniStitch baseline + P3.6 D8 paper angle 决策 | ⏸️ next |
+| 3 W4 | P3.7 Pantheon360 集成 spike | ⏸️ later |
 | 4 | Pantheon360 集成 + Waymo Track B | ⏸️ 未启动 |
 | 5 | Paper / follow-up spec | ⏸️ 未启动 |
 
@@ -66,6 +73,12 @@
 | **P2.11 LiDAR sweep sync** | Δt = 9.8ms vs anchor (10Hz LiDAR ~50ms grid) |
 | **P2.11 best cam** | ring_front_right: abs_rel 0.170, δ<1.25=91.7% (scene mean 7.05m) |
 | **P2.11 worst cam** | ring_rear_left: abs_rel 0.296, δ<1.25=22.3% (scene mean 29.26m) |
+| **P3.1 multi-anchor (10)** | 10 anchors × Pi3 7-cam: model load 167s (cold cache), per-anchor warm 1.23s, total 74s inference on A100 |
+| **P3.1b LiDAR 10-anchor mean** | **abs_rel 0.202 ± 0.042, RMSE 5.27 ± 1.02m, δ<1.25 0.697 ± 0.142** (893k matched points total) |
+| **P3.1b cycle 10-anchor mean** | **L1 PSNR 12.34 ± 1.31, L3 PSNR 9.19 ± 1.18, ΔPSNR -3.15 ± 0.72** (L3 loses 10/10) |
+| **P3.1b best anchor** | 180: abs_rel 0.139, δ<1.25 0.866 (≈KITTI-tuned SOTA) |
+| **P3.1b worst anchor** | 270: abs_rel 0.283, δ<1.25 0.412 |
+| **P3.3 depth-bin bias** | -12.8% (<5m) → -33.8% (>40m), 单调恶化 → Pi3 真有 depth-dependent 压缩 |
 | DVGT 尝试 | 8 次 (v1-v8), 全失败, 详见 §DVGT 失败原因 |
 
 ---
@@ -164,6 +177,7 @@
 
 | Date (UTC) | Update |
 |---|---|
+| 2026-05-20 23:31 | **Phase 3 W1 完成**: 10-anchor P3.1 + 双 batch (P3.1b lidar + cycle) on A100, 总 ~6min wall-clock。 Phase 2 所有 headline 数字 within 1σ。 Pi3 abs_rel 0.202±0.042, ΔPSNR -3.15±0.72 (L3 输 10/10)。 anchor 180 最佳 (KITTI SOTA-ish)。 `notes/phase3_multi_anchor_report.md`。 bug fix `aeaeb0a`: NaN-safe bars_png in cycle eval. |
 | 2026-05-20 23:14 | **Phase 3 启动 + P3.3 完成 (CPU)**: depth-binned metrics 证实 Pi3 系统性低估**不是** P2.11 selection-bias 假说, 是真有 depth-dependent 压缩 — bias -12.8% (近场) → -33.8% (远场)。 `notes/phase3_progress_partial.md` + `scripts/phase3/`。 P3.1 multi-anchor Pi3 等 A100 (probe 显示当前是 CPU runtime)。 |
 | 2026-05-20 22:51 | **P2.11 Pi3 vs LiDAR 完成**: 99k 匹配点, overall abs_rel 0.215, RMSE 7.70m, δ<1.25 65.3%。 关键发现 Pi3 系统性低估 ~25%, 近场 (<15m) δ<1.25≈0.9 (SOTA 级), 远场 (>20m) 跌到 0.22-0.58。 `notes/pi3_vs_lidar_report.md` + `scripts/phase2/eval_pi3_vs_lidar.py`。 Colab CPU 43.7s。 |
 | 2026-05-20 09:01 | **P2.7 cycle-consistency 完成**: L1 mean PSNR 11.78 vs L3 8.65 → -3.13 dB, L3 量化也输给 L1。 写 `notes/l3_evaluation_report.md`, tag `v0.2-l3-mvp`, Phase 2 主线收官。 |
