@@ -9,11 +9,17 @@ Tag: `v0.2-d1-resolved`
 
 We ran Pi3X end-to-end on one AV2 anchor frame (7 ring cams, 504×504 letterbox, A100 + bf16). **8.35 s forward, 7.5 GB peak, K-recovery within 0.3% of AV2 ground truth.**
 
-We tried to run DVGT-1 on the same frame. Got as far as cloning + installing + downloading the DVGT checkpoint, but DVGT's `dvgt1_aggregator.py` requires `dinov3 ViT-L/16` *pretrained* weights from a file path that Meta gates behind their HuggingFace access-request flow (license acceptance). Both candidate public download URLs (`dl.fbaipublicfiles.com` and `huggingface.co/facebook/dinov3-vitl16-pretrain-lvd1689m`) returned 404 / empty without authentication.
+We tried to run DVGT-1 on the same frame across **8 progressively-refined attempts**, including (after the initial decision was committed) re-attempting with **valid Meta-granted dinov3 access** via the user's HF token. Even with full authentication, the chain still fails at the model-init stage because:
 
-**Per the design doc tie-breaker rule** ("If a clear failure mode appears on one model only: hard rule that disqualifies it"), this is a code-maturity hard fail. Pi3 — which runs out of the box via `Pi3X.from_pretrained("yyfz233/Pi3X")` — wins.
+1. DVGT hardcodes the dinov3 init-weight filename as Meta's original `dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth`.
+2. HF only hosts the model as `model.safetensors` (no `.pth`); converting safetensors → .pth is straightforward.
+3. But — and this is the killer — the HF version uses **HF-transformers key naming** (`embeddings.cls_token`, `layer.X.attention.q_proj.weight`, ...) which does not match the **native dinov3 ViT key naming** that DVGT's wrapper expects (`cls_token`, `blocks.X.attn.qkv.weight`, ...). `load_state_dict` rejects the file with hundreds of unexpected-key errors. There is no off-the-shelf .pth on the open internet.
 
-DVGT is not permanently disqualified. If we obtain dinov3 access later, we can re-run the head-to-head. For Phase 2 / 3 / 4 main-line work, **proceed with Pi3X**.
+To make DVGT work would require writing an HF→Meta state-dict key-remapper for ViT-L/16, OR patching `dvgt1_aggregator.py` to no-op the dinov3 pre-load and rely entirely on `RainyNight/DVGT-1` checkpoint to provide all weights (correctness not guaranteed). Neither is in scope for a one-frame D1 decision.
+
+**Per the design doc tie-breaker rule** ("If a clear failure mode appears on one model only: hard rule that disqualifies it"), this is an operational hard fail — and a substantially stronger result than the original verdict, because we've now demonstrated the failure persists **after the obvious access fix**. Pi3 — which runs out of the box via `Pi3X.from_pretrained("yyfz233/Pi3X")` — wins.
+
+DVGT is not permanently disqualified. If a future contributor invests in the key-remap layer (or DVGT publishes a one-line install patch), we can revisit. For Phase 2 / 3 / 4 main-line work, **proceed with Pi3X**.
 
 ## Setup cost comparison
 
@@ -23,16 +29,19 @@ DVGT is not permanently disqualified. If we obtain dinov3 access later, we can r
 | Install Python deps | `pip install huggingface_hub safetensors plyfile einops` (~10 s) | `pip install -r requirements.txt` (~60 s, downgrades torch 2.10→2.8) |
 | Clone third-party submodules | (none) | `git clone facebookresearch/dinov3` into `third_party/dinov3/` (not in DVGT default tree) |
 | Install third-party submodule deps | (none) | `pip install -r third_party/dinov3/requirements.txt` + `pip install torchmetrics` (~20 s) |
-| Download backbone init weights | `Pi3X.from_pretrained("yyfz233/Pi3X")` — open, automatic, ~40 s, ~3 GB | **`dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth` required at `ckpt/dino_v3/`** — **GATED, REQUIRES MANUAL ACCESS REQUEST** |
+| Download backbone init weights | `Pi3X.from_pretrained("yyfz233/Pi3X")` — open, automatic, ~40 s, ~3 GB | **`dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth` required at `ckpt/dino_v3/`** — gated (license request); after access obtained, HF only hosts `model.safetensors` with **HF-transformers key naming incompatible** with dinov3's native key naming; conversion to .pth doesn't fix the schema mismatch |
 | Download trained weights | (same as above) | `RainyNight/DVGT-1` from HF (open, ~30 s, ~1 GB) |
-| **Total agent attempts to get one forward pass** | **1 (succeeded)** | **5 (all failed at progressively later stages)** |
+| **Total agent attempts to get one forward pass** | **1 (succeeded)** | **8 (all failed; v8 even with valid HF auth + downloaded weights — fails at model construction due to key-name schema mismatch)** |
 
-`acq` job IDs for the 5 DVGT attempts:
+`acq` job IDs for the 8 DVGT attempts:
 1. `phase2-dvgt-one-frame` → CWD wrong, `third_party/dinov3` relative-path fail
 2. `phase2-dvgt-one-frame-v2` → pre-check caught missing `third_party/dinov3` early
 3. `phase2-dvgt-one-frame-v3` → cloned dinov3, hit `ModuleNotFoundError: torchmetrics`
 4. `phase2-dvgt-one-frame-v4` → installed deps, hit `FileNotFoundError: dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth`
-5. `phase2-dvgt-one-frame-v5` → tried public URLs, all returned 404 / empty
+5. `phase2-dvgt-one-frame-v5` → tried public URLs, all returned 404 / empty (gated)
+6. `phase2-dvgt-one-frame-v6` → user obtained HF dinov3 access, but worker process didn't have HF_TOKEN in env → `GatedRepoError 401`
+7. `phase2-dvgt-one-frame-v7` → HF_TOKEN finally piped to worker env (auth ✅, `whoami` returns user `JingShuo66`), but DVGT hardcodes filename `dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth` that doesn't exist in the HF repo (which only has `model.safetensors`) → `RemoteEntryNotFoundError 404`
+8. `phase2-dvgt-one-frame-v8` → script downloads `model.safetensors`, converts to .pth, places at expected path → DVGT model construction runs `torch.hub.load(..., source='local')` → **dinov3 vit `load_state_dict` rejects HF-transformers key naming** (e.g. `embeddings.cls_token`, `layer.X.attention.q_proj.weight`) that doesn't match Meta's native dinov3 key names (e.g. `cls_token`, `blocks.X.attn.qkv.weight`). Forward pass never reached. `summary.json` not generated.
 
 For Pi3:
 1. `phase2-pi3-one-frame` → state=done, exit_code=0, ~64 s wall clock
