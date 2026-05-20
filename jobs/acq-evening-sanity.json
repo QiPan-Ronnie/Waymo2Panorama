@@ -1,0 +1,11 @@
+{
+  "id": "acq-evening-sanity",
+  "cmd": [
+    "bash",
+    "-c",
+    "echo 'evening sanity check'; date; touch /tmp/acq-evening-sanity.done"
+  ],
+  "done_marker": "/tmp/acq-evening-sanity.done",
+  "timeout_s": 30,
+  "created_at": "2026-05-20T03:35:15.372873+00:00"
+}
