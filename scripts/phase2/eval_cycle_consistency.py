@@ -190,16 +190,21 @@ def reconstruct_l3(
         v_h = K_h[1, 1] * pts_h[..., 1] / z_safe + K_h[1, 2]
         r = np.linalg.norm(pts_ego, axis=-1)
 
+        # Use strict bounds so that round-to-int stays inside [0, W-1] x [0, H-1]
         valid = (
             (z_h > 0)
-            & (u_h >= 0) & (u_h < W) & (v_h >= 0) & (v_h < H)
+            & (u_h >= -0.499) & (u_h <= W - 0.501)
+            & (v_h >= -0.499) & (v_h <= H - 0.501)
             & (r > min_dist) & (r < max_dist)
             & (conf > conf_threshold)
         )
         if not np.any(valid):
             continue
-        all_ui.append(np.round(u_h[valid]).astype(np.int64))
-        all_vi.append(np.round(v_h[valid]).astype(np.int64))
+        # Belt-and-suspenders: clip after round in case any float artifact slips through.
+        ui_j = np.clip(np.round(u_h[valid]).astype(np.int64), 0, W - 1)
+        vi_j = np.clip(np.round(v_h[valid]).astype(np.int64), 0, H - 1)
+        all_ui.append(ui_j)
+        all_vi.append(vi_j)
         all_rgb.append(rgb_j[valid].astype(np.float32))
         all_z.append(z_h[valid].astype(np.float32))
 
