@@ -1,0 +1,11 @@
+{
+  "id": "acq-mcp-v011-clean",
+  "cmd": [
+    "bash",
+    "-c",
+    "echo 'v011 clean env start'; date; touch /tmp/acq-mcp-v011-clean.done; echo 'v011 clean env done'"
+  ],
+  "done_marker": "/tmp/acq-mcp-v011-clean.done",
+  "timeout_s": 30,
+  "created_at": "2026-05-20T00:58:27.625673+00:00"
+}
