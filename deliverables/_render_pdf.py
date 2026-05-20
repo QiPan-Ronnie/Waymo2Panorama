@@ -5,9 +5,17 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SRC = HERE / "handoff_to_koi_2026-05-20.md"
-TMP = HERE / "handoff_to_koi_2026-05-20.print.md"
-PDF = HERE / "handoff_to_koi_2026-05-20.pdf"
+# Pass --concise to render the short version, default = full version
+import sys as _sys
+_CONCISE = "--concise" in _sys.argv
+if _CONCISE:
+    SRC = HERE / "handoff_to_koi_2026-05-20_concise.md"
+    TMP = HERE / "handoff_to_koi_2026-05-20_concise.print.md"
+    PDF = HERE / "handoff_to_koi_2026-05-20_concise.pdf"
+else:
+    SRC = HERE / "handoff_to_koi_2026-05-20.md"
+    TMP = HERE / "handoff_to_koi_2026-05-20.print.md"
+    PDF = HERE / "handoff_to_koi_2026-05-20.pdf"
 
 # Specific mappings for symbols actually used in this doc
 EXPLICIT = {
