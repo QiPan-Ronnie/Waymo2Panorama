@@ -178,7 +178,7 @@ def main() -> int:
             draw.text((10, label_h + erp_hw[0] + gap + 5),
                       "L3 (Pi3 + Sim3 + lift-and-project, 3D-aware)",
                       fill=(255, 255, 0), font=font)
-            combined = np.asarray(img)
+            combined = np.array(img)  # copy, not view (asarray of PIL is read-only)
         except Exception:
             pass
         combined[label_h:label_h + erp_hw[0]] = l1_erp_u8
