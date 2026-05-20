@@ -63,3 +63,7 @@ Thumbs.db
 !data/mini/**
 !data/README.md
 !**/.gitkeep
+
+# Pandoc-generated PDFs and intermediate files (regenerate from MD via deliverables/_render_pdf.py)
+deliverables/*.pdf
+deliverables/*.print.md
