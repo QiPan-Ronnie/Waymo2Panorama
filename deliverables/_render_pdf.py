@@ -118,6 +118,8 @@ def main() -> int:
         "-V", "CJKmainfont=Microsoft YaHei",
         "-V", "monofont=Consolas",
         "--highlight-style=tango",
+        # so pandoc finds images/*.png relative to deliverables/
+        "--resource-path", str(HERE),
     ]
     print(f"running pandoc -> {PDF.name} ...")
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")

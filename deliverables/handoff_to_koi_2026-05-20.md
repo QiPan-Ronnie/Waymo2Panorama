@@ -43,6 +43,10 @@
 
 **AV2 的 7 ring 完整 360° 是决定因素** — Waymo 5 cam 有 ~130° 后向盲区, 拿来做"拼接回 360"需要额外 diffusion fill, 这是 Phase 4 Track B 的题目, 不是本期。
 
+**Phase 0.5 spike 验证**: 加载 AV2 一帧的 7 ring + 2 stereo cam, 拼成 2×4 mosaic, 确认时间同步 (22ms 误差 < 50ms 阈值) + 内外参可读:
+
+![AV2 7-ring + 2-stereo mosaic (Phase 0.5 spike). 时间同步 OK, 几何信息可读。](images/spike_mosaic.png)
+
 详见: `notes/spike-report.md`
 
 ---
@@ -86,6 +90,8 @@
 **Drive 直链**:
 - L1 ERP 单帧: https://drive.google.com/file/d/1rGuLQgh2zxv2PzWDcf1hdUfkrgoy1Yfu/view
 - L1 视频 (Drive workspace): `MyDrive/koi_waymo2pano_colab/outputs/l1/02a00399-3857-444e-8db3-a8f58489c394/baseline.mp4`
+
+![L1 ERP — AV2 7-ring 拼成的 1024×2048 360° 全景图 (anchor frame 0, Miami 街景, val log 02a00399-...)。 横向覆盖 azimuth 360°, 前向中央, 左右两侧分别是左/右后向。上下黑边是仰角覆盖盲区 (天顶 / 自车顶下方), 由 Phase 3 diffusion 填。](images/l1_erp.png)
 
 **Eyeball gate**: 360° 横向连续, 建筑物 / 道路 / 天空清晰可辨, 前向中央, 后向接缝在 left/right 边缘。**符合预期**。
 
@@ -204,10 +210,18 @@ ERP forward-splat       3D point cloud 导出 (.ply)
 - 融合 3D 点云: https://drive.google.com/file/d/1tJGWfsOdHdQBC9oj2Hf30OrDg5287gTN/view
 - Per-view depth maps: `MyDrive/koi_waymo2pano_colab/outputs/phase2/l3_pointcloud/`
 
+![L3 融合 3D 点云 (perspective view, Open3D). 红球 = ego 原点, 红/绿/蓝 axes = +x 前 / +y 左 / +z 上。可见: 左右建筑外立面 (locustprojects 招牌可读), 右前 ~5m 白车, 中间道路 (黄色中线), 路面带"网格波纹" — Pi3 504×504 grid 在地面斜投影的特征, 不是 noise。](images/l3_pointcloud_perspective.png)
+
+![L3 融合 3D 点云 (top-down view). 道路沿 +x 方向延伸, 黄色中线居中。"网格波纹"在此视角下尤为明显, 来自 Pi3 image-grid 像素深度的固有采样模式 (跟 LiDAR 旋转激光的扫描线类似)。 路面厚度约 0.5-1m, 反映 Pi3 单目深度的 ±0.3m 单点 variance。](images/l3_pointcloud_topdown.png)
+
+![Per-view depth map: ring_front_right (含白车). 颜色: 紫=近 ~1m, 蓝绿=中 ~5-15m, 黄=远 ~30m+, 黑=被滤 (天空/低 conf/远景)。白车清晰可辨, 显示 Pi3 对近物深度估计良好。](images/depth_overlay_front_right.png)
+
 **视觉不优** ⚠️:
 - 纯 forward-splat to ERP 在天空 / 低纹理区域产生稀疏栅格状噪声
 - 加严 filter (conf > 0.5, dist < 40 m) → coverage 6%, 细节丢失
 - L1 (sphere projection) + L3 hybrid → 因 L1/L3 同物在 ERP 不同位置 → 双影 ghost (forward-splat 路径的本质局限)
+
+![L1 vs L3 vs Hybrid 三面板对比 (上→下)。 顶: L1 sphere projection, 干净的 360°。 中: L3 forward-splat, 地面"鼓包" + 天空区域 conf 不足被砍黑 + 物体重投影位置正确但稀疏。 底: Hybrid (L1 base + L3 hard mask) — L3 hard override 反而引入"双白车" (L1 的车位置 + L3 修正后位置错位)。 **结论: forward-splat to ERP 不是 L3 价值发挥的正确通道, 应交给 raycast / 3DGS / 下游 3D 消费者。**](images/l1_vs_l3_hybrid.png)
 
 **核心 insight**: 
 > **L3 forward-splat 路线**, 在本帧 (parallax 不显著 — 物体多在 5-30 m) 上, 视觉无法超越 L1 sphere projection。 
