@@ -1,0 +1,13 @@
+{
+  "id": "phase3-probe-runtime-v2",
+  "cmd": [
+    "python",
+    "scripts/phase3/probe_runtime.py",
+    "--output",
+    "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/runtime_probe_v2.json"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/runtime_probe_v2.json",
+  "log_path": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/probe_v2_log.txt",
+  "timeout_s": 60,
+  "created_at": "2026-05-20T23:17:05.862504+00:00"
+}
