@@ -1,0 +1,14 @@
+{
+  "id": "acq-stress-2-env",
+  "cmd": [
+    "bash",
+    "-c",
+    "echo STRESS_VAR=$STRESS_VAR; touch /tmp/acq-stress-2-env.done"
+  ],
+  "done_marker": "/tmp/acq-stress-2-env.done",
+  "env": {
+    "STRESS_VAR": "value-from-spec"
+  },
+  "timeout_s": 30,
+  "created_at": "2026-05-20T01:07:24.515134+00:00"
+}
