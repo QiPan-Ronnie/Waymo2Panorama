@@ -1,5 +1,16 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-21 ~07:30 UTC — [plan v6.1] 战略 pivot 通过 + Wave 0.5 启动
+> - **战略**: 主线从 "system integration (Pi3 → Pantheon360 适配层)" pivot 到 "**stitching 方法学**" — 多视角探索 7-cam → 360° ERP 的拼接路线本身
+> - **下游 paused**: ViPE / Pantheon360 / GEN3C / Panacea+ 不再追加投资 (现有队列让跑完拿 datapoint 入库)
+> - **v6.1 新加 active**: 7 条路线 (新-A 柱面 / 新-B graph-cut seam / 新-C IPM 多区域 / 新-D wide-baseline stereo / 新-E HDR 补偿 / 新-F VGGT 3rd backbone + T13 self-sup Pi3 finetune)
+> - **v6.1 关键约束**: 每条路线必出 数字 + ≥1 张拼接图 + 在统一 `deliverables/handoff_to_koi_v6.md` 加一节
+> - **v6.1 基础设施**: 新-W worker UX 总改造 (`scripts/cell_worker_bootstrap.py` 单行 Colab cell, 一键换 CPU/GPU runtime 0 干预)
+> - **进行中**: Wave 0 (T11 install / inference / T1 multi-log / tar-cache 让跑完, ~2h), Wave 0.5 (Plan agent 设计 worker bootstrap, in-flight)
+> - **Plan file**: `C:\Users\14294\.claude\plans\snug-shimmying-wave.md`
+> - Status: Plan approved, prep work done (v6 演化 MD + tasks 加好)
+> - Next: 等 Wave 0 Colab 队列完成 + 等 新-W Plan agent 返回 → 实现 worker bootstrap → Wave 1 启动 (新-A / 新-E / 新-F)
+
 > ### 2026-05-21 ~05:40 UTC — [T1 Phase B] Submitted AV2 val UUID listing (Colab in-flight)
 > - Wrote `scripts/phase3/list_av2_val_uuids.py` (~190 lines): s5cmd-based S3 enumeration of 150 val UUIDs + optional per-log annotations.feather download for ped:veh scoring. Replaces local-data dependency of original `find_av2_val_candidates.py` (which needed all logs downloaded to score).
 > - Submitted `phase3-t1prep-list-av2-uuids-v1` (commit `2fd2fe1`). Worker runs UUID listing + per-log scoring, ~15 min wall. Output: Drive `data/av2_val_uuid_index.json`.
