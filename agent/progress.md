@@ -25,7 +25,16 @@
 >
 > - **T12 v2 ✅ DONE temporal Pi3 K=3 NEG**: abs_rel 0.213 (vs single 0.204), δ<1.25 0.572 (vs 0.633), 远场 bias -23.92% (vs single 10-anchor mean -23.7%)。 **多帧时间多基线假说 false** — Pi3 远场 bias 是结构性 (not single-frame info gap)。
 >
-> in-flight: T14b v2 (10-anchor IPM 扩展, standalone aggregator 已加, ~5-10 min)
+> in-flight: T14b v3 (10-anchor IPM, 修正 args 后重发 ~10 min), T9 ViPE on L1 ERP subagent (downstream consumer demo)
+>
+> **🎯 T17 critical insight** (Panacea+ recon DONE, inference NOT run):
+> - Panacea+ 是 **parallel generator** (BEV + 3D bbox + HD-map → 6-cam video), **不消费**我们 RGB ERP
+> - 同理 Pantheon360 — 它们是和 L1 平行的另一条生成路径, 不是 L1 的下游
+> - **真正的 downstream consumer for L1 ERP = ViPE** (paper #2, 显式支持 360 ERP 输入 → pose + metric depth)
+> - paper narrative pivot: "downstream demo" 走 ViPE-on-L1-ERP 而非 Pantheon360/Panacea+
+> - Panacea+ 仍可作 paper Section 4 "naive prior-art transfer fails" 第 4 个数据点 (modality gap structural)
+>
+> T14b v2 silent fail (我 bash 漏传 run_ipm_hybrid.py 必需参数 --erp-h/w/--ego-z-thresh-m 等)。 v3 修正重发 ~10 min。
 >
 > Wave-1 deliverable confirmed: T-Koi-1 + T-Koi-2 PDFs 给 Koi async
 >
