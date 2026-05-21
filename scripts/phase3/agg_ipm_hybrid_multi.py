@@ -44,13 +44,13 @@ def main() -> int:
         fd = None
         # try 'overall' dict
         ov = m.get("overall") or m.get("mean") or {}
-        for k in ("ground_delta_psnr", "ground_only_delta_psnr", "ground_dPSNR",
-                  "GROUND_dPSNR", "ground_only_PSNR_delta"):
+        for k in ("PSNR_delta_groundOnly", "ground_delta_psnr", "ground_only_delta_psnr",
+                  "ground_dPSNR", "GROUND_dPSNR", "ground_only_PSNR_delta"):
             if k in ov:
                 gd = float(ov[k])
                 break
-        for k in ("fullimage_delta_psnr", "full_image_delta_psnr", "full_dPSNR",
-                  "ALL_dPSNR", "full_PSNR_delta"):
+        for k in ("PSNR_delta_full", "fullimage_delta_psnr", "full_image_delta_psnr",
+                  "full_dPSNR", "ALL_dPSNR", "full_PSNR_delta"):
             if k in ov:
                 fd = float(ov[k])
                 break

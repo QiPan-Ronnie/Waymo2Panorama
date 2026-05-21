@@ -1,5 +1,11 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-21 ~05:25 UTC — [T9b] ViPE + DAP depth on L1 ERP (partial)
+> - Result: 138s end-to-end. **Depth/pose/intrinsics/masks all produced**, BUT "Too few valid pixels in pano frame N, skipping scale estimation" warning fired on all 100 frames → **depth is RELATIVE not metric**. Cause: panorama-mode post-processor's valid-pixel threshold tripped (likely sky/dynamic mask over-filtering on virtual views).
+> - Deliverable: Drive `outputs/phase3/t9b_vipe_depth/` (depth 48 MB, pose .npz, intrinsics, masks) + `notes/t9b_vipe_depth_report.md`.
+> - Status: ⚠️ Partial (artifacts ✓, metric scale ✗)
+> - Next: Accept relative depth for Section 6 narrative (sufficient for "downstream consumer" demo); investigate T9c metric-scale fix later OR T9d post-hoc scale fit from AV2 ego ground-truth. Pivot to T11 GEN3C spike.
+
 > ### 2026-05-21 ~05:30 UTC — [T-Koi-3] Wave-3 mid-week-v2 PDF
 > - Result: 12-page PDF, 5 figures embedded (IPM hybrid compare anchor 60, T14b 10-anchor honest chart, Wave-3 NEG findings summary, Pi3 depth-binned bias, Pi3 vs LiDAR per-anchor). Wave-3 summary table + 4 NEG (T18/T2/T12 v2/T17) + T9 ViPE downstream demo + paper narrative shift ask (B-with-C → C-with-B-supplement).
 > - Deliverable: `deliverables/handoff_to_koi_w2_2026-05-21_late_mid.{md,pdf}` + renderer `deliverables/_render_pdf_w2_late_mid.py` + 2 new figure scripts (`_make_t14b_figure.py`, `_make_neg_summary_figure.py`).
