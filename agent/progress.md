@@ -1,5 +1,12 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-21 ~late UTC — [Wave 2 新-B / route 11] Graph-cut optimal seam selection 完成
+> - **怎么做**: 每对 ERP-adjacent cam (front_c↔front_l/r, front_l↔side_l, side_l↔rear_l, rear_l↔rear_r, rear_r↔side_r, side_r↔front_r) 在重叠 bbox (~200×400 px) 上跑 PyMaxflow min-cut, 边权 = 1.0·color + 0.5·grad + 0.1·boundary。Source = only-A region, Sink = only-B region, 输出硬 0/1 mask + σ=3 高斯 feather, 直接喂回 `multiband_blend` (不需要 patch blender — multiband 本就接受任意 weight)。CPU only ~5 s/anchor。
+> - **结果** (4 anchors 0/60/90/150): seam-band 平均 |grad| L1 **48.63** → graphcut **42.59** = **-12.4% / +0.58 dB 等价 seam-smoothness gain (4/4 anchor win)**。L1 ERP 与 graphcut ERP 整体 PSNR=32.84 dB → 差异只在 seam 局部。Cycle-PSNR 结构上不动 (reconstruct_l1 不经过 blender)。
+> - **Deliverables**: `code/waymo2panorama/blending/graphcut_seam.py` (~430 LOC, PyMaxflow + scipy.csgraph fallback) + `scripts/phase3/run_graphcut_seam.py` (~310 LOC) + `deliverables/images/route_graphcut_seam_compare.png` (anchor 60 L1-vs-graphcut seam overlay 对照) + `outputs/phase3/p3.5_graphcut/anchor_{000,060,090,150}/` + `agg_4anchors.json` + handoff route 11 section 完整填充。
+> - Status: [DONE]
+> - Next: Drop-in 可叠加任何下游 stitching baseline (L1 / L2 / IPM / Pi3); 视觉 figure 是 paper Section 5 "seam selection: midline vs energy-min cut" 主产出。
+
 > ### 2026-05-21 ~12:00 UTC — [Wave 1 新-E / route 14] HDR cross-cam compensation 完成
 > - **怎么做**: 每 cam 6 参数 (3 gain + 3 bias), cam_0 (front_center) 固定为 identity, 剩余 36 参数用 global LS + Huber + box bounds + Tikhonov 先验解。对应关系直接在 ERP 空间提 (无 feature matching), RANSAC-lite 中位数 3× 过滤 parallax outliers。校正在 multiband blend 之前应用。CPU only, scipy.optimize.least_squares, ~5s/anchor。
 > - **结果**: 4 anchors (0/60/90/150) 平均重叠区 lum gap 16.62 → 13.61 (Δ +3.01 levels, **18.1% reduction**)。Anchor 60 (rear_right, side_right) 对 45→14 (-68%) — 戏剧性曝光修复。

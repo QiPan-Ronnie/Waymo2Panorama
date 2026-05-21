@@ -260,15 +260,29 @@ PSNR + LPIPS + MS-SSIM + region-separated (天空 / 物体 / 地面 单独算): 
 
 ---
 
-## 路线 11: Graph-cut 最优 seam selection — ⏳ pending Wave 2
+## 路线 11: Graph-cut 最优 seam selection — ✅ Wave 2 完成 (2026-05-21)
 
-**怎么做**: TBD
+**怎么做**: L1 baseline 在每对相邻 cam 的重叠区里用 cos²(angle) 权重做 multi-band Laplacian blending — 这把每个 seam 解析地按在两 cam 光轴的 *几何中线* 上, 不管那条线是否穿过建筑/车辆/树冠等高梯度结构。我用 **PyMaxflow min-cut** 把每对 cam 的接缝从"固定中线"换成"能量最低路径": 在重叠区 bbox 上 (~200×400 px / 对) 建 4-连通图, 边权 = `α·color_diff + β·grad_diff + γ·boundary_penalty` (α=1.0, β=0.5, γ=0.1, 颜色项主导平坦区, 梯度项让 cut 贴边走, 边界项防止退化绕回另一边天空)。Source = "只有 A cover 的像素", Sink = "只有 B cover 的像素", min-cut → 重叠区每像素的硬 0/1 label。把 7 对 (front_c↔front_l/r, front_l↔side_l, side_l↔rear_l, rear_l↔rear_r, rear_r↔side_r, side_r↔front_r) 的 0/1 mask 直接当 weight 喂回原本的 `multiband_blend` (轻度 σ=3 高斯模糊给最低带平滑种子) — **multiband 本就支持任意权重, 不需要 patch blender**。CPU only, scipy.csgraph 是 fallback (无需 PyMaxflow 时), 每个 anchor ~5 s。代码: `code/waymo2panorama/blending/graphcut_seam.py` (~430 LOC) + driver `scripts/phase3/run_graphcut_seam.py` (~310 LOC), 兼容 AV2 log 和 Pi3 cache 两种输入。
 
-**结果**: TBD
+**结果** (4 anchors: 0/60/90/150, Pi3 cache):
 
-**图**: TBD
+- **接缝带平均梯度** (Sobel |grad| 在 dominant-cam argmax 边界的 8-px dilate 带, lower = 接缝越隐形): L1 **48.63** vs graphcut **42.59** → **-12.4% (4/4 anchors win, 0 -14.6%, 60 -4.6%, 90 -12.5%, 150 -17.8%)**。
+- **能量域 PSNR proxy** (10·log₁₀(L1_grad / GC_grad)): 平均 **+0.58 dB** 等价 seam-smoothness gain。Anchor 150 最戏剧性 (+0.85 dB), anchor 60 (城市 anchor) 最弱 (+0.21 dB) — 因 anchor 60 街景天空多, L1 cos² 的 seam 已经多数落在低梯度区, graphcut 改进空间小。
+- **L1 ERP vs Graphcut ERP 整体 PSNR**: 平均 **32.84 dB** — 两图绝大部分像素相同, 差异**只在 seam 局部**, 这正是设计预期 (graphcut 不动 ~98% 像素)。
+- **Hold-out cycle-PSNR**: 设计上 **per-cam ray-cast reconstruction (`reconstruct_l1`) 不经过 multi-band blender**, 所以 L1 vs graphcut 的 cycle-PSNR Δ **结构上 = 0 dB** (跟柱面 baseline 路线 10 的发现一致)。改进只能从 seam-band 局部 metric 看出来。
+- Per-anchor 运行时: projection 1.5 s + L1 blend 0.8 s + graphcut blend 5.1 s = ~7.5 s/anchor; PyMaxflow build+solve ~3 s/pair × 7 pairs = ~21 s 部分 (上面 5 s 是因为 bbox 都小, ~14k overlap pixels/pair)。
 
-**意义**: TBD
+![Graph-cut seam vs fixed midline, anchor 60 (top: L1 cos² midline seams in red, bottom: route-11 graph-cut seams in red)](images/route_graphcut_seam_compare.png)
+
+**Verdict**: ✅ 4/4 anchors graphcut wins on seam-band gradient; per-anchor seam-smoothness gain 4.6%~17.8%。这是 paper Section 5 "Seam selection: fixed midline vs energy-min cut" 的**视觉 figure**, 数字 win 小 (能量域 +0.58 dB / 视觉 -12.4%) 但稳, 关键产出是 figure 而不是 metric。
+
+**意义**: paper Section 5 必有的对照 — "5-band Laplacian blender 在隐藏接缝上已经很强, 但 cos² 固定中线 weight 在城市/高对比场景仍可见; graph-cut energy-min cut 是 zero-extra-data drop-in upgrade, 不动 backbone 不动 blender"。Method 角度: 这条**叠加 route 10 (柱面 L2) + route 14 (HDR 补偿) 的 system contribution 链** — 同样属于"AV→360° 标准化预处理 / 后处理 stack"层。对 reviewer 反 "L1 太简单" 的论据加固。Frame work drop-in: 任何下游 stitching baseline (L1 / L2 / IPM / Pi3) 都可以无修改套用。
+
+**Files**:
+- 代码: `code/waymo2panorama/blending/graphcut_seam.py` (核心模块: `compute_pair_overlap_energy`, `find_optimal_seam` (PyMaxflow + scipy.csgraph fallback), `build_pair_seeds`, `apply_graphcut_seams`, `draw_seam_overlay_on_erp`)
+- Driver: `scripts/phase3/run_graphcut_seam.py`
+- 输出: `outputs/phase3/p3.5_graphcut/anchor_{000,060,090,150}/` (sphere_l1_baseline.png + graphcut_seam.png + compare_l1_vs_graphcut.png + seams_overlay_{l1,graphcut}.png + summary.json), `outputs/phase3/p3.5_graphcut/agg_4anchors.json`
+- 设计文档: `notes/new_b_graphcut_seam_design.md`
 
 ---
 
