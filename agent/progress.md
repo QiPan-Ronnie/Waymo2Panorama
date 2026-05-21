@@ -15,12 +15,19 @@
 > - **T1-prep** ✅ — AV2 val UUID 选 4 个候选策略 (Miami urban + Pittsburgh highway + Detroit/DC dense + DC night) + 自动 scan script ready
 > - **T-Koi-2** ✅ — 9 页 mid-week snapshot PDF for Koi (5 图含 IPM compare + Bayesian depth diff)
 >
-> ## 🟢 Worker UP (~03:47 UTC user restarted A100)
-> Wave-3 fired (4 in-flight):
-> - **T12 v2** anchor 60 — temporal Pi3 K=3 + Pi3 repo clone-or-pull (queued)
-> - **T14b** 10-anchor IPM extension (queued, mitigates T7 top risk)
-> - **T18** ✅ **DONE — Depth Pro 2.84× WORSE than Pi3** on AV2 (abs_rel 0.580 vs 0.204, δ<1.25 0.064 vs 0.633, mean depth 7.6m vs LiDAR 19.8m). L3 cycle-PSNR 表面闭合到 -0.01 dB 但 coverage artifact (15% vs 50% intersection mask)。 **Verdict: algorithm is bottleneck, NOT backbone — angle C 强化, Apple SOTA monocular AV outdoor 不行 paper hook 拿下**
-> - **T2** OmniStitch subagent — 已 push 2 commits (cycle eval script + Colab cycle job for anchor 60), 仍在跑
+> ## 🟢 Worker UP (~03:47 UTC user restarted A100) — Wave-3 大丰收
+>
+> **3 个 NEG findings 综合 → paper B-with-C-as-motivation 论据链非常硬**:
+>
+> - **T18 ✅ DONE Depth Pro NEG**: 2.84× worse than Pi3 on AV2 (abs_rel 0.580 vs 0.204, δ<1.25 0.064 vs 0.633). **Algorithm is bottleneck, NOT backbone** — Apple SOTA monocular AV outdoor 不行。 angle C 强化, paper hook 拿下。
+>
+> - **T2 ✅ DONE OmniStitch NEG**: -6.67 dB vs L1 (OmniStitch 17.28 vs L1 23.95 anchor 60), 输 7/7 cams。 **唯一 published AV-360 baseline 也输 L1**, T7-prelim 第 3 大风险 (OmniStitch beats us) 反向 close 为正。 paper "vs prior art" 一栏铁稳。
+>
+> - **T12 v2 ✅ DONE temporal Pi3 K=3 NEG**: abs_rel 0.213 (vs single 0.204), δ<1.25 0.572 (vs 0.633), 远场 bias -23.92% (vs single 10-anchor mean -23.7%)。 **多帧时间多基线假说 false** — Pi3 远场 bias 是结构性 (not single-frame info gap)。
+>
+> in-flight: T14b v2 (10-anchor IPM 扩展, standalone aggregator 已加, ~5-10 min)
+>
+> Wave-1 deliverable confirmed: T-Koi-1 + T-Koi-2 PDFs 给 Koi async
 >
 > T12 v1 crashed 11s (Pi3 repo not in /content after restart). T14 subagent's Colab job (3-anchor IPM) ran 84s, eval succeeded but bash aggregator heredoc crashed — per-anchor JSON OK on Drive. Anchor 150 ground-only +0.32 dB confirms anchor-60-extension positive direction.
 >
