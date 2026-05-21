@@ -25,7 +25,9 @@
 >
 > - **T12 v2 ✅ DONE temporal Pi3 K=3 NEG**: abs_rel 0.213 (vs single 0.204), δ<1.25 0.572 (vs 0.633), 远场 bias -23.92% (vs single 10-anchor mean -23.7%)。 **多帧时间多基线假说 false** — Pi3 远场 bias 是结构性 (not single-frame info gap)。
 >
-> in-flight: T14b v3 (10-anchor IPM, 修正 args 后重发 ~10 min), T9 ViPE on L1 ERP subagent (downstream consumer demo)
+> in-flight: T14b v4 (10-anchor IPM, 删 bogus arg 后重发 ~10 min)。 T14b v2/v3 silent fail due to argparse bug (我 bash 加了 cycle eval script 不接受的 `--ipm-output` 参数, argparse 退出 → 无 cycle_ipm.json)。
+>
+> **T9 ViPE ✅ DONE — paper Section 6 demo 成立**: ViPE 端到端跑通 L1 ERP 5s clip (96.7s on A100), 输出 SLAM pose + intrinsics + masks。 **首个 "stitched-RGB → published-downstream system" 数据流**。 ViPE depth 没出 (default config `depth_align_model: null`, T9b 一行 config flip 修)。 commit `a751876` pushed.
 >
 > **🎯 T17 critical insight** (Panacea+ recon DONE, inference NOT run):
 > - Panacea+ 是 **parallel generator** (BEV + 3D bbox + HD-map → 6-cam video), **不消费**我们 RGB ERP
