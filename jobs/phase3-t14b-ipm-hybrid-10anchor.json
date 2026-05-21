@@ -1,0 +1,12 @@
+{
+  "id": "phase3-t14b-ipm-hybrid-10anchor",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.2_ipm_hybrid_10anchor; mkdir -p \"$OUT\"; pip install -q av2 pandas scipy 'Pillow>=10' opencv-python 2>&1 | tail -3; for IDX in 0 30 60 90 120 150 180 210 240 270; do echo \"=== anchor $IDX ===\"; ANC_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.1_multi_anchor/anchor_$(printf '%03d' $IDX); ANC_OUT=$OUT/anchor_$(printf '%03d' $IDX); mkdir -p \"$ANC_OUT\"; python scripts/phase3/run_ipm_hybrid.py --log-dir /content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394 --anchor-idx $IDX --pi3-dir \"$ANC_DIR\" --output-dir \"$ANC_OUT\" || echo \"anchor $IDX FAILED\"; python scripts/phase3/eval_ipm_hybrid_cycle.py --pi3-dir \"$ANC_DIR\" --ipm-output \"$ANC_OUT\" --output-dir \"$ANC_OUT/cycle\" 2>&1 || echo \"anchor $IDX cycle eval failed\"; done; python -c \"import json,os,numpy as np; from pathlib import Path; root=Path('$OUT'); anchors=sorted([d for d in root.glob('anchor_*') if d.is_dir()]); g=[]; f=[]; rows=[]; \\nfor a in anchors:\\n    j=a/'cycle'/'cycle_ipm.json'; \\n    if not j.exists(): continue\\n    m=json.loads(j.read_text()); ov=m.get('overall',{}); g.append(ov.get('ground_delta_psnr', float('nan'))); f.append(ov.get('fullimage_delta_psnr', float('nan'))); rows.append({'anchor':a.name, **ov})\\nout={'n':len(g), 'ground_mean':float(np.nanmean(g)), 'ground_std':float(np.nanstd(g)), 'full_mean':float(np.nanmean(f)), 'full_std':float(np.nanstd(f)), 'per_anchor':rows}; Path('$OUT/agg_10anchor.json').write_text(json.dumps(out,indent=2)); print(json.dumps(out,indent=2))\" 2>&1 | tee /tmp/t14b-log.txt"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.2_ipm_hybrid_10anchor/agg_10anchor.json",
+  "log_path": "/tmp/t14b-log.txt",
+  "timeout_s": 600,
+  "created_at": "2026-05-21T03:49:25.360896+00:00"
+}
