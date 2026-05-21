@@ -21,6 +21,16 @@ Optional fields:
 - `cwd`:        working directory for the subprocess (default `/content/Waymo2Panorama`)
 - `env`:        dict of extra env vars
 - `timeout_s`:  max runtime in seconds; worker SIGTERMs after this
+- `labels`:     dict of free-form string labels. The bootstrap worker
+                (Wave 0.5 新-W, `scripts/cell_worker_bootstrap.py`) honours
+                `labels.requires` ∈ {`"gpu"`, `"cpu"`, `"any"` (default)} to
+                filter jobs by current Colab runtime. CPU-only jobs (HDR
+                compensation, graph-cut seam, aggregator, PDF rendering)
+                should set `labels.requires = "cpu"` or `"any"`. GPU jobs
+                (Pi3 inference, GEN3C, T13 finetune) should set
+                `labels.requires = "gpu"`. The worker writes a transient
+                `skipped_wrong_runtime` result when runtimes don't match,
+                and the job stays in queue for a correct-runtime worker.
 
 Created-at field is auto-added by `submit_job_local()` helper.
 
@@ -29,14 +39,21 @@ Created-at field is auto-added by `submit_job_local()` helper.
 ```json
 {
   "id": "phase2-pi3-frame0",
-  "created_at": "2026-05-19T15:30:00Z",
-  "cmd": [
-    "python", "scripts/phase2/run_pi3_one_frame.py",
-    "--log-dir", "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
-    "--out-dir", "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/pi3_one_frame"
-  ],
+  "cmd": ["python", "scripts/phase2/run_pi3_one_frame.py", "--log-dir", "..."],
   "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase2/pi3_one_frame/summary.json",
-  "timeout_s": 1800
+  "timeout_s": 1800,
+  "labels": {"requires": "gpu"}
+}
+```
+
+CPU-only example (HDR, graph-cut seam, aggregator, PDF rendering):
+
+```json
+{
+  "id": "phase3-new-e-hdr-anchor60",
+  "cmd": ["python", "scripts/phase3/run_hdr_compensation.py", "--anchor", "60"],
+  "done_marker": "/content/drive/.../outputs/phase3/hdr_compensation/done.json",
+  "labels": {"requires": "cpu"}
 }
 ```
 
