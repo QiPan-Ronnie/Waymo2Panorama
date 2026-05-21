@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t17-panacea-recon-anchor60-v1",
+  "cmd": [
+    "bash",
+    "-lc",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; PAN=/content/panacea; if [ ! -d \"$PAN\" ]; then echo '[t17] cloning panacea...'; git clone --depth 1 https://github.com/wenyuqing/panacea.git \"$PAN\" 2>&1 | tail -20; else echo '[t17] panacea already cloned'; cd \"$PAN\" && git pull --rebase 2>&1 | tail -3 || true; cd -; fi; echo '---PAN TREE (top 3 levels)---'; find \"$PAN\" -maxdepth 3 -type f 2>/dev/null | head -80; echo '---REQUIREMENTS---'; ls \"$PAN/requirements/\" 2>&1 | head -20 || true; cat \"$PAN/requirements/pt13.txt\" 2>&1 | head -50 || true; echo '---INFERENCE.PY HEAD---'; head -100 \"$PAN/inference.py\" 2>&1 || true; echo '---PY/CUDA PROBE---'; python -c 'import torch, sys; print(\"py\", sys.version); print(\"torch\", torch.__version__, \"cuda\", torch.cuda.is_available(), torch.version.cuda)' 2>&1 | tail -10; LOG=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t17_panacea; mkdir -p \"$OUT\"; cd /content/Waymo2Panorama && python scripts/phase3/run_panacea_baseline.py --log-dir \"$LOG\" --anchor-idx 60 --panacea-dir \"$PAN\" --output-dir \"$OUT\" --mode recon 2>&1 | tee \"$OUT/run_log.txt\" | tail -80; echo '---DONE---'; ls -la \"$OUT\" | head -30"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t17_panacea/panacea_output.mp4",
+  "timeout_s": 900,
+  "created_at": "2026-05-21T04:25:17.735789+00:00"
+}
