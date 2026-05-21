@@ -1,6 +1,9 @@
 # Waymo2Panorama Progress
 
-> **Latest: 2026-05-20 ~23:31 UTC** — **Phase 3 W1 (multi-anchor robustness) 完成**。
+> **Latest: 2026-05-20 ~23:55 UTC** — **Phase 3 W2 启动 + T-Koi-1 Week-2 handoff PDF 完成**。
+> 启动 v5 plan (`C:\Users\14294\.claude\plans\snug-shimmying-wave.md`) 下 18 tracks 多 subagent 并行执行。 第一波 (T-Koi-1 + T5 + T6) fire。 T-Koi-1 done: 8 页 PDF 给 Koi (Phase 3 W1 results + 重新定位为 Pi3→Pantheon360 之间的 AV2 适配层 + 5 个 forward path)。 主流程不阻塞 Koi 反馈, 继续推 T5 metric audit + T6 parallax mining + 下一波 T12 多帧 Pi3 / T14 IPM / T16 Bayesian。
+
+> **2026-05-20 ~23:31 UTC** — **Phase 3 W1 (multi-anchor robustness) 完成**。
 > 10 anchors × Pi3 + 全 metric stress test 结果: Phase 2 所有 headline 数字都在 Phase 3 1σ 内。 Pi3 vs LiDAR `abs_rel = 0.202 ± 0.042`, `δ<1.25 = 0.697 ± 0.142`。 L1 vs L3 `ΔPSNR = -3.15 ± 0.72 dB` (10/10 anchor L3 全输, range -1.60 ~ -4.22)。 Anchor 180 最佳: `abs_rel = 0.139, δ<1.25 = 0.866` 接近 KITTI SOTA。 Phase 2 conclusions **鲁棒**。 详见 `notes/phase3_multi_anchor_report.md`。 下一步: P3.2 多 log + P3.5 OmniStitch baseline + P3.6 D8 paper angle 决策。
 
 > **2026-05-20 ~22:51 UTC** — **Phase 2 P2.11 Pi3 vs LiDAR 完成 (single anchor)**。
