@@ -1,0 +1,12 @@
+{
+  "id": "phase3-t12-temporal-pi3-k3-anchor60-v2",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; export HF_HOME=/content/drive/MyDrive/koi_waymo2pano_colab/hf_cache; mkdir -p \"$HF_HOME\"; LOG_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; PI3_REPO=/content/01-pi3-Pi3; if [ ! -d \"$PI3_REPO\" ]; then echo 'Pi3 repo missing, cloning'; git clone --depth 1 https://github.com/yyfan2014/Pi3.git \"$PI3_REPO\" 2>/dev/null || git clone --depth 1 https://github.com/yyfz/Pi3.git \"$PI3_REPO\" 2>/dev/null || echo 'clone failed, will rely on cached HF Pi3X model'; fi; pip install -q huggingface_hub safetensors plyfile einops av2 pandas scipy 'Pillow>=10' opencv-python 2>&1 | tail -3; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/temporal_pi3; mkdir -p \"$OUT\"; python scripts/phase3/run_pi3_temporal_multi_frame.py --log-dir \"$LOG_DIR\" --anchor-idx 60 --frames-per-window 3 --output-dir \"$OUT/anchor060_K3\" --pi3-repo \"$PI3_REPO\" --device cuda --target-side 504 && python scripts/phase3/eval_temporal_pi3_vs_lidar.py --log-dir \"$LOG_DIR\" --pi3-dir \"$OUT/anchor060_K3/frame_001\" --output-dir \"$OUT/anchor060_K3/eval\" 2>&1 | tee /tmp/t12-v2-log.txt"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/temporal_pi3/anchor060_K3/eval/temporal_lidar_metrics.json",
+  "log_path": "/tmp/t12-v2-log.txt",
+  "timeout_s": 900,
+  "created_at": "2026-05-21T03:49:12.612436+00:00"
+}
