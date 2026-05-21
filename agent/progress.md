@@ -1,5 +1,16 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-21 ~05:40 UTC — [T1 Phase B] Submitted AV2 val UUID listing (Colab in-flight)
+> - Wrote `scripts/phase3/list_av2_val_uuids.py` (~190 lines): s5cmd-based S3 enumeration of 150 val UUIDs + optional per-log annotations.feather download for ped:veh scoring. Replaces local-data dependency of original `find_av2_val_candidates.py` (which needed all logs downloaded to score).
+> - Submitted `phase3-t1prep-list-av2-uuids-v1` (commit `2fd2fe1`). Worker runs UUID listing + per-log scoring, ~15 min wall. Output: Drive `data/av2_val_uuid_index.json`.
+> - Status: 🟡 In-flight (Colab job)
+> - Next: When index returns, main thread picks 4 diverse UUIDs (e.g., low/mid/high ped:veh + 1 outlier); fire s5cmd downloads (~32 GB); T1 multi-log replication.
+
+> ### 2026-05-21 ~05:35 UTC — [T11 prep] GEN3C 3D-cache spike design subagent dispatched
+> - Plan subagent designing T11: Python 3.10 install path on Colab Python 3.12 (conda-in-Colab or pip-anyway), minimum-viable inference target (single_image / multiview / dynamic), 2-job Colab design (install + inference), failure modes + fallbacks, P(success) estimate.
+> - Status: 🟡 Subagent in-flight (Plan)
+> - Next: When plan returns, main thread submits the 2 Colab jobs (install ~60-90 min, inference ~10-30 min).
+
 > ### 2026-05-21 ~05:25 UTC — [T9b] ViPE + DAP depth on L1 ERP (partial)
 > - Result: 138s end-to-end. **Depth/pose/intrinsics/masks all produced**, BUT "Too few valid pixels in pano frame N, skipping scale estimation" warning fired on all 100 frames → **depth is RELATIVE not metric**. Cause: panorama-mode post-processor's valid-pixel threshold tripped (likely sky/dynamic mask over-filtering on virtual views).
 > - Deliverable: Drive `outputs/phase3/t9b_vipe_depth/` (depth 48 MB, pose .npz, intrinsics, masks) + `notes/t9b_vipe_depth_report.md`.
