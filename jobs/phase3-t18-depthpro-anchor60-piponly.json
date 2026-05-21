@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t18-depthpro-anchor60-piponly",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; pip install -q -U 'transformers>=4.45' 2>&1 | tail -5 || { echo 'TRANSFORMERS_INSTALL_FAIL'; exit 3; }; python -c 'from transformers import DepthProForDepthEstimation, AutoImageProcessor; print(\"depth_pro_via_transformers OK\")' || { echo 'IMPORT_FAIL'; exit 3; }; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t18_depthpro; mkdir -p \"$OUT\"; python scripts/phase3/run_depth_backbone_swap.py --backbone depthpro --log-dir /content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394 --anchor-idx 60 --output-dir \"$OUT\" --device cuda 2>&1 | tee /tmp/t18-log.txt; cp /tmp/t18-log.txt \"$OUT/run.log\" || true"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t18_depthpro/depthpro_lidar_metrics.json",
+  "timeout_s": 1200,
+  "created_at": "2026-05-21T03:57:49.112208+00:00"
+}
