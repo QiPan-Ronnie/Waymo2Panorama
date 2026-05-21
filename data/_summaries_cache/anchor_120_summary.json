@@ -1,0 +1,40 @@
+{
+  "anchor_idx": 120,
+  "per_cam": {
+    "ring_front_center": {
+      "conf_pct_gt_0.1": 0.6314995905769716,
+      "conf_pct_gt_0.5": 0.24955120937263794,
+      "local_z_median_when_valid": 6.567616939544678
+    },
+    "ring_front_left": {
+      "conf_pct_gt_0.1": 0.8174052028218695,
+      "conf_pct_gt_0.5": 0.16163548752834467,
+      "local_z_median_when_valid": 5.578006267547607
+    },
+    "ring_side_left": {
+      "conf_pct_gt_0.1": 0.6782840450995213,
+      "conf_pct_gt_0.5": 0.23745354623330814,
+      "local_z_median_when_valid": 6.499956607818604
+    },
+    "ring_rear_left": {
+      "conf_pct_gt_0.1": 0.6128314751826657,
+      "conf_pct_gt_0.5": 0.26481796422272613,
+      "local_z_median_when_valid": 7.166459560394287
+    },
+    "ring_rear_right": {
+      "conf_pct_gt_0.1": 0.6522266313932981,
+      "conf_pct_gt_0.5": 0.2794705845301083,
+      "local_z_median_when_valid": 6.286045074462891
+    },
+    "ring_side_right": {
+      "conf_pct_gt_0.1": 0.9223946523053665,
+      "conf_pct_gt_0.5": 0.6978103741496599,
+      "local_z_median_when_valid": 5.075798034667969
+    },
+    "ring_front_right": {
+      "conf_pct_gt_0.1": 0.8037603930461074,
+      "conf_pct_gt_0.5": 0.5000354308390023,
+      "local_z_median_when_valid": 5.584649562835693
+    }
+  }
+}

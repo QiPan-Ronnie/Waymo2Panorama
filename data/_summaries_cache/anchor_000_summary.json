@@ -1,0 +1,58 @@
+{
+  "backbone": "Pi3X",
+  "checkpoint": "yyfz233/Pi3X",
+  "anchor_idx": 0,
+  "anchor_timestamp_ns": 315966070549927210,
+  "cameras": [
+    "ring_front_center",
+    "ring_front_left",
+    "ring_side_left",
+    "ring_rear_left",
+    "ring_rear_right",
+    "ring_side_right",
+    "ring_front_right"
+  ],
+  "target_side": 504,
+  "letterbox_method": "pad_to_square_then_resize_lanczos",
+  "device": "cuda",
+  "autocast_bf16": true,
+  "forward_s": 8.204,
+  "peak_gpu_memory_mb": 7507.619628906250,
+  "per_cam": {
+    "ring_front_center": {
+      "conf_pct_gt_0.1": 0.6366173784328546,
+      "conf_pct_gt_0.5": 0.29678445452254976,
+      "local_z_median_when_valid": 6.21725606918335
+    },
+    "ring_front_left": {
+      "conf_pct_gt_0.1": 0.6722608024691358,
+      "conf_pct_gt_0.5": 0.5073892983119174,
+      "local_z_median_when_valid": 5.529125690460205
+    },
+    "ring_side_left": {
+      "conf_pct_gt_0.1": 0.6873385928445452,
+      "conf_pct_gt_0.5": 0.5268250818846056,
+      "local_z_median_when_valid": 5.967966556549072
+    },
+    "ring_rear_left": {
+      "conf_pct_gt_0.1": 0.5848411123708743,
+      "conf_pct_gt_0.5": 0.2743449231544470,
+      "local_z_median_when_valid": 5.737158298492432
+    },
+    "ring_rear_right": {
+      "conf_pct_gt_0.1": 0.7117504409171076,
+      "conf_pct_gt_0.5": 0.3517494960947342,
+      "local_z_median_when_valid": 6.277406215667725
+    },
+    "ring_side_right": {
+      "conf_pct_gt_0.1": 0.8062681090954901,
+      "conf_pct_gt_0.5": 0.33818735827664400,
+      "local_z_median_when_valid": 3.2664895057678223
+    },
+    "ring_front_right": {
+      "conf_pct_gt_0.1": 0.9333309712773998,
+      "conf_pct_gt_0.5": 0.4225009448223734,
+      "local_z_median_when_valid": 3.884925127029419
+    }
+  }
+}
