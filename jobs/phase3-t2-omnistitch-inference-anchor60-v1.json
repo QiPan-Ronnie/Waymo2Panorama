@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t2-omnistitch-inference-anchor60-v1",
+  "cmd": [
+    "bash",
+    "-lc",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase 2>&1 | tail -5; OMNI=/content/Omnistitch; [ -d \"$OMNI\" ] || git clone --depth 1 https://github.com/tngh5004/Omnistitch.git \"$OMNI\" 2>&1 | tail -10; echo '---WEIGHT FILES---'; ls -la \"$OMNI/train-log-/test/trained-models/\" \"$OMNI/train-log-/Omnistitch/trained-models/\" 2>&1; echo '---WEIGHT SIZE+MD5---'; for f in \"$OMNI/train-log-/test/trained-models/model.pkl\" \"$OMNI/train-log-/Omnistitch/trained-models/model.pkl\"; do if [ -f \"$f\" ]; then echo \"$f: $(stat -c%s \"$f\") bytes  md5=$(md5sum \"$f\" | cut -d' ' -f1)\"; fi; done; echo '---PIP INSTALL---'; pip install cupy-cuda12x loguru lpips 2>&1 | tail -5; echo '---LOAD PROBE---'; cd \"$OMNI\" && python -c \"\nimport torch, sys, os\nsys.path.insert(0, '/content/Omnistitch')\nfor mf in ['/content/Omnistitch/train-log-/Omnistitch/trained-models/model.pkl', '/content/Omnistitch/train-log-/test/trained-models/model.pkl']:\n  if os.path.exists(mf):\n    print('trying', mf, 'size_MB=', os.path.getsize(mf)//1024//1024)\n    try:\n      sd = torch.load(mf, map_location='cpu', weights_only=False)\n      if hasattr(sd, 'state_dict'): sd = sd.state_dict()\n      print('  keys:', len(sd), 'first 3:', list(sd.keys())[:3])\n    except Exception as e:\n      print('  load failed:', repr(e))\n\" 2>&1 | tail -30; echo '---RUNNING ADAPTER (inference)---'; LOG=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t2_omnistitch_infer; mkdir -p \"$OUT\"; cd /content/Waymo2Panorama && python scripts/phase3/run_omnistitch_baseline.py --log-dir \"$LOG\" --anchor-idx 60 --omnistitch-dir \"$OMNI\" --output-dir \"$OUT\" --mode inference 2>&1 | tee \"$OUT/run_log.txt\" | tail -60; echo '---DONE---'; ls -la \"$OUT\" | head -30"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t2_omnistitch_infer/summary.json",
+  "timeout_s": 900,
+  "created_at": "2026-05-21T04:05:38.528986+00:00"
+}
