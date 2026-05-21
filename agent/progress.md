@@ -15,7 +15,16 @@
 > - **T1-prep** ✅ — AV2 val UUID 选 4 个候选策略 (Miami urban + Pittsburgh highway + Detroit/DC dense + DC night) + 自动 scan script ready
 > - **T-Koi-2** ✅ — 9 页 mid-week snapshot PDF for Koi (5 图含 IPM compare + Bayesian depth diff)
 >
-> ## 🔴 BLOCKED (等 Colab worker 重启)
+> ## 🟢 Worker UP (~03:47 UTC user restarted A100)
+> Wave-3 fired (2 jobs in queue + 2 subagents):
+> - **T12 v2** anchor 60 (per T6 ranking) — temporal Pi3 K=3 + Pi3 repo clone-or-pull
+> - **T14b** 10-anchor IPM extension — mitigates T7 top risk (3-anchor → 10-anchor)
+> - **T18** Depth Pro drop-in (general-purpose subagent writing script + pip-only Colab job)
+> - **T2** OmniStitch baseline (subagent recon + clone + adapt)
+>
+> T12 v1 crashed 11s (Pi3 repo not in /content after restart). T14 subagent's Colab job (3-anchor IPM) ran 84s, eval succeeded but bash aggregator heredoc crashed — per-anchor JSON OK on Drive, just missing top-level agg. Anchor 150 ground-only +0.32 dB confirms anchor-60-extension positive direction.
+>
+> ## 🔴 Still blocked / pending
 > - **T12** (multi-frame temporal Pi3 K=3 @ anchor 60) — Colab job queued, auto-pick up 10s 内
 > - **T1 Phase B** (run find_av2_val_candidates.py → pick 4 UUIDs → s5cmd 下载 ~40 GB)
 > - **T14b** (extend IPM hybrid 3 anchors → 10 anchors, CPU ~30s)
