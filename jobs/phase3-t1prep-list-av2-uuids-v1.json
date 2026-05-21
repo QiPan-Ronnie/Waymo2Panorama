@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t1prep-list-av2-uuids-v1",
+  "cmd": [
+    "bash",
+    "-lc",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase 2>&1 | tail -3; OUT_DIR=/content/drive/MyDrive/koi_waymo2pano_colab/data; mkdir -p \"$OUT_DIR\"; LOG=\"$OUT_DIR/av2_val_uuid_listing_log.txt\"; echo '[t1prep] start' | tee \"$LOG\"; date -u | tee -a \"$LOG\"; echo '---install s5cmd---' | tee -a \"$LOG\"; if ! command -v s5cmd >/dev/null; then if command -v apt-get >/dev/null; then apt-get install -y s5cmd 2>&1 | tail -3 | tee -a \"$LOG\" || true; fi; if ! command -v s5cmd >/dev/null; then echo '[t1prep] apt-get failed, trying go install fallback' | tee -a \"$LOG\"; curl -L https://github.com/peak/s5cmd/releases/download/v2.2.2/s5cmd_2.2.2_Linux-64bit.tar.gz -o /tmp/s5cmd.tgz 2>&1 | tail -3 | tee -a \"$LOG\"; tar -xzf /tmp/s5cmd.tgz -C /usr/local/bin s5cmd 2>&1 | tee -a \"$LOG\"; chmod +x /usr/local/bin/s5cmd; fi; fi; s5cmd version 2>&1 | head -2 | tee -a \"$LOG\"; echo '---run lister with annotations scoring---' | tee -a \"$LOG\"; cd /content/Waymo2Panorama; python scripts/phase3/list_av2_val_uuids.py --output \"$OUT_DIR/av2_val_uuid_index.json\" --fetch-annotations 2>&1 | tail -120 | tee -a \"$LOG\"; echo '---verify output---' | tee -a \"$LOG\"; ls -la \"$OUT_DIR/av2_val_uuid_index.json\" | tee -a \"$LOG\"; python -c \"import json; d=json.load(open('$OUT_DIR/av2_val_uuid_index.json')); print('n_uuids:', d['n_uuids']); print('wall_s:', d['wall_seconds']); ratios=[u.get('ped_veh_ratio') for u in d['uuids'] if u.get('ped_veh_ratio') is not None]; import statistics; print('ped_veh ratios n=', len(ratios), 'mean=', round(statistics.mean(ratios),3) if ratios else None, 'min=', round(min(ratios),3) if ratios else None, 'max=', round(max(ratios),3) if ratios else None)\" 2>&1 | tee -a \"$LOG\"; echo '---DONE---' | tee -a \"$LOG\"; echo '{\"status\":\"t1prep_done_v1\"}' > \"$OUT_DIR/t1prep_done_v1.json\""
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/data/t1prep_done_v1.json",
+  "timeout_s": 1800,
+  "created_at": "2026-05-21T05:38:59.711094+00:00"
+}
