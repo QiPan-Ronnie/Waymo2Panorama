@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t9-vipe-run-l1-erp-v1",
+  "cmd": [
+    "bash",
+    "-lc",
+    "set -e; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t9_vipe; mkdir -p \"$OUT\"; LOG=\"$OUT/run_log.txt\"; echo '[t9-run] start' | tee \"$LOG\"; nvidia-smi 2>&1 | head -3 | tee -a \"$LOG\"; ls /content/vipe/run.py 2>&1 | tee -a \"$LOG\" || echo 'NO_VIPE'; STAGE=/content/t9_stage; rm -rf \"$STAGE\"; mkdir -p \"$STAGE\"; cp /content/drive/MyDrive/koi_waymo2pano_colab/outputs/l1/02a00399-3857-444e-8db3-a8f58489c394/baseline.mp4 \"$STAGE/l1_erp.mp4\"; ls -la \"$STAGE\" | tee -a \"$LOG\"; echo '---probe mp4 metadata---' | tee -a \"$LOG\"; python -c 'import imageio.v3 as iio; meta=iio.immeta(\"/content/t9_stage/l1_erp.mp4\"); print(meta)' 2>&1 | tee -a \"$LOG\" || true; echo '---run vipe panorama---' | tee -a \"$LOG\"; cd /content/vipe; python run.py pipeline=panorama streams=raw_mp4_stream streams.base_path=\"$STAGE\" pipeline.output.path=\"$OUT\" pipeline.output.save_viz=true pipeline.output.save_artifacts=true 2>&1 | tail -200 | tee -a \"$LOG\" ; echo '---outputs walk---' | tee -a \"$LOG\"; find \"$OUT\" -maxdepth 4 -type f 2>&1 | head -80 | tee -a \"$LOG\"; find \"$OUT\" -maxdepth 4 -type d 2>&1 | head -40 | tee -a \"$LOG\"; echo '---DONE---' | tee -a \"$LOG\"; echo '{\"status\":\"run_done\"}' > \"$OUT/run_done.json\"; ls -la \"$OUT\""
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t9_vipe/run_done.json",
+  "timeout_s": 2400,
+  "created_at": "2026-05-21T04:51:28.627651+00:00"
+}
