@@ -1,0 +1,71 @@
+{
+  "picked_at": "2026-05-21",
+  "criteria": "Stratified by ped:vehicle ratio: bucket 1 highway-like (<0.05), 2 low-med ([0.10,0.25)), 3 med-high ([0.50,1.00)), 4 very-high (>=1.5)",
+  "excluded": [
+    "02a00399-3857-444e-8db3-a8f58489c394"
+  ],
+  "picks": {
+    "bucket_1_highway_like": {
+      "uuid": "2c652f9e-8db8-3572-aa49-fae1344a875b",
+      "n_annotations": 10767,
+      "ped_count": 128,
+      "veh_count": 6789,
+      "ped_veh_ratio": 0.01885402857563706,
+      "category_top5": {
+        "REGULAR_VEHICLE": 6408,
+        "CONSTRUCTION_BARREL": 3102,
+        "BOLLARD": 748,
+        "VEHICULAR_TRAILER": 195,
+        "TRUCK_CAB": 182
+      }
+    },
+    "bucket_2_low_med_ped": {
+      "uuid": "0bae3b5e-417d-3b03-abaa-806b433233b8",
+      "n_annotations": 21204,
+      "ped_count": 2661,
+      "veh_count": 16922,
+      "ped_veh_ratio": 0.15725091596737975,
+      "category_top5": {
+        "REGULAR_VEHICLE": 15846,
+        "PEDESTRIAN": 2661,
+        "CONSTRUCTION_BARREL": 839,
+        "BOLLARD": 637,
+        "LARGE_VEHICLE": 471
+      }
+    },
+    "bucket_3_med_high_ped": {
+      "uuid": "fbee355f-8878-31fa-8ac8-b9a45a3f130a",
+      "n_annotations": 17185,
+      "ped_count": 3809,
+      "veh_count": 5449,
+      "ped_veh_ratio": 0.6990273444668746,
+      "category_top5": {
+        "BOLLARD": 6778,
+        "REGULAR_VEHICLE": 5406,
+        "PEDESTRIAN": 3192,
+        "BICYCLE": 666,
+        "BICYCLIST": 617
+      }
+    },
+    "bucket_4_very_high_ped": {
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "n_annotations": 8658,
+      "ped_count": 6111,
+      "veh_count": 1590,
+      "ped_veh_ratio": 3.8433962264150945,
+      "category_top5": {
+        "PEDESTRIAN": 6111,
+        "REGULAR_VEHICLE": 1189,
+        "BICYCLE": 375,
+        "CONSTRUCTION_CONE": 285,
+        "ARTICULATED_BUS": 205
+      }
+    }
+  },
+  "bucket_sizes": {
+    "b1": 23,
+    "b2": 36,
+    "b3": 10,
+    "b4": 7
+  }
+}
