@@ -1,6 +1,36 @@
 # Waymo2Panorama Progress
 
-> **Latest: 2026-05-21 ~02:30 UTC** — **Phase 3 W2 Wave-1+ 进展: 5/6 done (T-Koi-1, T5, T6, T8, T14 ✅), T16 + T7-prelim in-flight**。
+> **Latest: 2026-05-21 ~04:30 UTC** — **Phase 3 W2 Wave-1 + Wave-2 全部 CPU autonomous work 完成 (9 tracks / ~5h via 8 parallel subagents)**。
+>
+> ## Wave-1 (6 tracks):
+> - **T-Koi-1** ✅ — 8 页 PDF (Phase 3 W1 + Pi3→Pantheon360 适配层定位)
+> - **T5** ✅ — cycle-PSNR metric audit: **L3 negative metric-robust** (LPIPS 1.83× worse, MS-SSIM 0/7, object-band -6.88 dB)
+> - **T6** ✅ — parallax ranking: anchor 60 best (rank #3 + 最小 L3 deficit), anchor 180 negative control
+> - **T8** ✅ — lit watch: PanFlow + Fin3R + Percep360 (4-6 周 scoop window) + CylinderSplat 升回 Phase 4
+> - **T14** ✅ — **IPM ground hybrid: 首个正面 method contribution** (ground-only ΔPSNR +0.20 ± 0.11 dB across 3 anchors, rear cams +1.0~+1.7 dB, full-image drop-in safe)
+> - **T16** ✅ — Bayesian depth fusion: **修 .ply 几何 (overlap RMSE 1-5m), 不修 L3 ERP** (~2% ERP overlap, ghost 主因 single-cam mis-splat)
+>
+> ## Wave-2 (3 tracks):
+> - **T7-prelim** ✅ — paper 角度 = **B-with-C-as-motivation**, primary venue **3DV 2026** (~Aug ddl), upgrade CVPR 2027 if T9/T10 lands. Top risk: T14 10-anchor regression
+> - **T1-prep** ✅ — AV2 val UUID 选 4 个候选策略 (Miami urban + Pittsburgh highway + Detroit/DC dense + DC night) + 自动 scan script ready
+> - **T-Koi-2** ✅ — 9 页 mid-week snapshot PDF for Koi (5 图含 IPM compare + Bayesian depth diff)
+>
+> ## 🔴 BLOCKED (等 Colab worker 重启)
+> - **T12** (multi-frame temporal Pi3 K=3 @ anchor 60) — Colab job queued, auto-pick up 10s 内
+> - **T1 Phase B** (run find_av2_val_candidates.py → pick 4 UUIDs → s5cmd 下载 ~40 GB)
+> - **T14b** (extend IPM hybrid 3 anchors → 10 anchors, CPU ~30s)
+> - **T18** (Depth Pro / Metric3D drop-in on anchor 60)
+> - **T2** (OmniStitch baseline)
+> - **T9 / T10 / T11 / T17** (ViPE on L1 / Pantheon360 spike / GEN3C 3D cache / Panacea+ baseline)
+> - **T13** (self-sup cycle finetune of Pi3, training)
+>
+> ## Paper 角度 (locked v0)
+> **B-with-C-as-motivation**: "Hybrid 2D/3D pipeline for AV → 360 stitching, with analysis of why naive 3D-lift fails". IPM hybrid 是 method contribution (+0.20 dB ground), L3 forward-splat -3.15 dB metric-robust negative 是 motivation, T5 metric audit 是 reviewer defense, T16 Bayesian fusion 是 .ply deliverable upgrade。 Primary venue 3DV 2026, upgrade CVPR 2027。
+>
+> ## Next actions (用户 W3 D1)
+> 1. 重启 Colab worker cell — unblock T12 + 所有 GPU tracks
+> 2. 把 `handoff_to_koi_w2_2026-05-21_mid.pdf` 发 Koi (异步)
+> 3. (可选) Koi 反馈到了再调 priority — 默认 D 1: T12 finish + T14b 10-anchor; D 2: T17/T18; D 3: T1 multi-log; D 4: T9/T10/T11 system integration
 >
 > **🎯 T14 IPM ground hybrid: 首个正面 method contribution** (3 anchors)
 > - 全 image ΔPSNR = **+0.04 dB** (drop-in safe, IPM hybrid ≈ L1)
