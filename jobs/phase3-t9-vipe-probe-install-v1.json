@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t9-vipe-probe-install-v1",
+  "cmd": [
+    "bash",
+    "-lc",
+    "set -e; nvidia-smi 2>&1 | head -3; echo '---python version---'; python --version; echo '---probe panorama branch---'; rm -rf /content/vipe_probe; git clone --depth=1 --branch panorama https://github.com/nv-tlabs/vipe.git /content/vipe_probe 2>&1 | tail -3 || echo 'PANORAMA_BRANCH_CLONE_FAILED'; ls /content/vipe_probe/ 2>&1 | head -20; echo '---configs/pipeline panorama check---'; ls /content/vipe_probe/configs/pipeline/ 2>&1; echo '---README head---'; head -200 /content/vipe_probe/README.md 2>&1 || echo 'NO_README'; echo '---envs/requirements.txt head---'; head -50 /content/vipe_probe/envs/requirements.txt 2>&1 || echo 'NO_REQS'; echo '---envs/base.yml---'; cat /content/vipe_probe/envs/base.yml 2>&1 || echo 'NO_BASE'; echo '---pyproject.toml---'; cat /content/vipe_probe/pyproject.toml 2>&1 || echo 'NO_PYPROJ'; echo '---panorama config---'; find /content/vipe_probe/configs -name '*panorama*' 2>&1 ; echo '---DONE---'; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t9_vipe_probe; mkdir -p \"$OUT\"; echo '{\"status\":\"probe_done\",\"branch_clone_attempted\":\"panorama\"}' > \"$OUT/probe_done.json\"; ls -la \"$OUT/\""
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t9_vipe_probe/probe_done.json",
+  "timeout_s": 300,
+  "created_at": "2026-05-21T04:41:07.945132+00:00"
+}
