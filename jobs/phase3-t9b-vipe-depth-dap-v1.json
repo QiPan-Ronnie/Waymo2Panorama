@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t9b-vipe-depth-dap-v1",
+  "cmd": [
+    "bash",
+    "-lc",
+    "set -e; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t9b_vipe_depth; mkdir -p \"$OUT\"; LOG=\"$OUT/run_log_v1.txt\"; echo '[t9b] start' | tee \"$LOG\"; date -u | tee -a \"$LOG\"; nvidia-smi 2>&1 | head -3 | tee -a \"$LOG\"; echo '---protobuf fix---' | tee -a \"$LOG\"; pip install 'protobuf==5.28.3' 2>&1 | tail -3 | tee -a \"$LOG\"; STAGE=/content/t9b_stage; rm -rf \"$STAGE\"; mkdir -p \"$STAGE\"; cp /content/drive/MyDrive/koi_waymo2pano_colab/outputs/l1/02a00399-3857-444e-8db3-a8f58489c394/baseline.mp4 \"$STAGE/l1_erp.mp4\"; ls -la \"$STAGE\" | tee -a \"$LOG\"; if [ ! -d /content/vipe ]; then echo '[t9b] cloning vipe panorama branch...' | tee -a \"$LOG\"; git clone --depth=1 --branch panorama https://github.com/nv-tlabs/vipe.git /content/vipe 2>&1 | tail -10 | tee -a \"$LOG\"; cd /content/vipe; pip install -r envs/requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128 2>&1 | tail -8 | tee -a \"$LOG\"; pip install --no-build-isolation -e . 2>&1 | tail -5 | tee -a \"$LOG\"; pip install 'protobuf==5.28.3' 2>&1 | tail -3 | tee -a \"$LOG\"; fi; cd /content/vipe; echo '---run vipe panorama + dap depth---' | tee -a \"$LOG\"; HYDRA_FULL_ERROR=1 python run.py pipeline=panorama streams=raw_mp4_stream streams.base_path=\"$STAGE\" pipeline.output.path=\"$OUT\" pipeline.output.save_viz=false pipeline.output.save_artifacts=true pipeline.post.depth_align_model=dap 2>&1 | tail -300 | tee -a \"$LOG\" ; echo '---outputs walk---' | tee -a \"$LOG\"; find \"$OUT\" -maxdepth 4 -type f 2>&1 | head -100 | tee -a \"$LOG\"; find \"$OUT\" -maxdepth 4 -type d 2>&1 | head -40 | tee -a \"$LOG\"; echo '---depth artifact size---' | tee -a \"$LOG\"; du -sh \"$OUT\"/depth 2>/dev/null | tee -a \"$LOG\"; ls -la \"$OUT\"/depth 2>/dev/null | head -20 | tee -a \"$LOG\"; echo '---DONE---' | tee -a \"$LOG\"; echo '{\"status\":\"t9b_dap_done_v1\"}' > \"$OUT/run_done_v1.json\"; ls -la \"$OUT\""
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t9b_vipe_depth/run_done_v1.json",
+  "timeout_s": 2400,
+  "created_at": "2026-05-21T05:20:05.118498+00:00"
+}
