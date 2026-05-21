@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t2-omnistitch-recon-anchor60-v1",
+  "cmd": [
+    "bash",
+    "-lc",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; OMNI=/content/Omnistitch; if [ ! -d \"$OMNI\" ]; then echo '[t2] cloning OmniStitch...'; git clone --depth 1 https://github.com/tngh5004/Omnistitch.git \"$OMNI\" 2>&1 | tail -20; else echo '[t2] OmniStitch already cloned'; cd \"$OMNI\" && git pull --rebase 2>&1 | tail -3 || true; cd -; fi; echo '---OMNI TREE---'; find \"$OMNI\" -maxdepth 3 -type f 2>/dev/null | head -60; echo '---WEIGHTS PROBE---'; find \"$OMNI\" -name '*.pkl' -o -name '*.pth' -o -name '*.ckpt' 2>/dev/null | head -10 || echo 'NO_WEIGHTS_FOUND'; echo '---PYTHON PROBE---'; python -c 'import torch, sys; print(\"torch\", torch.__version__, \"cuda\", torch.cuda.is_available())' 2>&1 | tail -5; echo '---SHAPE PROBE: load AV2 anchor 60---'; LOG=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; ls \"$LOG\" 2>&1 | head -5; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t2_omnistitch_recon; mkdir -p \"$OUT\"; cd /content/Waymo2Panorama && python scripts/phase3/run_omnistitch_baseline.py --log-dir \"$LOG\" --anchor-idx 60 --omnistitch-dir \"$OMNI\" --output-dir \"$OUT\" --mode adapter-only 2>&1 | tee \"$OUT/run_log.txt\" | tail -40; echo '---DONE---'; ls -la \"$OUT\" | head -30"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t2_omnistitch_recon/summary.json",
+  "timeout_s": 600,
+  "created_at": "2026-05-21T03:58:36.583577+00:00"
+}
