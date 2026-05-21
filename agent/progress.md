@@ -17,7 +17,11 @@
 > **T5 metric audit**: **L3 negative 结论 metric-robust** — LPIPS 1.83× 更差, MS-SSIM 0/7 cams, object-band PSNR -6.88 dB (parallax 本该帮 L3 的地方反而输得最惨), sky -3.78, ground -3.22. paper headline 不变 PSNR, 但 main table 加 (PSNR, MS-SSIM, LPIPS) 三元组防 reviewer 质疑 cherry-pick。
 > **T6 parallax ranking**: top-3 anchors {0, 150, 60} (score 0.41-0.40), bottom {180, 210} (~0.32). 推荐 T12/T18 先跑 anchor 60。
 >
-> in-flight: T16 (Bayesian fusion CPU)。
+> in-flight: T-Koi-2 (Wave-1 mid-week Koi PDF) + T1-prep (AV2 val UUID 候选搜索)。
+>
+> **T16 Bayesian fusion done**: Pi3 conf-as-inverse-variance per-ERP-pixel fusion. **修 .ply 几何 (overlap 区域 RMSE 1-5m, 建筑边界更干净), 但不修 L3 ERP cycle-PSNR** (ERP overlap 只 ~2%, L3 ghost 主因是 single-cam mis-splat, fusion 修不了)。 paper framing: ".ply 更干净 for downstream consumer" 而非 "L3 ERP 修好"。 commit `e1dbaa6`. 
+>
+> **Wave-1 全 7 个 CPU tracks 完成** ✅ (T-Koi-1 + T5 + T6 + T8 + T14 + T16 + T7-prelim). Wave-2 启动: T-Koi-2 (mid-week snapshot) + T1-prep (UUID 选 4 个候选)。
 >
 > **📜 T7-prelim Paper-angle 决定 (v0)**: 推荐角度 **B-with-C-as-motivation** = "Hybrid 2D/3D pipeline for AV → 360 stitching, with analysis of why naive 3D-lift fails". IPM hybrid (+0.20 dB ground) 作 method contribution; L3 forward-splat negative (-3.15 dB, metric-robust per T5) 作 motivation。 Primary venue **3DV 2026** (~Aug 2026 ddl, 12 周 runway), upgrade CVPR 2027 if T9/T10 downstream lands。 Top risk: T14 10-anchor extension regress (Colab worker back 后必跑)。 Re-issue T7 v1 at W3 D3 after T12 + T16 + T14b + P3.5 done。
 >
