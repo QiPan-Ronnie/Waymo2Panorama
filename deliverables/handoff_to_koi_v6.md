@@ -323,15 +323,15 @@ Verdict: ⚠️ 部分成功 — ground 分支显著优于 T14 (+0.20 vs +0.05 d
 
 ---
 
-## 路线 13: 相邻 cam wide-baseline stereo — ⏳ pending Wave 2
+## 路线 13: 相邻 cam wide-baseline stereo — ✅ Wave 2 完成 (2026-05-21)
 
-**怎么做**: TBD
+**怎么做**: AV2 ring cams 邻 cam 对的外参 (T_ego_cam) 是出厂标定, 精度 ±5-10 mm / ±0.1°, 所以 **基线 / 相对位姿是 KNOWN 量**, 不用做 SfM 估计, 只需在已知 epipolar geometry 上做 sparse stereo。流水线: (1) kornia DISK 提 keypoints + descriptors (max 2048 / cam), (2) kornia LightGlue 做 deep matcher, (3) 用已知外参直接算 fundamental matrix `F = K_b^{-T} [t]_x R K_a^{-1}` (不估 F!), (4) Sampson 距离 ≤ 3 px 过滤外点, (5) `cv2.triangulatePoints` 做 DLT 三角化, (6) 三重几何过滤: cheirality (两个 cam 内 Z>0), depth band ([0.5, 120] m), parallax angle ≥ 0.5° (剔除远处近平行射线的退化情况)。CPU only, 单 anchor 7 对耗时 6-10 s。Module 在 `code/waymo2panorama/stereo/wide_baseline_stereo.py`, driver 在 `scripts/phase3/run_wide_baseline_stereo.py`。
 
-**结果**: TBD
+**结果**: 4 anchors (0/60/90/150) × 7 邻对 = 28 个 stereo pair, 平均 N_final = 44 inlier 3D pts/pair (range 0-127), depth 中位数 9-22 m, depth 跨度覆盖 [2.5, 26.5] m (典型城市建筑距离), median parallax 0.55-1.39°。Anchor 60 (主): 总 307 个 3D pts 跨 7 对, 5 对成功 (front_center↔front_left=29, front_right↔front_center=57, side_left↔rear_left=79, rear_left↔rear_right=27, rear_right↔side_right=115), 2 对 NEG (front_left↔side_left: 152 epi inlier 但全部射线近平行 → cheirality 失败; side_right↔front_right: 仅 11 LightGlue match → 没有 epi inlier, 因为 side_right 看到的几乎全是近距离黑墙 + 天空, 没有可匹配的 feature)。两个 NEG 对的失败被 cheirality + parallax filter 干净诊断, 不是 silent 0 输出。Verdict: ⚠️ (5/7 对在主 anchor 上成功, 但 sparse 覆盖 (~50 pts/pair) 不足以独立支撑 dense L1 reweight — 这本身就是关于 "经典 sparse stereo 在 AV ring cam 上的真实可用性" 的 NEG 论据)。
 
-**图**: TBD
+![Wide-baseline sparse stereo: 7 adjacent cam-pair depth maps on anchor 60 (color = depth_cam_a, turbo cmap; gray = epipolar outliers; "no inliers" = degenerate or low-overlap pair)](images/route_wide_baseline_depth.png)
 
-**意义**: TBD
+**意义**: 这条路线提供两个论文 Section 6 ("3D-Aware Failures on AV Ring") 的关键论据。第一, **几何上可行**: 已知外参的 sparse stereo 在 5/7 对上产生 metric-sane depth (~10 m 中位数, 与场景物理距离一致), 证明 "邻 cam 三角化 → metric 深度" 的 pipeline 数学和实现都对。第二, **实践上不够**: 平均 ~50 pts/pair 的稀疏度无法覆盖 1024×2048 ERP 的重叠区 (每对重叠~50-150k 像素), 且 2/7 对在远距离 / 低纹理场景下完全失败 (parallel-ray degeneracy + black wall)。结论与 Pi3 / VGGT backbone swap 的 NEG 结果一致 — **AV ring cam 的 3D-aware 重建在当前数据规模下都 brittle**, 不论是用 monocular depth backbone 还是 classical sparse stereo, 都不足以可靠地修正 L1 sphere baseline 的 parallax ghosting; 真正可行的 Wave 2/3 方向是 (a) HDR/曝光补偿 (cheap + universal, 路线 14 ✅), (b) IPM-hybrid 在地面区域 (路线 11/12), (c) graph-cut seam (路线 P3.5)。Module 的 `process_anchor_all_pairs()` API 为 Wave 3 的 "Option B reweight L1" 集成预留了 drop-in hook。
 
 ---
 
