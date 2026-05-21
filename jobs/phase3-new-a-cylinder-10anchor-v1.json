@@ -1,0 +1,12 @@
+{
+  "id": "phase3-new-a-cylinder-10anchor-v1",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; SRC=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.1_multi_anchor; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.4_cylindrical_10anchor; mkdir -p \"$OUT\"; ls \"$SRC\" 2>&1 | head -30; for d in $SRC/anchor_*; do name=$(basename \"$d\"); echo \"=== $name ===\"; python scripts/phase3/run_cylindrical_baseline.py --input-mode pi3-cache --pi3-dir \"$d\" --output-dir \"$OUT/$name\" 2>&1 | tail -3; python scripts/phase3/eval_cylindrical_cycle.py --pi3-dir \"$d\" --output-dir \"$OUT/$name/cycle\" 2>&1 | tail -2; done; python -c \"\nimport json, glob\nfrom pathlib import Path\nimport numpy as np\nresults = {}\nfor p in sorted(glob.glob('$OUT/anchor_*/cycle/cycle_l1_vs_l2.json')):\n    a = Path(p).parents[1].name.split('_')[1]\n    d = json.loads(Path(p).read_text())\n    results[a] = {'cyl_cov': d['union_coverage']['cylinder'], 'sph_cov': d['union_coverage']['sphere'], 'delta_cov': d['union_coverage']['delta_cyl_minus_sph'], 'grad_cyl': d['seam_gradient_energy']['cylinder'], 'grad_sph': d['seam_gradient_energy']['sphere']}\nprint('anchors:', list(results.keys()))\nmean = {k: float(np.mean([r[k] for r in results.values()])) for k in results[list(results.keys())[0]].keys()}\nagg = {'anchors': list(results.keys()), 'n_anchors': len(results), 'per_anchor': results, 'mean': mean}\nPath('$OUT/agg_10anchor.json').write_text(json.dumps(agg, indent=2))\nprint(json.dumps(agg, indent=2))\n\"; echo 'DONE'"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/p3.4_cylindrical_10anchor/agg_10anchor.json",
+  "log_path": "/tmp/phase3-new-a-cylinder-10anchor-v1.log",
+  "timeout_s": 900,
+  "created_at": "2026-05-21T10:26:28.032313+00:00"
+}
