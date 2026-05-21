@@ -194,7 +194,10 @@ def main() -> int:
     phase2_dir = Path(args.phase2_dir) if args.phase2_dir else (here / DEFAULT_PHASE2_REL).resolve()
     _wire_imports(w2p_code, phase2_dir)
 
-    from waymo2panorama.data_io.av2_loader import RING_CAMS_7
+    RING_CAMS_7 = (
+        "ring_front_center", "ring_front_left", "ring_side_left",
+        "ring_rear_left", "ring_rear_right", "ring_side_right", "ring_front_right",
+    )
     from waymo2panorama.projection.ipm_ground import detect_ground_from_pi3, detect_ground_lower_n
     from eval_cycle_consistency import reconstruct_l1
 
@@ -221,8 +224,8 @@ def main() -> int:
         cam_gm[cam] = gm
 
     rows: list[dict] = []
-    print(f"{'cam':22s}  {'cov_L1':>7s}  {'cov_Hyb':>7s}  {'cov_∩':>7s}  "
-          f"{'PSNR_L1':>8s}  {'PSNR_Hy':>8s}  ΔPSNR  {'MAE_L1':>7s}  {'MAE_Hy':>7s}")
+    print(f"{'cam':22s}  {'cov_L1':>7s}  {'cov_Hyb':>7s}  {'cov_int':>7s}  "
+          f"{'PSNR_L1':>8s}  {'PSNR_Hy':>8s}  dPSNR  {'MAE_L1':>7s}  {'MAE_Hy':>7s}")
     print("-" * 110)
 
     for holdout in cams:
@@ -275,7 +278,7 @@ def main() -> int:
         d_p = p_hy - p_l1
         print(f"{holdout:22s}  {cov_l1:7.1%}  {cov_hy:7.1%}  {cov_int:7.1%}  "
               f"{p_l1:8.2f}  {p_hy:8.2f}  {d_p:+5.2f}  {m_l1:7.2f}  {m_hy:7.2f}  "
-              f"| ground-only PSNR L1={p_l1_g:.2f} Hy={p_hy_g:.2f} Δ={p_hy_g - p_l1_g:+.2f}")
+              f"| ground-only PSNR L1={p_l1_g:.2f} Hy={p_hy_g:.2f} d={p_hy_g - p_l1_g:+.2f}")
 
         if args.save_recon_pngs:
             gap = 4
@@ -292,8 +295,8 @@ def main() -> int:
     mean_mae_l1 = float(np.nanmean([r["MAE_L1"] for r in rows]))
     mean_mae_hy = float(np.nanmean([r["MAE_Hyb"] for r in rows]))
     print("-" * 110)
-    print(f"{'MEAN':22s}   ALL: L1={mean_psnr_l1:.2f} Hy={mean_psnr_hy:.2f} Δ={mean_psnr_hy - mean_psnr_l1:+.2f}  "
-          f"GROUND-ONLY: L1={mean_psnr_l1_g:.2f} Hy={mean_psnr_hy_g:.2f} Δ={mean_psnr_hy_g - mean_psnr_l1_g:+.2f}  "
+    print(f"{'MEAN':22s}   ALL: L1={mean_psnr_l1:.2f} Hy={mean_psnr_hy:.2f} d={mean_psnr_hy - mean_psnr_l1:+.2f}  "
+          f"GROUND-ONLY: L1={mean_psnr_l1_g:.2f} Hy={mean_psnr_hy_g:.2f} d={mean_psnr_hy_g - mean_psnr_l1_g:+.2f}  "
           f"MAE_L1={mean_mae_l1:.2f} MAE_Hy={mean_mae_hy:.2f}")
 
     summary = {

@@ -103,7 +103,16 @@ def main() -> int:
     _wire_imports(w2p_code)
 
     from waymo2panorama.blending.multiband import multiband_blend
-    from waymo2panorama.data_io.av2_loader import RING_CAMS_7
+    # Avoid importing av2_loader (pulls pandas) — RING_CAMS_7 is a simple tuple.
+    RING_CAMS_7 = (
+        "ring_front_center",
+        "ring_front_left",
+        "ring_side_left",
+        "ring_rear_left",
+        "ring_rear_right",
+        "ring_side_right",
+        "ring_front_right",
+    )
     from waymo2panorama.projection.ipm_ground import (
         detect_ground_from_pi3,
         detect_ground_lower_n,
