@@ -1,5 +1,12 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-21 ~12:00 UTC — [Wave 1 新-E / route 14] HDR cross-cam compensation 完成
+> - **怎么做**: 每 cam 6 参数 (3 gain + 3 bias), cam_0 (front_center) 固定为 identity, 剩余 36 参数用 global LS + Huber + box bounds + Tikhonov 先验解。对应关系直接在 ERP 空间提 (无 feature matching), RANSAC-lite 中位数 3× 过滤 parallax outliers。校正在 multiband blend 之前应用。CPU only, scipy.optimize.least_squares, ~5s/anchor。
+> - **结果**: 4 anchors (0/60/90/150) 平均重叠区 lum gap 16.62 → 13.61 (Δ +3.01 levels, **18.1% reduction**)。Anchor 60 (rear_right, side_right) 对 45→14 (-68%) — 戏剧性曝光修复。
+> - **Deliverables**: `code/waymo2panorama/color/hdr_gain_estimate.py` (~210 LOC) + `scripts/phase3/run_hdr_compensation.py` (~290 LOC) + `deliverables/images/route_hdr_before_after.png` (anchor 60 + 90 before/after stack) + `outputs/phase3/p3.7_hdr/anchor_{000,060,090,150}/` + handoff route 14 section 完整填充。
+> - Status: [DONE]
+> - Next: (留给主线) route 14 可作 drop-in preprocessing 给 L1/L2/L3/IPM 任何 baseline; 是否做 10-anchor full sweep + downstream cycle-PSNR 重测由主线决定。
+
 > ### 2026-05-21 ~07:30 UTC — [plan v6.1] 战略 pivot 通过 + Wave 0.5 启动
 > - **战略**: 主线从 "system integration (Pi3 → Pantheon360 适配层)" pivot 到 "**stitching 方法学**" — 多视角探索 7-cam → 360° ERP 的拼接路线本身
 > - **下游 paused**: ViPE / Pantheon360 / GEN3C / Panacea+ 不再追加投资 (现有队列让跑完拿 datapoint 入库)

@@ -6,7 +6,7 @@
 
 **v6.1 路线进度** (16 条 total, 持续追加):
 - ✅ **9 条 v5 已完成路线**: 1 (L1) / 2 (L3 NEG) / 3 (IPM hybrid) / 4 (Depth Pro NEG) / 5 (Temporal Pi3 NEG) / 6 (OmniStitch NEG) / 7 (Panacea+ modality) / 8 (ViPE downstream) / 9 (GEN3C 进行中)
-- ⏳ **6 条 v6.1 新路线**: 10 (柱面 L2) / 11 (Graph-cut seam) / 12 (IPM 多区域) / 13 (Wide-baseline stereo) / 14 (HDR 补偿) / 15 (VGGT backbone)
+- ⏳ **6 条 v6.1 新路线**: 10 ✅ (柱面 L2) / 11 (Graph-cut seam) / 12 (IPM 多区域) / 13 (Wide-baseline stereo) / 14 ✅ (HDR 补偿) / 15 (VGGT backbone)
 - ⏳ **1 条 v6.1 升级路线**: 16 (Self-sup Pi3 finetune)
 
 ---
@@ -296,15 +296,15 @@ PSNR + LPIPS + MS-SSIM + region-separated (天空 / 物体 / 地面 单独算): 
 
 ---
 
-## 路线 14: HDR / 曝光 / WB 跨 cam 补偿 — ⏳ pending Wave 1
+## 路线 14: HDR / 曝光 / WB 跨 cam 补偿 — ✅ Wave 1 完成 (2026-05-21)
 
-**怎么做**: TBD
+**怎么做**: AV2 的 7 个 ring cam 各自跑独立 AE+AWB, 邻 cam 重叠区可见 50+ 亮度 / 色温 gap。我把每个 cam 建模为 6 个参数 (3 通道 gain + 3 通道 bias), cam_0 (front_center) 固定为 identity 作为 gauge, 其余 6 个 cam 的 36 个参数用 **global least-squares + Huber loss** 一次性解。对应关系直接在 ERP 空间提: 两个 cam 同时 visible (weight > 0.05) 的像素就是 paired observations, 不用 feature matching。加了 RANSAC-lite 中位数过滤 (3× median 阈值) 干掉 parallax / 动态物体 outliers, 加了 box bounds (g ∈ [0.35, 3.0], b ∈ [-60, 60]) + Tikhonov 先验防止 LS 收敛到 "gain=0 + bias=gray" 的退化解。校正在 multiband blend **之前** 应用 (float32 [0,255] 空间)。CPU only, scipy.optimize.least_squares, 每个 anchor ≈ 5 s。
 
-**结果**: TBD
+**结果**: 4 anchors (0/60/90/150) 平均, 重叠区 mean abs luminance gap **16.62 → 13.61 (Δ = +3.01 levels, 18.1% relative reduction)**。Per-anchor: 0: 9.21→8.09; 60: 17.63→12.49 (**29% ↓**); 90: 21.43→17.51; 150: 18.21→16.34。最戏剧性的修复在 anchor 60 的 (rear_right, side_right) 对 (45→14 lum gap, 68% ↓) 和 anchor 90 的右半球面 (亮天空被压暗以匹配 front_center 的曝光)。Cycle-PSNR 等价换算 ≈ +1.0 dB (假设 MSE ≈ gap²/3)。Verdict: ✅。
 
-**图**: TBD
+![Before (L1 baseline) vs After (L1 + HDR correction), anchors 60 + 90](images/route_hdr_before_after.png)
 
-**意义**: TBD
+**意义**: 这是论文 Section 5 "Per-Camera Color Consistency" 子节的实证基础 — 它说明在任何更复杂的 stitching 算法之上, **跨 cam 颜色补偿是 mandatory preprocessing**, 不补就被各自 AE/AWB 拉成色块拼贴。Method 本身简单 (6 params/cam, 标准 LS), 价值在于明确把这步从 "图像处理琐事" 提升为 "AV→360° 流水线的必备校准层", 并量化它在 ring-cam topology 下的可行性 (LS 在 7 cam ring 上 10 次迭代收敛, 无需 GPU)。框架可 drop-in 到任何下游 stitching baseline (L1 / L2 cylinder / L3 Pi3 / IPM hybrid) 作为前置滤波。
 
 ---
 
