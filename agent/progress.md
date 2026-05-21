@@ -1,5 +1,11 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-21 ~05:30 UTC — [T-Koi-3] Wave-3 mid-week-v2 PDF
+> - Result: 12-page PDF, 5 figures embedded (IPM hybrid compare anchor 60, T14b 10-anchor honest chart, Wave-3 NEG findings summary, Pi3 depth-binned bias, Pi3 vs LiDAR per-anchor). Wave-3 summary table + 4 NEG (T18/T2/T12 v2/T17) + T9 ViPE downstream demo + paper narrative shift ask (B-with-C → C-with-B-supplement).
+> - Deliverable: `deliverables/handoff_to_koi_w2_2026-05-21_late_mid.{md,pdf}` + renderer `deliverables/_render_pdf_w2_late_mid.py` + 2 new figure scripts (`_make_t14b_figure.py`, `_make_neg_summary_figure.py`).
+> - Status: [DONE]
+> - Next: User hand-deliver to Koi async; pivot to T11 GEN3C spike + T9b depth integration + T13 Pi3 self-sup finetune small spike
+
 > **Latest: 2026-05-21 ~04:30 UTC** — **Phase 3 W2 Wave-1 + Wave-2 全部 CPU autonomous work 完成 (9 tracks / ~5h via 8 parallel subagents)**。
 >
 > ## Wave-1 (6 tracks):
