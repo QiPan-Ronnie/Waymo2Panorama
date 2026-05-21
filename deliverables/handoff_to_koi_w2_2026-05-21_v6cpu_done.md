@@ -43,15 +43,23 @@
 
 ---
 
-## §1.2 L3 Pi3 forward-splat (核心 NEG)
+## §1.2 L3 Pi3 forward-splat (核心 NEG) + 中间产物 .ply 点云
 
-**怎么做**: 用 Pi3 (CVPR 2025 permutation-equivariant 3D foundation model) 估每个像素的 3D 位置 → 把 7 cam 的图变成一团 .ply 点云 → forward-splat 到 ERP 球面 (z-buffer 取最近点)。
+**怎么做**: 用 Pi3 (CVPR 2025 permutation-equivariant 3D foundation model) 估每个像素的深度 → 通过 **Sim(3) Umeyama 对齐** 把 Pi3-world 坐标系映射到 AV2 ego 坐标系 (scale 1.0346, mean residual 0.157 m) → 7 cam 深度合并成 **.ply 点云** (~1-2M 点) → forward-splat 到 ERP 球面 (z-buffer 取最近点)。 `.ply` 是这个流程的中间产物, 也是潜在的下游 3D-aware 模型 (GEN3C / Pantheon360) 的 3D cache 输入候选。
 
-**结果**: cycle-PSNR **8.65 vs L1 12.34 → -3.15 dB, 10/10 anchor 输**。 点云不均匀 (Pi3 在天空 / 远景 conf 低), multi-cam 重叠区有重复 splat 鬼影, 动态物体散开。
+**结果 (L3 ERP)**: cycle-PSNR **8.65 vs L1 12.34 → -3.15 dB, 10/10 anchor 输**。 点云不均匀 (Pi3 在天空 / 远景 conf 低), multi-cam 重叠区有重复 splat 鬼影, 动态物体散开。
 
 **差距**: naive 3D-lift forward-splat 在 AV 多 cam + 远距离 + 动态物体场景结构性失败。 后续 backbone swap (Depth Pro 2.84× 差) + 时间堆叠 (Temporal Pi3 也差) 都不能救。
 
 ![L1 (顶) / L3 forward-splat (中) / IPM hybrid (底), 同 anchor 60](images/l1_vs_l3_hybrid.png)
+
+### .ply 点云中间产物 (potential downstream 3D cache)
+
+`.ply` 本身脱离 forward-splat 看, 是个 ego-frame metric 3D 表征。 透视视角 (从车后看前) 能看到主要物体的 3D 结构 (路面、建筑立面、远场密度衰减); 俯视图能看到 7 cam 的覆盖扇区 + 重叠区的多 cam 噪声。 这个 .ply 是 v6.1 §2.2 GEN3C 一旦 install 跑通要喂给它的 3D cache 输入。
+
+![Pi3 .ply 透视视角 (从车后看前) — Pi3 在远场 conf 低导致点云稀疏](images/l3_pointcloud_perspective.png)
+
+![Pi3 .ply 俯视图 — 7 cam 覆盖扇区 + 重叠区可见 multi-cam noise](images/l3_pointcloud_topdown.png)
 
 ---
 
@@ -170,6 +178,8 @@
 
 ## §2 下游消费任务 (3 条 — 独立章节, 跟 stitching 正交)
 
+> **背景**: 我们的 stitching 流程会产出两个潜在下游输入: (a) **L1 ERP 全景视频** (1024×2048, 20 Hz) 给视频/SLAM 类下游 (ViPE), (b) **Pi3 .ply 点云** (~1-2M 点, ego-frame metric) 给 3D-cache 类下游 (GEN3C / Pantheon360)。 见 §1.2 末尾的点云图。
+
 ### §2.1 ViPE 全景 SLAM (NVIDIA, 2025) — ✅ 成功
 
 **怎么做**: ViPE (Video Pose Engine) 显式支持 360° ERP 输入。 把 L1 输出的 1024×2048 ERP 5s 视频喂给它 panorama-mode SLAM: 把 ERP 切成 4 horizontal + 1 bottom 共 5 个 virtual pinhole view, joint SLAM + dense bundle adjustment + 动态物体 mask (GroundingDINO + SAM + XMem 三层)。
@@ -186,7 +196,7 @@
 
 ### §2.2 GEN3C 3D-cache 视频生成 (NVIDIA CVPR 2025) — ⏸️ paused
 
-**怎么做**: GEN3C 是 3D-cache-conditioned 7B 扩散模型, 接受 RGB + depth + pose 条件 → 生成新轨迹视频。 输入 schema 跟 ViPE 输出 100% 匹配, 用 `gen3c_dynamic --vipe_path` API 直接对接。
+**怎么做**: GEN3C 是 3D-cache-conditioned 7B 扩散模型, 接受 RGB + depth + pose 条件 → 生成新轨迹视频。 输入 schema 跟 ViPE 输出 100% 匹配, 用 `gen3c_dynamic --vipe_path` API 直接对接。 **另一条路是直接喂 §1.2 的 Pi3 .ply** 作 3D cache (跳过 ViPE), 但当前 install 没装上, 两条路都需要等重试。
 
 **结果**: ⏸️ install 阶段 bash 脚本 2 次低级错误 (`set -u` + `set -eo pipefail` 配 `nvidia-smi | head` SIGPIPE), 5 秒就 crash, 浪费 3 小时 A100。 conda env (Cosmos-Predict1-7B + Apex CUDA build + transformer-engine 1.12) 没装上, 推理没机会测。
 
