@@ -17,7 +17,9 @@
 > **T5 metric audit**: **L3 negative 结论 metric-robust** — LPIPS 1.83× 更差, MS-SSIM 0/7 cams, object-band PSNR -6.88 dB (parallax 本该帮 L3 的地方反而输得最惨), sky -3.78, ground -3.22. paper headline 不变 PSNR, 但 main table 加 (PSNR, MS-SSIM, LPIPS) 三元组防 reviewer 质疑 cherry-pick。
 > **T6 parallax ranking**: top-3 anchors {0, 150, 60} (score 0.41-0.40), bottom {180, 210} (~0.32). 推荐 T12/T18 先跑 anchor 60。
 >
-> in-flight: T14 (IPM ground hybrid CPU) + T16 (Bayesian fusion at ERP overlap CPU)。
+> in-flight: T16 (Bayesian fusion CPU)。
+>
+> **📜 T7-prelim Paper-angle 决定 (v0)**: 推荐角度 **B-with-C-as-motivation** = "Hybrid 2D/3D pipeline for AV → 360 stitching, with analysis of why naive 3D-lift fails". IPM hybrid (+0.20 dB ground) 作 method contribution; L3 forward-splat negative (-3.15 dB, metric-robust per T5) 作 motivation。 Primary venue **3DV 2026** (~Aug 2026 ddl, 12 周 runway), upgrade CVPR 2027 if T9/T10 downstream lands。 Top risk: T14 10-anchor extension regress (Colab worker back 后必跑)。 Re-issue T7 v1 at W3 D3 after T12 + T16 + T14b + P3.5 done。
 >
 > **T8 lit watch 完成**: PanFlow (AAAI 2025, alternative panoramic diffusion) + Fin3R (NeurIPS 2025, LoRA fine-tune Pi3 — 直接对应我们 T13) + CylinderSplat (ICLR 2026, 提升出 Out-of-Scope) + Percep360 (ICRA 2026 closest competitor, code pending June 2026)。 我们 hybrid (3D-aware + diffusion) 角度 4-6 周 scooping 窗口。 plan v6 候选: T19 PanFlow spike / T20 Fin3R+cycle combo / T21 Dur360BEV cross-dataset。
 >
