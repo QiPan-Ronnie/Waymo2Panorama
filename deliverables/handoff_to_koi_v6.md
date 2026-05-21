@@ -239,15 +239,24 @@ PSNR + LPIPS + MS-SSIM + region-separated (天空 / 物体 / 地面 单独算): 
 
 ---
 
-## 路线 10: 柱面投影 baseline (L2) — ⏳ pending Wave 1
+## 路线 10: 柱面投影 baseline (L2) — ✅ Wave 1 完成 (2026-05-21)
 
-**怎么做**: TBD (subagent 完成时填)
+**怎么做**: 把球面投影 (L1) 换成柱面投影。 每个 ERP 像素 `(u, v)` 解释成柱面上的方位角 `theta = pi - (u+0.5)/W * 2pi` 加垂直切线值 `h = v_max - (v+0.5)/H * 2*v_max` (默认 `v_max=1.0`, 即垂直 FOV ±45°)。 ego-frame 射线 `(cos θ, sin θ, h)` 经 `R_ego_cam^T` 旋到 cam frame, 然后照常 pinhole 反投影 + bilinear remap。 与 sphere 唯一区别是 ego ray 的构造: sphere 用 `sin/cos` 的球面参数化, cylinder 用 `(cos θ, sin θ, h)` 直接给出沿柱面径向方向。 后续 5-band Laplacian blending 一字未动 (drop-in via `render_camera_to_erp` 兼容 API)。 代码: `code/waymo2panorama/projection/cylinder.py` + driver `scripts/phase3/run_cylindrical_baseline.py` (兼容 AV2 log dir 和 Pi3 cache 两种输入)。
 
-**结果**: TBD
+**结果** (anchor 60, plus 4-anchor sweep over Pi3 cache 0/60/90/150):
+- **Union ERP coverage**: cylinder **58.55%** vs sphere **33.65%** → **+24.9 pp** (每个 cam 的有效像素 ratio ≈ **1.74×**)。 cylinder 用满了 ±45° 垂直 FOV, sphere 在两极 (top/bottom 区) 留了大量黑边。
+- **Seam gradient energy** (Sobel 平均梯度作为接缝平滑度代理, lower = 更平滑): cylinder **50.56** vs sphere **51.54** → cylinder 略平滑 (-0.98, 一致 4/4 anchors)。
+- **L1 vs L2 互 PSNR**: 9.38 dB (说明两个 stitched ERP 在重叠像素差异大 — 主要是几何位置和 anchor 行不同, 不是 cycle quality)。
+- Cycle-PSNR (hold-out-cam reconstruction) **理论上跟 projection surface 无关** — 等于 per-pixel ray 反投影, 不依赖 canvas 形状。 所以 L1 vs L2 在 cycle-PSNR 上预期 = 0 dB, 不是 v6.1 plan "期望 ±0.1 dB" 描述的差异。 这条 metric 不适合区分 L1/L2 baseline。
+- **Verdict**: ⚠️ **partial win**。 几何/视觉上 cylinder 明显更合理 (覆盖率 +75%, 垂直线不弯, 接缝梯度稍降), 但 cycle-PSNR 这个 protocol 探不到 projection surface 的差异, 所以这条不是数字 win。
 
-**图**: TBD
+![Cylindrical (L2) vs Sphere (L1) baseline, anchor 60](images/route_cylinder_vs_sphere.png)
 
-**意义**: TBD
+**意义**: paper Section 5 必有的 baseline 对照。 sphere 在 7-cam 水平阵列上浪费两极, cylinder 不浪费 — 视觉上 panorama 框得更满, 是 "geometric prior 选错就丢一半画布" 的好例子。 数字上 cycle-PSNR 不动这点对应了 plan 风险表那条 "新-A 跟球面差不多 → 没增量" 的中等概率结果 (sphere/cylinder 两个 projection 表面只决定 canvas 几何, 不决定 reconstruction quality)。 因此 paper 角度 A/A' (新 projection 胜出) **不靠这条 win**, 但角度 D (system integration) 或 paper Section 5 (baseline 对照表) 受益。 后续 cylinder + Pi3 / cylinder + IPM 多区域 可能会乘法叠加, 留 Wave 2 看。
+
+**Files**:
+- 代码: `code/waymo2panorama/projection/cylinder.py`, `scripts/phase3/run_cylindrical_baseline.py`, `scripts/phase3/eval_cylindrical_cycle.py`
+- 输出: `outputs/phase3/p3.4_cylindrical/anchor_{000,060,090,150}/` (cylindrical_l2.png + sphere_l1.png + compare_l1_vs_l2.png + cycle/cycle_l1_vs_l2.json), `outputs/phase3/p3.4_cylindrical/agg_4anchors.json`
 
 ---
 

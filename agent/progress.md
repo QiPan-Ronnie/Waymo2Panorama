@@ -303,6 +303,7 @@
 
 | Date (UTC) | Update |
 |---|---|
+| 2026-05-21 | **Wave 1 新-A 柱面 baseline (L2) 完成**: `code/waymo2panorama/projection/cylinder.py` + `scripts/phase3/run_cylindrical_baseline.py` + `eval_cylindrical_cycle.py`。 4-anchor sweep (0/60/90/150) on Pi3 cache (无 AV2 local data, fall back 到 504×504 letterboxed)。 **Cylinder union coverage 58.55% vs Sphere 33.65% (+24.9 pp; per-cam 1.74× alpha)**, seam gradient -0.98 (4/4 anchors)。 Cycle-PSNR 本协议对 projection surface 不敏感, L1/L2 数字 ≈ 0。 视觉 figure `deliverables/images/route_cylinder_vs_sphere.png` + handoff_to_koi_v6.md 路线 10 节填好。 Verdict: ⚠️ 视觉/覆盖率 win, cycle 数字非 win — 跟 plan 风险表 "新-A 跟球面差不多" 预期一致。 paper Section 5 baseline 对照齐了。 |
 | 2026-05-20 23:31 | **Phase 3 W1 完成**: 10-anchor P3.1 + 双 batch (P3.1b lidar + cycle) on A100, 总 ~6min wall-clock。 Phase 2 所有 headline 数字 within 1σ。 Pi3 abs_rel 0.202±0.042, ΔPSNR -3.15±0.72 (L3 输 10/10)。 anchor 180 最佳 (KITTI SOTA-ish)。 `notes/phase3_multi_anchor_report.md`。 bug fix `aeaeb0a`: NaN-safe bars_png in cycle eval. |
 | 2026-05-20 23:14 | **Phase 3 启动 + P3.3 完成 (CPU)**: depth-binned metrics 证实 Pi3 系统性低估**不是** P2.11 selection-bias 假说, 是真有 depth-dependent 压缩 — bias -12.8% (近场) → -33.8% (远场)。 `notes/phase3_progress_partial.md` + `scripts/phase3/`。 P3.1 multi-anchor Pi3 等 A100 (probe 显示当前是 CPU runtime)。 |
 | 2026-05-20 22:51 | **P2.11 Pi3 vs LiDAR 完成**: 99k 匹配点, overall abs_rel 0.215, RMSE 7.70m, δ<1.25 65.3%。 关键发现 Pi3 系统性低估 ~25%, 近场 (<15m) δ<1.25≈0.9 (SOTA 级), 远场 (>20m) 跌到 0.22-0.58。 `notes/pi3_vs_lidar_report.md` + `scripts/phase2/eval_pi3_vs_lidar.py`。 Colab CPU 43.7s。 |
