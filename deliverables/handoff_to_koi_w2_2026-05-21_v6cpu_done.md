@@ -12,7 +12,30 @@
 2. **下游消费任务 3 条**: ViPE 全景 SLAM ✅ / GEN3C 3D-cache ⏸️ (install 失败 paused) / Panacea+ ⚠️ modality 错位。
 3. **外部 published baseline 测试 3 条 NEG**: OmniStitch (-6.67 dB) / Depth Pro (2.84× 差) / Temporal Pi3 (反而差) — 共同强化 "AV ring 3D-aware 系统性 brittle" 论据。
 4. **剩 2 条 GPU 路线等执行**: 新-F VGGT 第 3 backbone (~6-16h on A100) + T13 self-sup Pi3 finetune (~5d on A100)。
-5. **潜在最好的方法**: 新-C IPM 多区域 (ground +0.20 dB, 4× T14) / 新-E HDR (+1.0 dB proxy) / 新-B graph-cut seam (paper 主视觉图)。
+5. **潜在最好的方法**: 新-C IPM 多区域 (ground +0.20 dB, 4× T14) / 新-E HDR (+1.0 dB proxy) / 新-B graph-cut seam (paper 主视觉图)。 完整排序表见 §5。
+
+---
+
+## §0 评价指标速查 (后面所有数字含义)
+
+| 指标 | 全称 / 公式 | 单位 | 越... 越好 | 说明 |
+|---|---|---|---|---|
+| **cycle-PSNR** | Peak Signal-to-Noise Ratio of hold-one-cam reconstruction | dB | 高 (↑) | 留一相机, 用 ERP 反推那个视角, 跟实拍对比的 PSNR。 我们主指标。 L1 baseline 12.34 dB。 |
+| **ΔPSNR vs L1** | cycle-PSNR (method) − cycle-PSNR (L1) | dB | 高 (↑) | 相对 baseline 的提升 (+) 或损失 (−)。 `+0.5 dB` 算 paper-quality, `+0.05 dB` 算 statistical edge。 |
+| **abs_rel** | `|d_pred − d_gt| / d_gt`, 像素平均 | 无单位 | 低 (↓) | 深度相对误差 (vs LiDAR ground truth)。 KITTI SOTA monocular ~0.10, Pi3 在 AV2 上 **0.20**, Depth Pro 在 AV2 上 **0.58** (即 2.84× 差)。 |
+| **δ<1.25** | `fraction of pixels where max(d_pred/d_gt, d_gt/d_pred) < 1.25` | 0-1 | 高 (↑) | 深度精度 — 像素的预测值跟真值差距 < 25% 的占比。 KITTI SOTA ~0.95, Pi3 AV2 mean 0.70。 |
+| **RMSE** | Root Mean Square Error of depth | m | 低 (↓) | 深度均方根误差, 物理米。 Pi3 AV2 ~7.7 m (受远场拖累)。 |
+| **LPIPS** | Learned Perceptual Image Patch Similarity (CVPR 2018) | 0-1 | 低 (↓) | 学到的"人眼感知"相似度。 比 PSNR 更贴近主观感觉, 防 "PSNR 偏袒模糊"。 L3 比 L1 差 1.83×。 |
+| **MS-SSIM** | Multi-Scale Structural Similarity | 0-1 | 高 (↑) | 多尺度结构相似度, 防局部细节丢失。 L3 在 7/7 cam 都输 L1。 |
+| **Coverage** | ERP canvas 被相机覆盖的像素比例 | % | 高 (↑) | 球面投影只用 33.65%, 柱面投影 58.55% (+24.9 pp)。 |
+| **pp** | percentage points | — | — | 百分比差。 33% → 58% 是 +25 pp (不是 +75% 相对)。 |
+| **Seam |grad|** | Sobel gradient magnitude 在接缝带 (8 px dilate) 的平均 | 像素值 | 低 (↓) | 接缝越平滑越隐形。 L1 48.6, graph-cut 42.6 (−12.4%)。 |
+| **Sim(3)** | Similarity transformation (7 DoF: 3 rotation + 3 translation + 1 scale) | — | — | 用 Umeyama 最小二乘对齐 Pi3 坐标系到 AV2 ego 坐标系。 我们估出 scale = 1.0346, mean residual 0.157 m。 |
+| **anchor** | 一个评测帧 (我们选 0 / 30 / 60 / ... / 270, 共 10 个均匀采样) | — | — | 单 anchor 数字可能是巧合, 10-anchor 平均 ± std 才能称稳定。 |
+
+**重要 caveats**:
+- **cycle-PSNR 的局限**: 它评的是 "ERP 反投影回相机视角的相似度", 不直接评 ERP canvas 形状。 所以 **新-A 柱面 / 新-B graph-cut 这种只改 canvas 形状或接缝位置的方法, cycle-PSNR 看不出来差异** (Δ ≈ 0)。 这是 metric blind spot, 不是方法没用。
+- **cycle proxy vs direct cycle**: 新-E HDR 的 "+1.0 dB cycle proxy" 是从亮度差 (16.62 → 13.61) 按 `MSE ≈ gap²/3` 换算的, **不是直接测的 cycle-PSNR**。 下一轮补直接测。
 
 ---
 
@@ -267,15 +290,58 @@
 
 ---
 
-## §5 总结
+## §5 总结 — 8 条拼接路线最终排序 (对应 §1 编号)
 
-8 条拼接路线全 CPU 完成 → 3 条正面 method (新-C ground +0.20 dB / 新-E HDR +1.0 dB proxy / IPM T14 partial) + 1 条视觉胜场 (新-B graph-cut) + 2 条结构 NEG (L3 主 NEG / 新-D sparse 不够)。 3 条下游消费 demo (ViPE ✅ / GEN3C ⏸️ / Panacea+ ⚠️ modality)。 3 条外部 baseline NEG + 完整方法论 audit。
+> 按 "对 paper 的贡献价值 + 跟其他方法叠加可能性" 排, **不只是看 ΔPSNR 数字** (因为 cycle-PSNR 有 metric blind spot, 详见 §0)。
 
-剩 2 条 GPU 路线等执行 — 加固论据链 (新-F VGGT) + 高风险冲 +0.5 dB 目标 (T13 self-sup Pi3)。
+| 排名 | §1 编号 | 路线 | 类别 | 核心数字 | Paper 角色 | 跟其他正交可叠加? |
+|---|---|---|---|---|---|---|
+| 🥇 #1 | §1.6 | **新-C IPM 多区域 (ground+sky)** | **正面 method** | Ground mask **+0.20 dB** (4× T14), full +0.05 | Section 5 main method, 最高 upside | ✅ 可叠 1/3/4/5/8 |
+| 🥈 #2 | §1.8 | **新-E HDR cross-cam 补偿** | **正面 method (preprocess)** | Overlap gap **−18.1%**, cycle proxy **+1.0 dB** | Section 5 "Color Consistency" 子节, mandatory 前处理 | ✅ 可叠所有其他 |
+| 🥉 #3 | §1.5 | **新-B Graph-cut seam** | **视觉胜场 (无数字)** | Seam |grad| **−12.4%** (4/4 win), cycle Δ=0 | Section 5 **主视觉图** | ✅ 可叠 1/3/4/6/8 |
+| #4 | §1.3 | **IPM 地面 hybrid (T14, 老方法)** | 正面 method (老) | Full **+0.05 dB** (10-anchor), +0.20 ground (cherry) | Section 5 method base (新-C 已升级到 +0.20) | ✅ 已被新-C 取代 |
+| #5 | §1.1 | **L1 球面 baseline** | 强 baseline | cycle **12.34 ± 1.31 dB** | Section 5 baseline 必有 | — (是参照系) |
+| #6 | §1.4 | **新-A 柱面投影 L2** | 视觉对照 (无数字) | Coverage **+24.9 pp**, cycle Δ=0 | Section 5 baseline 对照 (sphere vs cyl) | ✅ 可叠 5/3/6/8 |
+| #7 | §1.7 | **新-D Wide-baseline stereo** | NEG 论据 (sparse 不够) | 5/7 pair OK, ~44 pts/pair | Section 6 NEG #5 (classical stereo 也 brittle) | ⚠️ Option B reweight 需 Wave 3 |
+| #8 | §1.2 | **L3 Pi3 forward-splat** | **核心 NEG** | **−3.15 dB** (10/10 输) | Section 6 主 NEG (naive 3D-lift 失败) | ❌ 主 NEG |
 
-**潜在最好的方法 (按 stack-able 价值排)**:
-1. 🥇 **新-C IPM 多区域** (ground +0.20 dB, 4× T14, building 可继续挖)
-2. 🥈 **新-E HDR cross-cam** (+1.0 dB proxy, mandatory preprocess)
-3. 🥉 **新-B graph-cut seam** (视觉 figure 主图, 跟所有正交)
+### 一句话排序逻辑
 
-3 个 stack-able + 1 个视觉 + 1 个 baseline 对照 (新-A 柱面) = **5 个 modular drop-in 预处理 / 后处理 / 投影组合层**, 可任意组合到 L1 baseline 上。
+**为什么 §1.6 新-C 排第 1**: 唯一有可测 ΔPSNR > T14 的 method (ground mask 4× 提升), 而且 building 分支留了继续挖的接口 (cross-cam plane consensus 可推全图 +0.5 dB)。
+
+**为什么 §1.8 新-E HDR 排第 2**: 数字最大 (+1.0 dB proxy), 但还是 proxy 不是 direct cycle, 而且本质是 mandatory preprocess (不是 stitching 算法本身的创新)。 paper 是 "Color Consistency 子节" 而不是 main method。
+
+**为什么 §1.5 新-B 排第 3**: 视觉胜场无数字, 但 paper 主视觉图候选 (reviewer 看图比看数字直观), 跟所有其他 method 正交可叠加。
+
+**为什么 §1.3 IPM 老方法 (T14) 排第 4**: 已被 §1.6 新-C 接管 (新-C 是 T14 的 superset)。 但 paper 里 §1.3 作为 "first attempt" + ablation 仍需要。
+
+**为什么 §1.1 L1 排第 5**: 是参照系 baseline, 不参与方法 ranking, 但 paper 不能没有 (所有 Δ 都跟它比)。
+
+**为什么 §1.4 新-A 柱面 排第 6**: cycle metric blind, 只有 coverage 数字 (+24.9 pp) — paper 价值是 "geometric prior 选错的反例", baseline 对照必需但不是核心贡献。
+
+**为什么 §1.7 新-D 排第 7**: sparse 太稀疏不能修 dense ERP, 但 5/7 pair 的 metric-sane depth 是 NEG 论据 (跟 Pi3 NEG 汇流)。 Option B reweight 留给 Wave 3。
+
+**为什么 §1.2 L3 排第 8 (但仍是 paper 主线)**: 数字最差 (−3.15 dB), 但**这恰恰是 paper Section 6 的核心 motivation** — "naive 3D-lift 不工作" 是我们整个工作的存在理由。 排第 8 是因为 ranking 是 "stack 价值", 不是 "paper 重要性"。
+
+---
+
+### "stack-able 组合" 推荐 (用什么搭什么)
+
+| 组合 | 含义 | 期望增益 |
+|---|---|---|
+| **L1 baseline** (§1.1) | 出发点 | 12.34 dB |
+| L1 + §1.8 (HDR) | 颜色对齐后再拼 | +0.1~1.0 dB (proxy) |
+| L1 + §1.8 + §1.6 (HDR + IPM 多区域) | 色彩对齐 + 几何先验 | +0.15~+0.25 dB |
+| L1 + §1.8 + §1.6 + §1.5 (HDR + IPM + graph-cut seam) | 加最佳接缝 | 同上数字 + 视觉接缝消 |
+| L1 + §1.8 + §1.6 + §1.5 + §1.4 (cylinder) | 换画布形状 | 同上 + coverage +24.9 pp |
+
+**最强 stack 期望**: 数字上 ~+0.20-0.30 dB on full ERP + 视觉上接缝消 + canvas 不浪费。 距离 +0.5 dB 全图目标还差 ~0.2 dB, 需要 §1.6 building 分支跑通 OR T13 self-sup Pi3 finetune (剩 GPU 路线之一)。
+
+---
+
+### 剩 2 条 GPU 路线在 §4
+
+- **新-F VGGT** 是加固 §1.2 L3 NEG 的 "第 3 个 backbone 也 fail" 数据点
+- **T13 self-sup Pi3 finetune** 是冲 +0.5 dB 全图目标的高风险高收益赌注
+
+下游 demo (ViPE ✅ / GEN3C ⏸️ / Panacea+ ⚠️) 在 §2, 跟拼接方法正交。
