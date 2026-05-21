@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t9-vipe-install-v1",
+  "cmd": [
+    "bash",
+    "-lc",
+    "set -e; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t9_vipe_install; mkdir -p \"$OUT\"; LOG=\"$OUT/install_log.txt\"; echo '[t9-install] start' | tee \"$LOG\"; nvidia-smi 2>&1 | head -3 | tee -a \"$LOG\"; python --version 2>&1 | tee -a \"$LOG\"; nvcc --version 2>&1 | tee -a \"$LOG\" || echo 'NO_NVCC' | tee -a \"$LOG\"; echo '---clone panorama branch---' | tee -a \"$LOG\"; rm -rf /content/vipe; git clone --depth=1 --branch panorama https://github.com/nv-tlabs/vipe.git /content/vipe 2>&1 | tail -3 | tee -a \"$LOG\"; cd /content/vipe; echo '---pip install requirements---' | tee -a \"$LOG\"; pip install -r envs/requirements.txt --extra-index-url https://download.pytorch.org/whl/cu128 2>&1 | tail -40 | tee -a \"$LOG\" || echo 'REQS_INSTALL_FAILED' | tee -a \"$LOG\"; echo '---pip install -e .---' | tee -a \"$LOG\"; pip install --no-build-isolation -e . 2>&1 | tail -80 | tee -a \"$LOG\" || echo 'PROJECT_INSTALL_FAILED' | tee -a \"$LOG\"; echo '---import vipe test---' | tee -a \"$LOG\"; python -c 'import vipe; print(\"vipe ok\"); from vipe.streams.base import StreamList; print(\"streams ok\"); from vipe.pipeline import make_pipeline; print(\"pipeline ok\")' 2>&1 | tee -a \"$LOG\" || echo 'IMPORT_FAILED' | tee -a \"$LOG\"; echo '---vipe CLI test---' | tee -a \"$LOG\"; which vipe 2>&1 | tee -a \"$LOG\"; vipe --help 2>&1 | head -20 | tee -a \"$LOG\" || echo 'CLI_FAILED' | tee -a \"$LOG\"; echo '---DONE---' | tee -a \"$LOG\"; echo '{\"status\":\"install_done\"}' > \"$OUT/install_done.json\"; ls -la \"$OUT\""
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t9_vipe_install/install_done.json",
+  "timeout_s": 1500,
+  "created_at": "2026-05-21T04:42:53.815661+00:00"
+}
