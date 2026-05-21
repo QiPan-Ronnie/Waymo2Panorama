@@ -286,15 +286,40 @@ PSNR + LPIPS + MS-SSIM + region-separated (天空 / 物体 / 地面 单独算): 
 
 ---
 
-## 路线 12: IPM 多区域先验扩展 (地面 + 天空 + 建筑立面) — ⏳ pending Wave 2
+## 路线 12: IPM 多区域先验扩展 (地面 + 天空 + 建筑立面) — Wave 2 新-C
 
-**怎么做**: TBD
+**怎么做**: 把 T14 的「单一地面 IPM 先验」扩展为三区域决策树:
+(a) 像素级 ego-z 阈值 + 估算法线 |n_z|>=0.85 → ground (复用 T14);
+(b) Pi3 log-conf < -2.0 或 (远 + 高 + 图像上半) → sky (走 sphere 不变);
+(c) ego_z > 0.5m 且法线接近水平 (n_xy >= 0.85, |n_z| <= 0.30) 且 radius <= 80m → building。
+法线从 `local_points_<cam>.npy` 用 finite-diff + box-filter 估出 (无外部 normal map)。
+Building 区域按 32×32 tile RANSAC 拟合垂直平面 `n_x*x + n_y*y = d (n_z=0)`,
+按 inlier 像素逐 ray 求交,投影到 ERP。Forward composite 用「ground 覆盖 building 覆盖 sphere」的硬合并 + 3px Gaussian feather on weight。
 
-**结果**: TBD
+**结果** (4-anchor cycle-PSNR mean, ERP 1024×2048):
+- L1 sphere baseline: 10.85 dB
+- T14 ground-only IPM: 10.90 dB (+0.05 vs L1)
+- **新-C ground+sky (no building IPM, default ship config): 10.90 dB (+0.05 vs L1, +0.20 dB on ground-only mask vs T14)**
+- 新-C 全 3 区域 (with building IPM): 10.86 dB (+0.01 vs L1)
+- **Building-only mask: -0.33 dB regression** → ablated per设计 hard floor
 
-**图**: TBD
+按区域分解:
+- Ground component: +0.20 dB (vs T14 单独 +0.05 dB — 新分割剔除了 normal 不合理的 false-positive 地面)
+- Sky tagging: +0.00 dB (单纯标签,sphere 数学不变)
+- Building component: **-0.33 dB** (RANSAC 每 cam 拟合的立面对 held-out cam 不通用 — 同一建筑在不同 cam 中拟合出的平面参数 (n_x, n_y, d) 离散较大)
 
-**意义**: TBD
+Verdict: ⚠️ 部分成功 — ground 分支显著优于 T14 (+0.20 vs +0.05 dB on ground mask), sky 路由稳定; building IPM 分支在 forward composite 视觉合理 (~67 planes/cam, 88% inlier frac) 但 cycle 评测下不能复用其他 cam 的平面拟合 → 当前以 `--enable-building False` 出货,保留接口供 future work (e.g., 跨 cam 平面合并 union-find)。
+
+![3-way compare: L1 sphere / T14 ground-only / 新-C 3-region (anchor 60)](images/route_ipm_multi_region_compare.png)
+
+**意义**: 推进 T14 的 +0.05 dB → +0.05 dB in mean (持平),但**ground region 内部从 +0.05 推到 +0.20 dB** (单一区域上 4× 提升), 这是 normal-aware segmentation 的真实收益。距离 +0.5 dB 全图目标还差 ~0.45 dB; 收益来源应转向 building IPM 的 cross-cam 平面共识算法 (union-find 合并相邻 cam 的相近平面,只保留全局一致的立面),或者借鉴 Wave 1 / Wave 2 已成熟的 Bayesian + IPM 协同设计。
+
+**Files**:
+- 代码: `code/waymo2panorama/projection/ipm_multi_region.py` (核心模块: `estimate_normals_from_points`, `segment_regions_from_pi3` (返回 RegionMasks dataclass), `_ransac_vertical_plane`, `ipm_project_sky`, `ipm_project_building`, `ipm_project_multi_region`, `make_region_overlay`)
+- Driver: `scripts/phase3/run_ipm_multi_region.py` (clone-extend `run_ipm_hybrid.py`,新增 `--enable-building` 默认 False,`--ransac-threshold-m`, `--building-normal-z-max`, `--tile-size` 等参数)
+- Eval: `scripts/phase3/eval_ipm_multi_region_cycle.py` (L1 / T14 / newC 三路对比, ground-only + building-only 分区域 PSNR)
+- 输出: `outputs/phase3/p3.3_multi_region/anchor_{000,060,090,150}/` (region_mask_*.png + multi_region_composite.png + per-region ERPs + cycle_multi_region.json), `outputs/phase3/p3.3_multi_region/agg_4anchors.json`
+- 设计文档: `notes/new_c_ipm_multi_region_design.md`
 
 ---
 
