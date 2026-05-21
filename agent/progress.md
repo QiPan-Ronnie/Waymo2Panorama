@@ -25,7 +25,12 @@
 >
 > - **T12 v2 ✅ DONE temporal Pi3 K=3 NEG**: abs_rel 0.213 (vs single 0.204), δ<1.25 0.572 (vs 0.633), 远场 bias -23.92% (vs single 10-anchor mean -23.7%)。 **多帧时间多基线假说 false** — Pi3 远场 bias 是结构性 (not single-frame info gap)。
 >
-> in-flight: T14b v4 (10-anchor IPM, 删 bogus arg 后重发 ~10 min)。 T14b v2/v3 silent fail due to argparse bug (我 bash 加了 cycle eval script 不接受的 `--ipm-output` 参数, argparse 退出 → 无 cycle_ipm.json)。
+> **T14b v4 ✅ DONE (10-anchor IPM 真实数字)** — T7-prelim 第 1 大风险**部分 materialized**:
+> - **Full image ΔPSNR = -0.010 ± 0.082 dB** (10/10 essentially break-even, drop-in safe ✓)
+> - **Ground-only ΔPSNR = +0.048 ± 0.181 dB** (7/10 positive, range -0.24 ~ +0.32)
+> - vs 3-anchor cherry-picked (T14 60/0/150): +0.20 ± 0.11 — 平均掉到边缘 statistical
+> - **Paper 含义**: IPM hybrid 是 "parallax-conditional" (top-3 parallax frames +0.20 dB) + "drop-in safe full-image" (0 ± 0.08 dB regression). B contribution 弱化, C (negative findings) 论据比重上升。 paper 角度 B-with-C-as-motivation 仍 ship-able 但 narrative shift 倾向 C 主导。
+> - Bug 修复链: v2/v3 silent fail (bogus arg) → v4 (data 出但 aggregator key 错) → 我主线手动 extract per_anchor.raw_overall。 aggregator 需修 (next session)。
 >
 > **T9 ViPE ✅ DONE — paper Section 6 demo 成立**: ViPE 端到端跑通 L1 ERP 5s clip (96.7s on A100), 输出 SLAM pose + intrinsics + masks。 **首个 "stitched-RGB → published-downstream system" 数据流**。 ViPE depth 没出 (default config `depth_align_model: null`, T9b 一行 config flip 修)。 commit `a751876` pushed.
 >
