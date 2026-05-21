@@ -1,0 +1,11 @@
+{
+  "id": "phase3-t2-omnistitch-inference-anchor60-v2",
+  "cmd": [
+    "bash",
+    "-lc",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase 2>&1 | tail -3; OMNI=/content/Omnistitch; LOG=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t2_omnistitch_infer_v2; mkdir -p \"$OUT\"; python scripts/phase3/run_omnistitch_baseline.py --log-dir \"$LOG\" --anchor-idx 60 --omnistitch-dir \"$OMNI\" --output-dir \"$OUT\" --mode inference 2>&1 | tee \"$OUT/run_log.txt\" | tail -40; echo '---NOW RUN CYCLE EVAL---'; CYCLE_OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t2_omnistitch_cycle_v2; mkdir -p \"$CYCLE_OUT\"; python scripts/phase3/eval_omnistitch_cycle.py --log-dir \"$LOG\" --anchor-idx 60 --omnistitch-erp \"$OUT/omnistitch_erp.png\" --output-dir \"$CYCLE_OUT\" 2>&1 | tee \"$CYCLE_OUT/run_log.txt\" | tail -40; echo '---DONE---'; ls -la \"$OUT\" | head -20; echo '---CYCLE---'; ls -la \"$CYCLE_OUT\" | head -20"
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/phase3/t2_omnistitch_cycle_v2/cycle_omnistitch.json",
+  "timeout_s": 900,
+  "created_at": "2026-05-21T04:11:55.483369+00:00"
+}
