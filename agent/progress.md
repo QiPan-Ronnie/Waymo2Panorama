@@ -1,6 +1,16 @@
 # Waymo2Panorama Progress
 
-> **Latest: 2026-05-21 ~00:18 UTC** — **Phase 3 W2 Wave-1 进展: T-Koi-1 ✅ + T5 ✅ + T6 ✅, T12/T14/T16 in-flight**。
+> **Latest: 2026-05-21 ~02:30 UTC** — **Phase 3 W2 Wave-1+ 进展: 5/6 done (T-Koi-1, T5, T6, T8, T14 ✅), T16 + T7-prelim in-flight**。
+>
+> **🎯 T14 IPM ground hybrid: 首个正面 method contribution** (3 anchors)
+> - 全 image ΔPSNR = **+0.04 dB** (drop-in safe, IPM hybrid ≈ L1)
+> - 仅 ground 区域 ΔPSNR = **+0.20 ± 0.11 dB** (consistent 跨 3 anchors)
+> - Rear cams ground-only **+1.0~+1.7 dB** (crosswalk / lane markings 跨 cam 边界对齐, 5-20 cm ghost-shifts 消失)
+> - vs L3 forward-splat (-3.15 dB), IPM hybrid 是**结构性改进** — paper 角度 B (method) 现在有 concrete contribution。
+> - 失败模式: front cams 动态阴影 -0.5~-0.8 dB; 后续 T20 (Fin3R + cycle combo) 可改进。
+> - 下一步: Colab 复活后扩 10 anchor sweep (script 已写好, CPU job ~30s)。
+
+> **Latest: 2026-05-21 ~00:18 UTC** — Phase 3 W2 Wave-1 早期进展。
 > 启动 v5 plan (`C:\Users\14294\.claude\plans\snug-shimmying-wave.md`) 下 18 tracks 多 subagent 并行执行。
 >
 > **T-Koi-1**: 8 页 PDF 给 Koi (Phase 3 W1 + 重新定位为 Pi3→Pantheon360 AV2 适配层 + 5 forward path)。
