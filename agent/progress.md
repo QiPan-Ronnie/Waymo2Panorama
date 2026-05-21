@@ -16,13 +16,13 @@
 > - **T-Koi-2** ✅ — 9 页 mid-week snapshot PDF for Koi (5 图含 IPM compare + Bayesian depth diff)
 >
 > ## 🟢 Worker UP (~03:47 UTC user restarted A100)
-> Wave-3 fired (2 jobs in queue + 2 subagents):
-> - **T12 v2** anchor 60 (per T6 ranking) — temporal Pi3 K=3 + Pi3 repo clone-or-pull
-> - **T14b** 10-anchor IPM extension — mitigates T7 top risk (3-anchor → 10-anchor)
-> - **T18** Depth Pro drop-in (general-purpose subagent writing script + pip-only Colab job)
-> - **T2** OmniStitch baseline (subagent recon + clone + adapt)
+> Wave-3 fired (4 in-flight):
+> - **T12 v2** anchor 60 — temporal Pi3 K=3 + Pi3 repo clone-or-pull (queued)
+> - **T14b** 10-anchor IPM extension (queued, mitigates T7 top risk)
+> - **T18** ✅ **DONE — Depth Pro 2.84× WORSE than Pi3** on AV2 (abs_rel 0.580 vs 0.204, δ<1.25 0.064 vs 0.633, mean depth 7.6m vs LiDAR 19.8m). L3 cycle-PSNR 表面闭合到 -0.01 dB 但 coverage artifact (15% vs 50% intersection mask)。 **Verdict: algorithm is bottleneck, NOT backbone — angle C 强化, Apple SOTA monocular AV outdoor 不行 paper hook 拿下**
+> - **T2** OmniStitch subagent — 已 push 2 commits (cycle eval script + Colab cycle job for anchor 60), 仍在跑
 >
-> T12 v1 crashed 11s (Pi3 repo not in /content after restart). T14 subagent's Colab job (3-anchor IPM) ran 84s, eval succeeded but bash aggregator heredoc crashed — per-anchor JSON OK on Drive, just missing top-level agg. Anchor 150 ground-only +0.32 dB confirms anchor-60-extension positive direction.
+> T12 v1 crashed 11s (Pi3 repo not in /content after restart). T14 subagent's Colab job (3-anchor IPM) ran 84s, eval succeeded but bash aggregator heredoc crashed — per-anchor JSON OK on Drive. Anchor 150 ground-only +0.32 dB confirms anchor-60-extension positive direction.
 >
 > ## 🔴 Still blocked / pending
 > - **T12** (multi-frame temporal Pi3 K=3 @ anchor 60) — Colab job queued, auto-pick up 10s 内
