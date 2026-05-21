@@ -293,18 +293,30 @@ def main() -> int:
     erp_err: Optional[str] = None
     if len(stitched_pairs) >= 4:
         try:
-            # For an honest minimal composite, we simply do a sphere-projection
-            # blend of the *original* AV2 cams (= L1), and over-write the
-            # overlap wedges with the OmniStitch pair outputs. This isolates
-            # the OmniStitch contribution to where it was meant to act
-            # (overlap stitch) without re-deriving a multi-cam compositor.
+            # Composite strategy: project each OmniStitch pair output onto ERP
+            # as a virtual "middle" camera whose pose is the SLERP/average of
+            # (cam_l, cam_r). This is the closest standalone interpretation of
+            # what the paper's (closed-source) SRM wrapper does: each
+            # OmniStitch pair output is a new "synthesised view" that we then
+            # sphere-project onto the ERP and blend in alongside the 7
+            # originals. The new view inherits an "average" K (focal length and
+            # principal point scaled by the letterbox to match the output
+            # image), so its projection is geometrically sane.
+            #
+            # We boost virtual-cam blend weight by 1.5x so the OmniStitch
+            # contribution dominates wherever it has coverage (it was
+            # explicitly trained to stitch parallax-shifted overlaps), while
+            # the 7 original cams remain in the blend for non-overlap regions.
             from waymo2panorama.projection.sphere_projection import render_camera_to_erp  # noqa: PLC0415
             from waymo2panorama.blending.multiband import multiband_blend  # noqa: PLC0415
+            from scipy.spatial.transform import Rotation, Slerp  # noqa: PLC0415
 
             erp_h, erp_w = 1024, 2048
             slabs: list[np.ndarray] = []
             weights: list[np.ndarray] = []
             cal = sample.calibrations
+
+            # 1) 7 original AV2 ring cams (L1 baseline contribution)
             for c in RING_CAMS_7:
                 rgb, _alpha, w = render_camera_to_erp(
                     image=sample.images[c],
@@ -314,8 +326,70 @@ def main() -> int:
                 )
                 slabs.append(rgb)
                 weights.append(w)
+
+            # 2) 7 OmniStitch virtual middle cams
+            virtual_cams_added = 0
+            for (cam_l, cam_r), stitched in stitched_pairs.items():
+                T_l = cal[cam_l].T_ego_cam
+                T_r = cal[cam_r].T_ego_cam
+
+                # SLERP rotation between the two cam orientations
+                R_lr = Rotation.from_matrix(np.stack([T_l[:3, :3], T_r[:3, :3]]))
+                slerp = Slerp([0.0, 1.0], R_lr)
+                R_mid = slerp(0.5).as_matrix()
+                t_mid = 0.5 * (T_l[:3, 3] + T_r[:3, 3])
+                T_mid = np.eye(4)
+                T_mid[:3, :3] = R_mid
+                T_mid[:3, 3] = t_mid
+
+                # K for the stitched image: the original cams had K_l, K_r;
+                # the stitched output is at letterbox resolution. Approximate
+                # K as the average of (K_l, K_r) rescaled to the letterbox size.
+                H_src_l = sample.images[cam_l].shape[0]
+                W_src_l = sample.images[cam_l].shape[1]
+                scale_l = min(args.target_w / W_src_l, args.target_h / H_src_l)
+                H_src_r = sample.images[cam_r].shape[0]
+                W_src_r = sample.images[cam_r].shape[1]
+                scale_r = min(args.target_w / W_src_r, args.target_h / H_src_r)
+
+                # Rebuild K for the letterboxed canvas (with the pad offset)
+                def _letterbox_K(K_src: np.ndarray, src_hw: tuple[int, int],
+                                 dst_hw: tuple[int, int]) -> np.ndarray:
+                    K_dst = K_src.copy()
+                    s = min(dst_hw[1] / src_hw[1], dst_hw[0] / src_hw[0])
+                    K_dst[0, 0] *= s; K_dst[1, 1] *= s
+                    K_dst[0, 2] = K_dst[0, 2] * s + (dst_hw[1] - src_hw[1] * s) / 2
+                    K_dst[1, 2] = K_dst[1, 2] * s + (dst_hw[0] - src_hw[0] * s) / 2
+                    return K_dst
+
+                K_l_lb = _letterbox_K(cal[cam_l].K, (H_src_l, W_src_l),
+                                      (args.target_h, args.target_w))
+                K_r_lb = _letterbox_K(cal[cam_r].K, (H_src_r, W_src_r),
+                                      (args.target_h, args.target_w))
+                K_mid = 0.5 * (K_l_lb + K_r_lb)
+
+                try:
+                    rgb_v, _alpha_v, w_v = render_camera_to_erp(
+                        image=stitched, K=K_mid, T_ego_cam=T_mid,
+                        erp_hw=(erp_h, erp_w),
+                    )
+                    slabs.append(rgb_v)
+                    weights.append(w_v * 1.5)  # boost OmniStitch contribution
+                    virtual_cams_added += 1
+                except Exception as e:
+                    print(f"[t2-omnistitch] virtual-cam render FAILED for "
+                          f"{cam_l}<->{cam_r}: {e!r}", flush=True)
+
+            print(f"[t2-omnistitch] composite: 7 original + {virtual_cams_added} "
+                  f"OmniStitch virtual middle cams", flush=True)
             erp = multiband_blend(slabs, weights, num_bands=5)
             Image.fromarray(np.clip(erp, 0, 255).astype(np.uint8)).save(erp_path)
+
+            # Also save the pure L1 baseline (first 7 slabs only) for A/B diff
+            erp_l1_only = multiband_blend(slabs[:7], weights[:7], num_bands=5)
+            Image.fromarray(np.clip(erp_l1_only, 0, 255).astype(np.uint8)).save(
+                out_dir / "l1_baseline_erp.png")
+
             erp_succeeded = True
             print(f"[t2-omnistitch] wrote {erp_path}", flush=True)
         except Exception as e:
