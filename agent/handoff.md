@@ -1,46 +1,181 @@
-# Waymo2Panorama Agent Handoff
+# Waymo2Panorama — Agent Handoff
 
-Updated: 2026-05-15
+**Updated**: 2026-05-21 (post v6.1 CPU wave + Koi snapshot shipped)
+**Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
+
+---
 
 ## TL;DR
 
-This sub-project produces 360° panoramic videos (ERP) from autonomous-driving multi-camera rigs (primarily Argoverse 2). Downstream consumer is Pantheon360. Method plan: classical L1 baseline → Pi3/DVGT-based 3D-lift (L3) → optional diffusion polish.
+Sub-project of the Koi paper chain. Goal: take **Argoverse 2 ring 7-cam frames** (same timestamp) and stitch them into a **360° ERP panorama** that downstream consumers (Pantheon360 / GEN3C / Cosmos) can use. Target venue: **3DV 2026** (main or D&B), advisor Koi Chen.
 
-## Start here
+**Current state (2026-05-21)**:
+- **8 stitching routes done + benchmarked** (L1 sphere, L3 Pi3 forward-splat, IPM ground hybrid, 新-A cylinder, 新-B graph-cut seam, 新-C IPM multi-region, 新-D wide-baseline stereo, 新-E HDR compensation).
+- **Final Koi deliverable shipped**: `deliverables/handoff_to_koi_w2_2026-05-21_v6cpu_done.{md,pdf}` (13 pages, 11 figures, 8 routes + 3 external NEG + 3 downstream demos).
+- **新-F VGGT** (4th backbone NEG) — **blocked**: `facebook/VGGT-1B-Commercial` is gated repo, user needs to click "Agree and access" on HF first.
+- **T13 self-sup Pi3 finetune** — **deferred pending Koi feedback** (5-6 day GPU train, high cost, gated on paper angle decision).
+- **Paper angle**: candidate is **A' Method paper** (3 stack-able positive contributions: 新-C IPM ground +0.20 dB / 新-E HDR -18% color gap / 新-B graph-cut visual win) + 4-5 NEG. Awaiting Koi 拍板 (G3 v6 gate).
 
-1. Read `2026-05-15-brainstorm-survey.md` — full survey of available methods, dataset comparison, CV concepts, recommended path.
-2. Check parent project state in `../../../01-pi3/agent/pi3_handoff.md` — Pi3 inference is operational; outputs can be reused.
-3. Check Pantheon360 plan in `../../../agent/pantheon360_reproduction_plan.md` — downstream consumer.
+---
+
+## Start here (new agent onboarding, ~30 min read)
+
+In this order:
+
+1. **`agent/progress.md`** — single source of truth, every track's "怎么做 / 结果 / Deliverables / Status / Next" block. Top of file is the latest entry. Read top 5-10 blocks for current state.
+2. **`deliverables/handoff_to_koi_w2_2026-05-21_v6cpu_done.md`** — what we told the advisor. Has the 8-route summary table (§1), per-route details (§1.1-§1.8), downstream demos (§2), external baselines (§3), pending GPU routes (§4), final ranking table (§5).
+3. **`C:\Users\14294\.claude\plans\snug-shimmying-wave.md`** — full plan v6.1 with strategic context (why we pivoted from system integration to stitching-only), 16 routes table, sequencing, decision gates G1-G5, risk register, contracts for each subagent.
+4. **`agent/2026-05-15-brainstorm-survey.md`** — original brainstorm survey (CV concepts, dataset comparison, related work). Reference; concepts still apply.
+
+---
 
 ## Project chain context (Koi Chen paper line)
 
 ```
-AV2 / Waymo / nuScenes multi-cam (this project)
+AV2 / Waymo / nuScenes multi-cam (THIS PROJECT)
         │
-        ▼ stitch / 3D-lift / render
+        ▼ stitch 7-cam → 360° ERP
 ERP panoramic video + 3D cache
         │
-        ▼
+        ▼ (downstream, paused per v6.1 pivot)
 04-pantheon360  (3D-aware 360° video diffusion, CVPR 2026)
         │
         ▼
-360 world simulation, Cosmos-Predict, etc.
+360 world simulation / Cosmos-Predict / Argus
 ```
 
-## Status
+We control the **first step only**. Downstream (Pantheon360 / GEN3C / Argus / Cosmos) is paused per v6.1 strategic pivot — user has paper deadlines on stitching methodology, downstream is post-publication work.
 
-- 2026-05-15: Sub-project scaffold created. Brainstorm survey written. Awaiting design approval + plan via `/ultraplan` or `/writing-plans`.
-- No code, no data downloads, no runs yet.
+---
 
-## Open decisions
+## 8 stitching routes (current snapshot)
 
-- [ ] Final dataset commitment (AV2 main + nuScenes ref + Waymo later? approved in brainstorm message but not yet locked in spec)
-- [ ] L3 backbone: **Pi3** (we already reproduced) vs **DVGT** (driving-specific, metric-scaled, just released 2025-12)
-- [ ] Whether to commit the eventual paper-worthy method angle to "Pi3-Stitch" (general geometry model) vs "Driving-Stitch" (specialized)
+| ID | Name | Verdict | Headline metric | Code |
+|---|---|---|---|---|
+| **L1** | Sphere baseline + 5-band Laplacian | ✅ Strong baseline | cycle-PSNR **12.34 ± 1.31 dB** (10 anchors) | `code/waymo2panorama/projection/sphere.py` |
+| **L3** | Pi3 forward-splat | ❌ Structural NEG (paper Section 4) | -3.15 dB vs L1, 10/10 lose | `code/waymo2panorama/pipeline/lift_and_project.py` |
+| **IPM** (T14) | Ground plane hybrid | ⚠️ Marginal +0.05 dB | +0.20 dB on ground-only mask | `code/waymo2panorama/projection/ipm_ground.py` |
+| **新-A** | Cylindrical L2 | ⚠️ Coverage gain only | +24.9 pp coverage, cycle ~flat | `code/waymo2panorama/projection/cylinder.py` |
+| **新-B** | Graph-cut seam | ✅ Visual win | -12.4% seam-band \|grad\| (4/4 anchors) | `code/waymo2panorama/blending/graphcut_seam.py` |
+| **新-C** | IPM multi-region (ground+sky+building) | ✅ Method win | **+0.20 dB on ground** (4× T14), building branch deferred | `code/waymo2panorama/projection/ipm_multi_region.py` |
+| **新-D** | Wide-baseline stereo (邻 cam) | ⚠️ Partial (5/7 pairs) | 44 inlier 3D pts/pair median, sparse | `code/waymo2panorama/stereo/wide_baseline_stereo.py` |
+| **新-E** | HDR cross-cam compensation | ✅ Drop-in preprocess | **-18% lum gap** (4 anchors mean) | `code/waymo2panorama/color/hdr_gain_estimate.py` |
+
+Plus **3 external NEG**: OmniStitch (-6.67 dB), Apple Depth Pro (2.84× worse abs_rel), Temporal Pi3 (no improvement).
+Plus **3 downstream demos** (paused): ViPE SLAM, GEN3C, Panacea+ (modality NEG).
+
+---
+
+## Open decisions (G3 v6 gate, awaits user/Koi)
+
+| Decision | Default if no input | Trigger to flip |
+|---|---|---|
+| **Paper angle**: A' Method / B-with-C / C Negative-only | A' Method (3 positives stackable) | Koi reviews PDF + says "not enough positives, go B" |
+| **Run 新-F VGGT** (4th backbone NEG) | Skip (gated repo blocker + low marginal value) | User requests HF access + says "do it" |
+| **Run T13 Pi3 self-sup finetune** (5-6 day A100) | Skip (high cost, paper angle A' doesn't need it) | Koi says "need at least 1 backbone-level win" |
+| **Target venue**: 3DV 2026 main / D&B / CVPR workshop | 3DV 2026 main (angle A' fits) | Reviewer feedback on draft v0 |
+
+---
+
+## Currently in-flight (Colab worker state)
+
+- **Worker**: alive (last heartbeat 2026-05-21 ~13:51 UTC), polling every 5 s, **no active jobs**.
+- **3 new-f jobs queued in repo `jobs/`**:
+  - `phase3-new-f-vggt-1-install-v1.json` — CRASHED at step 6 (HF gated repo 403)
+  - `phase3-new-f-vggt-2-eval-v1.json` — guard-skipped (install_done.json missing)
+  - `phase3-new-f-vggt-3-tar-cache-v1.json` — guard-skipped (vggt-repo missing)
+- **A100 status**: idle, costing the user money. **Cannot be shut down remotely**; user disconnects via Colab UI.
+
+To unblock 新-F: user clicks "Agree and access" at https://huggingface.co/facebook/VGGT-1B-Commercial → worker auto-retries on next git pull. (Or delete the 3 new-f job files if abandoning.)
+
+---
+
+## Infrastructure (must-know)
+
+### agent-colab-queue (user's own MCP)
+- Worker runs in Colab cell, pulls `jobs/*.json` from GitHub every 10 s
+- Sorts jobs **alphabetically** (NOT by created_at) — name jobs with prefix order in mind
+- Result JSON written to Drive `koi_waymo2pano_colab/results/<job_id>.json`
+- Done-marker file written to wherever the job spec says (typically a target output JSON)
+- Worker is robust to job crashes; keeps polling
+- Heartbeat at `koi_waymo2pano_colab/worker/heartbeat.json` (updates every 5 s when alive)
+- Workspace info: `mcp__agent-colab-queue__workspace_info(name="waymo2panorama")`
+- See `[[agent-colab-queue-framework]]` memory for details
+
+### Drive workspace
+- Root: `MyDrive/koi_waymo2pano_colab/` (panq@usc.edu)
+- Cached fileIds in `[[drive-folder-ids-koi-waymo2pano]]` memory
+- Subdirs: `outputs/phase3/` (all run results), `data/argoverse2/` (4 logs, ~32 GB), `cache/` (tar'd conda envs for fast restore), `worker/heartbeat.json`, `results/<job_id>.json`
+
+### GitHub
+- Repo: `git@github.com:QiPan-Ronnie/Waymo2Panorama.git`
+- Direct push to main is **authorized** (per memory `[[feedback-direct-push-main-waymo2pano]]`) — no PR review needed for this repo
+- Worker pulls from main on every poll
+
+### Code layout
+```
+code/waymo2panorama/
+  data_io/         AV2 ring loader (RING_CAMS_7, calib parsing)
+  projection/      sphere / cylinder / ipm_ground / ipm_multi_region
+  blending/        multiband (Laplacian pyramid) + graphcut_seam
+  stereo/          wide_baseline_stereo
+  color/           hdr_gain_estimate
+  alignment/       sim3_align (Umeyama)
+  pipeline/        lift_and_project (L3 forward-splat) + depth_bayesian_fusion
+scripts/
+  phase2/          single-anchor evals (eval_pi3_vs_lidar, eval_cycle_consistency)
+  phase3/          multi-anchor batch evals + each new route driver + run_pi3_multi_anchor + run_vggt_multi_anchor
+  phase4/          (future) T13 finetune scripts will go here
+deliverables/
+  handoff_to_koi_w2_2026-05-21_v6cpu_done.{md,pdf}    THE Koi handoff
+  _make_*.py / _render_pdf*.py                         figure / PDF tooling
+  images/route_*.png                                   actual figures used
+  learning_plan.md                                     user's own CV roadmap
+agent/
+  progress.md          single source of truth, append-only log
+  handoff.md           this file
+notes/
+  new_{a,b,c,d,e,f}_*.md  per-route research/design docs
+  t13_*.md                T13 finetune design doc
+jobs/*.json              Colab queue specs (worker pulls these)
+outputs/phase3/*         all run results (mostly mirrored to Drive)
+```
+
+---
+
+## Defensive lessons (HARD-WON — read before any Colab job)
+
+These cost us hours/dollars. Don't repeat:
+
+1. **`set -e -o pipefail` + `cmd | head -N` = death**. `head` closes stdin after N lines, sends SIGPIPE upstream, pipefail kills the script. Use `tail -N` instead. Bit us on T11 GEN3C install (exit 141, 5 sec into install).
+2. **Conda activate hates `set -u`**. `activate-gcc_linux-64.sh` references unbound `SYS_SYSROOT`. Wrap `conda activate` in `set +u`/`set -u`. Bit us on T11 v1.
+3. **HF gated repos need explicit access click**. `facebook/VGGT-1B-Commercial` 403'd on us even with HF token — must click "Agree and access" on the HF model page. Bit us on 新-F.
+4. **Worker sorts jobs alphabetically, NOT by created_at**. If you submit `bbb-install` then `aaa-eval`, eval runs first. Name jobs with prefix order in mind.
+5. **Tar conda env to Drive after heavy installs**. Saves ~50 min on Colab reconnects. See `[[feedback-colab-tar-env-to-drive]]` for the zstd-tar restore pattern.
+6. **No way to remotely shut down Colab runtime**. Worker is a Python process inside Colab; we can stop submitting jobs but A100 stays alive until user manually disconnects. Tell user explicitly when failing.
+7. **Pi3 vs VGGT input pipeline difference**: Pi3 takes raw (B, V, 3, H, W) tensor; VGGT takes file paths via `load_and_preprocess_images()`. The driver `run_vggt_multi_anchor.py` saves letterbox images to a tmp dir then feeds paths to VGGT.
+8. **`eval_cycle_consistency.py` applies Sim(3) alignment via `pose_<cam>.npy`**. For Pi3 this converts world→ego. For VGGT/Depth Pro we use AV2 truth extrinsics so save `pose_<cam>.npy = T_ego_cam` to make Sim(3) collapse to identity.
+
+---
+
+## Memory references (Claude session memory)
+
+Located in `C:\Users\14294\.claude\projects\D--BaiduSyncdisk-2024-to-future-koi-chen\memory\`:
+- `[[agent-colab-queue-framework]]` — robust agent↔Colab framework details
+- `[[drive-folder-ids-koi-waymo2pano]]` — cached Drive fileIds (root, results, heartbeat)
+- `[[feedback-direct-push-main-waymo2pano]]` — user authorizes direct push to main
+- `[[feedback-colab-tar-env-to-drive]]` — zstd-tar pattern for heavy installs
+- `[[feedback-prefer-robust-frameworks]]` — engineer fixes over workarounds
+
+---
 
 ## Tooling
 
 - Python 3.10/3.12 (Colab compat)
 - AV2 API: `pip install av2`
-- Pi3: see `../../../01-pi3/`
-- Compute: Colab A100 (matches existing Pi3 workflow)
+- Pi3: `../../../01-pi3/code/official/Pi3` (local clone) + HF `yyfz233/Pi3X` (open)
+- VGGT: `git clone https://github.com/facebookresearch/vggt` + HF `facebook/VGGT-1B-Commercial` (GATED)
+- Pytorch: bf16 native on A100, fp32 fallback
+- HF auth: token at `C:\Users\14294\.huggingface\token` (local only, NEVER send to Colab/agent)
+- GitHub SSH key: `C:\Users\14294\.ssh\id_ed25519_github_new` (local only, NEVER send to Colab/agent)
+- Compute: Colab Pro A100 (user's account, panq@usc.edu)
