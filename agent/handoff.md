@@ -1,7 +1,25 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-21 (post v6.1 CPU wave + Koi snapshot shipped)
+**Updated**: 2026-05-23 (post 7-route video supplementary + agent-colab-direct refactor plan approved)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
+
+---
+
+## 🆕 Pending architecture refactor (high priority for next agent)
+
+**Approved 2026-05-23**: Replace `agent-colab-queue` (git-as-queue, polluting main with infra commits) with new repo `agent-colab-direct` (direct Colab kernel access via Cloudflare Tunnel + Flask executor + Drive-mediated URL handoff).
+
+**Plan file**: `C:\Users\14294\.claude\plans\snug-shimmying-wave.md` (~600 lines, 6 days implementation, includes 6 optimizations: single-cell setup, auto sync↔async, persistent shell, @checkpointed decorator, CF named tunnel, CLI init).
+
+**Why this matters**: every Colab task today commits + pushes to main (15+ noise commits/day). After paper draft starts, this becomes painful. Refactor solves git pollution, also delivers AutoDL-like UX (agent writes code → runs on Colab kernel directly → sees output, no async queue mental model).
+
+**Migration scope for Waymo2Panorama** (after `agent-colab-direct` v0.1.0 ships):
+- Generate `notebooks/runtime.ipynb` via `colab-direct init`
+- DELETE: `scripts/cell_acq_worker.py`, `scripts/cell_worker_bootstrap.py`, `scripts/runtime_filter.py`, `code/waymo2panorama/utils/drive_queue.py`
+- LEAVE: `jobs/*.json` (18 files) as historical audit archive
+- Update this handoff's "Infrastructure" section
+
+**Timing decision (user's call)**: do the 6-day refactor BEFORE paper draft (cleaner main for paper commits), or AFTER paper investiture (preserve cycles for paper work). Plan file has both arguments.
 
 ---
 
