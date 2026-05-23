@@ -1,0 +1,13 @@
+{
+  "id": "phase3-t14-video-anchor60-5sec-v1",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/ipm_hybrid_video; mkdir -p \"$OUT\"; LOG=\"$OUT/run_v1.log\"; exec > >(tee \"$LOG\") 2>&1; echo \"[ipm-h-video] start $(date -u)\"; cd /content/Waymo2Panorama; git pull --rebase || true; ls scripts/run_ipm_hybrid_video.py; PI3_REPO=/content/Pi3; [ -d \"$PI3_REPO\" ] || { echo 'Pi3 repo missing, cloning'; git clone --depth 1 https://github.com/yyfan2014/Pi3.git \"$PI3_REPO\" 2>/dev/null || git clone --depth 1 https://github.com/yyfz/Pi3.git \"$PI3_REPO\" || exit 4; }; pip install -q einops 2>&1 | tail -2; echo; python scripts/run_ipm_hybrid_video.py --log-dir /content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394 --pi3-repo \"$PI3_REPO\" --out-dir \"$OUT\" --start-sec 3.0 --duration-sec 5.0 --device cuda 2>&1 | tail -300; echo; ls -lah \"$OUT/02a00399-3857-444e-8db3-a8f58489c394/\" 2>&1; echo \"[ipm-h-video] end $(date -u)\""
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/ipm_hybrid_video/02a00399-3857-444e-8db3-a8f58489c394/done.json",
+  "log_path": "/tmp/ipm-h-video-v1.log",
+  "timeout_s": 1800,
+  "labels": {"requires": "gpu"},
+  "created_at": "2026-05-23T13:32:00+00:00"
+}
