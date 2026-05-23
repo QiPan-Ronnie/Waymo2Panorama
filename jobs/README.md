@@ -82,3 +82,59 @@ churn frequently. Drive is the source of truth for results.
 Done jobs can be moved to `jobs/done/` (just move the file). The worker re-checks
 result state on every scan so even a re-pushed spec won't be re-executed if its
 result already shows `state=done`.
+
+---
+
+## ⚠️ Blocked jobs in current queue (as of 2026-05-21, for any agent picking up this project)
+
+There are **3 `phase3-new-f-vggt-*` jobs** in this directory that crashed once and are
+intentionally left here pending a user decision. Do NOT re-submit or delete them
+without checking with the user first.
+
+### Current state of the 3 jobs
+
+| Job | Status |
+|---|---|
+| `phase3-new-f-vggt-1-install-v1.json` | **CRASHED** at step 6 (HF ckpt download) with `GatedRepoError 403` |
+| `phase3-new-f-vggt-2-eval-v1.json` | guard-skipped (install_done_v1.json missing) |
+| `phase3-new-f-vggt-3-tar-cache-v1.json` | guard-skipped (vggt-repo missing) |
+
+### Root cause
+
+`facebook/VGGT-1B-Commercial` is a **gated HuggingFace repo**. Even with a valid
+HF token, the user's HF account is not on the access list. The repo's
+`model.safetensors` returns 403 on download.
+
+### Retry steps (if user chooses to unblock)
+
+1. **User action (manual, ~30 sec)**: open https://huggingface.co/facebook/VGGT-1B-Commercial
+   in a browser, click "**Agree and access repository**". Meta's VGGT is usually
+   click-through auto-approve, not human-reviewed.
+2. **Verify on Colab**: ensure `HF_TOKEN` is set in the worker env, and that
+   `python -c "from huggingface_hub import HfApi; HfApi().model_info('facebook/VGGT-1B-Commercial')"`
+   does NOT 403 from inside Colab.
+3. **Trigger retry**: nothing in the repo to change — just `git push` an empty commit
+   or a no-op tweak to wake the worker. The 3 jobs' `done_marker` files (on Drive
+   at `outputs/phase3/p3.5_vggt/install_done_v1.json` etc.) do NOT exist for the
+   crashed install, so worker will re-run job 1. Jobs 2 and 3 have install-status
+   guards that auto-skip if install fails, so they only run after install succeeds.
+4. **Monitor**: heartbeat at `MyDrive/koi_waymo2pano_colab/worker/heartbeat.json`
+   (5 s cadence); install_done JSON expected ~15-30 min after worker picks up;
+   full eval ~30-60 min after that.
+
+### If user chooses to abandon (alternative)
+
+Delete the 3 job files: `rm jobs/phase3-new-f-vggt-{1,2,3}-*.json` then commit + push.
+The 8-route paper is already strong (see `deliverables/handoff_to_koi_w2_2026-05-21_v6cpu_done.md`);
+VGGT NEG was a paper论据加固 nice-to-have, not a critical contribution.
+
+### Why the result files on Drive show "crashed" / "skipped" but jobs are still here
+
+Worker writes terminal state to `MyDrive/koi_waymo2pano_colab/results/<id>.json` but
+does NOT delete the spec in `jobs/`. Specs stay for audit trail. On next pickup,
+worker checks the result file — if `state=done` OR a fresh `done_marker` file
+exists, worker skips. If the install crashed (no done_marker), worker will retry
+on next git pull.
+
+See `agent/handoff.md` "Currently in-flight (Colab worker state)" section for
+the operational pointer.
