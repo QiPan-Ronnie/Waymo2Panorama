@@ -1,0 +1,13 @@
+{
+  "id": "phase3-new-a-video-anchor60-5sec-v1",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/cylindrical_video; mkdir -p \"$OUT\"; LOG=\"$OUT/run_v1.log\"; exec > >(tee \"$LOG\") 2>&1; echo \"[cyl-video] start $(date -u)\"; cd /content/Waymo2Panorama; git pull --rebase || true; ls scripts/run_cylindrical_video.py; pip install -q einops 2>&1 | tail -2; echo; python scripts/run_cylindrical_video.py --log-dir /content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394 --out-dir \"$OUT\" --start-sec 3.0 --duration-sec 5.0 2>&1 | tail -250; echo; ls -lah \"$OUT/02a00399-3857-444e-8db3-a8f58489c394/\" 2>&1; echo \"[cyl-video] end $(date -u)\""
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/cylindrical_video/02a00399-3857-444e-8db3-a8f58489c394/done.json",
+  "log_path": "/tmp/cyl-video-v1.log",
+  "timeout_s": 900,
+  "labels": {"requires": "any"},
+  "created_at": "2026-05-23T13:05:00+00:00"
+}
