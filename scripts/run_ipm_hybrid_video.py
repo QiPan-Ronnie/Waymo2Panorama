@@ -164,10 +164,9 @@ def main() -> int:
             cf = conf[c_i]
 
             ground_mask = detect_ground_from_pi3(
-                local_points_cam=lp, conf=cf,
+                local_points_cam=lp,
                 T_ego_cam=T,
-                ego_z_threshold_m=0.30,
-                normal_z_threshold=0.85,
+                ego_z_thresh_m=0.30,
                 min_forward_m=1.0,
                 max_radius_m=args.max_distance_m,
             )
