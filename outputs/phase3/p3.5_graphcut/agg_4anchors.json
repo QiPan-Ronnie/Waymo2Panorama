@@ -1,0 +1,42 @@
+{
+  "n_anchors": 4,
+  "per_anchor": [
+    {
+      "anchor": 0,
+      "psnr_l1_gc": 33.6731,
+      "l1_seam_grad": 45.449,
+      "gc_seam_grad": 38.835,
+      "delta_dB_proxy": 0.683,
+      "pct_drop": 14.55
+    },
+    {
+      "anchor": 60,
+      "psnr_l1_gc": 31.9731,
+      "l1_seam_grad": 48.949,
+      "gc_seam_grad": 46.686,
+      "delta_dB_proxy": 0.206,
+      "pct_drop": 4.62
+    },
+    {
+      "anchor": 90,
+      "psnr_l1_gc": 32.9099,
+      "l1_seam_grad": 47.47,
+      "gc_seam_grad": 41.547,
+      "delta_dB_proxy": 0.579,
+      "pct_drop": 12.48
+    },
+    {
+      "anchor": 150,
+      "psnr_l1_gc": 32.7934,
+      "l1_seam_grad": 52.639,
+      "gc_seam_grad": 43.29,
+      "delta_dB_proxy": 0.849,
+      "pct_drop": 17.76
+    }
+  ],
+  "mean_psnr_l1_vs_gc_dB": 32.837,
+  "mean_l1_seam_grad": 48.63,
+  "mean_gc_seam_grad": 42.59,
+  "mean_pct_seam_grad_drop": 12.35,
+  "mean_delta_smoothness_dB": 0.579
+}

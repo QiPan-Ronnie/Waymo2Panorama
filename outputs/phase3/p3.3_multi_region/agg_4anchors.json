@@ -1,0 +1,27 @@
+{
+  "n_anchors": 4,
+  "anchors": [
+    "000",
+    "060",
+    "090",
+    "150"
+  ],
+  "with_building": {
+    "PSNR_L1": 10.850119639940702,
+    "PSNR_T14": 10.898592846541904,
+    "PSNR_newC": 10.863166598339212,
+    "PSNR_delta_T14": 0.048473206601201725,
+    "PSNR_delta_newC": 0.013046958398508479,
+    "PSNR_delta_ground_newC": 0.20113459647078358,
+    "PSNR_delta_building_newC": -0.3322048742095787
+  },
+  "no_building": {
+    "PSNR_L1": 10.850119639940702,
+    "PSNR_T14": 10.898592846541904,
+    "PSNR_newC": 10.898592846541904,
+    "PSNR_delta_T14": 0.048473206601201725,
+    "PSNR_delta_newC": 0.048473206601201725,
+    "PSNR_delta_ground_newC": 0.20113459647078358,
+    "PSNR_delta_building_newC": 0.0
+  }
+}
