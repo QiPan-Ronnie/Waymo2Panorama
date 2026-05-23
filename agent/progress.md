@@ -1,5 +1,26 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-23 ~13:00-14:00 UTC — [paper supplementary] 7 route videos 全套生成
+> - **怎么做**: 用户重启 Colab worker (cell_acq_worker.py on A100, 13:54 UTC 13:54 失效后用户 12:56 UTC 重启) 后, 在同一对话里 fire 6 个新 video drivers 把 8 路线里 7 个 dense ERP 路线全部视频化 (5sec @ anchor 60 区域, 100 frames @ 20fps, 1024×2048 ERP). 新-D wide-baseline stereo 物理上不可视频化 (sparse 3D points 不是 dense ERP), 跳过. 6 个 driver 全新写: `scripts/run_l3_video.py` (Pi3+Sim3+forward-splat), `run_cylindrical_video.py` (球→柱面), `run_graphcut_video.py` (L1+apply_graphcut_seams), `run_hdr_video.py` (L1+6-param HDR LS, with `--also-baseline` 给 parallel L1 对比), `run_ipm_hybrid_video.py` (Pi3+detect_ground_from_pi3+ipm_project_ground+sphere fallback), `run_ipm_multi_region_video.py` (Pi3+ipm_project_multi_region). 全部 in-memory pipeline, imageio + libx264 编码, done.json marker.
+> - **结果**: **7 个 mp4 视频** ready on Drive (`outputs/<route>_video/02a00399-.../<route>_video.mp4`):
+>   - L3 (24 MB, 7 min wall, mean Pi3 0.54s + splat 1.22s, file `1PZEvwFoCeQUc0oatymgYL7cw0XyF-AcL`)
+>   - 新-A 柱面 (26 MB, 5.7 min wall, mean 3.04s/frame, file `1YvkYTW2dEHrBkH0wKTmxl2s9UoZwIs1z`)
+>   - 新-B graphcut (17 MB, 16 min wall, mean 9.47s/frame, file `1aA9iw8RTLFTOXFwGYFYAwBFFIvHbwa2s`)
+>   - 新-C multi-region (13 MB, 12 min wall, mean 6.5s/frame, file `1O5dAAq6MASxUtFyebuzrPN3fK6FTbLoX`)
+>   - 新-E HDR + L1 baseline (15+17 MB, 16 min wall, mean 9.24s/frame incl. 5.59s Huber LS, files `1Ln-BV6zU_FwQ7yzdY2_e9Y0X3V74-cUA` + `13jNNJCV8FjMGMUbqo03I47ZMTTTJBpro`)
+>   - T14 IPM hybrid (13 MB, 7.7 min wall, mean 4.17s/frame, file `1ozuDgzl4g-Anxg1qHJTq8m6liQrSDkn4`)
+>   - Total Colab wall: ~70 min A100, cost ~$4-5
+> - **3 个 v1 crashes 学到的 lessons** (新增到 handoff.md §Defensive lessons #9-14):
+>   1. L3 v1: pi3_repo 默认路径错 (3 级 ../ vs 应该 2 级) → `/01-pi3/...` 不存在; fix v2 pass `--pi3-repo` 显式
+>   2. L3 v2: `/content/01-pi3-Pi3` 在新 Colab session 不存在; fix v3 clone 到 `/content/Pi3` 用 3-URL fallback `yyfan2014/Pi3 || yyfz/Pi3 || yyfan2014/Pi3-clean`
+>   3. T14 v1: `detect_ground_from_pi3()` 不接受 `conf` kwarg (跟 segment_regions_from_pi3 不同), 第一帧 TypeError crash; v2 用正确 signature `ego_z_thresh_m / min_forward_m / max_radius_m` 修复
+>   4. 通用: Python `print` block-buffered when piped via tee — 长 Pi3 model load 期间 `tail -f run.log` 看不到任何输出, 不要误判 worker 卡了
+>   5. 通用: Drive API metadata cache 有 30-60s delay — 判断 worker liveness 需要 2-3 次 spaced reads
+>   6. 通用: Worker idle ≠ A100 free — 全部 job 跑完后 worker 仍在 polling 但 A100 还在按小时烧钱, 必须用户手动 disconnect runtime
+> - **Deliverables**: 6 个新 video driver scripts (`scripts/run_*_video.py`) + 6 个对应 job specs (jobs/phase3-*-video-*.json) + 7 个 mp4 on Drive (~125 MB total) + handoff.md 更新 (新 "Video deliverables" 段 + 6 个新防御教训 #9-14) + progress.md (this entry).
+> - Status: [DONE] — paper supplementary 4-grid 或 6-grid 现成材料齐全 (任意 ffmpeg `-filter_complex` 拼合一行命令).
+> - Next: (a) 用户 disconnect A100; (b) 切新 agent 继续 paper draft v0 或推 新-F / T13; (c) 后续任何 video / training / eval 任务都走同一 scratchpad 管道 (write driver → job spec → git push → worker pull → Drive result).
+
 > ### 2026-05-21 ~late session — [project handoff polish] 集成最终交付 + 文档清理
 > - **怎么做**: 在 T-Koi-4 PDF 5 版迭代 (v1 dense → v2 unified old+new → v3 strip advisor framing → v4 add point cloud figures → v5 + §0 metrics primer + §5 ranking table, final commit `473aa7b`) 之后, 进入项目收尾整理. 失败/学到的: WeChat 措辞 v2 给用户后他挑出 "3 baselines all lose to L1" overclaim — Depth Pro / Temporal Pi3 是 L3 backbone swap NEG 不是真 head-to-head, 修正为 v3 "1 head-to-head (OmniStitch -6.67dB) + 2 internal NEG datapoint". 新-F VGGT 尝试 (commits `c1c3dfe` / `1b86df8` / `ee8d1c5`) — install + smoke + tar-cache 3 jobs with guards, 工作者 alphabetical 拉取, install step 6 `VGGT_IMPORT_OK` 后 ckpt download 撞 HF 403 GatedRepoError (`facebook/VGGT-1B-Commercial` is gated, 需 user 在 HF 点 "Agree and access"); guards 让 eval + tar-cache 自动跳过, 不烧额外 GPU; total 190s instead of 15-30min. Project handoff 大改: agent/handoff.md 全文重写 (从 2026-05-15 scaffold → 当前 8 路线 state + 8 防御教训 + infrastructure pointers), README.md 全文重写 (Week-1 scaffold → 8-route verdict table + nav pointers + open decisions), 写 deliverables/learning_plan.md (7-phase CV roadmap, 3-day quick / 3-4w deep) + deliverables/meeting_cram.md (5min talking points + 数字 cheatsheet + 7 predicted Q&A) + self_learning/ 6 chapters (00_README + 01_project_overview + 02_cv_foundations 31 concepts + 03_methods_walkthrough 8 routes deep + 04_external_baselines 3 NEG + 05_findings_and_paper). Cleanup: 删 8 个历史 Koi handoff snapshots (保留 v6cpu_done.{md,pdf}), 删 15 个 progress_T*_addendum.md (info 已在 progress.md), 删 3 个 stale agent docs (plan.md / parallel-tracks.md / agent-roster.md, 已 superseded by claude plans + handoff.md), force-add 4 个 agg_*.json (新-A/B/C + IPM 数字证据). Commits today: c1c3dfe, 1b86df8, ee8d1c5, 6fb559d, 5dd76d1 + this entry.
 > - **结果**: agent/ 从 21 文件压到 4 (handoff.md + progress.md + README.md + 2026-05-15-brainstorm-survey.md). deliverables/ 从 30+ 文件压到 final 1 套 (v6cpu_done.{md,pdf}) + 3 user-facing docs (learning_plan / meeting_cram / images) + tooling scripts. self_learning/ 新建, 6 chapters ~25KB. README.md 现在打开 GitHub 30 秒看懂 project. 项目 GitHub-ready 完成度 100%, 任意新 agent 读 agent/handoff.md (~5min) 能接手, 任意人读 self_learning/ (~3-4h) 能完整理解项目. 新-F VGGT pending HF access, A100 still idle (cannot remote-shutdown). T13 deferred pending paper angle 决定.
