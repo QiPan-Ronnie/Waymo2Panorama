@@ -1,0 +1,13 @@
+{
+  "id": "phase3-l3-video-anchor60-5sec-v2",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/outputs/l3_video; mkdir -p \"$OUT\"; LOG=\"$OUT/run_v2.log\"; exec > >(tee \"$LOG\") 2>&1; echo \"[l3-video-v2] start $(date -u)\"; nvidia-smi --query-gpu=name,memory.total --format=csv 2>&1 || true; echo; cd /content/Waymo2Panorama; git pull --rebase || true; PI3_REPO=/content/01-pi3-Pi3; [ -d \"$PI3_REPO\" ] || { echo \"Pi3 repo missing at $PI3_REPO\"; exit 3; }; echo \"Pi3 repo at $PI3_REPO\"; ls \"$PI3_REPO/pi3/models/pi3x.py\" || { echo 'Pi3X import file missing'; exit 3; }; echo; python scripts/run_l3_video.py --log-dir /content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394 --out-dir \"$OUT\" --pi3-repo \"$PI3_REPO\" --start-sec 3.0 --duration-sec 5.0 --device cuda 2>&1 | tail -250; echo; ls -lah \"$OUT/02a00399-3857-444e-8db3-a8f58489c394/\" 2>&1; echo \"[l3-video-v2] end $(date -u)\""
+  ],
+  "done_marker": "/content/drive/MyDrive/koi_waymo2pano_colab/outputs/l3_video/02a00399-3857-444e-8db3-a8f58489c394/done.json",
+  "log_path": "/tmp/l3-video-v2.log",
+  "timeout_s": 1800,
+  "labels": {"requires": "gpu"},
+  "created_at": "2026-05-23T13:00:00+00:00"
+}
