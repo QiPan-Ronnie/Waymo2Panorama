@@ -1,25 +1,23 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-23 (post 7-route video supplementary + agent-colab-direct refactor plan approved)
+**Updated**: 2026-05-23 (agent-colab-direct v0.1.0 shipped + smoke-test passed in real Colab; old worker files deleted)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
 
 ---
 
-## 🆕 Pending architecture refactor (high priority for next agent)
+## Infrastructure: agent-colab-direct (active)
 
-**Approved 2026-05-23**: Replace `agent-colab-queue` (git-as-queue, polluting main with infra commits) with new repo `agent-colab-direct` (direct Colab kernel access via Cloudflare Tunnel + Flask executor + Drive-mediated URL handoff).
+**Active framework**: [`agent-colab-direct`](https://github.com/QiPan-Ronnie/agent-colab-direct) v0.1.0 — direct Colab kernel access via Cloudflare Tunnel + Flask executor + Drive-mediated URL handoff. Agent talks to the Colab kernel over HTTPS; only real code commits land on main.
 
-**Plan file**: `C:\Users\14294\.claude\plans\snug-shimmying-wave.md` (~600 lines, 6 days implementation, includes 6 optimizations: single-cell setup, auto sync↔async, persistent shell, @checkpointed decorator, CF named tunnel, CLI init).
+**Entry notebook**: `notebooks/runtime.ipynb` (generated; do NOT hand-edit — regenerate via `colab-direct generate-notebook` if config changes). Opens in Colab, single-cell run installs the package, mounts Drive, clones this repo to `/content/Waymo2Panorama`, launches the executor. URL+bearer token written to `<drive_workspace>/runtime/active_url.json` for the MCP client to read.
 
-**Why this matters**: every Colab task today commits + pushes to main (15+ noise commits/day). After paper draft starts, this becomes painful. Refactor solves git pollution, also delivers AutoDL-like UX (agent writes code → runs on Colab kernel directly → sees output, no async queue mental model).
+**Drive workspace**: `MyDrive/koi_waymo2pano_colab/` (panq@usc.edu).
 
-**Migration scope for Waymo2Panorama** (after `agent-colab-direct` v0.1.0 ships):
-- Generate `notebooks/runtime.ipynb` via `colab-direct init`
-- DELETE: `scripts/cell_acq_worker.py`, `scripts/cell_worker_bootstrap.py`, `scripts/runtime_filter.py`, `code/waymo2panorama/utils/drive_queue.py`
-- LEAVE: `jobs/*.json` (18 files) as historical audit archive
-- Update this handoff's "Infrastructure" section
+**MCP server**: run `colab-direct mcp` locally (CLI is registered by `pip install agent-colab-direct`). `.mcp.json` example in `agent-colab-direct/docs/migration_from_acq.md`. Twelve MCP tools (`exec`, `shell`, `write_file`, `read_file`, `status`, etc.) wrap the HTTP executor.
 
-**Timing decision (user's call)**: do the 6-day refactor BEFORE paper draft (cleaner main for paper commits), or AFTER paper investiture (preserve cycles for paper work). Plan file has both arguments.
+**Smoke-test status (2026-05-23)**: end-to-end validated against a fresh Colab CPU runtime — auth (401 without token, 200 with), `/status`, `/heartbeat`, `/exec` (Python subprocess on Colab, stdout returned via SSE), `/jobs` listing all returned correct results. URL+token handoff via Drive ✓.
+
+**Legacy (frozen, do NOT use)**: `agent-colab-queue` (git-as-queue). Pip package stays installed locally for reading old `jobs/*.json` if needed, but **never submit new jobs through it**. The on-Colab worker scripts have been deleted from this repo (see commit log). Historical job archive: `jobs/*.json` (86 files) preserved as audit trail.
 
 ---
 
