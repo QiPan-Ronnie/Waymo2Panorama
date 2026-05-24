@@ -1,23 +1,7 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-23 (agent-colab-direct v0.1.0 shipped + smoke-test passed in real Colab; old worker files deleted)
+**Updated**: 2026-05-24 (agent-colab-direct v0.1.0 shipped + Colab smoke-test passed + repo migrated off agent-colab-queue. Paper work blocked pending Koi feedback.)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
-
----
-
-## Infrastructure: agent-colab-direct (active)
-
-**Active framework**: [`agent-colab-direct`](https://github.com/QiPan-Ronnie/agent-colab-direct) v0.1.0 — direct Colab kernel access via Cloudflare Tunnel + Flask executor + Drive-mediated URL handoff. Agent talks to the Colab kernel over HTTPS; only real code commits land on main.
-
-**Entry notebook**: `notebooks/runtime.ipynb` (generated; do NOT hand-edit — regenerate via `colab-direct generate-notebook` if config changes). Opens in Colab, single-cell run installs the package, mounts Drive, clones this repo to `/content/Waymo2Panorama`, launches the executor. URL+bearer token written to `<drive_workspace>/runtime/active_url.json` for the MCP client to read.
-
-**Drive workspace**: `MyDrive/koi_waymo2pano_colab/` (panq@usc.edu).
-
-**MCP server**: run `colab-direct mcp` locally (CLI is registered by `pip install agent-colab-direct`). `.mcp.json` example in `agent-colab-direct/docs/migration_from_acq.md`. Twelve MCP tools (`exec`, `shell`, `write_file`, `read_file`, `status`, etc.) wrap the HTTP executor.
-
-**Smoke-test status (2026-05-23)**: end-to-end validated against a fresh Colab CPU runtime — auth (401 without token, 200 with), `/status`, `/heartbeat`, `/exec` (Python subprocess on Colab, stdout returned via SSE), `/jobs` listing all returned correct results. URL+token handoff via Drive ✓.
-
-**Legacy (frozen, do NOT use)**: `agent-colab-queue` (git-as-queue). Pip package stays installed locally for reading old `jobs/*.json` if needed, but **never submit new jobs through it**. The on-Colab worker scripts have been deleted from this repo (see commit log). Historical job archive: `jobs/*.json` (86 files) preserved as audit trail.
 
 ---
 
@@ -25,12 +9,18 @@
 
 Sub-project of the Koi paper chain. Goal: take **Argoverse 2 ring 7-cam frames** (same timestamp) and stitch them into a **360° ERP panorama** that downstream consumers (Pantheon360 / GEN3C / Cosmos) can use. Target venue: **3DV 2026** (main or D&B), advisor Koi Chen.
 
-**Current state (2026-05-21)**:
+**Current state (2026-05-24)**:
 - **8 stitching routes done + benchmarked** (L1 sphere, L3 Pi3 forward-splat, IPM ground hybrid, 新-A cylinder, 新-B graph-cut seam, 新-C IPM multi-region, 新-D wide-baseline stereo, 新-E HDR compensation).
-- **Final Koi deliverable shipped**: `deliverables/handoff_to_koi_w2_2026-05-21_v6cpu_done.{md,pdf}` (13 pages, 11 figures, 8 routes + 3 external NEG + 3 downstream demos).
+- **Final Koi deliverable shipped**: `deliverables/handoff_to_koi_w2_2026-05-21_v6cpu_done.{md,pdf}` (13 pages, 11 figures, 8 routes + 3 external NEG + 3 downstream demos). **7 video supplementaries** shipped 2026-05-23 to Drive (see "Video deliverables" section below).
 - **新-F VGGT** (4th backbone NEG) — **blocked**: `facebook/VGGT-1B-Commercial` is gated repo, user needs to click "Agree and access" on HF first.
 - **T13 self-sup Pi3 finetune** — **deferred pending Koi feedback** (5-6 day GPU train, high cost, gated on paper angle decision).
-- **Paper angle**: candidate is **A' Method paper** (3 stack-able positive contributions: 新-C IPM ground +0.20 dB / 新-E HDR -18% color gap / 新-B graph-cut visual win) + 4-5 NEG. Awaiting Koi 拍板 (G3 v6 gate).
+- **Paper angle**: candidate is **A' Method paper** (3 stack-able positive contributions: 新-C IPM ground +0.20 dB / 新-E HDR -18% color gap / 新-B graph-cut visual win) + 4-5 NEG. **Awaiting Koi 拍板** (G3 v6 gate) — paper work is GATED on this input.
+- **Infrastructure**: migrated 2026-05-24 from agent-colab-queue (git-as-queue, polluting main with 15+ commits/day) to [`agent-colab-direct`](https://github.com/QiPan-Ronnie/agent-colab-direct) v0.1.0 (HTTPS executor in Colab via Cloudflare Tunnel). Smoke-tested end-to-end on real Colab; **daily-use validation pending** — first time we use the new framework for a real research task we may hit rough edges. See "Infrastructure: agent-colab-direct" section.
+
+**What the next agent should do**:
+- **If user has new Koi input**: read `agent/progress.md` top 3 entries, then act on paper-angle decision (A' vs B-with-C vs Negative-only). Decision tree in "Open decisions" below.
+- **If user wants to run a Colab task**: use `notebooks/runtime.ipynb` + MCP tool `mcp__colab-direct__exec(...)` (NOT `mcp__agent-colab-queue__submit_job`). This is the **first real-world use** of the new framework — flag any friction back to user; we may need v0.1.1 polish.
+- **If user wants paper draft work**: gated on Koi response. Don't proactively start drafting until Koi 拍板.
 
 ---
 
@@ -93,16 +83,14 @@ Plus **3 downstream demos** (paused): ViPE SLAM, GEN3C, Panacea+ (modality NEG).
 
 ---
 
-## Currently in-flight (Colab worker state)
+## Currently in-flight
 
-- **Worker**: last alive 2026-05-23 ~14:00 UTC (after user re-ran cell at 12:56 UTC), polling every 5 s, no active jobs.
-- **Likely state at handoff time**: A100 disconnected (user did so after video generation session). Worker dead until cell re-run on next Colab session.
-- **3 new-f jobs queued in repo `jobs/`**:
-  - `phase3-new-f-vggt-1-install-v1.json` — CRASHED at step 6 (HF gated repo 403). Will re-attempt + crash again on next worker restart (~3 min waste). See `jobs/README.md` for retry protocol.
-  - `phase3-new-f-vggt-2-eval-v1.json` — done_marker exists (status: skipped_install_missing), worker skips.
-  - `phase3-new-f-vggt-3-tar-cache-v1.json` — done_marker exists (status: skipped_eval_missing), worker skips.
+- **Colab runtime**: not currently running. The old agent-colab-queue worker scripts have been deleted from this repo. Next Colab task: open `notebooks/runtime.ipynb`, Run All, get `✓ READY` + tunnel URL. The notebook lives in this repo and is reproducible.
+- **New 新-F VGGT attempt**: still gated on HF access (`facebook/VGGT-1B-Commercial`). The old `jobs/phase3-new-f-vggt-*.json` specs are now historical artifacts (worker no longer pulls them). When user gets HF access, re-attempt via the new framework: `mcp__colab-direct__exec(cmd=["bash", "scripts/<new-f-script>.sh"])` instead of submitting a job spec.
+- **T13 Pi3 self-sup finetune**: still deferred pending Koi feedback. Same migration story — when greenlit, run via new framework.
+- **Paper draft v0**: not started. Gated on Koi 拍板 about paper angle.
 
-To unblock 新-F: user clicks "Agree and access" at https://huggingface.co/facebook/VGGT-1B-Commercial → worker auto-retries on next git pull.
+To unblock 新-F: user clicks "Agree and access" at https://huggingface.co/facebook/VGGT-1B-Commercial. After that, the next agent reframes the work as a `colab-direct` task (no jobs/ json needed).
 
 ---
 
@@ -136,15 +124,25 @@ All on Drive at `MyDrive/koi_waymo2pano_colab/outputs/<route>_video/<log_id>/<ro
 
 ## Infrastructure (must-know)
 
-### agent-colab-queue (user's own MCP)
-- Worker runs in Colab cell, pulls `jobs/*.json` from GitHub every 10 s
-- Sorts jobs **alphabetically** (NOT by created_at) — name jobs with prefix order in mind
-- Result JSON written to Drive `koi_waymo2pano_colab/results/<job_id>.json`
-- Done-marker file written to wherever the job spec says (typically a target output JSON)
-- Worker is robust to job crashes; keeps polling
-- Heartbeat at `koi_waymo2pano_colab/worker/heartbeat.json` (updates every 5 s when alive)
-- Workspace info: `mcp__agent-colab-queue__workspace_info(name="waymo2panorama")`
-- See `[[agent-colab-queue-framework]]` memory for details
+### agent-colab-direct (current — use this for ALL new Colab work)
+
+- Framework repo: <https://github.com/QiPan-Ronnie/agent-colab-direct> v0.1.0, public, MIT
+- Entry: `notebooks/runtime.ipynb` (generated; regenerate via `colab-direct generate-notebook` if config drifts)
+- Setup cell does: pip install agent-colab-direct → mount Drive → clone this repo → start Flask executor + Cloudflare quick-tunnel + heartbeat (writes URL+token to `<workspace>/runtime/active_url.json` every 5s)
+- Agent invokes MCP tools: `mcp__colab-direct__exec(cmd=[...])`, `__shell`, `__write_file`, `__read_file`, `__status`, `__list_jobs`, `__get_job`, `__wait_for_job`, `__kill_job`, `__shell_reset`, `__heartbeat`, `__refresh_url` (12 tools total)
+- `exec` is auto sync↔async: short cmds return inline with `{mode: "sync", stdout, exit_code}`; long cmds return `{mode: "async", job_id}` and the agent can `wait_for_job(id)` later
+- `shell` is a persistent bash session (pexpect): `cd`/`export`/`source venv/bin/activate` stick across calls (SSH-like UX)
+- For mid-task resume on long batch jobs: decorate functions with `@cd.checkpointed(unit_id_fn=..., storage_dir=drive_path)`. On disconnect+resume, completed units skip via `.done` marker files
+- See `[[agent-colab-direct-framework]]` memory for details
+- MCP server registration: `colab-direct mcp` + `COLAB_DIRECT_RUNTIME_DIR=<local Drive>/koi_waymo2pano_colab/runtime` — example `.mcp.json` snippet in `agent-colab-direct/docs/migration_from_acq.md`
+
+### agent-colab-queue (FROZEN — do NOT submit new jobs)
+
+- Pip package stays installed locally (`uvx --from .../tools/agent-colab-queue`) — kept ONLY for reading old `jobs/*.json` archive
+- **Do NOT call `mcp__agent-colab-queue__submit_job`** for new work
+- Old `jobs/*.json` (86 files) preserved in this repo as audit archive — they document what we tried on the old infra
+- Old worker scripts (`scripts/cell_acq_worker.py`, `cell_worker_bootstrap.py`, `runtime_filter.py`, `code/waymo2panorama/utils/drive_queue.py`) deleted 2026-05-24
+- See `[[agent-colab-queue-framework]]` memory (marked frozen)
 
 ### Drive workspace
 - Root: `MyDrive/koi_waymo2pano_colab/` (panq@usc.edu)
@@ -205,17 +203,21 @@ These cost us hours/dollars. Don't repeat:
 12. **Python `print()` is block-buffered when piped via `tee`** (default 4-8 KB buffer). Long Pi3 model loads can take 30-60s with NO output visible in `tail -f run.log`. Use `print(..., flush=True)` or `PYTHONUNBUFFERED=1` env var for real-time progress on long-running scripts.
 13. **Worker idle ≠ A100 free**. Worker Python process can be alive + polling but A100 runtime is still allocated and billed (~$3-4/h). Always tell user to disconnect Colab runtime when work finishes, even if worker is "just idle".
 14. **Drive API metadata cache delay**: `modifiedTime` from `search_files` can be 30-60s stale. If checking worker liveness, do 2-3 reads spaced ~30s apart before declaring worker dead.
+15. **Colab FUSE write vs Drive backend sync** (NEW, 2026-05-24 smoke test): a file written to `/content/drive/...` from Colab is **instantly visible inside the Colab kernel** (FUSE mount), but propagation to Google's actual Drive backend can lag **minutes**. During agent-colab-direct smoke test, `active_url.json` was confirmed written by the executor's heartbeat thread, but Drive MCP `search_files` returned empty for >2 minutes. Don't tight-loop on Drive search after a Colab write; either read the file via Colab's left file panel (FUSE, instant), open a separate Colab notebook tab to cat it, or just wait 60-90s. Captured in memory `[[feedback-drive-colab-sync-delay]]`.
+16. **agent-colab-direct daily-use validation pending** (2026-05-24): Smoke test passed end-to-end on Colab CPU, but the first real research task using the new framework hasn't happened yet. Expect rough edges — when you (next agent) hit one, take notes for v0.1.1 polish. Don't silently work around bugs; flag them to the user.
 
 ---
 
 ## Memory references (Claude session memory)
 
-Located in `C:\Users\14294\.claude\projects\D--BaiduSyncdisk-2024-to-future-koi-chen\memory\`:
-- `[[agent-colab-queue-framework]]` — robust agent↔Colab framework details
-- `[[drive-folder-ids-koi-waymo2pano]]` — cached Drive fileIds (root, results, heartbeat)
-- `[[feedback-direct-push-main-waymo2pano]]` — user authorizes direct push to main
-- `[[feedback-colab-tar-env-to-drive]]` — zstd-tar pattern for heavy installs
-- `[[feedback-prefer-robust-frameworks]]` — engineer fixes over workarounds
+Located in `C:\Users\14294\.claude\projects\D--BaiduSyncdisk-2024-to-future-koi-chen\memory\` (auto-loaded into every new session — agent reads `MEMORY.md` index then pulls relevant entries):
+- `[[agent-colab-direct-framework]]` — **active** framework: 12 MCP tools, 6 optimizations, smoke-tested 2026-05-23
+- `[[agent-colab-queue-framework]]` — **FROZEN** as of 2026-05-23; do NOT submit new jobs through it
+- `[[drive-folder-ids-koi-waymo2pano]]` — cached Drive fileIds (root, results, heartbeat); still valid
+- `[[feedback-direct-push-main-waymo2pano]]` — user authorizes direct push to main for THIS repo
+- `[[feedback-colab-tar-env-to-drive]]` — zstd-tar pattern for heavy installs (Apex/TE etc.); now used inside agent-colab-direct's `cache.py`
+- `[[feedback-prefer-robust-frameworks]]` — engineer fixes over workarounds (drove the agent-colab-direct refactor)
+- `[[feedback-drive-colab-sync-delay]]` — **NEW 2026-05-24** Colab FUSE write ≠ Drive backend sync; don't tight-loop on Drive search
 
 ---
 
