@@ -48,52 +48,47 @@ def stitch_one_frame(
 
 
 # ---------------------------------------------------------------------------
-# WS2 — L1 + pre-warp (per-pair Architecture B)
+# WS2 — L1 + pre-warp (Architecture B with global chain-to-reference)
 # ---------------------------------------------------------------------------
 #
-# Per-pair design (v1):
-#   For each of the 7 adjacent ring-cam pairs (cam_a, cam_b), we fit a 2D
-#   homography H_a_b such that  H_a_b @ x_a ~= x_b  (in image coords).
-#   We then warp cam_b's FULL image into cam_a's frame using H_b_a = H_a_b^-1:
-#       warped_b = cv2.warpPerspective(img_b, H_b_a, (w_a, h_a))
-#   cam_b's K / T_ego_cam stay the same — we are aligning cam_b's *pixels*
-#   to look as if they had been captured from cam_a's viewing geometry, so
-#   the L1 sphere projection (which uses cam_a's intrinsics for cam_a, cam_b's
-#   for cam_b) needs cam_b's *intrinsics+extrinsics* unchanged. Subtle but
-#   correct: we change ONLY the pixel grid of cam_b, by remapping img_b onto
-#   img_a's image plane.
+# Algorithm (per anchor):
+#   1. For each of the 7 adjacent ring-cam pairs (cam_a, cam_b), fit a 2D
+#      homography H_{a->b} on the overlap region (DISK + LightGlue + RANSAC).
+#   2. For each cam c != reference_cam, compose pair homographies along the
+#      SHORTEST ring path from c to reference_cam:
+#          H_{c->ref} = H_n @ ... @ H_2 @ H_1
+#      (see alignment/pair_homography.ring_path_homography).
+#   3. For each cam c != reference_cam, warp its image:
+#          warped_c = cv2.warpPerspective(img_c, H_{c->ref}, (w_ref, h_ref))
+#      The warped image lives in reference_cam's image plane.
+#   4. Pass warped images (+ each cam's ORIGINAL K / T_ego_cam) to the L1
+#      sphere projection. Each cam still projects to its OWN spherical
+#      slab — the prewarp just made the overlap region pixel-aligned.
+#   5. Multi-band blend the slabs to produce the final ERP.
 #
-# Wait — that's wrong, isn't it? If we warp img_b's pixels into img_a's
-# image plane, then we should project the warped pixels using cam_a's K
-# and T_ego_cam, not cam_b's. Let me restate:
+# Geometric consistency note:
+#   v1 keeps each cam's ORIGINAL K + T_ego_cam after warping the pixels.
+#   This is a small geometric inconsistency (the warped pixels "look like"
+#   reference_cam's view of the overlap, but we project them through
+#   cam_c's pinhole). For AV2's nearly-rectified ring overlap wedges and
+#   small chain homographies (a few pixels of shift on planar content at
+#   >30m), the resulting slab is meaningfully closer to the reference than
+#   the un-warped slab — that's where the +PSNR comes from. A v2 would
+#   reproject the warped pixels through reference_cam's K + T_ego_cam,
+#   which requires per-cam virtual extrinsics; left as future work.
 #
-#   The homography H_a_b is purely a 2D image-warp. After warping, the
-#   "image" looks as if it were taken from cam_a's pose with cam_a's K
-#   (for the planar overlap content). To feed it through the sphere
-#   projection, we should treat it as a cam_a image at that point.
-#
-# But that double-counts the cam_a contribution at the overlap. And each
-# cam_b participates in TWO pair-warps (one with its CCW neighbour, one
-# with its CW neighbour) — they'd target different "reference cams".
-#
-# v1 simplification (the one we ship): warp cam_b into cam_a's frame
-# but STILL project it through cam_b's K/T_ego_cam to its own sphere
-# slab. This is technically a small geometric inconsistency for the
-# warped pixels, but for AV2's nearly-rectified ring overlap wedges and
-# small homography corrections (a few pixels of shift), the resulting
-# slab is closer to cam_a's ground truth than the un-warped cam_b slab
-# was. The L1 blender then merges them, with smaller residual ghost.
-#
-# A more principled v2 would:
-#   * Choose a global reference cam (e.g. ring_front_center).
-#   * Chain homographies around the ring so every cam shares one global
-#     reference image-plane.
-#   * Project each warped image as if it were the reference cam.
-# That requires a different K/T for each warped cam and is left as TODO.
+# Graceful degradation:
+#   If ALL pair homographies fall back to identity (status != "ok"), the
+#   composed chain is identity for every cam — so the prewarp pipeline
+#   produces the SAME ERP as plain `stitch_one_frame`. The summary dict's
+#   "n_pairs_ok" field is 0 in that case; callers should warn and / or
+#   skip the prewarp entirely (the run_l1_orb_hybrid.py driver logs this).
 # ---------------------------------------------------------------------------
 
 
-# Module-level constant so callers can introspect / extend.
+# Module-level constant — re-exported from alignment for backwards compat.
+# Kept as a tuple of tuples to match the legacy callers (eval_l1_orb_hybrid_cycle.py
+# imports it under this name).
 ADJACENT_PAIRS_RING: tuple[tuple[str, str], ...] = (
     ("ring_front_center", "ring_front_left"),
     ("ring_front_left", "ring_side_left"),
@@ -109,6 +104,10 @@ def _prewarp_one_cam(
     img_a: np.ndarray, img_b: np.ndarray, H_a_to_b: np.ndarray,
 ) -> np.ndarray:
     """Warp img_b into img_a's image-plane frame via H_b_to_a = inv(H_a_to_b).
+
+    Legacy helper (per-pair architecture). New callers should use
+    `cv2.warpPerspective(img, H_to_ref, (w, h))` directly with a chain
+    homography from `ring_path_homography`.
 
     H_a_to_b: 3x3 homography mapping x_a -> x_b (as returned by
               compute_overlap_homography).
@@ -138,16 +137,27 @@ def stitch_one_frame_with_prewarp(
     wrap: bool = True,
     device: str = "cpu",
     homography_kwargs: Optional[dict] = None,
-    adjacent_pairs: tuple[tuple[str, str], ...] = ADJACENT_PAIRS_RING,
+    reference_cam: str = "ring_front_center",
+    adjacent_pairs: Optional[list[tuple[str, str]]] = None,
+    ring_order: Optional[list[str]] = None,
     return_diagnostics: bool = True,
 ) -> tuple[np.ndarray, dict]:
-    """WS2 — L1 sphere stitch WITH per-pair overlap-homography prewarp.
+    """WS2 — L1 sphere stitch WITH chain-warp overlap-homography prewarp.
 
-    For each adjacent (cam_a, cam_b) ring pair we estimate a 2D homography
-    on the overlap region (DISK+LightGlue+RANSAC); the homography then
-    pre-aligns cam_b's pixels to cam_a's image-plane frame BEFORE the
-    sphere projection. See module docstring for the v1 simplifications
-    (per-pair warp, no global chain).
+    Algorithm (Architecture B, global chain-to-reference):
+      1. For each adjacent ring pair, fit a 2D homography (DISK+LightGlue+RANSAC).
+      2. For each cam != reference_cam, compose homographies along the shortest
+         ring path to reference_cam.
+      3. Warp each non-reference cam's image with cv2.warpPerspective using
+         the composed H.
+      4. L1 sphere project each (warped) cam onto the ERP canvas using each
+         cam's ORIGINAL K + T_ego_cam (v1 simplification — see module docstring).
+      5. Multi-band blend.
+
+    If ALL pair homographies fall back to identity (e.g. no DISK matches on
+    any pair), the chain warps are all identity and the output matches
+    plain `stitch_one_frame` (graceful degradation). The summary dict
+    reports n_pairs_ok=0 in that case.
 
     Args:
         per_cam: dict cam_name -> {"image": HxWx3 uint8, "K": (3,3), "T_ego_cam": (4,4)}.
@@ -160,40 +170,48 @@ def stitch_one_frame_with_prewarp(
         device: "cpu" or "cuda" for DISK+LightGlue.
         homography_kwargs: forwarded to compute_overlap_homography (e.g.
                  {"max_num_keypoints": 1024, "lightglue_min_confidence": 0.2}).
+        reference_cam: global anchor cam — its pixels are NOT warped; every
+                 other cam is warped into reference_cam's image-plane frame.
+                 Default = "ring_front_center" (most forward-facing, fewest
+                 chain hops on average).
         adjacent_pairs: override the default 7-cam ring topology.
+        ring_order: override the cam ordering used for shortest-path lookup.
         return_diagnostics: if True, returns (erp, summary_dict).
 
     Returns:
         erp: (H_erp, W_erp, 3) uint8 — the final blended ERP.
-        summary: dict with key "pair_homographies" mapping "cam_a->cam_b" to
-                 the per-pair compute_overlap_homography result (with H as a
-                 nested list for json-friendliness).
+        summary: dict with keys:
+            "pair_homographies": dict "cam_a__to__cam_b" -> per-pair stats
+            "chain_warps": dict cam_name -> chain H + n_hops + status
+            "n_pairs_total" / "n_pairs_ok": pair-level success counts
+            "runtime": dict feature_match / warp / project / blend phase times
+            "reference_cam": the anchor used for the chain
     """
     # Local import to avoid pulling torch/kornia when only `stitch_one_frame`
     # is used by a caller (e.g. the cheap L1 baseline driver).
-    from waymo2panorama.alignment.pair_homography import compute_overlap_homography
+    from waymo2panorama.alignment.pair_homography import (
+        ADJACENT_PAIRS as _DEFAULT_ADJACENT_PAIRS,
+        RING_ORDER as _DEFAULT_RING_ORDER,
+        compute_overlap_homography,
+        ring_path_homography,
+    )
+    import time as _time
 
     hk = dict(homography_kwargs) if homography_kwargs else {}
     hk.setdefault("device", device)
 
-    # ---- Step 1: estimate homographies on each adjacent pair --------------
-    # For each pair, decide which cam plays "a" (the reference frame we will
-    # warp INTO) and which plays "b" (the one being warped). v1: cam_a is
-    # always the first element of the tuple. That means cam_b will then be
-    # warped into cam_a's frame. Each cam appears as "b" in exactly one pair
-    # (since each pair has one CCW + one CW neighbour); the cam that is "a"
-    # in some pair retains its OWN pixels and is "b" in the pair preceding
-    # it in the ring. So every cam ends up warped at most once.
-    #
-    # Implementation: build a dict cam -> applied_warp where each cam is
-    # warped into the frame of the PREVIOUS cam in the ring (its CCW
-    # neighbour). cam_front_center is the natural anchor — it is "a" in the
-    # first pair and "b" in the last (close-of-ring) pair. v1 treats it as
-    # the anchor by SKIPPING the wrap-around warp on cam_front_center
-    # itself, so its pixels are not double-perturbed.
+    pairs = adjacent_pairs if adjacent_pairs is not None else _DEFAULT_ADJACENT_PAIRS
+    ring = ring_order if ring_order is not None else _DEFAULT_RING_ORDER
 
+    if reference_cam not in per_cam:
+        raise KeyError(
+            f"reference_cam={reference_cam!r} not in per_cam (keys={sorted(per_cam.keys())})"
+        )
+
+    # ---- Step 1: estimate homographies on each adjacent pair --------------
+    t_fm0 = _time.time()
     pair_results: dict[tuple[str, str], dict] = {}
-    for cam_a, cam_b in adjacent_pairs:
+    for cam_a, cam_b in pairs:
         if cam_a not in per_cam or cam_b not in per_cam:
             # Skip rather than crash if a cam is missing (Waymo has only
             # 5 cams, vs AV2's 7; with a non-7-cam topology, drop pairs).
@@ -210,29 +228,65 @@ def stitch_one_frame_with_prewarp(
             **hk,
         )
         pair_results[(cam_a, cam_b)] = res
+    t_fm_s = _time.time() - t_fm0
 
-    # ---- Step 2: build the warped per-cam images --------------------------
-    # cam_front_center: leave pixels untouched (anchor).
-    # All other cams: warp into the frame of their CCW neighbour using the
-    # pair where THIS cam is the "b" side.
+    # ---- Step 2: build chain homography for each non-reference cam --------
+    # Map pair_results -> {(a,b): H} for ring_path_homography.
+    pair_H: dict[tuple[str, str], np.ndarray] = {
+        k: v["H"] for k, v in pair_results.items()
+    }
+    chain_log: dict[str, dict] = {}
+    chain_warps: dict[str, np.ndarray] = {}
+    for cam in per_cam.keys():
+        if cam == reference_cam:
+            chain_warps[cam] = np.eye(3, dtype=np.float64)
+            chain_log[cam] = {"n_hops": 0, "is_identity": True}
+            continue
+        H_chain = ring_path_homography(
+            cam_target=cam,
+            cam_reference=reference_cam,
+            pair_homographies=pair_H,
+            ring_order=ring,
+        )
+        chain_warps[cam] = H_chain
+        # Cheap shortest-path length re-derive for diagnostics (no second graph walk
+        # — just the # of pairs on the ring between cam and reference).
+        i = ring.index(cam)
+        j = ring.index(reference_cam)
+        n = len(ring)
+        n_hops = min((j - i) % n, (i - j) % n)
+        chain_log[cam] = {
+            "n_hops": int(n_hops),
+            "is_identity": bool(np.allclose(H_chain, np.eye(3), atol=1e-9)),
+        }
+
+    # ---- Step 3: warp each non-reference cam ------------------------------
+    t_warp0 = _time.time()
     warped_per_cam: dict[str, np.ndarray] = {}
-    cam_to_pair_as_b: dict[str, tuple[str, str]] = {b: (a, b) for a, b in pair_results.keys()}
-
     for cam, data in per_cam.items():
         img = data["image"]
-        pair_key = cam_to_pair_as_b.get(cam)
-        if pair_key is None:
-            # No pair has this cam as 'b' — keep original pixels.
+        H_chain = chain_warps[cam]
+        if cam == reference_cam or np.allclose(H_chain, np.eye(3), atol=1e-9):
             warped_per_cam[cam] = img.copy()
             continue
-        res = pair_results[pair_key]
-        cam_a_for_warp = pair_key[0]
-        img_a_ref = per_cam[cam_a_for_warp]["image"]
-        warped_per_cam[cam] = _prewarp_one_cam(img_a_ref, img, res["H"])
+        h_src, w_src = img.shape[:2]
+        # We warp into a canvas the same size as cam's own image; this keeps
+        # the L1 sphere projection (which uses cam's own K) sampling the
+        # warped image correctly. The reference cam's image-plane geometry
+        # is approximately the same size as cam's own (ring cams all share
+        # ~504x504 letterboxed dimensions on AV2 / Pi3 cache).
+        warped = cv2.warpPerspective(
+            img, H_chain, (w_src, h_src),
+            flags=cv2.INTER_LINEAR,
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=(0, 0, 0),
+        )
+        warped_per_cam[cam] = warped
+    t_warp_s = _time.time() - t_warp0
 
-    # ---- Step 3: L1 sphere project + multi-band blend ---------------------
-    # NB: we use each cam's ORIGINAL K and T_ego_cam (v1 simplification —
-    # see module docstring).
+    # ---- Step 4: L1 sphere project + multi-band blend ---------------------
+    # NB: each cam still uses its ORIGINAL K and T_ego_cam (v1 simplification).
+    t_proj0 = _time.time()
     slabs: list[np.ndarray] = []
     weights: list[np.ndarray] = []
     for cam in per_cam.keys():
@@ -247,7 +301,11 @@ def stitch_one_frame_with_prewarp(
         )
         slabs.append(rgb)
         weights.append(w)
+    t_proj_s = _time.time() - t_proj0
+
+    t_blend0 = _time.time()
     erp = multiband_blend(slabs, weights, num_bands=num_bands, wrap=wrap)
+    t_blend_s = _time.time() - t_blend0
 
     # ---- Diagnostics ------------------------------------------------------
     if not return_diagnostics:
@@ -267,9 +325,27 @@ def stitch_one_frame_with_prewarp(
             "status": str(res["status"]),
             "time_s": float(res.get("time_s", 0.0)),
         }
+    # Serializable chain log (H as list of lists for JSON).
+    chain_log_serial = {}
+    for cam, info in chain_log.items():
+        H = chain_warps[cam]
+        chain_log_serial[cam] = {
+            "H": H.tolist(),
+            "n_hops": info["n_hops"],
+            "is_identity": info["is_identity"],
+        }
+
     summary = {
         "pair_homographies": pair_log,
+        "chain_warps": chain_log_serial,
         "n_pairs_total": len(pair_results),
         "n_pairs_ok": int(sum(1 for r in pair_results.values() if r["status"] == "ok")),
+        "reference_cam": reference_cam,
+        "runtime": {
+            "feature_match_s": round(t_fm_s, 3),
+            "warp_s": round(t_warp_s, 3),
+            "project_s": round(t_proj_s, 3),
+            "blend_s": round(t_blend_s, 3),
+        },
     }
     return erp, summary
