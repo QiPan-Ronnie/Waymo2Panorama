@@ -233,3 +233,31 @@ def test_apply_negative_alpha_raises() -> None:
     mask = np.zeros((16, 32), dtype=np.float32)
     with pytest.raises(ValueError):
         apply_option_b_reweight(weights_in, mask, alpha=-0.5)
+
+
+def test_apply_warns_on_unnormalized_mask_but_not_on_normalized() -> None:
+    """Out-of-range mask (max > 1) triggers a RuntimeWarning; normalized mask does not."""
+    import warnings
+
+    erp_hw = (16, 32)
+    weights_in = {"cam_a": np.ones(erp_hw, dtype=np.float32)}
+
+    # Out-of-range mask: should warn
+    bad_mask = np.full(erp_hw, 2.5, dtype=np.float32)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        apply_option_b_reweight(weights_in, bad_mask, alpha=1.0)
+    runtime_warnings = [w for w in caught if issubclass(w.category, RuntimeWarning)]
+    assert len(runtime_warnings) >= 1, "expected RuntimeWarning for unnormalized mask"
+    assert "confidence_mask max" in str(runtime_warnings[0].message)
+
+    # In-range mask: should NOT warn
+    good_mask = np.full(erp_hw, 0.8, dtype=np.float32)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        apply_option_b_reweight(weights_in, good_mask, alpha=1.0)
+    runtime_warnings = [w for w in caught if issubclass(w.category, RuntimeWarning)]
+    assert len(runtime_warnings) == 0, (
+        f"unexpected RuntimeWarning(s) for normalized mask: "
+        f"{[str(w.message) for w in runtime_warnings]}"
+    )

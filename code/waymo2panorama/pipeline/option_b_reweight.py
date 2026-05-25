@@ -151,8 +151,10 @@ def build_stereo_confidence_mask(
     yy, xx = np.mgrid[-half:half + 1, -half:half + 1].astype(np.float32)
     rr2 = (xx * xx + yy * yy)
     kernel = np.exp(-rr2 / (2.0 * sigma_px * sigma_px)).astype(np.float32)
-    # Don't pre-normalize the kernel (peak = 1.0) so peaks accumulate
-    # naturally when multiple points splat to nearby ERP pixels.
+    # Don't pre-normalize the kernel (peak = 1.0). Peaks are max-merged
+    # (via np.maximum below) when multiple points splat to overlapping
+    # kernels, which keeps the accumulator in [0, 1] without needing
+    # post-hoc renormalization clipping.
 
     paths = list(stereo_npz_paths)
     n_files_total = len(paths)
@@ -254,6 +256,17 @@ def apply_option_b_reweight(
         raise ValueError(f"alpha must be >= 0, got {alpha}")
     if confidence_mask.ndim != 2:
         raise ValueError(f"confidence_mask must be 2D, got shape {confidence_mask.shape}")
+
+    mask_max = float(confidence_mask.max()) if confidence_mask.size > 0 else 0.0
+    if mask_max > 1.0 + 1e-3:
+        import warnings
+        warnings.warn(
+            f"apply_option_b_reweight: confidence_mask max = {mask_max:.3f} > 1.0; "
+            "expected normalized [0, 1] mask. Reweight will scale weights by "
+            f"(1 + alpha * {mask_max:.2f}) at peak. If unintentional, normalize via mask /= mask.max() first.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
     boost = (1.0 + alpha * confidence_mask).astype(np.float32)
 
