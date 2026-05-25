@@ -95,6 +95,9 @@ def main() -> int:
     ap.add_argument("--no-wrap", action="store_true",
                     help="Disable horizontal wrap padding in multiband (debug).")
     ap.add_argument("--ego-masks-dir", type=Path, default=None)
+    ap.add_argument("--no-ego-mask", action="store_true",
+                    help="Disable both --ego-masks-dir and the heuristic AV2 ego mask "
+                         "(WS1.2). Use this for A/B comparison during verify.")
     ap.add_argument("--also-make-compare-png", type=Path, default=None,
                     help="If set, also write the L1-vs-L2 compare PNG to this absolute path "
                          "(in addition to <output-dir>/compare_l1_vs_l2.png).")
@@ -110,6 +113,7 @@ def main() -> int:
     from waymo2panorama.blending.multiband import multiband_blend
     from waymo2panorama.projection.cylinder import render_camera_to_cylinder
     from waymo2panorama.projection.sphere_projection import render_camera_to_erp as render_sphere
+    from waymo2panorama.data_io.ego_mask import make_av2_ego_mask  # WS1.2: heuristic ego mask
 
     # Resolve input mode
     mode = args.input_mode
@@ -164,15 +168,24 @@ def main() -> int:
         for cam in cams:
             per_cam_data[cam] = _load_from_av2(loader, frame, cam)
 
-    # ---- ego masks (optional, only meaningful in av2 mode) ----
+    # ---- ego masks: load from disk if available, else use heuristic (WS1.2) ----
     ego_masks: dict[str, np.ndarray] = {}
-    if args.ego_masks_dir is not None:
-        import cv2  # local import to keep startup fast
+    if args.no_ego_mask:
+        print("[cyl-baseline] --no-ego-mask: skipping all ego-mask wiring (A/B mode)", flush=True)
+    else:
+        if args.ego_masks_dir is not None:
+            import cv2  # local import to keep startup fast
+            for cam in cams:
+                p = args.ego_masks_dir / f"{cam}.png"
+                if p.exists():
+                    m = cv2.imread(str(p), cv2.IMREAD_GRAYSCALE)
+                    ego_masks[cam] = (m > 127).astype(np.uint8)
+        # For any cam not loaded from disk, fall back to the heuristic AV2 mask.
         for cam in cams:
-            p = args.ego_masks_dir / f"{cam}.png"
-            if p.exists():
-                m = cv2.imread(str(p), cv2.IMREAD_GRAYSCALE)
-                ego_masks[cam] = (m > 127).astype(np.uint8)
+            if cam not in ego_masks:
+                heuristic = make_av2_ego_mask(cam, per_cam_data[cam]["image"].shape[:2])
+                if heuristic is not None:
+                    ego_masks[cam] = heuristic
 
     # ---- project each cam onto BOTH cylinder and sphere ----
     cyl_slabs: list[np.ndarray] = []
@@ -262,6 +275,8 @@ def main() -> int:
             "v_max": args.v_max,
             "num_bands": args.num_bands,
             "wrap": not args.no_wrap,
+            "no_ego_mask": bool(args.no_ego_mask),
+            "ego_mask_cams": sorted(ego_masks.keys()),
         },
         "per_cam": per_cam_log,
         "runtime_s": {

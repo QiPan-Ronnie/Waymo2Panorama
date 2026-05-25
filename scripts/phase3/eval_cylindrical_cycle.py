@@ -72,6 +72,8 @@ def main() -> int:
     ap.add_argument("--erp-w", type=int, default=2048)
     ap.add_argument("--v-max", type=float, default=1.0)
     ap.add_argument("--num-bands", type=int, default=5)
+    ap.add_argument("--no-ego-mask", action="store_true",
+                    help="Disable the heuristic AV2 ego mask (WS1.2) for A/B comparison.")
     ap.add_argument("--w2p-code", default=None)
     args = ap.parse_args()
 
@@ -82,6 +84,7 @@ def main() -> int:
     from waymo2panorama.blending.multiband import multiband_blend
     from waymo2panorama.projection.cylinder import render_camera_to_cylinder
     from waymo2panorama.projection.sphere_projection import render_camera_to_erp as render_sphere
+    from waymo2panorama.data_io.ego_mask import make_av2_ego_mask  # WS1.2
 
     RING_CAMS_7 = (
         "ring_front_center",
@@ -109,6 +112,14 @@ def main() -> int:
             "T_ego_cam": np.load(pi3_dir / f"av2_T_ego_cam_{cam}.npy"),
         }
 
+    # WS1.2 heuristic ego masks (cylinder side only; sphere wiring is follow-up).
+    ego_masks: dict[str, np.ndarray | None] = {}
+    for cam in cams:
+        ego_masks[cam] = (
+            None if args.no_ego_mask
+            else make_av2_ego_mask(cam, data[cam]["image"].shape[:2])
+        )
+
     # Render both methods
     cyl_slabs, cyl_weights, cyl_alphas = [], [], []
     sph_slabs, sph_weights, sph_alphas = [], [], []
@@ -116,7 +127,8 @@ def main() -> int:
     for cam in cams:
         d = data[cam]
         cr, ca, cw = render_camera_to_cylinder(
-            image=d["image"], K=d["K"], T_ego_cam=d["T_ego_cam"], erp_hw=erp_hw, v_max=args.v_max,
+            image=d["image"], K=d["K"], T_ego_cam=d["T_ego_cam"], erp_hw=erp_hw,
+            v_max=args.v_max, ego_mask=ego_masks[cam],
         )
         sr, sa, sw = render_sphere(
             image=d["image"], K=d["K"], T_ego_cam=d["T_ego_cam"], erp_hw=erp_hw,
