@@ -25,6 +25,7 @@ if str(_CODE_ROOT) not in sys.path:
 
 from waymo2panorama.data_io.av2_loader import RING_CAMS_7  # noqa: E402
 from waymo2panorama.data_io.ego_mask import (  # noqa: E402
+    build_ego_masks,
     make_av2_ego_mask,
     make_waymo_ego_mask,
 )
@@ -146,3 +147,51 @@ def test_waymo_mask_raises_not_implemented() -> None:
     """Waymo stub must raise NotImplementedError (placeholder for teammate)."""
     with pytest.raises(NotImplementedError):
         make_waymo_ego_mask("front", (1280, 1920))
+
+
+# ---------------------------------------------------------------------------
+# build_ego_masks (WS1.2 follow-up: factored from driver duplication)
+# ---------------------------------------------------------------------------
+
+
+def test_build_ego_masks_enabled() -> None:
+    """With enabled=True, known cams get masks, unknown cams get None."""
+    cam_shapes = {
+        "ring_front_center": (2048, 1550),   # known + portrait
+        "ring_side_left":    (1550, 2048),   # known + landscape
+        "camera_xyz":        (1550, 2048),   # unknown cam
+    }
+    cam_names = list(cam_shapes.keys())
+
+    masks = build_ego_masks(cam_names, cam_shapes, enabled=True)
+
+    # Every requested cam appears in the output.
+    assert set(masks.keys()) == set(cam_names)
+
+    # Known cams: mask is a uint8 ndarray of the requested shape.
+    assert masks["ring_front_center"] is not None
+    assert masks["ring_front_center"].shape == (2048, 1550)
+    assert masks["ring_front_center"].dtype == np.uint8
+
+    assert masks["ring_side_left"] is not None
+    assert masks["ring_side_left"].shape == (1550, 2048)
+    assert masks["ring_side_left"].dtype == np.uint8
+
+    # Unknown cam: caller should skip mask wiring -> None.
+    assert masks["camera_xyz"] is None
+
+
+def test_build_ego_masks_disabled() -> None:
+    """With enabled=False, every cam maps to None regardless of name/shape."""
+    cam_shapes = {
+        "ring_front_center": (2048, 1550),
+        "ring_side_left":    (1550, 2048),
+        "camera_xyz":        (1550, 2048),
+    }
+    cam_names = list(cam_shapes.keys())
+
+    masks = build_ego_masks(cam_names, cam_shapes, enabled=False)
+
+    assert set(masks.keys()) == set(cam_names)
+    for cam, m in masks.items():
+        assert m is None, f"{cam}: expected None when enabled=False, got {type(m)}"

@@ -35,6 +35,8 @@ percentage points. If real-world content is being clipped, dial it back.
 """
 from __future__ import annotations
 
+from typing import Sequence
+
 import numpy as np
 
 from waymo2panorama.data_io.av2_loader import RING_CAMS_7
@@ -90,6 +92,45 @@ def make_av2_ego_mask(
             mask[h - bot_rows :, :] = 0
 
     return mask
+
+
+def build_ego_masks(
+    cam_names: Sequence[str],
+    cam_image_shapes: dict[str, tuple[int, int]],
+    enabled: bool = True,
+) -> dict[str, np.ndarray | None]:
+    """Build per-cam ego masks for a list of cameras.
+
+    Thin wrapper around :func:`make_av2_ego_mask` that handles the
+    "disabled" / "unknown cam" bookkeeping uniformly across drivers. This
+    exists to remove duplication previously inlined in
+    ``scripts/phase3/run_cylindrical_baseline.py`` and
+    ``scripts/phase3/eval_cylindrical_cycle.py`` (drift risk flagged in code
+    review, WS1.2 follow-up).
+
+    Args:
+        cam_names:        list of cam names to build masks for.
+        cam_image_shapes: dict mapping cam name to ``(H_src, W_src)``. Cams
+                          missing from this dict map to ``None`` in the
+                          output (caller can then skip mask wiring).
+        enabled:          if False, returns a dict with all ``None`` values
+                          (the "mask disabled" A/B mode).
+
+    Returns:
+        dict mapping every name in ``cam_names`` to either a
+        ``(H_src, W_src)`` uint8 mask or ``None``. ``None`` means "don't
+        apply an ego mask for this cam" (either because masking is disabled,
+        the cam isn't in :data:`RING_CAMS_7`, or its shape wasn't supplied).
+    """
+    if not enabled:
+        return {cam: None for cam in cam_names}
+    masks: dict[str, np.ndarray | None] = {}
+    for cam in cam_names:
+        if cam not in cam_image_shapes:
+            masks[cam] = None
+            continue
+        masks[cam] = make_av2_ego_mask(cam, cam_image_shapes[cam])
+    return masks
 
 
 def make_waymo_ego_mask(

@@ -84,17 +84,8 @@ def main() -> int:
     from waymo2panorama.blending.multiband import multiband_blend
     from waymo2panorama.projection.cylinder import render_camera_to_cylinder
     from waymo2panorama.projection.sphere_projection import render_camera_to_erp as render_sphere
-    from waymo2panorama.data_io.ego_mask import make_av2_ego_mask  # WS1.2
-
-    RING_CAMS_7 = (
-        "ring_front_center",
-        "ring_front_left",
-        "ring_side_left",
-        "ring_rear_left",
-        "ring_rear_right",
-        "ring_side_right",
-        "ring_front_right",
-    )
+    from waymo2panorama.data_io.av2_loader import RING_CAMS_7  # source of truth
+    from waymo2panorama.data_io.ego_mask import build_ego_masks  # WS1.2
 
     pi3_dir = Path(args.pi3_dir)
     out_dir = Path(args.output_dir)
@@ -113,12 +104,10 @@ def main() -> int:
         }
 
     # WS1.2 heuristic ego masks (cylinder side only; sphere wiring is follow-up).
-    ego_masks: dict[str, np.ndarray | None] = {}
-    for cam in cams:
-        ego_masks[cam] = (
-            None if args.no_ego_mask
-            else make_av2_ego_mask(cam, data[cam]["image"].shape[:2])
-        )
+    cam_image_shapes = {cam: data[cam]["image"].shape[:2] for cam in cams}
+    ego_masks: dict[str, np.ndarray | None] = build_ego_masks(
+        cams, cam_image_shapes, enabled=not args.no_ego_mask
+    )
 
     # Render both methods
     cyl_slabs, cyl_weights, cyl_alphas = [], [], []
