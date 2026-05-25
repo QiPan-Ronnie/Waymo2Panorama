@@ -111,6 +111,9 @@ def main() -> int:
                     help="cv2.findHomography RANSAC inlier threshold.")
     ap.add_argument("--max-residual-px", type=float, default=2.0,
                     help="Fallback to identity if median inlier residual exceeds this.")
+    ap.add_argument("--reference-cam", default="ring_front_center",
+                    help="Global anchor cam for the chain warp (every other cam is warped "
+                         "into this cam's image-plane frame). Default = ring_front_center.")
     ap.add_argument("--w2p-code", default=None,
                     help="Path to the `code/` dir holding the waymo2panorama package.")
     args = ap.parse_args()
@@ -216,6 +219,7 @@ def main() -> int:
                 "ransac_threshold_px": args.ransac_threshold_px,
                 "max_residual_px": args.max_residual_px,
             },
+            reference_cam=args.reference_cam,
             return_diagnostics=True,
         )
     t_stitch_s = time.time() - t_stitch0
@@ -231,12 +235,21 @@ def main() -> int:
         )
         ok = prewarp_summary["n_pairs_ok"]
         tot = prewarp_summary["n_pairs_total"]
-        print(f"[l1-orb] pair homographies: {ok}/{tot} ok", flush=True)
+        print(f"[l1-orb] pair homographies: {ok}/{tot} ok "
+              f"(reference_cam={prewarp_summary.get('reference_cam')})", flush=True)
         for key, p in prewarp_summary["pair_homographies"].items():
             res_str = "n/a" if p["residual_px"] is None else f"{p['residual_px']:.2f}px"
             print(f"  {key}: status={p['status']:<14s} "
                   f"matches={p['match_count']:>4d} inliers={p['inlier_count']:>4d} "
                   f"residual={res_str}", flush=True)
+        if ok == 0 and tot > 0:
+            print("[l1-orb] WARNING: 0/N pairs ok -> chain warp degenerates to identity. "
+                  "Output ERP equals plain L1 baseline.", flush=True)
+        # Chain-warp diagnostics.
+        chain = prewarp_summary.get("chain_warps", {})
+        for cam, info in chain.items():
+            tag = "identity" if info["is_identity"] else "warped"
+            print(f"  chain[{cam:<22s}]: n_hops={info['n_hops']} -> {tag}", flush=True)
 
     summary = {
         "route": "WS2 / 新-B (L1+ORB hybrid)",
@@ -253,6 +266,7 @@ def main() -> int:
             "lightglue_min_confidence": args.lightglue_min_confidence,
             "ransac_threshold_px": args.ransac_threshold_px,
             "max_residual_px": args.max_residual_px,
+            "reference_cam": args.reference_cam,
             "ego_mask_cams": sorted(c for c, m in ego_masks.items() if m is not None),
         },
         "outputs": {
