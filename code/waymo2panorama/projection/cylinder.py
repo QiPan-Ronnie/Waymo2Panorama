@@ -151,7 +151,10 @@ def render_camera_to_cylinder(
     d_norm = np.sqrt(d_cam[..., 0] ** 2 + d_cam[..., 1] ** 2 + d_cam[..., 2] ** 2)
     d_norm = np.maximum(d_norm, 1e-9)
     cos_axis = np.clip(z_cam / d_norm, 0.0, 1.0)
-    weight = (cos_axis ** 2).astype(np.float32)
+    # cos⁴ instead of cos² — softer feather decay at large |v| reduces weight
+    # discontinuity at vertical edges (closes 白色拼接痕迹 from anchor-60 cylinder
+    # ERP visible in route_cylinder_vs_sphere.png).
+    weight = (cos_axis ** 4).astype(np.float32)
 
     # 7) Optional ego mask in source-image coords (1 = keep, 0 = exclude)
     if ego_mask is not None:
