@@ -68,7 +68,6 @@ import numpy as np
 
 # Reuse DISK + LightGlue plumbing from the stereo module — do not reimplement.
 from waymo2panorama.stereo.wide_baseline_stereo import (
-    ADJACENT_PAIRS as _STEREO_ADJACENT_PAIRS,
     extract_pair_features,
     match_with_lightglue,
 )

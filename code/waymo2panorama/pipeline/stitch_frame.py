@@ -86,49 +86,6 @@ def stitch_one_frame(
 # ---------------------------------------------------------------------------
 
 
-# Module-level constant — re-exported from alignment for backwards compat.
-# Kept as a tuple of tuples to match the legacy callers (eval_l1_orb_hybrid_cycle.py
-# imports it under this name).
-ADJACENT_PAIRS_RING: tuple[tuple[str, str], ...] = (
-    ("ring_front_center", "ring_front_left"),
-    ("ring_front_left", "ring_side_left"),
-    ("ring_side_left", "ring_rear_left"),
-    ("ring_rear_left", "ring_rear_right"),
-    ("ring_rear_right", "ring_side_right"),
-    ("ring_side_right", "ring_front_right"),
-    ("ring_front_right", "ring_front_center"),
-)
-
-
-def _prewarp_one_cam(
-    img_a: np.ndarray, img_b: np.ndarray, H_a_to_b: np.ndarray,
-) -> np.ndarray:
-    """Warp img_b into img_a's image-plane frame via H_b_to_a = inv(H_a_to_b).
-
-    Legacy helper (per-pair architecture). New callers should use
-    `cv2.warpPerspective(img, H_to_ref, (w, h))` directly with a chain
-    homography from `ring_path_homography`.
-
-    H_a_to_b: 3x3 homography mapping x_a -> x_b (as returned by
-              compute_overlap_homography).
-    """
-    if np.allclose(H_a_to_b, np.eye(3), atol=1e-9):
-        # Identity fallback — skip the warpPerspective round-trip.
-        return img_b.copy()
-    try:
-        H_b_to_a = np.linalg.inv(H_a_to_b)
-    except np.linalg.LinAlgError:
-        return img_b.copy()
-    h_a, w_a = img_a.shape[:2]
-    warped = cv2.warpPerspective(
-        img_b, H_b_to_a, (w_a, h_a),
-        flags=cv2.INTER_LINEAR,
-        borderMode=cv2.BORDER_CONSTANT,
-        borderValue=(0, 0, 0),
-    )
-    return warped
-
-
 def stitch_one_frame_with_prewarp(
     per_cam: dict[str, dict],
     erp_hw: tuple[int, int] = (1024, 2048),
