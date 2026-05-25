@@ -90,15 +90,11 @@ def _waymo_global_color_correction(
     bias_prior_scale = float(prior_weight)
     gain_prior_scale = float(prior_weight) * 25.0
 
-    # Free cams are cams 1 .. num_cams-2 (cam_0 and cam_last are pinned).
-    # Map cam index -> slot in x_flat.  Pinned cams map to None.
-    _free_slots: dict[int, int] = {c: s for s, c in enumerate(range(1, last))}
-
     def unpack(x: np.ndarray, cam: int) -> np.ndarray:
         if cam == 0 or cam == last:
             return IDENTITY_6
-        slot = _free_slots[cam]
-        return x[slot * 6 : (slot + 1) * 6]
+        # Cams 1..last-1 map directly to slots in x: cam c is at x[(c-1)*6:(c)*6].
+        return x[(cam - 1) * 6 : cam * 6]
 
     def residuals(x_flat: np.ndarray) -> np.ndarray:
         chunks: list[np.ndarray] = []
@@ -140,10 +136,8 @@ def _waymo_global_color_correction(
     corrections = np.zeros((num_cams, 6), dtype=np.float32)
     corrections[0] = IDENTITY_6
     corrections[last] = IDENTITY_6
-    # Fill free cams (slots 1 .. last-1).
-    solved = res.x.reshape(n_free, 6).astype(np.float32)
-    for c in range(1, last):
-        corrections[c] = solved[_free_slots[c]]
+    # Fill free cams (cams 1 .. last-1) with solved values.
+    corrections[1:last] = res.x.reshape(n_free, 6).astype(np.float32)
     return corrections
 
 
