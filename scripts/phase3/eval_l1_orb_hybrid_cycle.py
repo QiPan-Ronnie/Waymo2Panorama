@@ -127,6 +127,27 @@ def _build_overlap_mask(alphas: list[np.ndarray]) -> np.ndarray:
     return count >= 2
 
 
+def _seam_gradient_energy(erp: np.ndarray, mask: np.ndarray) -> float:
+    """Sum of absolute Sobel gradients over the masked region.
+
+    Used as a stitching-quality proxy: in the overlap region a smaller
+    gradient sum means smoother content (less ghosting / fewer parallax
+    seams). Returns 0.0 if mask has no pixels.
+
+    Args:
+        erp: (H, W, 3) uint8.
+        mask: (H, W) bool.
+    """
+    import cv2 as _cv2
+    if mask.sum() == 0:
+        return 0.0
+    gray = _cv2.cvtColor(erp.astype(np.uint8), _cv2.COLOR_RGB2GRAY).astype(np.float32)
+    gx = _cv2.Sobel(gray, _cv2.CV_32F, 1, 0, ksize=3)
+    gy = _cv2.Sobel(gray, _cv2.CV_32F, 0, 1, ksize=3)
+    mag = np.sqrt(gx * gx + gy * gy)
+    return float(mag[mask].sum())
+
+
 # ---------------------------------------------------------------------------
 # Single-anchor evaluator
 # ---------------------------------------------------------------------------
@@ -142,10 +163,16 @@ def _eval_one_anchor(
     lightglue_min_confidence: float,
     ransac_threshold_px: float,
     max_residual_px: float,
+    reference_cam: str,
+    no_prewarp: bool,
 ) -> dict:
     """Run both plain-L1 baseline and L1+prewarp blends, compute cycle PSNR
     (L1+prewarp vs L1) on union of L1 coverage AND on the multi-cam overlap
     region. Returns a per-anchor summary dict.
+
+    Uses the chain-warp variant of stitch_one_frame_with_prewarp: each non-
+    reference cam is warped into reference_cam's image-plane frame via the
+    composed pair homographies along the shortest ring path.
 
     Important: this is NOT the held-out per-cam cycle protocol of
     eval_cycle_consistency.py. Here we have two ERP outputs from the same
@@ -160,14 +187,10 @@ def _eval_one_anchor(
     To get the SIGN of the change relative to a real GT, run the per-cam
     hold-out protocol separately on the driver's l1_orb_hybrid.png output.
     """
-    from waymo2panorama.alignment.pair_homography import compute_overlap_homography
     from waymo2panorama.blending.multiband import multiband_blend
     from waymo2panorama.data_io.av2_loader import RING_CAMS_7
     from waymo2panorama.data_io.ego_mask import build_ego_masks
-    from waymo2panorama.pipeline.stitch_frame import (
-        ADJACENT_PAIRS_RING,
-        _prewarp_one_cam,
-    )
+    from waymo2panorama.pipeline.stitch_frame import stitch_one_frame_with_prewarp
     from waymo2panorama.projection.sphere_projection import render_camera_to_erp
 
     cams = list(RING_CAMS_7)
@@ -186,6 +209,8 @@ def _eval_one_anchor(
 
     # =========================================================================
     # Baseline blend (plain L1, no prewarp) — using ORIGINAL per-cam images.
+    # We render here (rather than calling stitch_one_frame) to also collect
+    # per-cam alphas for the overlap-mask metric below.
     # =========================================================================
     slabs_base: list[np.ndarray] = []
     weights_base: list[np.ndarray] = []
@@ -207,62 +232,54 @@ def _eval_one_anchor(
     t_blend_base_s = time.time() - t_blend0
 
     # =========================================================================
-    # Prewarp blend (L1+ORB hybrid): per-pair compute_overlap_homography, then
-    # warp non-anchor cams, then render+blend. Mirrors stitch_one_frame_with_
-    # prewarp's logic but exposes the intermediate stats (per-pair status).
+    # Prewarp blend (L1+ORB hybrid) — uses the CHAIN warp via
+    # stitch_one_frame_with_prewarp. The "no_prewarp" path is a sanity-check
+    # A/B mode (prewarp ERP == baseline ERP, PSNR -> inf).
     # =========================================================================
-    pair_results: dict[tuple[str, str], dict] = {}
-    t_pair0 = time.time()
-    for cam_a, cam_b in ADJACENT_PAIRS_RING:
-        if cam_a not in per_cam or cam_b not in per_cam:
-            continue
-        res = compute_overlap_homography(
-            img_a=per_cam[cam_a]["image"], img_b=per_cam[cam_b]["image"],
-            K_a=per_cam[cam_a].get("K"), K_b=per_cam[cam_b].get("K"),
-            T_ego_a=per_cam[cam_a].get("T_ego_cam"),
-            T_ego_b=per_cam[cam_b].get("T_ego_cam"),
+    if no_prewarp:
+        erp_prewarp = erp_baseline.copy()
+        prewarp_summary: dict = {
+            "pair_homographies": {},
+            "chain_warps": {},
+            "n_pairs_total": 0,
+            "n_pairs_ok": 0,
+            "reference_cam": reference_cam,
+            "runtime": {
+                "feature_match_s": 0.0, "warp_s": 0.0, "project_s": 0.0, "blend_s": 0.0,
+            },
+        }
+        t_pair_s = 0.0
+        t_proj_pw_s = 0.0
+        t_blend_pw_s = 0.0
+    else:
+        t_pw0 = time.time()
+        erp_prewarp, prewarp_summary = stitch_one_frame_with_prewarp(
+            per_cam=per_cam,
+            erp_hw=erp_hw,
+            num_bands=num_bands,
+            ego_masks=ego_masks,
+            wrap=True,
             device=device,
-            max_num_keypoints=max_num_keypoints,
-            lightglue_min_confidence=lightglue_min_confidence,
-            ransac_threshold_px=ransac_threshold_px,
-            max_residual_px=max_residual_px,
+            homography_kwargs={
+                "max_num_keypoints": max_num_keypoints,
+                "lightglue_min_confidence": lightglue_min_confidence,
+                "ransac_threshold_px": ransac_threshold_px,
+                "max_residual_px": max_residual_px,
+            },
+            reference_cam=reference_cam,
+            return_diagnostics=True,
         )
-        pair_results[(cam_a, cam_b)] = res
-    t_pair_s = time.time() - t_pair0
-
-    # Warp each cam_b into cam_a's frame; cam not appearing as 'b' stays as-is.
-    warped_per_cam: dict[str, np.ndarray] = {}
-    cam_to_pair_as_b: dict[str, tuple[str, str]] = {b: (a, b) for a, b in pair_results.keys()}
-    for cam, data in per_cam.items():
-        pair_key = cam_to_pair_as_b.get(cam)
-        if pair_key is None:
-            warped_per_cam[cam] = data["image"].copy()
-            continue
-        res = pair_results[pair_key]
-        cam_a_for_warp = pair_key[0]
-        img_a_ref = per_cam[cam_a_for_warp]["image"]
-        warped_per_cam[cam] = _prewarp_one_cam(img_a_ref, data["image"], res["H"])
-
-    # Project warped cams through their OWN K/T_ego_cam (v1 simplification —
-    # see stitch_frame.py module docstring). Use the SAME ego_masks as baseline.
-    slabs_pw: list[np.ndarray] = []
-    weights_pw: list[np.ndarray] = []
-    alphas_pw: list[np.ndarray] = []
-    t_proj_pw0 = time.time()
-    for cam in cams:
-        d = per_cam[cam]
-        rgb, alpha_map, w = render_camera_to_erp(
-            image=warped_per_cam[cam], K=d["K"], T_ego_cam=d["T_ego_cam"],
-            erp_hw=erp_hw, ego_mask=ego_masks.get(cam),
-        )
-        slabs_pw.append(rgb)
-        weights_pw.append(w)
-        alphas_pw.append(alpha_map)
-    t_proj_pw_s = time.time() - t_proj_pw0
-
-    t_blend_pw0 = time.time()
-    erp_prewarp = multiband_blend(slabs_pw, weights_pw, num_bands=num_bands, wrap=True)
-    t_blend_pw_s = time.time() - t_blend_pw0
+        # Re-attribute internal stitch_one_frame_with_prewarp runtime to our timing buckets.
+        rt = prewarp_summary.get("runtime", {})
+        t_pair_s = float(rt.get("feature_match_s", 0.0))
+        t_proj_pw_s = float(rt.get("project_s", 0.0)) + float(rt.get("warp_s", 0.0))
+        t_blend_pw_s = float(rt.get("blend_s", 0.0))
+        # If the inner runtime numbers are missing or bogus, fall back to outer wall time.
+        if t_pair_s + t_proj_pw_s + t_blend_pw_s <= 0.0:
+            total = time.time() - t_pw0
+            t_pair_s = total
+            t_proj_pw_s = 0.0
+            t_blend_pw_s = 0.0
 
     # =========================================================================
     # PSNR metrics. Use the UNION of baseline alphas as the scoring region
@@ -286,21 +303,42 @@ def _eval_one_anchor(
     else:
         mae_change = float("nan")
 
-    # Per-pair stats (json-serializable) — same shape as run_l1_orb_hybrid.py
-    pair_log: dict[str, dict] = {}
-    for (cam_a, cam_b), res in pair_results.items():
-        key = f"{cam_a}__to__{cam_b}"
-        pair_log[key] = {
-            "cam_a": cam_a,
-            "cam_b": cam_b,
-            "inlier_count": int(res["inlier_count"]),
-            "residual_px": float(res["residual_px"]) if np.isfinite(res["residual_px"]) else None,
-            "match_count": int(res["match_count"]),
-            "status": str(res["status"]),
-            "time_s": float(res.get("time_s", 0.0)),
-        }
-    n_ok = int(sum(1 for r in pair_results.values() if r["status"] == "ok"))
-    n_total = len(pair_results)
+    # Per-pair stats come directly from stitch_one_frame_with_prewarp's summary
+    # (json-friendly already — H is a list of lists, residual is None when nan).
+    pair_log = prewarp_summary.get("pair_homographies", {})
+    n_ok = int(prewarp_summary.get("n_pairs_ok", 0))
+    n_total = int(prewarp_summary.get("n_pairs_total", 0))
+
+    # Aggregate per-pair numerics for the controller's per-anchor sanity log.
+    inlier_counts = [p["inlier_count"] for p in pair_log.values()]
+    residuals = [
+        p["residual_px"] for p in pair_log.values()
+        if p.get("residual_px") is not None
+    ]
+    homography_agg = {
+        "mean_inlier_count": float(np.mean(inlier_counts)) if inlier_counts else 0.0,
+        "min_inlier_count": int(min(inlier_counts)) if inlier_counts else 0,
+        "max_inlier_count": int(max(inlier_counts)) if inlier_counts else 0,
+        "mean_residual_px": float(np.mean(residuals)) if residuals else None,
+        "n_pairs_ok": n_ok,
+        "n_pairs_total": n_total,
+        "n_fallback_no_matches": int(sum(
+            1 for p in pair_log.values() if p["status"] == "no_matches"
+        )),
+        "n_fallback_low_inliers": int(sum(
+            1 for p in pair_log.values() if p["status"] == "low_inliers"
+        )),
+        "n_fallback_high_residual": int(sum(
+            1 for p in pair_log.values() if p["status"] == "high_residual"
+        )),
+    }
+
+    # Chain-warp diagnostics — which cams ended up identity (no useful warp).
+    chain_log = prewarp_summary.get("chain_warps", {})
+    chain_summary = {
+        cam: {"n_hops": info.get("n_hops"), "is_identity": info.get("is_identity")}
+        for cam, info in chain_log.items()
+    }
 
     return {
         "pi3_dir": str(pi3_dir),
@@ -308,11 +346,13 @@ def _eval_one_anchor(
         "params": {
             "num_bands": num_bands,
             "no_ego_mask": no_ego_mask,
+            "no_prewarp": bool(no_prewarp),
             "device": device,
             "max_num_keypoints": max_num_keypoints,
             "lightglue_min_confidence": lightglue_min_confidence,
             "ransac_threshold_px": ransac_threshold_px,
             "max_residual_px": max_residual_px,
+            "reference_cam": reference_cam,
         },
         "metrics": {
             # Main signal: PSNR between plain-L1 and prewarp-L1 on L1-covered region.
@@ -325,12 +365,20 @@ def _eval_one_anchor(
             "psnr_in_overlap_region_dB": psnr_in_overlap,
             # Mean RGB shift on union (0..255 scale).
             "mae_change_on_union": mae_change,
+            # Seam-gradient energy delta: total absolute gradient inside the
+            # overlap region (smaller = smoother stitch -> prewarp helped).
+            "seam_gradient_energy_delta": float(
+                _seam_gradient_energy(erp_prewarp, overlap_in_union)
+                - _seam_gradient_energy(erp_baseline, overlap_in_union)
+            ),
         },
         "pair_homography_stats": {
             "n_pairs_ok": n_ok,
             "n_pairs_total": n_total,
+            "aggregate": homography_agg,
             "pairs": pair_log,
         },
+        "chain_warps": chain_summary,
         "overlap_frac": float(overlap_mask.mean()),
         "union_alpha_frac": float(union_alpha.mean()),
         "runtime_s": {
@@ -361,6 +409,8 @@ def _eval_one_anchor_for_checkpoint(
     lightglue_min_confidence: float,
     ransac_threshold_px: float,
     max_residual_px: float,
+    reference_cam: str,
+    no_prewarp: bool,
 ) -> dict:
     """Primitive-arg wrapper so colab_direct.checkpointed can serialize args."""
     return _eval_one_anchor(
@@ -373,6 +423,8 @@ def _eval_one_anchor_for_checkpoint(
         lightglue_min_confidence=lightglue_min_confidence,
         ransac_threshold_px=ransac_threshold_px,
         max_residual_px=max_residual_px,
+        reference_cam=reference_cam,
+        no_prewarp=no_prewarp,
     )
 
 
@@ -398,6 +450,11 @@ def main() -> int:
     ap.add_argument("--lightglue-min-confidence", type=float, default=0.2)
     ap.add_argument("--ransac-threshold-px", type=float, default=3.0)
     ap.add_argument("--max-residual-px", type=float, default=2.0)
+    ap.add_argument("--reference-cam", default="ring_front_center",
+                    help="Global anchor cam for the chain warp.")
+    ap.add_argument("--no-prewarp", action="store_true",
+                    help="A/B sanity check: skip prewarp; prewarp_ERP == baseline_ERP "
+                         "(so PSNR(prewarp vs baseline) -> inf). Useful for pipeline plumbing test.")
     ap.add_argument("--checkpoint-dir", type=Path, default=None,
                     help="Directory for colab_direct.checkpointed .done markers. "
                          "If unset, defaults to <output-dir>/_checkpoints. Ignored "
@@ -451,6 +508,8 @@ def main() -> int:
             lightglue_min_confidence=args.lightglue_min_confidence,
             ransac_threshold_px=args.ransac_threshold_px,
             max_residual_px=args.max_residual_px,
+            reference_cam=args.reference_cam,
+            no_prewarp=args.no_prewarp,
         )
         # colab_direct.checkpointed returns None for cached anchors -> reload from
         # the per-anchor JSON we wrote during the original run.
@@ -472,9 +531,16 @@ def main() -> int:
         per_anchor.append(result)
         m = result["metrics"]
         ph = result["pair_homography_stats"]
+        agg_ph = ph.get("aggregate", {})
+        mean_res = agg_ph.get("mean_residual_px")
+        mean_res_str = "n/a" if mean_res is None else f"{mean_res:.2f}px"
         print(f"  PSNR (L1+prewarp vs L1) = {m['psnr_l1_prewarp_vs_baseline_dB']:.2f} dB "
               f"(in overlap region: {m['psnr_in_overlap_region_dB']:.2f} dB)", flush=True)
-        print(f"  pair homographies ok: {ph['n_pairs_ok']}/{ph['n_pairs_total']}", flush=True)
+        print(f"  pair homographies ok: {ph['n_pairs_ok']}/{ph['n_pairs_total']} "
+              f"(mean inliers={agg_ph.get('mean_inlier_count', 0.0):.0f}, "
+              f"mean residual={mean_res_str})", flush=True)
+        print(f"  seam_gradient_energy_delta = {m.get('seam_gradient_energy_delta', 0.0):.0f} "
+              f"(negative = prewarp smoothed overlap content)", flush=True)
 
     # Aggregate
     finite_union = [
@@ -489,6 +555,11 @@ def main() -> int:
         r["metrics"]["mae_change_on_union"] for r in per_anchor
         if np.isfinite(r["metrics"]["mae_change_on_union"])
     ]
+    finite_seam = [
+        r["metrics"].get("seam_gradient_energy_delta", float("nan"))
+        for r in per_anchor
+        if np.isfinite(r["metrics"].get("seam_gradient_energy_delta", float("nan")))
+    ]
     total_ok = sum(r["pair_homography_stats"]["n_pairs_ok"] for r in per_anchor)
     total_pairs = sum(r["pair_homography_stats"]["n_pairs_total"] for r in per_anchor)
     agg = {
@@ -501,6 +572,9 @@ def main() -> int:
         ),
         "mean_mae_change_on_union": (
             float(np.mean(finite_mae)) if finite_mae else None
+        ),
+        "mean_seam_gradient_energy_delta": (
+            float(np.mean(finite_seam)) if finite_seam else None
         ),
         "fraction_pair_homographies_ok": (
             float(total_ok) / float(total_pairs) if total_pairs > 0 else None
