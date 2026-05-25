@@ -33,7 +33,10 @@ if str(_CODE_ROOT) not in sys.path:
 
 from waymo2panorama.alignment.pair_homography import (  # noqa: E402
     ADJACENT_PAIRS,
+    RING_ORDER,
+    compose_homographies,
     compute_overlap_homography,
+    ring_path_homography,
 )
 
 
@@ -99,6 +102,145 @@ def test_adjacent_pairs_has_seven_ring_entries() -> None:
     # Every pair element should be a known ring cam name
     cams_seen = {c for pair in ADJACENT_PAIRS for c in pair}
     assert all(c.startswith("ring_") for c in cams_seen)
+
+
+def test_ring_order_and_adjacent_pairs_consistency() -> None:
+    """ADJACENT_PAIRS must be derivable from RING_ORDER (closed ring)."""
+    assert len(RING_ORDER) == 7
+    assert RING_ORDER[0] == "ring_front_center"
+    # Last pair must wrap from the last ring cam back to the first.
+    assert ADJACENT_PAIRS[-1] == (RING_ORDER[-1], RING_ORDER[0])
+    for i, (a, b) in enumerate(ADJACENT_PAIRS):
+        assert a == RING_ORDER[i]
+        assert b == RING_ORDER[(i + 1) % len(RING_ORDER)]
+
+
+def test_signature_and_return_shape_on_no_matches_fallback() -> None:
+    """The compute_overlap_homography return dict has all keys and H is 3x3 float."""
+    img_a = np.zeros((4, 4, 3), dtype=np.uint8)
+    img_b = np.zeros((4, 4, 3), dtype=np.uint8)
+    out = compute_overlap_homography(img_a, img_b)
+    assert set(out.keys()) >= _expected_keys()
+    H = out["H"]
+    assert isinstance(H, np.ndarray)
+    assert H.shape == (3, 3)
+    assert H.dtype in (np.float32, np.float64)
+
+
+# ---------------------------------------------------------------------------
+# compose_homographies / ring_path_homography (pure-Python; no DISK needed)
+# ---------------------------------------------------------------------------
+
+
+def _random_homography(seed: int) -> np.ndarray:
+    """Small projective perturbation around identity for testing."""
+    rng = np.random.default_rng(seed)
+    eps = rng.uniform(-0.02, 0.02, size=(3, 3))
+    H = np.eye(3, dtype=np.float64) + eps
+    H[2, 2] = 1.0  # normalize bottom-right
+    return H
+
+
+def test_compose_homographies_empty_returns_identity() -> None:
+    """compose([]) should return a fresh 3x3 identity."""
+    H = compose_homographies([])
+    assert H.shape == (3, 3)
+    np.testing.assert_allclose(H, np.eye(3), atol=1e-12)
+
+
+def test_compose_homographies_single_returns_input() -> None:
+    """compose([H]) should equal H (up to dtype promotion)."""
+    H_in = _random_homography(1)
+    H_out = compose_homographies([H_in])
+    np.testing.assert_allclose(H_out, H_in, atol=1e-12)
+
+
+def test_compose_homographies_two_matches_matmul_order() -> None:
+    """compose([H1, H2]) == H2 @ H1 (apply H1 first, then H2)."""
+    H1 = _random_homography(2)
+    H2 = _random_homography(3)
+    H_total = compose_homographies([H1, H2])
+    np.testing.assert_allclose(H_total, H2 @ H1, atol=1e-12)
+
+
+def test_compose_homographies_three_matches_matmul_order() -> None:
+    """compose([H1, H2, H3]) == H3 @ H2 @ H1."""
+    H1 = _random_homography(4)
+    H2 = _random_homography(5)
+    H3 = _random_homography(6)
+    H_total = compose_homographies([H1, H2, H3])
+    np.testing.assert_allclose(H_total, H3 @ H2 @ H1, atol=1e-12)
+
+
+def test_ring_path_identity_when_target_equals_reference() -> None:
+    """ring_path_homography(c, c, ...) is identity for any c."""
+    pair_H: dict[tuple[str, str], np.ndarray] = {}
+    for cam in RING_ORDER:
+        H = ring_path_homography(cam, cam, pair_H)
+        np.testing.assert_allclose(H, np.eye(3), atol=1e-12)
+
+
+def test_ring_path_one_hop_returns_pair_homography() -> None:
+    """Adjacent cams on the ring: ring_path returns that pair's H exactly."""
+    # Pick a textbook hop: front_center -> front_left
+    H_fc_fl = _random_homography(7)
+    pair_H = {("ring_front_center", "ring_front_left"): H_fc_fl}
+    # Path: front_center -> front_left, returns H_fc_fl unchanged.
+    H = ring_path_homography("ring_front_center", "ring_front_left", pair_H)
+    np.testing.assert_allclose(H, H_fc_fl, atol=1e-12)
+
+
+def test_ring_path_reverse_hop_uses_inverse() -> None:
+    """Reverse direction: ring_path returns inv(pair_H)."""
+    H_fc_fl = _random_homography(8)
+    pair_H = {("ring_front_center", "ring_front_left"): H_fc_fl}
+    # Reverse direction: front_left -> front_center should produce inv(H_fc_fl).
+    H = ring_path_homography("ring_front_left", "ring_front_center", pair_H)
+    np.testing.assert_allclose(H, np.linalg.inv(H_fc_fl), atol=1e-9)
+
+
+def test_ring_path_shortcut_picks_shortest_direction() -> None:
+    """front_left -> front_right via front_center is 2 hops; long way is 5.
+
+    We seed only the SHORT-path pairs and leave long-path pairs MISSING. If
+    the function takes the short path, the composition will be exact (no
+    identity fallbacks). If it takes the long path, identity-fallback hops
+    will make the composition NOT match the expected short-path product.
+    """
+    # Short path: front_left -> front_center -> front_right (2 hops, walking BACKWARD on ring_order).
+    # Note in RING_ORDER, "ring_front_right" is at index 6 and "ring_front_center" at 0;
+    # the wrap-around pair (front_right -> front_center) IS in ADJACENT_PAIRS.
+    H_fc_fl = _random_homography(9)
+    H_fr_fc = _random_homography(10)
+    pair_H = {
+        ("ring_front_center", "ring_front_left"): H_fc_fl,
+        ("ring_front_right", "ring_front_center"): H_fr_fc,
+    }
+    # Short path front_left -> front_right:
+    #   front_left -> front_center (inv(H_fc_fl)) -> front_right (inv(H_fr_fc))
+    #   composed = inv(H_fr_fc) @ inv(H_fc_fl)
+    H_short_expected = np.linalg.inv(H_fr_fc) @ np.linalg.inv(H_fc_fl)
+    H_got = ring_path_homography("ring_front_left", "ring_front_right", pair_H)
+    np.testing.assert_allclose(H_got, H_short_expected, atol=1e-9)
+
+
+def test_ring_path_missing_hop_falls_back_to_identity_not_crash() -> None:
+    """Missing pair on the path -> identity for that hop; no exception."""
+    # No pairs at all -> every hop falls back; composition is identity.
+    H = ring_path_homography("ring_front_left", "ring_rear_left", {})
+    np.testing.assert_allclose(H, np.eye(3), atol=1e-12)
+
+
+def test_ring_path_raises_keyerror_for_unknown_cam() -> None:
+    with pytest.raises(KeyError):
+        ring_path_homography("does_not_exist", "ring_front_center", {})
+
+
+def test_compose_homographies_none_raises() -> None:
+    """A None entry should surface a clear ValueError, not silently insert identity."""
+    H1 = _random_homography(11)
+    with pytest.raises(ValueError):
+        compose_homographies([H1, None])  # type: ignore[list-item]
 
 
 def test_compute_returns_identity_for_dtype_error_inputs() -> None:

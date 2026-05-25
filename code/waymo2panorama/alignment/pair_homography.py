@@ -1,34 +1,62 @@
 """
-Phase 3 WS2 — Pair-wise homography estimation between adjacent ring cams.
+Phase 3 WS2 — Pair-wise homography estimation + chain warp on the ring.
 
-Goal: pre-warp one camera image so its overlap region aligns (in 2D image
-coordinates) with its neighbor's overlap region. Feeding aligned cam images
+Goal: pre-warp every camera image so the overlap regions on the ring share
+a single image-plane frame (the "reference cam"). Feeding aligned cam images
 into the L1 sphere projection + multi-band blender reduces "double-image"
 ghosts in overlap regions where parallax shifts the same 3D object onto
-slightly different ERP locations from each cam.
+slightly different ERP locations from each cam ("2-wheel artifact").
 
-Pipeline:
-    1. DISK feature extraction on both images (reuses stereo/wide_baseline_stereo)
-    2. LightGlue matching (reuses stereo/wide_baseline_stereo)
-    3. cv2.findHomography(src, dst, cv2.RANSAC, 3.0)
-    4. Soft fallback to identity if the fit is weak (no matches, too few
-       inliers, or large median residual).
+Two-stage pipeline:
+    1. PER-PAIR homography (this module's `compute_overlap_homography`):
+         a. DISK feature extraction on the overlap region (reuses stereo/wide_baseline_stereo)
+         b. LightGlue matching (reuses stereo/wide_baseline_stereo)
+         c. cv2.findHomography(src, dst, cv2.RANSAC, 3.0)
+         d. Soft fallback to identity if the fit is weak (no matches, too few
+            inliers, or large median residual).
+    2. CHAIN WARP (this module's `ring_path_homography` + `compose_homographies`):
+         Given the 7 adjacent-pair homographies that close the ring, compose
+         them along the SHORTEST ring path from each cam to the global
+         reference cam (default = ring_front_center). The chain warp puts
+         every cam in a common image-plane frame, which is what the L1
+         multiband blender then merges.
 
-The homography is a 2D-plane projective transform. It implicitly assumes
-the overlap content lies on a plane (or is locally well-approximated by
-one — true for content at >30 m on AV2 ring overlap wedges). Near-field
-3D objects will still mis-warp slightly; the homography is the best 2D
-approximation, not a complete parallax fix.
+Correctness caveats (CRITICAL — document for downstream callers):
 
-Architecture B (per-cam pre-warp). For the v1 implementation, each
-adjacent pair is treated independently — image B is warped into image A's
-frame. v2 could chain homographies through a reference cam (`ring_front_
-center`) for global consistency. See the `TODO` in `compute_overlap_
-homography_chain` placeholder.
+    1. 2D approximation, not full 3D parallax fix. A homography assumes the
+       overlap content lies on a plane (or is locally well-approximated by
+       one — true for content at >30 m on AV2 ring overlap wedges). Near-
+       field 3D objects (cars / pedestrians at <10 m) WILL still mis-warp;
+       the homography is the best 2D approximation, not a complete parallax
+       fix.
+
+    2. Chain drift on rear cams. The composed homography H = H_n @ ... @ H_1
+       accumulates per-pair residual errors. For AV2 with the reference at
+       ring_front_center, the worst case is the rear cams (3 hops via
+       front_left / side_left / rear_left, OR symmetrically the other
+       direction). Expect 2-5 px of additional registration error on the
+       rear-vs-rear overlap vs the front overlap. v2 could fix this with
+       a global bundle adjustment (Levenberg-Marquardt over the cycle
+       constraint H_n @ ... @ H_1 == identity).
+
+    3. Warp outside overlap can degrade. The homography is FIT on the
+       overlap region only; applied to the full image, content far from
+       the overlap region may shift unnaturally. In practice, the L1
+       sphere projection's cos^2 feather weight (peaks at the cam's
+       optical axis) cleanly suppresses the warped fringe — the prewarp
+       only "moves pixels" near the overlap, where it matters.
 
 The module always returns a valid 3x3 H (identity if fallback). Callers
 can blindly do `cv2.warpPerspective(img_b, H, ...)` without checking the
 status field first — but they SHOULD log the status for diagnostics.
+
+Stacking compatibility (with the rest of the 新-X stack):
+    - Prewarp goes BEFORE 新-E HDR-compensation (HDR samples the overlap
+      region AFTER alignment -> more reliable exposure ratios).
+    - After prewarp, 新-B graphcut routes seams around aligned content
+      rather than fighting parallax.
+    - Compatible with WS3 Option B reweight (stack:
+        prewarp -> confidence reweight -> multiband blend).
 """
 from __future__ import annotations
 
@@ -40,15 +68,43 @@ import numpy as np
 
 # Reuse DISK + LightGlue plumbing from the stereo module — do not reimplement.
 from waymo2panorama.stereo.wide_baseline_stereo import (
-    ADJACENT_PAIRS,
+    ADJACENT_PAIRS as _STEREO_ADJACENT_PAIRS,
     extract_pair_features,
     match_with_lightglue,
 )
 
 
+# ---------------------------------------------------------------------------
+# Ring topology constants — single source of truth for downstream callers.
+# ---------------------------------------------------------------------------
+# 7 ring cams in traversal order. The ring CLOSES BACK to ring_front_center
+# (so the 7th adjacent pair is ring_front_right -> ring_front_center).
+RING_ORDER: list[str] = [
+    "ring_front_center",
+    "ring_front_left",
+    "ring_side_left",
+    "ring_rear_left",
+    "ring_rear_right",
+    "ring_side_right",
+    "ring_front_right",
+]
+
+# 7 adjacent pairs derived from RING_ORDER. Each pair (a, b) means "cam a's
+# image is the source space; the homography maps points in a -> b".
+# Derived as the closure of RING_ORDER (ring_front_right -> ring_front_center
+# closes the wrap-around).
+ADJACENT_PAIRS: list[tuple[str, str]] = [
+    (RING_ORDER[i], RING_ORDER[(i + 1) % len(RING_ORDER)])
+    for i in range(len(RING_ORDER))
+]
+
+
 __all__ = [
     "ADJACENT_PAIRS",
+    "RING_ORDER",
     "compute_overlap_homography",
+    "compose_homographies",
+    "ring_path_homography",
 ]
 
 
@@ -316,3 +372,158 @@ def compute_overlap_homography(
         "status": "ok",
         "time_s": round(time.time() - t0, 4),
     }
+
+
+# ---------------------------------------------------------------------------
+# Chain warp helpers (compose / shortest-ring-path)
+# ---------------------------------------------------------------------------
+#
+# `compute_overlap_homography` returns a 3x3 H such that
+#     x_b_homog ~= H_a_to_b @ x_a_homog
+# i.e. H maps points in cam_a to cam_b. To put a chain of cams all into
+# ONE reference cam's image-plane frame (so the L1 multiband blender can
+# merge aligned content), we need:
+#
+#     H_target_to_ref = H_n @ ... @ H_2 @ H_1
+#
+# where each H_k is the pair homography along the ring path from
+# cam_target to cam_reference. The composition order matters: H_k must
+# map cam_k -> cam_{k+1}, so applying them left-to-right takes a point
+# from cam_target's image plane all the way to cam_reference's image plane.
+
+
+def compose_homographies(homographies: list[np.ndarray]) -> np.ndarray:
+    """Compose H_total = H_n @ ... @ H_2 @ H_1 from a list of homographies.
+
+    Convention: each H_k maps points in coord-frame-k to coord-frame-k+1
+    (left multiplication on column-vector pixel coords). The first element
+    is applied first; the last element is applied last; so the composition
+    is right-to-left matrix multiplication (np matmul order).
+
+    Args:
+        homographies: list of (3, 3) np.ndarrays. Empty list returns identity.
+
+    Returns:
+        (3, 3) float64 ndarray. Identity if list is empty.
+
+    Edge cases:
+        - Empty list -> identity (3x3 float64).
+        - Single H   -> H.copy() (defensive against caller mutation).
+    """
+    if len(homographies) == 0:
+        return np.eye(3, dtype=np.float64)
+    H_total = np.eye(3, dtype=np.float64)
+    for H in homographies:
+        if H is None:
+            raise ValueError("compose_homographies: None entry in list")
+        H_total = np.asarray(H, dtype=np.float64) @ H_total
+    return H_total
+
+
+def _build_pair_lookup(
+    pair_homographies: dict[tuple[str, str], np.ndarray],
+) -> dict[tuple[str, str], np.ndarray]:
+    """Index pair_homographies by BOTH (a, b) and (b, a) for bidirectional lookup.
+
+    The reverse direction uses np.linalg.inv(H). If a pair value is None
+    or the inverse is singular, the pair is silently dropped from the lookup
+    (callers will fall back to identity along that hop).
+    """
+    lookup: dict[tuple[str, str], np.ndarray] = {}
+    for (a, b), H in pair_homographies.items():
+        if H is None:
+            continue
+        H_arr = np.asarray(H, dtype=np.float64)
+        if H_arr.shape != (3, 3):
+            continue
+        lookup[(a, b)] = H_arr
+        try:
+            lookup[(b, a)] = np.linalg.inv(H_arr)
+        except np.linalg.LinAlgError:
+            # Singular H — keep forward only; reverse hop will fall back to identity.
+            pass
+    return lookup
+
+
+def _shortest_ring_path(
+    start: str, end: str, ring_order: list[str]
+) -> list[str]:
+    """Shortest sequence of cam names walking around the ring from start to end.
+
+    Returns [start, ..., end]. If start == end, returns [start].
+
+    The ring is treated as undirected and CYCLIC: with N cams, there are
+    two paths between any pair, of lengths d and N-d. We pick the shorter
+    one (ties broken by going FORWARD in ring_order, which matches the
+    intuitive "front_left -> side_left" direction for AV2).
+    """
+    if start == end:
+        return [start]
+    if start not in ring_order or end not in ring_order:
+        raise KeyError(
+            f"_shortest_ring_path: unknown cam {start!r} or {end!r} "
+            f"(known: {ring_order})"
+        )
+    n = len(ring_order)
+    i = ring_order.index(start)
+    j = ring_order.index(end)
+    # Forward (CCW): start -> start+1 -> ... -> end
+    forward_steps = (j - i) % n
+    # Backward (CW):  start -> start-1 -> ... -> end
+    backward_steps = (i - j) % n
+
+    if forward_steps <= backward_steps:
+        path = [ring_order[(i + k) % n] for k in range(forward_steps + 1)]
+    else:
+        path = [ring_order[(i - k) % n] for k in range(backward_steps + 1)]
+    return path
+
+
+def ring_path_homography(
+    cam_target: str,
+    cam_reference: str,
+    pair_homographies: dict[tuple[str, str], np.ndarray],
+    ring_order: list[str] | None = None,
+) -> np.ndarray:
+    """Compose per-pair homographies along the shortest ring path.
+
+    Returns H_target_to_ref such that
+        x_ref_homog ~= H_target_to_ref @ x_target_homog
+    and therefore:
+        warped_target = cv2.warpPerspective(img_target, H_target_to_ref, (w_ref, h_ref))
+    puts img_target into cam_reference's image-plane frame.
+
+    Args:
+        cam_target: name of cam being warped.
+        cam_reference: name of the global reference cam (anchor).
+        pair_homographies: dict (cam_a, cam_b) -> (3, 3) H mapping a -> b,
+            as returned by compute_overlap_homography.
+            Reverse hops are computed on the fly via np.linalg.inv.
+            Missing hops fall back to identity (so a single missing pair
+            doesn't break the whole chain — but the result is degraded).
+        ring_order: defaults to module-level RING_ORDER.
+
+    Returns:
+        (3, 3) float64 H. Identity if cam_target == cam_reference.
+
+    Raises:
+        KeyError if cam_target or cam_reference is not in ring_order.
+    """
+    order = ring_order if ring_order is not None else RING_ORDER
+    if cam_target == cam_reference:
+        return np.eye(3, dtype=np.float64)
+
+    path = _shortest_ring_path(cam_target, cam_reference, order)
+    lookup = _build_pair_lookup(pair_homographies)
+
+    # Walk the path, composing pair homographies hop by hop.
+    Hs: list[np.ndarray] = []
+    for k in range(len(path) - 1):
+        a, b = path[k], path[k + 1]
+        H_hop = lookup.get((a, b))
+        if H_hop is None:
+            # Missing pair on this hop — fall back to identity and keep going.
+            # The chain will be partially degraded but won't crash.
+            H_hop = np.eye(3, dtype=np.float64)
+        Hs.append(H_hop)
+    return compose_homographies(Hs)
