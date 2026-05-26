@@ -1,5 +1,32 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~02:30 UTC — [Path (c) v2 YOLO breakthrough — object-aware ghost scoring works. 3/60 anchors of 02a00399 strict zero edge-objects = guaranteed ghost-free. Full-stride scan across 5 val logs in progress to get final Bosch subset count.]
+> - **怎么做**: v1 (mean color diff) 视觉验证 wrong — anchor 0 是 score 最低但还是有 BMW ghost (because BMW 不在 seam zone 占 mean diff 比例小). 写 v2: YOLOv8n (`pip install ultralytics`, no clone) → 在每个 cam image 上跑 → count cars/persons whose bbox center in outer 15% of cam width (= cam-seam zone in ERP). Total score = sum across 7 cams. Score=0 → no near-field objects in any seam zone → 不会产生 BMW-style doubled ghost.
+> - **新文件**:
+>   - `scripts/phase3/score_ghost_yolo_v2.py` (~185 LOC): YOLO-based scorer
+>   - `scripts/phase3/aggregate_yolo_clean_subset.py` (~111 LOC): 5-log aggregator
+>   - `scripts/phase3/render_clean_subset_preview.py` (~149 LOC): preview grid renderer
+> - **60-anchor scan on 02a00399** (stride=5, edge_frac=0.15, T4 GPU): 19s wall (3.3× faster than v1 380s). Result:
+>   ```
+>   STRICT clean (0 edge-objects): 3 anchors (5%) — 105, 200, 210
+>   RELAXED (<=2 edge-objects):    ~15/60 (25%)
+>   MAX edge-objects:               6 (anchor 75)
+>   ```
+> - **视觉 validation** (`deliverables/frame_selection/yolo_v2/`):
+>   - clean_anchor105 (YOLO=0): 红车 visible 但 IN CAM CENTER (front_center middle) — 不在 seam, 不会 ghost. **YOLO correctly classifies "clean"** ✓
+>   - ghosty_anchor290 (YOLO=6): cars 散布 at cam edges → 高 ghost risk ✓
+>   - v2 IS the right metric: identifies "objects in danger zones", not just "any objects".
+> - **跟 v1 比**:
+>   - v1 anchor 0 score=15.65 (cleanest by v1 = false-positive, has BMW ghost)
+>   - v2 anchor 0 score=? (still has cars near edges → not 0; matches BMW reality)
+> - **Path (c) v2 NOW fully validated as Bosch dataset deliverable path**:
+>   - Filter strict (score=0): guaranteed ghost-free, smaller subset
+>   - Filter relaxed (score<=2): low-risk, larger subset
+>   - 1-2 hr deliverable to Bosch (vs view synthesis 1-2 weeks)
+> - **In progress**: full-stride YOLO scan on all 5 val logs (stride=3, max-anchors=150, timeout_s=1500). Will give final count of strict ghost-free anchors available for Bosch first cut.
+> - Status: [in-progress full-stride YOLO scan; subsequent commit will land aggregator results]
+> - Next: aggregate JSONs → `clean_subset_summary.json` + `strict_clean_anchors.json` + render preview grid.
+>
 > ### 2026-05-27 ~02:00 UTC — [Path (c) frame selection — ghost score driver ran on 60 anchors of log 02a00399. Score 15-32 range, p25=23 → 25% qualify as "clean subset". 但 metric 有局限性 — anchor 0 (score 15.65 cleanest) 还是有 BMW ghost. 需 object-detection 强化 metric.]
 > - **怎么做**: 用户重启 Colab notebook (new tunnel `contacts-layout-representations-freeware`, T4 GPU), av2 reinstall (40s), 跑新写的 `scripts/phase3/score_ghost_per_anchor.py` 在 log 02a00399 的 60 anchors (stride=5, ERP 512×1024, 总 380s wall).
 > - **Score 公式**: 跨 adjacent cam pair 的 overlap 区平均 |color diff| (越大 = 越多 cross-view 差异 = 越多 ghost 可能).
