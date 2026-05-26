@@ -225,3 +225,32 @@ def warp_erp_slab_by_displacement(
         borderValue=0,
     )
     return warped
+
+
+def build_anchor_confidence_map(
+    anchor_positions: list[np.ndarray],
+    erp_hw: tuple[int, int],
+    sigma_px: float = 20.0,
+) -> np.ndarray:
+    """Build a (H, W) float32 confidence map: high near anchors, low far.
+
+    For each ERP pixel, confidence = max over anchors of exp(-dist^2 / (2*sigma^2)).
+    Used to gate dense displacement: in stereo-free regions, no shift applied.
+
+    Returns float32 in [0, 1], shape erp_hw.
+    """
+    H, W = erp_hw
+    if len(anchor_positions) == 0:
+        return np.zeros((H, W), dtype=np.float32)
+    out = np.zeros((H, W), dtype=np.float32)
+    yy, xx = np.mgrid[0:H, 0:W]
+    inv_two_sigma_sq = 1.0 / (2.0 * sigma_px * sigma_px)
+    for a in anchor_positions:
+        u, v = float(a[0]), float(a[1])
+        # ERP wrap on u
+        du = np.minimum(np.abs(xx - u), W - np.abs(xx - u))
+        dv = (yy - v)
+        d2 = du * du + dv * dv
+        contrib = np.exp(-d2 * inv_two_sigma_sq).astype(np.float32)
+        np.maximum(out, contrib, out=out)
+    return out

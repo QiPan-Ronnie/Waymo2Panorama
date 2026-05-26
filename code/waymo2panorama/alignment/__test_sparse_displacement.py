@@ -148,3 +148,21 @@ def test_constant_displacement_shifts_slab():
         f"stripe should shift by 10 px in ONE direction. "
         f"left? {has_stripe_at_10}, right? {has_stripe_at_30}"
     )
+
+
+def test_confidence_map_high_near_anchors_zero_far():
+    """Pixels near sparse anchors get high confidence; far pixels get zero."""
+    from waymo2panorama.alignment.sparse_displacement import (
+        build_anchor_confidence_map,
+    )
+    erp_hw = (256, 512)
+    anchors = [np.array([100.0, 50.0]), np.array([300.0, 100.0])]
+    conf = build_anchor_confidence_map(anchors, erp_hw=erp_hw, sigma_px=20.0)
+    assert conf.shape == erp_hw
+    assert conf.dtype == np.float32
+    # At anchor pixel, confidence ~ 1
+    assert conf[50, 100] > 0.9
+    # Far from any anchor, confidence ~ 0
+    assert conf[200, 400] < 0.1
+    assert float(conf.max()) <= 1.0 + 1e-6
+    assert float(conf.min()) >= 0.0
