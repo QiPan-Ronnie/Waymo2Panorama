@@ -108,6 +108,16 @@ def main() -> int:
     bmw_mb = erp_multiband[bmw_row_t:bmw_row_b, bmw_col_l:bmw_col_r]
     bmw_hs = erp_hard[bmw_row_t:bmw_row_b, bmw_col_l:bmw_col_r]
 
+    # Porsche zoom (user-flagged: severe overlap to BMW's left)
+    porsche_col_c = int(round(1500/4096 * W))
+    porsche_row_t = int(round(1000/2048 * H))
+    porsche_row_b = int(round(1300/2048 * H))
+    porsche_half = int(round(300/4096 * W))  # widened from 200 to capture full car
+    porsche_col_l = max(0, porsche_col_c - porsche_half)
+    porsche_col_r = min(W, porsche_col_c + porsche_half)
+    porsche_mb = erp_multiband[porsche_row_t:porsche_row_b, porsche_col_l:porsche_col_r]
+    porsche_hs = erp_hard[porsche_row_t:porsche_row_b, porsche_col_l:porsche_col_r]
+
     # --- Side-by-side panel ---
     def label(arr, text):
         pil = Image.fromarray(arr.copy())
@@ -134,6 +144,11 @@ def main() -> int:
     bmw_hs_lbl = label(bmw_hs, "HARD SELECT BMW")
     bmw_panel = np.concatenate([bmw_mb_lbl, bmw_hs_lbl], axis=1)
     Image.fromarray(bmw_panel).save(args.output_dir / "bmw_compare.png")
+
+    porsche_mb_lbl = label(porsche_mb, "MULTIBAND PORSCHE")
+    porsche_hs_lbl = label(porsche_hs, "HARD SELECT PORSCHE")
+    porsche_panel = np.concatenate([porsche_mb_lbl, porsche_hs_lbl], axis=1)
+    Image.fromarray(porsche_panel).save(args.output_dir / "porsche_compare.png")
 
     print(f"saved: {args.output_dir / 'full_compare.png'}")
     print(f"saved: {args.output_dir / 'bmw_compare.png'}")
