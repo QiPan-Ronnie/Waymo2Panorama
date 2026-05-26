@@ -1,5 +1,47 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~24:00 UTC — [N1 FINAL 5-way A/B — full stack tested, **N1+LiDAR makes BMW WORSE than legacy L1**. Honest negative for current dense-depth strategy. Next must change approach.]
+> - **怎么做**: 写 `scripts/phase3/run_l1_hdr_lidar_graphcut.py` (162 LOC) — combined driver runs 5 outputs on same anchor: l1_inf (legacy) / l1_hdr (+新-E) / l1_lidar (+N1+LiDAR Phase C) / l1_hdr_lidar (+HDR+N1) / l1_hdr_lidar_graphcut (+graphcut full stack). 在 02a00399 anchor 0 (Porsche/BMW frame) 跑, 1024×2048, 53s wall.
+> - **HDR gains 实际解出** (anchor cam = ring_front_center, gain=1.0 pinned): [1.0, 0.925, 0.872, 0.883, 0.897, 0.911, 0.805 (front_right)]. front_right cam (audit 最暗 lum=68) 反而被 HDR REDUCE 到 gain=0.805 — least-squares 在 overlap pixels 上找的优化点, 跟简单 "暗 cam pull bright" 不一样. 这是 multi-pair joint solve 的合理结果.
+> - **5-way visual A/B on BMW tight crop** (`deliverables/n1_full_stack/bmw_5way_tight.png`):
+>   ```
+>   Row  | combo                          | visual on BMW
+>   ─────┼────────────────────────────────┼───────────────────────────────────
+>   1    | legacy L1                       | doubled wheel + halo, BUT cleanest body
+>   2    | + HDR only                      | same geometry + subtle photometric ↑
+>   3    | + N1+LiDAR                       | BMW shifted to LiDAR-correct angle BUT seam tears + body fragmentation ← WORSE
+>   4    | + HDR + N1                       | slight ↑ over row 3 but still WORSE than rows 1-2
+>   5    | + FULL STACK + graphcut          | comparable to row 4, still WORSE
+>   ```
+> - **决定性发现 (诚实)**: **N1+LiDAR 实际在 visual 上比 plain L1 更糟** on this BMW frame. Architecture 几何上 correct, 但实施 LiDAR 当 depth 源时:
+>   1. **LiDAR sparse on smooth car surfaces** — 大部分 hit 在 mirror/edge, body interior 没 return → kNN-fill 从周围 ground/building 拉错 depth → cam projection 把 body 像素 map 到错位 ERP location
+>   2. **多 view overlap** — 即使 angular alignment correct, 两 cam 显示 BMW 的不同 view (front-side vs side-rear), 视觉混叠
+>   3. **HDR 不修以上两个根因** — photometric matching 只解 color halo, 不解 geometric overlap
+> - **paper-wise**: 这是个 publishable negative result! "我们尝试 cam-translation-aware + LiDAR per-pixel + graphcut hard-seam 三个 architectural improvement, 几何全 correct, 但视觉对 multi-view near-field ghost **WORSE not better**" 是 sharp ablation contribution. 揭示了 multi-cam stitching 在 60°-baseline + near-field 时的 fundamental challenge.
+> - **下一 path 必须 change** (不是 keep N1 iteration):
+>   - (a) **dense depth backbone** (DVGT or RGB-guided LiDAR completion) — 修 sparsity. 今晚 DVGT 被 auto-mode 拒 (需用户授权 clone wzzheng/DVGT). 早起后用户 OK 立刻能做.
+>   - (b) **view synthesis** (NeRF / 3DGS, e.g., Seam360GS arxiv 2508.20080) — 修 multi-view 本质. paradigm shift.
+>   - (c) **战略 reframe**: 接受 plain L1 + HDR 作 baseline + frame selection 给 Bosch ghost-free subset. 不修复每帧, 只交干净的.
+> - **Deliverables**:
+>   - `scripts/phase3/run_l1_hdr_lidar_graphcut.py` — combined full-stack driver
+>   - `deliverables/n1_full_stack/{full_stack_5way_thumb, bmw_5way_tight}.png` — 决定性 visual A/B
+>   - Drive: `outputs/phase3/n1_full_stack/02a00399/anchor_0/{l1_inf, l1_hdr, l1_lidar, l1_hdr_lidar, l1_hdr_lidar_graphcut}.png` + thumbs + summary
+> - **8 commits this session** (top to bottom in `git log --oneline`):
+>   ```
+>   69166e8  Honest 5-way A/B final: N1+LiDAR makes BMW WORSE than legacy L1
+>   1410368  Stack driver: L1 + HDR + N1+LiDAR + graphcut (5-way comparison)
+>   690f949  5.22 prompt §1b color shift audit: AV2 has 5.5 dB mean
+>   b500842  User-facing N1 autonomous run summary
+>   8d934da  Phase C+N2 honest result
+>   bb0023c  N2: combined driver
+>   77fe408  Phase C honest results
+>   433b043  Phase C: LiDAR module + driver
+>   91b4cfa  Phase A complete: implementation verified, single-r inconclusive
+>   d5224d5  Phase A: cam-translation-aware L1 projection (the foundational fix)
+>   ```
+> - Status: [DONE N1 full architecture explored + honest negative — visible ghost not eliminated by N1+LiDAR+graphcut on current sparse-depth strategy. Path forward identified.]
+> - Next: user reads `deliverables/N1_AUTONOMOUS_RUN_SUMMARY.md` + makes call between DVGT (a) / view synthesis (b) / strategic reframe (c).
+>
 > ### 2026-05-26 ~23:30 UTC — [5.22 prompt §1b color shift audit — AV2 HAS significant cross-cam lum gap (mean 5.5 dB, max 9.1 dB), the project's previous assumption "AV2 没色差问题" was WRONG. New-E HDR should be enabled by default.]
 > - **怎么做**: 跑 `_color_shift_audit.py` on 5 val logs anchor 0. 每 cam 计算 luma median (BT.601), 算跨 cam lum_min/max ratio in dB.
 > - **结果**:
