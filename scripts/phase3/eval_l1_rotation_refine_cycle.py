@@ -123,6 +123,8 @@ def _eval_one_anchor(
     min_inliers: int,
     anchor_cam_for_BA: str,
     include_holdout_pairs: bool,
+    l2_reg_weight: float,
+    max_pair_deviation_deg: float,
 ) -> dict:
     from waymo2panorama.alignment.pair_homography import ADJACENT_PAIRS
     from waymo2panorama.alignment.rotation_refinement import (
@@ -162,7 +164,17 @@ def _eval_one_anchor(
             )
             if res is None:
                 continue
-            pair_R_obs[(cam_a, cam_b)] = res["R_obs_a_to_b"]
+            # Drop pair fits that deviate too much from calibration -- those
+            # are corrupted by near-field parallax (the rotation-only assumption
+            # breaks down when matches span varied depths). Trust calibration
+            # over noisy feature fits in those cases.
+            R = res["R_obs_a_to_b"]
+            R_cal = cam_T[cam_b][:3, :3].T @ cam_T[cam_a][:3, :3]
+            from waymo2panorama.alignment.rotation_refinement import R_to_axis_angle as _R2aa
+            deviation_deg = float(np.linalg.norm(_R2aa(R @ R_cal.T))) * 180.0 / np.pi
+            if max_pair_deviation_deg > 0 and deviation_deg > max_pair_deviation_deg:
+                continue  # likely a parallax-biased fit, drop
+            pair_R_obs[(cam_a, cam_b)] = R
 
         # Pick BA anchor: use the requested anchor if it's NOT held-out;
         # otherwise pick its 1-hop neighbor.
@@ -173,6 +185,7 @@ def _eval_one_anchor(
 
         dR = bundle_adjust_rotations(
             pair_R_obs, cam_T, cam_names=cams, anchor_cam=ba_anchor, verbose=False,
+            l2_reg_weight=l2_reg_weight,
         )
         cam_T_refined = apply_rotation_refinements(cam_T, dR)
 
@@ -239,6 +252,15 @@ def main() -> int:
     ap.add_argument("--ransac-threshold-px", type=float, default=3.0)
     ap.add_argument("--min-inliers", type=int, default=30)
     ap.add_argument("--anchor-cam-for-BA", default="ring_front_center")
+    ap.add_argument("--l2-reg-weight", type=float, default=0.05,
+                    help="L2 reg on dR axis-angle params. Higher = stronger pull to "
+                         "identity (smaller refinements). Default 0.05 caps dRs to "
+                         "~0.5-1 deg, defending against bad pair fits from parallax bias.")
+    ap.add_argument("--max-pair-deviation-deg", type=float, default=1.5,
+                    help="Drop pair fits whose observed R deviates from calibration "
+                         "by more than this angle. Near-field parallax can give bogus "
+                         "fits with 5+ deg deviation; default 1.5 deg keeps only "
+                         "well-conditioned pairs.")
     ap.add_argument("--include-holdout-pairs", action="store_true",
                     help="If set, ALSO use stereo pairs involving the held-out cam. "
                          "Methodologically 'leaky' but useful to diagnose whether the "
@@ -268,6 +290,8 @@ def main() -> int:
             min_inliers=args.min_inliers,
             anchor_cam_for_BA=args.anchor_cam_for_BA,
             include_holdout_pairs=args.include_holdout_pairs,
+            l2_reg_weight=args.l2_reg_weight,
+            max_pair_deviation_deg=args.max_pair_deviation_deg,
         )
         r["anchor_idx"] = a; r["wall_s"] = round(time.time() - t0, 2)
         per_anchor.append(r)
