@@ -198,6 +198,7 @@ def _eval_one_anchor(
     alpha: float,
     sigma_px: float,
     v3_selection: str,
+    include_holdout_pairs: bool = False,
 ) -> dict:
     from waymo2panorama.pipeline.option_b_reweight import (
         build_stereo_confidence_masks_per_cam_v3,
@@ -222,14 +223,17 @@ def _eval_one_anchor(
         other_cams = [c for c in cams if c != holdout]
         gt = cam_rgb[holdout]
 
-        # Build v3 masks from stereo pairs that DON'T involve holdout
+        # Build v3 masks from stereo pairs. Default: filter out pairs that involve
+        # the held-out cam (clean metric, but masks won't cover cam_h's reconstruction
+        # region -> structural zero delta). With --include-holdout-pairs: use ALL pairs
+        # (slight leakage, but tests if v3 signal can guide reconstruction at all).
         stereo_paths_filtered = []
         for p in all_stereo_paths:
             with np.load(p) as npz:
                 if "cam_a" not in npz.files or "cam_b" not in npz.files:
                     continue
                 cam_a = str(npz["cam_a"]); cam_b = str(npz["cam_b"])
-            if cam_a == holdout or cam_b == holdout:
+            if not include_holdout_pairs and (cam_a == holdout or cam_b == holdout):
                 continue
             stereo_paths_filtered.append(p)
 
@@ -312,6 +316,14 @@ def main() -> int:
     ap.add_argument("--sigma-px", type=float, default=24.0)
     ap.add_argument("--v3-selection", choices=["winner_take_all", "soft_cos_angle"],
                     default="winner_take_all")
+    ap.add_argument("--include-holdout-pairs", action="store_true",
+                    help="If set, do NOT filter stereo pairs involving the held-out cam. "
+                         "This is methodologically 'leaky' (the v3 mask was built using "
+                         "the held-out cam's image features) but it tests whether v3 "
+                         "would help if we allowed that information flow. Useful for "
+                         "diagnosing whether the clean held-out metric is structurally "
+                         "blind to v3 (it is — masks excluding cam_h don't cover cam_h's "
+                         "reconstruction region).")
     ap.add_argument("--w2p-code", default=None)
     args = ap.parse_args()
 
@@ -335,6 +347,7 @@ def main() -> int:
         result = _eval_one_anchor(
             pi3_dir=pi3, stereo_dir=ster, erp_hw=(args.erp_h, args.erp_w),
             alpha=args.alpha, sigma_px=args.sigma_px, v3_selection=args.v3_selection,
+            include_holdout_pairs=args.include_holdout_pairs,
         )
         result["anchor_idx"] = a
         result["wall_s"] = round(time.time() - t0, 2)
