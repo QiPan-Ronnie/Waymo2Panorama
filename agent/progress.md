@@ -1,5 +1,40 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~22:30 UTC — [N1 Phase C — LiDAR per-pixel finite-r L1. Implementation works (1.1% hit + 7.9% densified + 91% far-fill). FOV-gap fixed (coverage preserved). But visual ghost NOT eliminated — blending 2 cam views even with correct geometric alignment shows doubled. Next: N2 graphcut hard seam.]
+> - **怎么做**: Phase A 教训确认 single global r 不够 (FOV shift dominates). 走 Phase C per-pixel LiDAR r. 新 module `code/waymo2panorama/depth/lidar_to_erp_depth.py` (~240 LOC):
+>   - `load_lidar_sweep_nearest_to_ts(log_dir, ts)`: 找最近 LiDAR sweep (max 75ms delta). 02a00399 anchor 0 → sweep ts 315966070559696000, delta = 9.77ms, 98981 pts.
+>   - `project_lidar_to_erp_depth(pts_ego, erp_hw, min/max_range, densify_radius_px, fill_far_m)`: XYZ → spherical (theta, phi, r) → ERP (u, v) sparse splat (min-range per pixel) → kNN-fill via scipy distance_transform_edt → far-fill at 1000m for unsupported pixels.
+>   - `visualize_depth_map`: turbo-ish RGB debug viz.
+> - 新 driver `scripts/phase3/run_l1_lidar_depth.py`: 端到端 Phase C, ~30s wall at 2048×4096. Commit `433b043` pushed.
+> - **Colab run on anchor 0** (full 2048×4096):
+>   - Depth map build: 1.17s. 91k hit pixels (1.1%) + 663k densified (7.9%) + 7.6M far-fill (91%). Sparse LiDAR + kNN-fill 6px → 9% near-field coverage, rest legacy-like.
+>   - LiDAR render: 16s (N1 mode with per-pixel r array). Baseline (None) render: 12s.
+> - **Quantitative**: Phase C 跟 inf 比 (Porsche/BMW wide bbox):
+>   - Porsche: 27.5% pixels >30 levels, 14.6% >100, mean_diff=49 (vs Phase A r=5m: 89%/78%/389 — Phase C 改动 5× 更 localized)
+>   - BMW: 30% / 16.7% / mean=57
+> - **视觉 A/B (诚实, 这是 key finding)**:
+>   - 总览 thumbnails (1024×512): l1_inf vs l1_lidar 看起来很像, **coverage 完全保留** (Phase A 黑洞问题彻底消失) ✓
+>   - BMW row close-up (1000×600 full-res):
+>     - Row 1 (inf): BMW SUV 可见, 后轮区有清晰 doubled wheel ghost, 车身有 cam seam halo
+>     - Row 2 (N1+LiDAR): BMW 位置 shift 了 (因为 depth-aware 投影到正确角位置), 但**ghost 还在** + **新增 seam tear** (车身被 cam 边界切出明显 vertical 线条) + **doubled BMW body** (两个 cam 各 project 一个 BMW 体到 LiDAR-derived 位置, 不重合)
+>   - **结构性结论**: per-pixel r 几何上 correct, 但**单纯纠正 projection 几何并不消除 visible doubled features**, 因为:
+>     1. 多 cam 看同一物体的**不同 view** (front-side vs side-side), 即使 angular-correct, blending 两个 view 仍显两个"侧脸"
+>     2. LiDAR 在车体上 sparse, kNN-fill 给 body 假 depth (传播自地面/建筑) → cam projection 错位
+>     3. multiband 在 overlap 区平滑混合, 即使几何 align, photometric 不同步仍产生 halo
+> - **跟 Phase A 对比**:
+>   - Phase A: 单 r 强制 trade-off, large black region, 不能视觉 A/B
+>   - Phase C: per-pixel r, coverage 保留, localized change, 但 view-dependent overlap 是 N1 paradigm 的本质 limit
+>   - **N1 单独**确实**几何上是 better baseline** (修了 ego-origin assumption), 但**visually 不消除 ghost**
+> - **下一步明确**: N2 = LiDAR-MRF graphcut hard seam. 选**一个** cam per pixel (no blending) → 没 overlap → 没 doubled. ISPRS 2024 published direction.
+> - **Deliverables** (deliverables/n1_phase_c/):
+>   - `l1_inf_thumb.png` + `l1_lidar_thumb.png` (1024×512 总览)
+>   - `lidar_depth_viz.png` (turbo colormap, 看 LiDAR coverage)
+>   - `bmw_inf_row.png` + `bmw_lidar_row.png` (1000×600 full-res BMW A/B)
+>   - `porsche_phase_c_compare_thumb.png` + `bmw_phase_c_compare_thumb.png` (3-row stack thumbnails)
+>   - Drive: `outputs/phase3/n1_phase_c/02a00399/anchor_0/{l1_inf.png, l1_lidar.png, lidar_depth_viz.png, lidar_depth_map.npz, summary.json}` (2048×4096 originals)
+> - Status: [DONE N1 Phase C — implementation correct, visual ghost-fix INCONCLUSIVE/PARTIAL. N1 alone不够, blending 是剩余 bottleneck. Per plan 进 N2.]
+> - Next: N2 implementation — extend `code/waymo2panorama/blending/graphcut_seam.py` to consume depth term (use LiDAR depth gradient as smoothness term in MRF energy → seam 自动避开近物 → hard-cut blend 而非 multiband)
+>
 > ### 2026-05-26 ~22:00 UTC — [N1 Phase A — Cam-translation-aware L1 r-sweep on AV2 raw. Implementation works, single-r visual gate inconclusive due to FOV-shift artifact. Decision: proceed to Phase C (per-pixel LiDAR r).]
 > - **怎么做**: 用户授权全权 autonomous execution. 按 2026-05-26 N1 plan 走 Path X 渐进 1→2→3. Phase A = `convergence_distance_m` single-r sweep gate. 改 `sphere_projection.py:86-89` 加 finite-r 分支 (None 保 byte-identical 退化). 改 `stitch_frame.py` pass-through. 新 driver `run_l1_finite_radius.py` + panel `make_n1_phase_a_panel.py` + 7 pytest `__test_sphere_projection.py`. Commit `d5224d5` pushed.
 > - **Colab CPU run** (L4 idle, CPU only, ~25s wall):
