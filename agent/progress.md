@@ -1,5 +1,22 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~08:00 UTC — [WS4-Diag3 — 重 render 5.22 prompt §2 cylinder vs sphere on AV2 raw, 确认白色拼接痕迹 + 突兀长方形也是 pi3-cache 假象]
+> - **怎么做**: 用户回来后 reframe — "不用 pi3, 看原始 prompt 的目标". 重读 `meeting/5.22_meeting with xihan/本次prompt.md` 4 个 ask: §1 (l1_erp.png 上的 2-wheel ghost), §2 (cylinder/sphere 对比图的白色拼接痕迹 + 突兀长方形), §3 (探索改进), §4 (其他路线), §5 (Waymo 部署), 加 队友 Waymo 色差. 我之前一直以为 §2 是真问题, 写了 WS1.2 ego mask + WS1.3 cos⁴ feather 当 fix. 现在 WS4-Diag2 已经证明 halo 是 pi3-cache 假象, 我需要再验证 §2 的 specific 抱怨 (白色拼接痕迹 + 突兀长方形)是不是也消失 — 因为 `route_cylinder_vs_sphere.png` (5-21 生成的) 的 L1 sphere 行也有跟 WS4 plainL1 一模一样的 sun burn + 粉色 wash, 说明那张图也是用 pi3-cache 跑的.
+>   - **决定性实验**: 写 `/tmp/test_cylinder_av2raw_v2.py`, 跟 §2 reference panel 同 anchor (log `02a00399`, frame 60), 用 AV2 raw 全分辨率 (2048×1550) + simple WA blend, 跑 sphere + cylinder 两个 projection, stack 成 2-row panel `av2raw_cylinder_vs_sphere.png`. 视觉对比: AV2 raw sphere 完全干净 (跟 l1_erp.png 一样), AV2 raw cylinder 也完全干净 — **没有用户 5.22 prompt §2 红框抱怨的"白色拼接痕迹", 也没有"突兀长方形"**. 只有自然的 cam slab vignette 在边缘 (cos² feather 衰减导致), 不构成 halo.
+> - **结果 — 5.22 prompt 误诊清单 lockdown**:
+>   - **§1 (2-wheel ghost in l1_erp.png)**: **REAL** — 这是 AV2 raw L1 sphere 在 infinity-depth 假设下的真 parallax artifact, 5.22 用户红框那辆 Porsche Cayenne SUV (在 "locustprojects" 前) 同一物体被 2 个相邻 cam 看到, sphere project 到 ERP 不同位置 = 2 个轮子 + ghost. 待解 (depth-aware 才能修).
+>   - **§2 cylinder 白色拼接痕迹**: **FALSE — pi3-cache 假象**, AV2 raw 自动消失. 我之前 WS1.3 cos⁴ feather 改动是"修一个不存在的问题"; 不会 hurt (do-no-harm), 但也不是必要的.
+>   - **§2 突兀长方形**: **FALSE — pi3-cache 假象** (我 task #54 之前已经怀疑过 — pi3 cache letterbox 顶 3% 是 padding 不是 cam mounting plate). AV2 raw cylinder 没有此突起.
+>   - **§3/§4 探索改进**: 之前 T4 v1/v2/v3 + T5 v1/v2/v3 + WS4 A2/B1 总共 7 个 NEG attempts 全部在追 §2 的 pi3-cache 假 halo, **目标错了**. 它们的 code 仍然 work (well-tested), 留着不删 (未来 multi-modal fusion 也许用得到), 但不是当前 paper 主线.
+>   - **§5 Waymo 部署**: WS1.1 HDR adapter + WS1.4 Waymo loader skeleton 已 ship, 待队友实测.
+>   - **队友 Waymo 色差**: WS1.1 HDR adapter 已 ship, ready to deploy.
+> - **Deliverables**: `deliverables/parallax_visual_review/anchor_060_av2raw_cylinder_vs_sphere.png` (2.5 MB, 2048×2112 2-row panel, AV2 raw 干净版本, 直接替代用户原 PDF 里那张有 halo 的 `route_cylinder_vs_sphere.png`). 这条 progress entry + handoff.md update (commit `5d36dad`).
+> - Status: [DONE WS4-Diag3 5.22 prompt 真问题 lockdown] — §1 real parallax 唯一待解, §2 全部 false-positives, §3/§4 之前 attempts 误诊.
+> - Next: **真正待解的列表很短**:
+>   - **(P1) §1 2-wheel ghost (real parallax) in AV2 raw L1 baseline**: 怎么修? Option A — accept as inherent limit, 写进 paper limitation 段; Option B — re-run WS4 A2/B1 on AV2 raw full-res (之前在 pi3-cache 上 NEG, AV2 raw 全分辨率上 stereo 可能有更多 near-field anchors, 不用 RAFT/Pi3); Option C — depth-aware path (4D Gaussian 或别的, 但 user 说 "不用 Pi3").
+>   - **(P2) §5 Waymo 实际部署**: 把 WS1.1 + WS1.4 给队友, 让队友跑 L1 在 Waymo 数据上, 看 cross-dataset 效果.
+>   - **(P3) paper writeup**: 现在 story 比之前清晰得多 — "L1 sphere on AV2 raw 是干净 baseline (12.34 dB cycle-PSNR), 7 个改进 attempts 在 pi3-cache 上看上去都 NEG 是因为 input 错了, 真正的 limitation 是 §1 那种 near-field parallax (single inherent issue, 单图证据 = 红框 SUV 2 wheels)". 这是个能写完的小完整 ablation paper.
+>
 > ### 2026-05-26 ~07:30 UTC — [WS4-Diag2 重大发现 — 白色 halo 不是 stitching pipeline bug, 是 pi3-cache 504×504 letterbox 输入引起. 用 AV2 raw 跑同 anchor 60, 不改一行 code, halo 自动消失]
 > - **怎么做**: 用户再次质问 "为什么 handoff PDF 里的 `l1_erp.png` (anchor 60) 没有 halo, 但其他对比图都有?". 这是 task #54 的旧问题, 上次我说"l1_erp.png 也有 halo 只是没注意", 但用户重视所以再核实. 用 vision 仔细看了 deliverables/images/l1_erp.png (5-20 生成, 2026-05-19 baseline AV2 log) vs WS4 plainL1 anchor_060.png (今天 multiband 跑的) — 二者**视觉差别 dramatic**, l1_erp.png 锐利干净, WS4 plain 中央 sun burn + 右侧粉色 wash band + ghost. 找到生成 l1_erp.png 的源代码 (`scripts/phase2/run_l3_one_frame.py:156-169`): 用的是 **simple weighted average** (`rgb_sum/w_sum` 公式), 输入 AV2 raw 全分辨率, **NOT multiband**. 而 WS4 用的是 pi3-cache 504×504 letterbox + multiband 5-band Laplacian.
 >   - **分离两个变量**: 写 `/tmp/test_simple_wa.py` 跑 anchor 60 用 pi3-cache (跟 WS4 一样) 但换 simple WA (跟 l1_erp 一样). 视觉结果: **halos 还在**, 但比 multiband 版本**稍微好一点** (sun burn 弱化, 但右侧 wash band 跟 multiband 一样存在). → multiband 加重 halo, **但不是根因**.
