@@ -1,5 +1,45 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~23:00 UTC — [N1 Phase C + N2 (新-B graphcut) — combined LiDAR-per-pixel + hard-cut seam. Geometric works, **visible ghost still present**. Honest finding: even per-pixel-correct N1 + hard seam can NOT eliminate doubled near-field objects when cams see DIFFERENT views.]
+> - **怎么做**: 写 `scripts/phase3/run_l1_lidar_graphcut.py` (~210 LOC) 端到端: 加载 LiDAR depth → 7 cam N1 render → 3 个 output: legacy / Phase C only (cos² blend) / Phase C + N2 (graphcut hard seam). 复用 `blending/graphcut_seam.py` (新-B 已 ship), 不改 graphcut module 本身. 直接 call apply_graphcut_seams 接 N1+LiDAR 的 slabs.
+> - **Colab run** (anchor 0, 1024×2048, scipy fallback because maxflow not installed):
+>   - Depth: 3.5% hit / 7.7% densified / 88.8% far-fill (1024 ERP 比 2048 hit 多)
+>   - render N1 LiDAR: 2.6s. Phase C blend: 0.7s. graphcut seam: 32.4s (scipy 较慢, maxflow 应 ~3s).
+>   - Phase C+N2 blend: 0.7s. Baseline render+blend: 2.4s. Total ~40s.
+> - **Quantitative metrics on BMW/Porsche bbox** (combo Phase C+N2 vs):
+>   ```
+>                          combo vs inf       combo vs lidar (Phase C)
+>   Porsche  pct_chg>100: 16%   mean_diff: 55      0.7%   mean_diff:  5
+>   BMW      pct_chg>100: 20%   mean_diff: 71      0.7%   mean_diff:  6
+>   ```
+>   **graphcut 跟 cos² 出来结果几乎相同** (mean_diff 5-6 out of 765). 说明 graphcut 在这个场景的 overlap energy 跟 cos² 几何中线接近, weight map 实际上很像.
+> - **视觉 A/B (3-row stack, BMW)**:
+>   - Row 1 (legacy L1): BMW + doubled wheel ghost + cam seam halo
+>   - Row 2 (Phase C alone): BMW 角位置 shifted, 仍 doubled, seam tear
+>   - Row 3 (Phase C + N2 graphcut): visually 跟 Row 2 极类似. **ghost 没消**
+> - **结构性结论 (诚实, 重要)**:
+>   - N1 (per-pixel depth) **几何上 correct** — adjacent cams 的 BMW 像素 ERP angularly aligned at LiDAR-measured depth
+>   - graphcut hard seam **理论上**应 pick one cam per overlap pixel → no blending → no doubled view
+>   - **但实际上 doubled BMW 仍可见**, 原因:
+>     1. 两 cam 看同一 BMW 时**显示不同 view** (cam_a 看 front-side, cam_b 看 side-rear). 即使 ERP position aligned, 显示的 pixel RGB 内容 from 不同 angles → 即使 hard seam picks one cam, 两 cam 在 seam 附近 visual continuity 不同 → 视觉上 BMW 看起来"歪了"或"半侧"
+>     2. graphcut energy 在 overlap 区域几何中线 ≈ cos² midline, weight 输出近似. 没有 routing seam 绕开 BMW 整体. 需要更强的 object-aware energy (e.g., add depth gradient term, or YOLO bbox energy)
+>     3. LiDAR 在 BMW body 上 sparse (大部分 hit 在 mirror / roof edge), kNN-fill 把 body 内部 depth 拉到 ground/building plane → cam projection 错位 → 即使 N1 也不完美 align
+> - **paper-grade 结论**: N1 + graphcut + LiDAR-per-pixel 是 sound architectural improvement (每步都 paper-able), 但**单个 frame 的 visible doubled artifact** 是 multi-view + near-field 的 fundamental challenge. 需要:
+>   - (a) **真正 dense depth** (DVGT or LiDAR + RGB-guided completion, 不是 kNN-fill)
+>   - (b) **object-aware seam routing** (强制 seam 不切 cars)
+>   - (c) **OR view-synthesis** (NeRF / 3DGS) 直接合成单一 view
+>   - 这些超出当前 N1+N2 architecture, 进入下一研究 phase (4D Gaussian / PIS3R 那一类)
+> - **当前 sprint 真正进展**:
+>   - 修了 L1 的 documented bug (cam translation drop), N1 框架就位
+>   - 提供了 N1 可以接受的 depth 输入接口 (LiDAR / 未来 DVGT / 未来 stereo MVS 都能接)
+>   - 在 anchor 0 上 visually 还 ghost-remain, 但**实施了正确的 architecture**, 后续可以换 backbone 或加 object-aware
+> - **Deliverables**:
+>   - `scripts/phase3/run_l1_lidar_graphcut.py` (combined driver, commit `bb0023c`)
+>   - `deliverables/n1_phase_c_plus_n2/{bmw_three_way.png, l1_lidar_graphcut_thumb.png}` (downloaded panels)
+>   - Drive: `outputs/phase3/n1_phase_c_plus_n2/02a00399/anchor_0/{l1_inf, l1_lidar, l1_lidar_graphcut, seam_overlay}.png` + `{l1_*_thumb}.png` + `summary.json`
+> - Status: [DONE Phase C + N2 combo — architecture works, visible single-frame ghost persists due to view-dependent / sparse-LiDAR / non-object-aware energy]
+> - Next: Cross-log validation on 5 val logs (some scene geometries may give better visual outcomes), then 5.22 prompt §1b color shift audit, then if time write progress to user-facing summary doc.
+>
 > ### 2026-05-26 ~22:30 UTC — [N1 Phase C — LiDAR per-pixel finite-r L1. Implementation works (1.1% hit + 7.9% densified + 91% far-fill). FOV-gap fixed (coverage preserved). But visual ghost NOT eliminated — blending 2 cam views even with correct geometric alignment shows doubled. Next: N2 graphcut hard seam.]
 > - **怎么做**: Phase A 教训确认 single global r 不够 (FOV shift dominates). 走 Phase C per-pixel LiDAR r. 新 module `code/waymo2panorama/depth/lidar_to_erp_depth.py` (~240 LOC):
 >   - `load_lidar_sweep_nearest_to_ts(log_dir, ts)`: 找最近 LiDAR sweep (max 75ms delta). 02a00399 anchor 0 → sweep ts 315966070559696000, delta = 9.77ms, 98981 pts.
