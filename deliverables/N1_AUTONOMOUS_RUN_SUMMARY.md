@@ -131,7 +131,7 @@ d5224d5  Phase A: cam-translation-aware L1 (the foundational fix)
 | # | item | 进展 |
 |---|---|---|
 | §1a 2-wheel ghost | 之前 9 NEG, v5 视觉不动 | **架构 fix** (N1 修了 L1 真 bug), **视觉 ghost 未消** (view-dependent + sparsity). Path forward identified. |
-| §1b AV2 color shift | 未做 | **未做** — 用户深夜睡了, 我决定优先 N1 plan. 可作下一 sprint 早起项. |
+| §1b AV2 color shift | 未做 | **DONE (诚实纠正): AV2 有显著色差 5.5 dB mean, max 9.1 dB on 02a00399**. 之前以为没问题是 wrong. 新-E HDR 应 default ON. |
 | §2 cylinder 长方形 + seam | 已修 (Stage 3 Phase B) | 之前已 closed |
 | §3a L1 综合 quality | 之前只有 metric polish | **N1 是真正的 L1 改进** (修 documented bug). 但 visible quality 没大变 |
 | §3b ORB+L1 | T5 NEG | 之前已 closed (NEG) |

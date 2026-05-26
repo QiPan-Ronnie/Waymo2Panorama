@@ -1,5 +1,29 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~23:30 UTC — [5.22 prompt §1b color shift audit — AV2 HAS significant cross-cam lum gap (mean 5.5 dB, max 9.1 dB), the project's previous assumption "AV2 没色差问题" was WRONG. New-E HDR should be enabled by default.]
+> - **怎么做**: 跑 `_color_shift_audit.py` on 5 val logs anchor 0. 每 cam 计算 luma median (BT.601), 算跨 cam lum_min/max ratio in dB.
+> - **结果**:
+>   ```
+>   log         min cam (luma)         max cam (luma)         lum_gap_db
+>   02a00399    front_right=68         rear_left=195          9.11 dB ← worst
+>   fbee355f    rear_left=54           front_left=109         6.11 dB
+>   9f871fb4    rear_left=81           side_right=146         5.09 dB
+>   2c652f9e    rear_right=73          side_right=118         4.17 dB
+>   0bae3b5e    front_left=94          side_left=133          2.99 dB
+>   ─────────────────────────────────────────────────────────────────
+>   range: 2.99 - 9.11 dB, mean 5.5 dB, median 5.1 dB
+>   ```
+>   **4/5 logs gap > 3 dB**. AV2 有显著跨 cam exposure mismatch.
+> - **关键 insight**: log 02a00399 (我们一直分析 Porsche/BMW ghost 的那个 log) lum_gap = 9.11 dB, front_right cam 比 rear_left 暗 2.87×. **这就是 Xihan 在 Waymo 看到的 "shadow car / 左半暗右半亮" 同质 phenomenon, 我们之前以为我们没有, 实际上有, 只是没注意**.
+> - **既存 mitigation**: 新-E HDR cross-cam compensation (`code/waymo2panorama/color/hdr_gain_estimate.py`, Stage 1 ship) 上次报告 lum_gap 14.56 → 7.27 dB (50% reduction). **应 default ON 而不是 optional**.
+> - **诚实纠正 prior beliefs**:
+>   - 5.22 prompt §1b 我们的回答 "我们好像没有他的那种色差问题": **错的**. 我们有, 5.5 dB mean.
+>   - "AV2 raw 是 clean baseline" 这个断言: 几何上是 (Stage 3 Diag2), 但 photometric 上**不 clean**.
+> - **跟 N1 ghost 工作的关系**: cross-cam lum 不匹配 = multiband blending 在 overlap 区出 "halo"; N1 几何修正可能让 view-dependent overlap 更明显 (因为 photometric gradient 没被几何对齐补偿). 解释了 Phase C+N2 visible seam tear 部分原因.
+> - **Deliverables**: `outputs/phase3/color_shift_audit/audit.json` (Drive) + `deliverables/n1_phase_c/_color_shift_audit.py` (script)
+> - Status: [DONE 5.22 §1b — confirmed AV2 has 5.5 dB mean cross-cam exposure mismatch, prior "no problem" assertion corrected.]
+> - Next 建议 for user: 把新-E HDR adapter wire into default L1 baseline (not optional flag). 这对 downstream Bosch world model training 也重要 — diffusion learn 不希望 dataset 内有这种 halo.
+>
 > ### 2026-05-26 ~23:00 UTC — [N1 Phase C + N2 (新-B graphcut) — combined LiDAR-per-pixel + hard-cut seam. Geometric works, **visible ghost still present**. Honest finding: even per-pixel-correct N1 + hard seam can NOT eliminate doubled near-field objects when cams see DIFFERENT views.]
 > - **怎么做**: 写 `scripts/phase3/run_l1_lidar_graphcut.py` (~210 LOC) 端到端: 加载 LiDAR depth → 7 cam N1 render → 3 个 output: legacy / Phase C only (cos² blend) / Phase C + N2 (graphcut hard seam). 复用 `blending/graphcut_seam.py` (新-B 已 ship), 不改 graphcut module 本身. 直接 call apply_graphcut_seams 接 N1+LiDAR 的 slabs.
 > - **Colab run** (anchor 0, 1024×2048, scipy fallback because maxflow not installed):
