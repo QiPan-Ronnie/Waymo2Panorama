@@ -1,5 +1,42 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~02:00 UTC — [Path (c) frame selection — ghost score driver ran on 60 anchors of log 02a00399. Score 15-32 range, p25=23 → 25% qualify as "clean subset". 但 metric 有局限性 — anchor 0 (score 15.65 cleanest) 还是有 BMW ghost. 需 object-detection 强化 metric.]
+> - **怎么做**: 用户重启 Colab notebook (new tunnel `contacts-layout-representations-freeware`, T4 GPU), av2 reinstall (40s), 跑新写的 `scripts/phase3/score_ghost_per_anchor.py` 在 log 02a00399 的 60 anchors (stride=5, ERP 512×1024, 总 380s wall).
+> - **Score 公式**: 跨 adjacent cam pair 的 overlap 区平均 |color diff| (越大 = 越多 cross-view 差异 = 越多 ghost 可能).
+> - **结果 (60 anchors)**:
+>   ```
+>   TOP CLEAN (lowest scores):              TOP GHOSTY (highest scores):
+>     anchor   0: score = 15.65              anchor 160: score = 29.12
+>     anchor  10: score = 18.45              anchor 155: score = 29.16
+>     anchor 265: score = 18.70              anchor 175: score = 29.35
+>     anchor 240: score = 20.45              anchor 225: score = 30.75
+>     anchor 270: score = 21.01              anchor  75: score = 31.67
+>   
+>   stats: min=15.65, p25=23.02, median=24.83, mean=24.71, max=31.67
+>   → 15/60 anchors below p25 = "clean subset" candidate (25%)
+>   ```
+> - **视觉 A/B (`deliverables/frame_selection/clean_rank*.png` vs `ghosty_rank*.png`)**:
+>   - clean_rank2 (anchor 10): 远场街景 "Kartell" 招牌, **少近场 cars**, 看起来 cleanest
+>   - clean_rank3 (anchor 265): 有 dark car center → metric 没捕捉到
+>   - clean_rank1 (anchor 0): **还是有 BMW SUV ghost** (我们一直分析的那帧)
+>   - ghosty_rank5 (anchor 75): 街景 with red+white near-field cars in seam zones
+>   - ghosty_rank1 (anchor 160): 街景 with 1 car visible, 跟 clean 区别不夸张
+> - **诚实评估**:
+>   - Score 跟 "near-field object in overlap zone" **正相关** but **not strict** — 最低分的 anchor 0 还是有 ghost. 排序的两端 (top 5 clean vs top 5 ghosty) 视觉差异不像 score 差异 (15 vs 32 = 2x) 那么明显.
+>   - 原因: mean color diff 被 background (sky, road, buildings) 主导, 不专门捕捉 small-but-visible objects in seam zones.
+>   - **frame selection 框架就位** (driver, score, ranking, render output 都 work), 但需要更好的 metric (object detection in seam) 才能给 Bosch 真 ghost-free subset.
+> - **可行的 v2 metric** (后续 sprint):
+>   - YOLO 检测 cars in ERP, count "cars overlapping seam zones" per anchor
+>   - 或者: stereo disparity check (large disparity in overlap = near object = ghost risk)
+>   - 或者: LiDAR-based scoring (count LiDAR returns in seam zones at distance < 10m)
+> - **路径 (c) 综合判定**: **partially validated**. Infrastructure ready, metric需 refinement. 跟 path (a) DVGT/DA 和 (b) view synthesis 比, 路径 (c) 最 cheap 落地, 但 quality 取决于 metric. 推荐做 v2 metric (1 day) 后再给 Bosch.
+> - **Deliverables**:
+>   - `scripts/phase3/score_ghost_per_anchor.py` (already committed `6376809`)
+>   - `deliverables/frame_selection/{clean_rank1-5, ghosty_rank1-5}.png` (10 ERPs)
+>   - Drive: `outputs/phase3/ghost_scoring/02a00399/{ghost_scores.json, clean_rank*.png, ghosty_rank*.png}`
+> - Status: [DONE Path (c) v1 — frame selection infrastructure works, metric is proxy. Path forward明确: v2 metric with object detection, OR accept v1 ranking + manual curation for Bosch initial dataset chunk.]
+> - Next: 给 Bosch 的 dataset deliverable 可以由这个 ranking 出 first cut (top 25% of frames per log), 然后人工 review 排除有 ghost 的. 跟 paradigm shift (view synthesis) 是 strict alternative — 选哪条用户拍.
+>
 > ### 2026-05-27 ~00:30 UTC — [N1 Phase D — Depth Anything V2 dense depth backbone tested. ALSO doesn't fix BMW ghost. Decisive convergence: doubled-near-field-object is multi-view overlap, NOT depth estimation. Path forward: view synthesis or frame selection ONLY.]
 > - **怎么做**: DVGT 被 auto-mode classifier 拒 (untrusted external repo clone — github.com/wzzheng/DVGT not in trusted org list). 改用 trusted-org 的 substitute: **Depth Anything V2 Metric Outdoor Small** (HuggingFace `depth-anything/Depth-Anything-V2-Metric-Outdoor-Small-hf`, pip install via transformers). 同 spirit (dense per-pixel metric depth), 不需 git clone.
 > - **新代码 `scripts/phase3/run_l1_da_depth.py`** (~300 LOC): 加载 HF DA pipeline → 每 cam 跑 DA → per-cam ERP-sized depth map (inverse-project ERP rays back to cam image, sample DA depth, convert to range-from-ego using cam translation) → N1 render with that cam-specific ERP depth → multiband blend. Each cam uses ITS OWN depth.

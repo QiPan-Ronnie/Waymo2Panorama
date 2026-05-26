@@ -200,7 +200,7 @@ d5224d5  Phase A: cam-translation-aware L1 (the foundational fix)
 **Colab kernel**: L4 GPU. Phase A/C/N2/HDR/§1b 是 CPU-only ops; Phase D (DA-V2) 用了 GPU 跑 transformer inference  
 **API endpoint**: `https://aware-oct-shopping-cove.trycloudflare.com` (token in active_url.json)  
 **Github**: github.com/QiPan-Ronnie/Waymo2Panorama main @ commit `a120a44`  
-**End state**: Cloudflare tunnel died ~00:15 UTC (HTTP 530, cloudflared 进程挂了; Colab kernel alive 但 tunnel 不通). 需用户重启 notebook cell 恢复 tunnel. Frame selection driver (`score_ghost_per_anchor.py`) 写好但未运行 — 等用户 ready 时一行命令就能跑.
+**End state (resumed after user restarted notebook ~02:00 UTC)**: Frame selection driver RAN successfully on 60 anchors of log 02a00399. Score range 15-32, p25=23 → 25% qualify as "clean subset". 但视觉验证显示 score 是 PROXY only — cleanest anchor (0) 还是有 BMW ghost. 路径 (c) 框架 ready 但需 v2 metric (YOLO car detection in seam zones) 才能给 Bosch 真 ghost-free subset. 这是 14 commits + 2 sessions 后的 final 路径分析.
 
 **Total commits this session**: 13 (d5224d5 → a120a44)  
 **Total lines added**: ~2200 LOC (code + drivers + scripts + docs)  
