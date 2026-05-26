@@ -1,31 +1,38 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-26 (Stage 2 Days 1-2 + WS4-D6 all NEG. 7 parallax-fix attempts exhausted; WS4-D7 decision gate pending user.)
+**Updated**: 2026-05-26 evening (WS4-Diag2 ROOT CAUSE locked: 7 prior NEG attempts were misdiagnosed — halo was pi3-cache input degradation, not pipeline bug. AV2 raw + L1 sphere is and always was clean.)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
 
 ---
 
 ## TL;DR
 
-Sub-project of the Koi paper chain. Goal: take **Argoverse 2 ring 7-cam frames** (same timestamp) and stitch them into a **360° ERP panorama** that downstream consumers (Pantheon360 / GEN3C / Cosmos) can use. Target venue: **3DV 2026** (main or D&B), advisor Koi Chen.
+Sub-project of the Koi paper line. **Goal (per 5.22 meeting with teammate + Bosch)**: produce **clean 360° ERP panorama dataset** that **Bosch's autonomous-driving world model** can consume — they tested panorama input and it works, but real panorama datasets are scarce/expensive to collect, so we synthesize from existing AV ring-cam logs (AV2 ours, Waymo teammate's). Target venue: **3DV 2026** (main or D&B), advisor Koi Chen.
 
-**Current state (2026-05-26)**:
-- **8 stitching routes done + benchmarked** (L1 sphere, L3 Pi3 forward-splat, IPM ground hybrid, 新-A cylinder, 新-B graph-cut seam, 新-C IPM multi-region, 新-D wide-baseline stereo, 新-E HDR compensation). Plus **2 Stage-2 attempts** (T4 Option B reweight, T5 L1+ORB hybrid → rotation refinement) **and 2 WS4 parallax attempts** (A2 sparse-stereo displacement, B1 disparity-aware graphcut seam) — all 4 NEG for principled documented reasons.
-- **Final Koi deliverable shipped**: `deliverables/handoff_to_koi_w2_2026-05-21_v6cpu_done.{md,pdf}` (13 pages, 11 figures, 8 routes + 3 external NEG + 3 downstream demos). **7 video supplementaries** shipped 2026-05-23 to Drive.
-- **Stage 2 result (2026-05-25 → 26)**: 7 NEG attempts at fixing parallax-induced overlap halo. Pattern: any fix applied **on top of L1 sphere ERP output** cannot resolve the artifact. Root cause traced (see WS4-D6 diagnostic) to absence of near-field signal in stereo cache. **Real fix requires depth-aware reconstruction** (RAFT dense flow / Pi3 forward-splat redo / 4D Gaussian) or different paradigm. See `agent/progress.md` top 3 entries + `deliverables/parallax_visual_review/diagnostic_notes.md`.
-- **新-F VGGT** (4th backbone NEG) — **blocked**: `facebook/VGGT-1B-Commercial` is gated repo, user needs to click "Agree and access" on HF first.
-- **T13 self-sup Pi3 finetune** — **deferred pending Koi feedback**.
-- **Paper angle**: original candidate **A' Method paper** (3 positives + 4-5 NEG). After Stage 2, the **NEG list is now 7+ attempts** with clear structural reasons — strengthens the "Negative-only" or "Method + extensive ablation" angles. **Still awaiting Koi 拍板** (G3 v6 gate).
-- **Infrastructure**: agent-colab-direct v0.1.0 active. Used successfully in Stage 2 + WS4 (multiple Colab GPU runs, including 8.5-min batch of 12 renders + 4 panels + 2 cycle eval on 2026-05-26). No framework bugs hit beyond the Windows notebook path issue already fixed.
+**Current state (2026-05-26 evening)**:
+- **8 stitching routes done + benchmarked** on AV2 raw inputs (L1 sphere `cycle-PSNR 12.34 dB` baseline + L3 Pi3 NEG + 新-A through 新-E). Final Koi deliverable shipped: `deliverables/handoff_to_koi_w2_2026-05-21_v6cpu_done.{md,pdf}` (13 pages, 11 figures).
+- **Stage 2 (T1-T5, 5-25 → 5-26)**: WS1 ship (HDR-Waymo adapter, ego mask, cos⁴ feather, Waymo loader skeleton) ✓. T4 Option B reweight + T5 L1+ORB hybrid all NEG for documented reasons.
+- **WS4 D1-D6 (5-26)**: A2 sparse-stereo displacement + B1 disparity-aware graphcut seam shipped + tested. Visual NEG: halos persist. Initially I thought halos were parallax artifacts in L1 baseline.
+- **WS4-Diag2 (5-26 evening, KEY FINDING)**: ran decisive A/B experiment — same L1 sphere code, same anchor 60, only varied input (AV2 raw 2048×1550 vs pi3-cache 504×504 letterbox). **AV2 raw output is clean; pi3-cache output has halos**. The "halos" everyone (including the 5.22 prompt) was complaining about were **pi3-cache input degradation** (lanczos resize + letterbox boundary Gibbs ringing leaks into multiband low-freq bands), not stitching pipeline bugs. **7 prior NEG attempts (T4 v1/v2/v3 + T5 v1/v2/v3 + WS4 A2/B1) were misdiagnosed** — they tried to fix the symptom on the wrong root cause. Evidence in `deliverables/parallax_visual_review/smoking_gun_input_is_root_cause.png` (3-row stack, 2048×3170). **Pi3 dependency is no longer needed** for the panorama pipeline.
+- **Real artifacts still to address (from 5.22 prompt)**: (a) **2-wheel ghost** in `l1_erp.png` (AV2 raw) — this is REAL parallax artifact in the proper baseline, not the same as the misdiagnosed halo; (b) cylinder white seam traces — likely also pi3-cache rendered, needs re-render with AV2 raw to confirm; (c) **teammate's Waymo color-shift issue** — WS1.1 HDR adapter shipped, ready for teammate to test.
+- **新-F VGGT** (4th backbone NEG) — blocked: gated HF repo, user click pending.
+- **T13 self-sup Pi3 finetune** — deferred. Probably **no longer relevant** since we don't need Pi3.
+- **Paper angle**: original candidate A' Method paper. Now stronger story emerges: "L1 sphere + cos² feather + simple WA on AV2 raw is a clean baseline; 7 'fix-the-halo' attempts (T4/T5/WS4) all failed because the halo wasn't there in the proper pipeline — it was a pi3-cache input degradation artifact. This isolates the parallax + multiband interaction question and ablates 7 candidate fixes."
+- **Infrastructure**: agent-colab-direct v0.1.0 active. Works via HTTP curl + Bearer token from Drive's `active_url.json` even when MCP server not registered. 2-hour Stage 2 session ran 3 Colab GPU jobs + 50+ exec calls + 30+ file ops without issue.
 
 **What the next agent should do**:
-- **If user wants to make WS4-D7 decision**: open `deliverables/parallax_visual_review/diagnostic_notes.md` — it has 4 options with risk/effort + recommendation. The 8 visual panels are in the same folder; user inspects them to confirm visual NEG.
-- **If user picks (a) C1 RAFT**: write new `code/waymo2panorama/alignment/dense_flow_raft.py` per the WS4 plan (`agent/plans/2026-05-26-parallax-overlap-fix-plan.md` Phase 6, Tasks 6.1-6.3). GPU required.
-- **If user picks (b) L3 Pi3 redo**: substantial new module work — read original L3 NEG diagnosis first (handoff §1.2 + `notes/baseline_diagnosis.md`).
-- **If user picks (c) re-extract stereo with looser settings**: 1-2 day investigation, modify `code/waymo2panorama/stereo/wide_baseline_stereo.py` DISK/LightGlue thresholds + re-run anchor 060 to check if near-field anchors emerge.
-- **If user picks (d) paper writeup all-NEG**: write up the 7 attempts as a complete ablation; no more code attempts.
-- **If user has new Koi input**: act on paper-angle decision (A' vs B-with-C vs Negative-only). Decision tree in "Open decisions" below.
-- **If user wants to run a Colab task**: notebook + HTTP-direct via `agent-colab-direct`. MCP server not registered in some sessions — fallback to raw HTTP curl with token from `MyDrive/.../runtime/active_url.json` works fine (used successfully on 2026-05-26).
+- **First step always**: read top 3 entries of `agent/progress.md` (WS4-Diag2 root cause + WS4-D6 NEG + earlier stage 2). Then `deliverables/parallax_visual_review/smoking_gun_input_is_root_cause.png` for the visual evidence.
+- **If user wants to address real 5.22 prompt items (recommended)**:
+  - 2-wheel ghost in AV2 raw L1: parallax-fixing direction needs **depth-aware** approach. Options: (a) re-extract stereo at AV2 raw full-res (not pi3-cache downsampled) and retry WS4 A2/B1 (they may work on dense full-res data); (b) Pi3 forward splat using **AV2 raw input** instead of letterboxed 504×504 (un-letterbox before Pi3, then use depth — Pi3 forward splat NEG result from 5-21 may be partially attributable to letterbox too); (c) different paradigm (4D Gaussian, neural radiance).
+  - Cylinder white seam traces: re-render `route_cylinder_vs_sphere.png` with AV2 raw to verify whether traces are pi3-cache artifacts or geometric (cos² fast decay at v_max=±45°). If geometric, the cos⁴ feather fix already shipped (WS1.3) should help — re-render with that on AV2 raw to verify.
+  - Teammate Waymo color-shift: HDR adapter is at `code/waymo2panorama/color/hdr_waymo_adapter.py`. Ship to teammate.
+- **If user wants paper writeup**: the new framing (7 NEG → root cause = wrong input) is a sharper ablation story. Start with `agent/progress.md` 5-26 evening entry, weave in pre-existing 8-route benchmarks.
+- **If user wants to run a Colab task**: notebook + HTTP-direct via `agent-colab-direct`. MCP server not registered in some sessions — fallback to raw HTTP curl with token from `MyDrive/.../runtime/active_url.json` works fine.
+
+**What the next agent should NOT do**:
+- **Don't continue adding "halo fix" attempts on pi3-cache output** — root cause is pi3-cache input itself.
+- **Don't pursue WS4 D8 (C1 RAFT), D9 (hybrid), D10** as previously planned — those plans assumed halo was pipeline issue.
+- **Don't keep Pi3 as the L1 input source** — Pi3 was useful as a depth backbone for L3, but pi3-cache letterbox images degrade L1 output. Use AV2 raw via `AV2RingLoader.load_synced_frame()`.
 
 ---
 
