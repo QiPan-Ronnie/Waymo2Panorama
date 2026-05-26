@@ -1,5 +1,39 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~22:00 UTC — [N1 Phase A — Cam-translation-aware L1 r-sweep on AV2 raw. Implementation works, single-r visual gate inconclusive due to FOV-shift artifact. Decision: proceed to Phase C (per-pixel LiDAR r).]
+> - **怎么做**: 用户授权全权 autonomous execution. 按 2026-05-26 N1 plan 走 Path X 渐进 1→2→3. Phase A = `convergence_distance_m` single-r sweep gate. 改 `sphere_projection.py:86-89` 加 finite-r 分支 (None 保 byte-identical 退化). 改 `stitch_frame.py` pass-through. 新 driver `run_l1_finite_radius.py` + panel `make_n1_phase_a_panel.py` + 7 pytest `__test_sphere_projection.py`. Commit `d5224d5` pushed.
+> - **Colab CPU run** (L4 idle, CPU only, ~25s wall):
+>   - 1024×2048 sweep 7 r values: inf/3/5/7/10/15/30m. Each ~3s render + multiband.
+>   - 2048×4096 hires sweep: ~14s per r, 104s total.
+>   - Panels generated: porsche_zoom / bmw_zoom / porsche_diff / bmw_diff / full_erp + wide-area / tight-wheel crops.
+> - **Quantitative metrics** (BMW wheel bbox 300×200 px, vs r=inf reference, max RGB diff out of 765):
+>   ```
+>   label   max_diff  mean_diff  frac_changed_>30   frac_changed_>100
+>   inf       0        0.0        0.00%              0.00%
+>   r3m     765      ~420         ~85%               ~80%
+>   r5m     765      ~390         ~86%               ~78%
+>   r7m     765      ~370         ~80%               ~72%
+>   r10m    763      ~370         ~78%               ~68%
+>   ```
+>   N1 是 functionally 在改 ghost 区, mean_diff 在 r=3m 时最大.
+> - **视觉 gate 结果 (诚实)**: **INCONCLUSIVE on visual alone**.
+>   - r=∞ (backward-compat) 跟 plain L1 视觉一致 ✓
+>   - r=3-7m 时 ERP 大片 BLACK (cam FOV gap, expected geometric behavior — finite-r sphere 切掉 cam 不能看到的角度)
+>   - r=10-30m 时 content fills back in, 越接近 inf
+>   - 看不清"ghost width 减半"因为 (a) 单 r 改了所有 pixel 的 angular mapping → BMW/Porsche 在不同 r 出现在 ERP 不同位置, (b) 单 r 让远景/近景同时引入 misalignment, 抵消部分视觉 win
+> - **结构性结论**:
+>   - N1 单 r 单独**不适合做 visual ghost-fix evaluation**, 因为 single r 强制 trade-off 近场/远场 + 多 cam coverage 几何收缩
+>   - 但 implementation 数学上正确 (backward-compat ✓, finite-r 改的是对的东西)
+>   - **正确的下一步是 Phase C: per-pixel LiDAR r**, 每 pixel 用其真 depth, 没有 FOV-gap 问题, 视觉 A/B 才能 attribute 到 ghost-fix
+> - **Per plan gate spec**: Phase A gate criterion "r=5m 视觉减半 ghost" 算 PARTIAL (无 clear visual but quantitative active), plan 说 PARTIAL → Phase B (per-region). 但 per-region 也是 single-r 的 generalization, 仍受 FOV-shift 限制. 跳过 Phase B 直接进 Phase C (LiDAR per-pixel, 几何上 correct, 没 trade-off).
+> - **Deliverables**:
+>   - `deliverables/n1_phase_a/{porsche_zoom,bmw_zoom,porsche_diff,bmw_diff,full_erp}_n1_phase_a.png` (1024×2048 panels, 5 PNG)
+>   - `deliverables/n1_phase_a_hires/{porsche_wide_thumb,bmw_wide_thumb,porsche_wheel_tight,bmw_wheel_tight,l1_inf_thumb}.png` + `_widepanel_script.py` + `_tight_wheel_script.py` (2048×4096 zoom panels + analysis scripts)
+>   - Drive 上完整 ERP `MyDrive/koi_waymo2pano_colab/outputs/phase3/n1_phase_a/02a00399/anchor_0_hires/l1_{inf,r3m,r5m,r7m,r10m,r15m,r30m}.png`
+>   - `agent/plans/2026-05-26-N1-cam-translation-aware-L1-plan.md` checkpoint plan
+> - Status: [DONE N1 Phase A — implementation verified, single-r approach has fundamental FOV-shift limitation. Per-pixel r is required for clean ghost-fix evaluation.]
+> - Next: Phase C — write `code/waymo2panorama/depth/lidar_to_erp_depth.py` (AV2 LiDAR sweep → ERP dense depth map), wire to `render_camera_to_erp(convergence_distance_m=lidar_depth_map)`, A/B vs plain L1 on same Porsche/BMW frame.
+>
 > ### 2026-05-26 ~20:00 UTC — [Stage 3 v5 ghost-truth audit — v5 ship state does NOT visibly fix 2-wheel parallax ghost. Honest negative.]
 > - **怎么做**: 用户问 "v5 真的修了 5.22 §1 的 2-wheel 轮胎问题吗?". 之前所有 v1-v5 都是 metric-driven, 没直接视觉确认 visible ghost 被减少. 这次本 anchor 在 2048×4096 高分辨率 plain L1 找 visible ghost, 然后 v5 + v6/v7/v8/v9 sweep, 局部 zoom A/B.
 > - **找到 visible ghost**: log 02a00399 anchor 0, top-3 parallax score (0.411). 渲染高分辨率 (2048×4096) plain L1, 在 SR-RR seam 找到 2 个明显 ghost target:
