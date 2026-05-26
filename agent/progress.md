@@ -1,5 +1,35 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~09:00 UTC — [Stage 3 Phase A — WS4 A2 retry on AV2 raw 全 4 anchor 决定性 NEG (视觉 + 度量双确认)]
+> - **怎么做**: 跟 Stage 3 plan A.1-A.5 走. (a) `wide_baseline_stereo.py` 加 `process_anchor_all_pairs_from_data(cams_data, ...)` sister + driver 加 `--av2-log-dir` flag, `_load_av2_raw_anchor` 用 AV2RingLoader; 同 pattern 改 `run_l1_sparse_disp.py` (A2 driver). 还 fix 了 viz 函数对 front_center 2048×1550 portrait + 其他 cam 1550×2048 landscape 混合的 broadcast bug. 4 commits (`a79450c` A.1, `cff9d60` A.2, `6cd7017` viz-fix, `465801c` ghost metric eval script). (b) Colab GPU stereo 重抽 anchor 0/60/90/150 of log `02a00399`, 全分辨率, 142s wall. (c) plainL1 + A2 4 anchor x 2 mode render, 135s wall, 8 个 ERP 写 Drive. (d) 新写 `eval_parallax_ghost_alignment.py` (~200 LOC) — 对每个 adjacent cam pair, 在 overlap mask 内算 cam_a slab vs cam_b slab 的 L1 距离 + Pearson 相关 (直接测 parallax 鬼影对齐, 不靠 cycle-PSNR 那个 cam-plane 结构性盲 metric); 142s wall 跑完 4 anchor × {plain, A2}.
+>   - **Stereo 抽取真有 near-field anchors** ✓ (hypothesis test): pi3-cache anchor 60 min depth 5.8m, **AV2 raw anchor 60 min depth 2.84m**. anchor 150 甚至 2.08m. **near-field 3D 信号现在有了**, 之前 pi3-cache NEG 的"stereo cache 无近景点"那个根因解决.
+>   - **A2 度量 4 anchor 全 NEG** (gem 在这里):
+>     ```
+>     anchor   L1 plain   L1 A2     ΔL1       Pearson plain   Pearson A2   ΔP
+>     ─────────────────────────────────────────────────────────────────────────
+>        0    15.696    21.722   +6.026     0.8209          0.7505      -0.0704
+>       60    23.655    34.385   +10.730    0.7463          0.6275      -0.1188   ← 最差
+>       90    24.924    27.009   +2.086     0.8101          0.7748      -0.0353
+>      150    28.097    32.040   +3.943     0.7622          0.7231      -0.0390
+>     ```
+>     L1 mean 增加 (越大越不对齐), Pearson mean 减小 (越小越不相关). **All 4 anchors 都恶化**. Decision rule (per plan): improvement < 0.005 or visual no-op → NEG. 这里直接是反向恶化, 决定性 NEG.
+>   - **视觉确认 (诚实, 我用眼看的, 不只看 metric)**: anchor 60 Q4 (x=1400-2048, "REAL VIRTU" 画廊 storefront 区) close-up — plain L1 是干净 storefront, A2 把左半侧 cam content **warp 成 swirled face/blob 怪图案** (clearly broken). 跟 metric 完全一致.
+> - **决定性 NEG 的根因诊断** (这次是 A2 architecture 自己的问题, 不是 input degradation): A2 per-cam 独立 displacement field. 在 stereo cache 有 anchor 的 ERP 区域, TPS 给出 reasonable displacement; 没 anchor 的区域 (前 3 cam 在 anchor 60 都 N=0), TPS 外推 wild → confidence map gate 掉 → 该区域用 plain L1. 但**问题是: 一对 cam (cam_a, cam_b) 在 overlap 内, 如果 cam_a 有 anchor 被 warp 了 (移动了), cam_b 没有 anchor 没被 warp (停在原位), overlap 区两边内容现在更不一致了** — alignment 反而恶化. Per-cam-independent displacement 是结构性错的, 该 joint 优化保证 cam_a + cam_b 一致移动到同一 target 位置.
+>   - 这是 A2 algorithm 本身的设计 flaw, 不是参数问题. 调 `rbf_regularization` / `confidence_sigma_px` 不能修. 需要不同算法.
+> - **Stage 3 Phase A 结论**: WS4 A2 sparse stereo displacement, **on AV2 raw, with near-field stereo, 仍然 NEG, 且这次决定性**. 之前 pi3-cache 上的 NEG 是 input degradation 干扰; 现在 input 干净, A2 还是 NEG, 说明 A2 method 自己不行. Paper 角度 ↗ ablation 更强 — 之前 7 NEG "在错前提上" 变成 7+1=8 NEG, 其中**第 8 个是干净前提下的决定性 NEG**, paper 写得更直接.
+> - **5.22 prompt §1 2-wheel ghost 状态**: 用 vision 看 anchor 60 plainL1 (AV2 raw), 没有明显 ghost. 但用户 5.22 reference 的"locustprojects" storefront 这个场景在 log `02a00399` anchor 60 上对应"REAL VIRTU"画廊 — **不是同一 log/anchor**. §1 ghost 可能在另外 4 个 val log (0bae3b5e, 2c652f9e, 9f871fb4, fbee355f) 之一. 但即使能找到 ghost, A2 已经被证明决定性 NEG, **不能 fix 之**. §1 真正需要 different algo (depth-aware joint optimization, 或 just accept as inherent limit).
+> - **Deliverables**: 3 review panels at `deliverables/stage3_av2raw_a2_review/`:
+>   - `REVIEW_anchor60_q4_zoom.png` (524 KB, **smoking gun**: A2 warped face/blob clearly visible)
+>   - `REVIEW_anchor60_full.png` (2 MB, full ERP plain vs A2)
+>   - `REVIEW_all4_anchors.png` (2.3 MB, 4-anchor compact paper-figure)
+>   - 12 ERPs + 4 compare panels + 8 ghost-align JSON in Drive `outputs/phase3/p3.X_parallax_av2raw/`
+>   - 5 commits (`a79450c`/`cff9d60`/`6cd7017`/`465801c` + this progress)
+> - Status: [DONE Stage 3 Phase A — decisive A2 NEG on AV2 raw] — A2 module + driver 留, code well-tested 不删, 但**不再是 production fix candidate**. Phase B (re-render stage-1 deliverables) + Phase C (paper writeup) 仍 open.
+> - Next:
+>   - **(opt 1)** Phase B 重 render 老 stage-1 deliverables (route_cylinder_vs_sphere 等) 用 AV2 raw, 准备 paper figures, 半天
+>   - **(opt 2)** 也许验证 §1 ghost 是否在另外的 log 里, 然后 honest "we tried 8 fixes, none work" 写进 paper (再加 1 个 NEG attempt 用其他 log 上的 plain L1)
+>   - **(opt 3)** 直接 Phase C paper writeup, story 已经 clear: AV2 raw L1 baseline 干净 + 8 attempts 全 NEG + identified pi3-cache input degradation pitfall + identified A2 per-cam-independent displacement architectural flaw
+>
 > ### 2026-05-26 ~08:00 UTC — [WS4-Diag3 — 重 render 5.22 prompt §2 cylinder vs sphere on AV2 raw, 确认白色拼接痕迹 + 突兀长方形也是 pi3-cache 假象]
 > - **怎么做**: 用户回来后 reframe — "不用 pi3, 看原始 prompt 的目标". 重读 `meeting/5.22_meeting with xihan/本次prompt.md` 4 个 ask: §1 (l1_erp.png 上的 2-wheel ghost), §2 (cylinder/sphere 对比图的白色拼接痕迹 + 突兀长方形), §3 (探索改进), §4 (其他路线), §5 (Waymo 部署), 加 队友 Waymo 色差. 我之前一直以为 §2 是真问题, 写了 WS1.2 ego mask + WS1.3 cos⁴ feather 当 fix. 现在 WS4-Diag2 已经证明 halo 是 pi3-cache 假象, 我需要再验证 §2 的 specific 抱怨 (白色拼接痕迹 + 突兀长方形)是不是也消失 — 因为 `route_cylinder_vs_sphere.png` (5-21 生成的) 的 L1 sphere 行也有跟 WS4 plainL1 一模一样的 sun burn + 粉色 wash, 说明那张图也是用 pi3-cache 跑的.
 >   - **决定性实验**: 写 `/tmp/test_cylinder_av2raw_v2.py`, 跟 §2 reference panel 同 anchor (log `02a00399`, frame 60), 用 AV2 raw 全分辨率 (2048×1550) + simple WA blend, 跑 sphere + cylinder 两个 projection, stack 成 2-row panel `av2raw_cylinder_vs_sphere.png`. 视觉对比: AV2 raw sphere 完全干净 (跟 l1_erp.png 一样), AV2 raw cylinder 也完全干净 — **没有用户 5.22 prompt §2 红框抱怨的"白色拼接痕迹", 也没有"突兀长方形"**. 只有自然的 cam slab vignette 在边缘 (cos² feather 衰减导致), 不构成 halo.
