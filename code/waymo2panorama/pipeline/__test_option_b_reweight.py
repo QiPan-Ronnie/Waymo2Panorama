@@ -25,9 +25,12 @@ if str(_CODE_ROOT) not in sys.path:
 
 from waymo2panorama.pipeline.lift_and_project import ego_points_to_erp_uv  # noqa: E402
 from waymo2panorama.pipeline.option_b_reweight import (  # noqa: E402
+    STEREO_NPZ_CAM_A_KEY,
+    STEREO_NPZ_CAM_B_KEY,
     STEREO_NPZ_PTS_KEY,
     apply_option_b_reweight,
     build_stereo_confidence_mask,
+    build_stereo_confidence_masks_per_cam,
 )
 
 
@@ -39,6 +42,20 @@ from waymo2panorama.pipeline.option_b_reweight import (  # noqa: E402
 def _write_stereo_npz(path: Path, pts_ego: np.ndarray) -> None:
     """Write a minimal stereo_*.npz with just the pts_3d_ego key."""
     np.savez_compressed(path, **{STEREO_NPZ_PTS_KEY: pts_ego.astype(np.float32)})
+
+
+def _write_stereo_npz_with_cams(
+    path: Path, pts_ego: np.ndarray, cam_a: str, cam_b: str,
+) -> None:
+    """Write a stereo_*.npz with pts_3d_ego + cam_a + cam_b keys (v2 input)."""
+    np.savez_compressed(
+        path,
+        **{
+            STEREO_NPZ_PTS_KEY: pts_ego.astype(np.float32),
+            STEREO_NPZ_CAM_A_KEY: np.array(cam_a),
+            STEREO_NPZ_CAM_B_KEY: np.array(cam_b),
+        },
+    )
 
 
 def _grid_in_front(n: int = 6) -> np.ndarray:
@@ -261,3 +278,156 @@ def test_apply_warns_on_unnormalized_mask_but_not_on_normalized() -> None:
         f"unexpected RuntimeWarning(s) for normalized mask: "
         f"{[str(w.message) for w in runtime_warnings]}"
     )
+
+
+# ===========================================================================
+# v2 (per-cam differential) tests
+# ===========================================================================
+
+
+_CAMS_7 = (
+    "ring_front_center",
+    "ring_front_left",
+    "ring_side_left",
+    "ring_rear_left",
+    "ring_rear_right",
+    "ring_side_right",
+    "ring_front_right",
+)
+
+
+def test_v2_per_cam_touches_only_pair_cams(tmp_path: Path) -> None:
+    """A stereo file from pair (cam_a, cam_b) should only touch those 2 cams' masks."""
+    pts = _grid_in_front(n=4)
+    p = tmp_path / "stereo_front_left__side_left.npz"
+    _write_stereo_npz_with_cams(p, pts, "ring_front_left", "ring_side_left")
+
+    masks = build_stereo_confidence_masks_per_cam(
+        [p], erp_hw=(64, 128), cam_names=_CAMS_7, sigma_px=4.0,
+    )
+    # All 7 cams present in dict
+    assert set(masks.keys()) == set(_CAMS_7)
+    # Only the 2 cams in the pair have non-zero mask
+    assert masks["ring_front_left"].max() > 0, "cam_a mask should have content"
+    assert masks["ring_side_left"].max() > 0, "cam_b mask should have content"
+    for c in _CAMS_7:
+        if c in ("ring_front_left", "ring_side_left"):
+            continue
+        assert masks[c].max() == 0.0, f"untouched cam {c} should be all-zero, got max={masks[c].max()}"
+
+
+def test_v2_global_normalization_coverage(tmp_path: Path) -> None:
+    """Denser stereo → larger COVERAGE (more non-zero mask pixels), not larger peak.
+
+    NOTE: peak is bounded at 1.0 by both the kernel construction (peak=1.0) AND
+    the max-merge accumulation strategy. Density manifests as coverage area.
+    """
+    pts_few = _grid_in_front(n=2)   # ~12 pts
+    pts_many = _grid_in_front(n=5)  # ~50 pts
+
+    p1 = tmp_path / "stereo_front_left__side_left.npz"
+    p2 = tmp_path / "stereo_rear_left__rear_right.npz"
+    _write_stereo_npz_with_cams(p1, pts_few, "ring_front_left", "ring_side_left")
+    _write_stereo_npz_with_cams(p2, pts_many, "ring_rear_left", "ring_rear_right")
+
+    masks = build_stereo_confidence_masks_per_cam(
+        [p1, p2], erp_hw=(64, 128), cam_names=_CAMS_7, sigma_px=4.0,
+    )
+    # Both peaks hit 1.0 after global max-divide normalization (any cam with
+    # at least one splat reaches the kernel peak = 1.0).
+    assert masks["ring_rear_left"].max() == pytest.approx(1.0, abs=1e-5)
+    assert masks["ring_front_left"].max() == pytest.approx(1.0, abs=1e-5)
+
+    # Denser pair (5x5x2 = 50 pts) covers MORE pixels than sparser pair (2x2x2 = ~8).
+    rear_coverage = float((masks["ring_rear_left"] > 0.05).sum())
+    front_coverage = float((masks["ring_front_left"] > 0.05).sum())
+    assert rear_coverage > front_coverage, (
+        f"denser pair should cover more pixels; got rear={rear_coverage}, front={front_coverage}"
+    )
+
+    # All un-touched cams remain all-zero
+    for c in ("ring_front_center", "ring_side_right", "ring_front_right"):
+        assert masks[c].max() == 0.0, f"{c} should be untouched"
+
+
+def test_v2_per_cam_apply_differential() -> None:
+    """apply_option_b_reweight with dict-of-masks: each cam multiplied by its own mask only."""
+    erp_hw = (16, 32)
+    weights = {
+        "cam_A": np.full(erp_hw, 0.5, dtype=np.float32),
+        "cam_B": np.full(erp_hw, 0.5, dtype=np.float32),
+    }
+    # cam_A has confidence 1.0 everywhere, cam_B has 0.0
+    masks = {
+        "cam_A": np.ones(erp_hw, dtype=np.float32),
+        "cam_B": np.zeros(erp_hw, dtype=np.float32),
+    }
+    out = apply_option_b_reweight(weights, masks, alpha=1.0)
+    # cam_A: weight 0.5 * (1 + 1.0 * 1.0) = 0.5 * 2.0 = 1.0
+    np.testing.assert_allclose(out["cam_A"], 1.0, rtol=1e-5)
+    # cam_B: weight 0.5 * (1 + 1.0 * 0.0) = 0.5 * 1.0 = 0.5 (UNCHANGED)
+    np.testing.assert_allclose(out["cam_B"], 0.5, rtol=1e-5)
+    # This is the KEY differential test: cam_A boosted, cam_B not — multiband
+    # normalize would NOT cancel because the boosts are different across cams.
+
+
+def test_v2_per_cam_requires_dict_weights() -> None:
+    """Per-cam mode requires erp_weights to be a dict (not list)."""
+    erp_hw = (16, 32)
+    weights = [np.ones(erp_hw, dtype=np.float32)]  # list, not dict
+    masks = {"cam_A": np.ones(erp_hw, dtype=np.float32)}
+    with pytest.raises(TypeError, match="per-cam reweight requires erp_weights"):
+        apply_option_b_reweight(weights, masks, alpha=1.0)
+
+
+def test_v2_per_cam_missing_cam_in_mask_raises() -> None:
+    """If erp_weights has a cam not present in mask dict, raise ValueError."""
+    erp_hw = (16, 32)
+    weights = {
+        "cam_A": np.ones(erp_hw, dtype=np.float32),
+        "cam_B": np.ones(erp_hw, dtype=np.float32),
+    }
+    masks = {"cam_A": np.ones(erp_hw, dtype=np.float32)}  # missing cam_B
+    with pytest.raises(ValueError, match="cam 'cam_B' missing from confidence_mask"):
+        apply_option_b_reweight(weights, masks, alpha=1.0)
+
+
+def test_v2_per_cam_alpha_zero_is_identity() -> None:
+    """alpha=0 returns input weights unchanged (per-cam path)."""
+    erp_hw = (16, 32)
+    weights = {
+        "cam_A": np.full(erp_hw, 0.3, dtype=np.float32),
+        "cam_B": np.full(erp_hw, 0.7, dtype=np.float32),
+    }
+    masks = {
+        "cam_A": np.ones(erp_hw, dtype=np.float32),   # would normally boost a lot
+        "cam_B": np.full(erp_hw, 0.5, dtype=np.float32),
+    }
+    out = apply_option_b_reweight(weights, masks, alpha=0.0)
+    np.testing.assert_allclose(out["cam_A"], weights["cam_A"], rtol=1e-6)
+    np.testing.assert_allclose(out["cam_B"], weights["cam_B"], rtol=1e-6)
+
+
+def test_v2_per_cam_unknown_cam_in_npz_skipped(tmp_path: Path) -> None:
+    """Stereo files referencing unknown cam names are silently skipped (not crash)."""
+    pts = _grid_in_front(n=3)
+    p = tmp_path / "stereo_garbage__cam.npz"
+    _write_stereo_npz_with_cams(p, pts, "garbage_cam", "another_garbage_cam")
+    masks = build_stereo_confidence_masks_per_cam(
+        [p], erp_hw=(32, 64), cam_names=_CAMS_7, sigma_px=4.0,
+    )
+    # All 7 ring cams should be all-zero (no valid pair in this file)
+    for c in _CAMS_7:
+        assert masks[c].max() == 0.0
+
+
+def test_v2_per_cam_npz_missing_cam_keys_skipped(tmp_path: Path) -> None:
+    """A v1-style npz (no cam_a/cam_b keys) is silently skipped by v2."""
+    pts = _grid_in_front(n=3)
+    p = tmp_path / "stereo_v1_style.npz"
+    _write_stereo_npz(p, pts)  # no cam_a/cam_b keys
+    masks = build_stereo_confidence_masks_per_cam(
+        [p], erp_hw=(32, 64), cam_names=_CAMS_7, sigma_px=4.0,
+    )
+    for c in _CAMS_7:
+        assert masks[c].max() == 0.0, f"cam {c} should be untouched, got max={masks[c].max()}"

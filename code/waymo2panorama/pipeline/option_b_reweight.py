@@ -79,14 +79,19 @@ from .lift_and_project import ego_points_to_erp_uv
 
 __all__ = [
     "STEREO_NPZ_PTS_KEY",
+    "STEREO_NPZ_CAM_A_KEY",
+    "STEREO_NPZ_CAM_B_KEY",
     "build_stereo_confidence_mask",
+    "build_stereo_confidence_masks_per_cam",
     "apply_option_b_reweight",
 ]
 
 
-# Key used by `scripts/phase3/run_wide_baseline_stereo.py` when calling
-# np.savez_compressed(...). The ego-frame 3D points live under this key.
+# Keys used by `scripts/phase3/run_wide_baseline_stereo.py` when calling
+# np.savez_compressed(...). The ego-frame 3D points + originating cam pair.
 STEREO_NPZ_PTS_KEY: str = "pts_3d_ego"
+STEREO_NPZ_CAM_A_KEY: str = "cam_a"
+STEREO_NPZ_CAM_B_KEY: str = "cam_b"
 
 
 def _load_stereo_pts_ego(path: Path) -> np.ndarray:
@@ -105,12 +110,93 @@ def _load_stereo_pts_ego(path: Path) -> np.ndarray:
     return pts
 
 
+def _load_stereo_cam_pair(path: Path) -> tuple[str, str] | None:
+    """Load (cam_a, cam_b) full cam names from one stereo_<a>__<b>.npz file.
+
+    Returns None if either key is missing (defensive).
+    """
+    with np.load(path) as npz:
+        if STEREO_NPZ_CAM_A_KEY not in npz.files or STEREO_NPZ_CAM_B_KEY not in npz.files:
+            return None
+        cam_a = str(npz[STEREO_NPZ_CAM_A_KEY])
+        cam_b = str(npz[STEREO_NPZ_CAM_B_KEY])
+    return (cam_a, cam_b)
+
+
+def _build_gaussian_kernel(sigma_px: float) -> tuple[np.ndarray, int]:
+    """Construct an isotropic Gaussian kernel with peak=1.0 (not normalized).
+
+    Returns (kernel, half) where kernel.shape = (2*half+1, 2*half+1).
+    """
+    half = max(int(np.ceil(3.0 * sigma_px)), 1)
+    yy, xx = np.mgrid[-half:half + 1, -half:half + 1].astype(np.float32)
+    rr2 = (xx * xx + yy * yy)
+    kernel = np.exp(-rr2 / (2.0 * sigma_px * sigma_px)).astype(np.float32)
+    return kernel, half
+
+
+def _splat_points_to_canvas(
+    canvas: np.ndarray,
+    pts_ego: np.ndarray,
+    kernel: np.ndarray,
+    half: int,
+) -> int:
+    """Max-merge Gaussian splats of `pts_ego` into `canvas` (in place).
+
+    Returns the number of points actually splatted (post-validity filter).
+    """
+    h_erp, w_erp = canvas.shape
+    if pts_ego.shape[0] == 0:
+        return 0
+
+    u_f, v_f, valid = ego_points_to_erp_uv(pts_ego, erp_hw=(h_erp, w_erp))
+    valid &= (v_f >= 0.0) & (v_f < h_erp)
+    if not np.any(valid):
+        return 0
+
+    u_int = np.round(u_f[valid]).astype(np.int64)
+    v_int = np.round(v_f[valid]).astype(np.int64)
+    u_int = np.mod(u_int, w_erp)
+    v_int = np.clip(v_int, 0, h_erp - 1)
+
+    ksize = 2 * half + 1
+    n_splatted = 0
+    for ui, vi in zip(u_int, v_int):
+        y0 = vi - half
+        y1 = vi + half + 1
+        ky0 = max(0, -y0)
+        ky1 = ksize - max(0, y1 - h_erp)
+        cy0 = max(0, y0)
+        cy1 = min(h_erp, y1)
+        if cy1 <= cy0 or ky1 <= ky0:
+            continue
+        for k_col in range(ksize):
+            cx = (ui - half + k_col) % w_erp
+            np.maximum(
+                canvas[cy0:cy1, cx],
+                kernel[ky0:ky1, k_col],
+                out=canvas[cy0:cy1, cx],
+            )
+        n_splatted += 1
+    return n_splatted
+
+
 def build_stereo_confidence_mask(
     stereo_npz_paths: Iterable[Path],
     erp_hw: tuple[int, int],
     sigma_px: float = 12.0,
 ) -> np.ndarray:
-    """Splat sparse stereo 3D points to an ERP-shaped confidence mask in [0, 1].
+    """V1 (legacy): single uniform confidence mask over all stereo points.
+
+    NOTE — v1 is NEG-by-effect in practice: because the same mask is applied
+    to all 7 cams in `apply_option_b_reweight`, and multiband_blend normalizes
+    weights per pixel, the boost (1 + alpha * C) cancels out of the final blend
+    (verified empirically: PSNR(L1 vs L1+reweight) = inf on 4 anchors).
+
+    Use `build_stereo_confidence_masks_per_cam` (v2) for the differential
+    per-cam variant that actually changes output.
+
+    Splat sparse stereo 3D points to an ERP-shaped confidence mask in [0, 1].
 
     For each `.npz` in `stereo_npz_paths`:
       1. Load ego-frame 3D points (`pts_3d_ego` key).
@@ -145,16 +231,7 @@ def build_stereo_confidence_mask(
         raise ValueError(f"sigma_px must be > 0, got {sigma_px}")
 
     canvas = np.zeros((h_erp, w_erp), dtype=np.float32)
-
-    # Splat box half-size: 3 sigma captures ~99.7% of the gaussian mass
-    half = max(int(np.ceil(3.0 * sigma_px)), 1)
-    yy, xx = np.mgrid[-half:half + 1, -half:half + 1].astype(np.float32)
-    rr2 = (xx * xx + yy * yy)
-    kernel = np.exp(-rr2 / (2.0 * sigma_px * sigma_px)).astype(np.float32)
-    # Don't pre-normalize the kernel (peak = 1.0). Peaks are max-merged
-    # (via np.maximum below) when multiple points splat to overlapping
-    # kernels, which keeps the accumulator in [0, 1] without needing
-    # post-hoc renormalization clipping.
+    kernel, half = _build_gaussian_kernel(sigma_px)
 
     paths = list(stereo_npz_paths)
     n_files_total = len(paths)
@@ -171,50 +248,11 @@ def build_stereo_confidence_mask(
             print(f"[option_b] warn: {p.name} has 0 inliers, skipping")
             continue
         n_files_used += 1
-
-        u_f, v_f, valid = ego_points_to_erp_uv(pts_ego, erp_hw=(h_erp, w_erp))
-        # Discard out-of-vertical-range points (azimuth already mod-W'd by
-        # ego_points_to_erp_uv, so u is always in [0, W)).
-        valid &= (v_f >= 0.0) & (v_f < h_erp)
-        if not np.any(valid):
-            continue
-
-        u_int = np.round(u_f[valid]).astype(np.int64)
-        v_int = np.round(v_f[valid]).astype(np.int64)
-        u_int = np.mod(u_int, w_erp)            # belt-and-suspenders wrap
-        v_int = np.clip(v_int, 0, h_erp - 1)
-
-        ksize = 2 * half + 1
-        for ui, vi in zip(u_int, v_int):
-            y0 = vi - half
-            y1 = vi + half + 1
-            # Clamp vertical (no wrap on elevation)
-            ky0 = max(0, -y0)
-            ky1 = ksize - max(0, y1 - h_erp)
-            cy0 = max(0, y0)
-            cy1 = min(h_erp, y1)
-            if cy1 <= cy0 or ky1 <= ky0:
-                continue
-
-            # Horizontal: wrap-aware. Walk each kernel column individually and
-            # mod into canvas. Clear, slow, but kernel widths are tiny (~75 px
-            # max for sigma=12) and the point count per file is ~44.
-            for k_col in range(ksize):
-                cx = (ui - half + k_col) % w_erp
-                np.maximum(
-                    canvas[cy0:cy1, cx],
-                    kernel[ky0:ky1, k_col],
-                    out=canvas[cy0:cy1, cx],
-                )
-            n_pts_splat += 1
+        n_pts_splat += _splat_points_to_canvas(canvas, pts_ego, kernel, half)
 
     max_v = float(canvas.max())
     if max_v > 1e-9:
         canvas /= max_v
-    else:
-        # all-zero mask is a valid (degenerate) output — apply_option_b_reweight
-        # treats it as "no boost anywhere".
-        pass
 
     print(
         f"[option_b] built confidence mask: erp_hw={erp_hw}, "
@@ -224,46 +262,214 @@ def build_stereo_confidence_mask(
     return canvas
 
 
+def build_stereo_confidence_masks_per_cam(
+    stereo_npz_paths: Iterable[Path],
+    erp_hw: tuple[int, int],
+    cam_names: Iterable[str],
+    sigma_px: float = 12.0,
+) -> dict[str, np.ndarray]:
+    """V2: per-cam differential confidence masks.
+
+    For each stereo .npz file (containing 3D pts from cam pair (cam_a, cam_b)),
+    splat those points into the masks of BOTH cam_a and cam_b — and only those
+    two. The other 5 cams' masks stay zero for that pair.
+
+    Why this works where v1 fails: in `apply_option_b_reweight`, each cam gets
+    its OWN mask. multiband_blend's per-pixel weight renormalization no longer
+    cancels the boost — because cams that DID see the 3D structure get
+    relatively boosted vs cams that did NOT see it. The differential is the key.
+
+    Each per-cam mask is normalized to [0, 1] by dividing by the GLOBAL max
+    across all cams' canvases (so a cam with sparse coverage doesn't get
+    artificially boosted to 1.0 — its weight stays proportional to its actual
+    point density relative to other cams).
+
+    Args:
+        stereo_npz_paths: iterable of Paths to stereo_<a>__<b>.npz files.
+        erp_hw: (H_erp, W_erp).
+        cam_names: list of cam names to allocate masks for (typically the
+            7 ring cams). Cams not in any stereo pair get all-zero masks.
+        sigma_px: Gaussian splat std-dev. Default 12 px.
+
+    Returns:
+        dict {cam_name: (H_erp, W_erp) float32 mask in [0, 1]}.
+        All cams in `cam_names` are present in the dict; cams with no stereo
+        evidence have all-zero masks (effectively no boost from option_b).
+    """
+    h_erp, w_erp = erp_hw
+    if h_erp <= 0 or w_erp <= 0:
+        raise ValueError(f"erp_hw must be positive, got {erp_hw}")
+    if sigma_px <= 0:
+        raise ValueError(f"sigma_px must be > 0, got {sigma_px}")
+
+    cam_list = list(cam_names)
+    if not cam_list:
+        raise ValueError("cam_names must be non-empty")
+    cam_set = set(cam_list)
+
+    kernel, half = _build_gaussian_kernel(sigma_px)
+    canvases: dict[str, np.ndarray] = {
+        c: np.zeros((h_erp, w_erp), dtype=np.float32) for c in cam_list
+    }
+
+    paths = list(stereo_npz_paths)
+    n_files_total = len(paths)
+    n_files_used = 0
+    n_pts_total = 0
+    cams_touched: set[str] = set()
+    unknown_cams: set[str] = set()
+
+    for p in paths:
+        try:
+            pts_ego = _load_stereo_pts_ego(p)
+        except (FileNotFoundError, OSError, ValueError) as exc:
+            print(f"[option_b/v2] warn: cannot load {p}: {exc}")
+            continue
+        if pts_ego.shape[0] == 0:
+            print(f"[option_b/v2] warn: {p.name} has 0 inliers, skipping")
+            continue
+        cam_pair = _load_stereo_cam_pair(p)
+        if cam_pair is None:
+            print(f"[option_b/v2] warn: {p.name} missing cam_a/cam_b keys, skipping")
+            continue
+        cam_a, cam_b = cam_pair
+
+        # Validate cam names are in the expected set
+        if cam_a not in cam_set:
+            unknown_cams.add(cam_a)
+            continue
+        if cam_b not in cam_set:
+            unknown_cams.add(cam_b)
+            continue
+
+        n_files_used += 1
+        # Splat the SAME points into BOTH cams' canvases (both cams "saw" them)
+        n_a = _splat_points_to_canvas(canvases[cam_a], pts_ego, kernel, half)
+        n_b = _splat_points_to_canvas(canvases[cam_b], pts_ego, kernel, half)
+        if n_a > 0:
+            cams_touched.add(cam_a)
+        if n_b > 0:
+            cams_touched.add(cam_b)
+        n_pts_total += max(n_a, n_b)  # n_a should equal n_b (same source pts)
+
+    # Global normalization: divide every cam's canvas by the GLOBAL max so
+    # relative scales between cams are preserved.
+    global_max = max((float(c.max()) for c in canvases.values()), default=0.0)
+    if global_max > 1e-9:
+        for c in canvases:
+            canvases[c] = canvases[c] / global_max
+
+    if unknown_cams:
+        print(
+            f"[option_b/v2] warn: stereo files referenced unknown cams "
+            f"(not in cam_names): {sorted(unknown_cams)}"
+        )
+
+    coverage_per_cam = {
+        c: float((canvases[c] > 0.05).mean()) for c in cam_list
+    }
+    print(
+        f"[option_b/v2] built per-cam masks: erp_hw={erp_hw}, "
+        f"files_used={n_files_used}/{n_files_total}, "
+        f"cams_touched={len(cams_touched)}/{len(cam_list)}, "
+        f"pts_total={n_pts_total}, sigma_px={sigma_px}"
+    )
+    for c in cam_list:
+        print(f"[option_b/v2]   {c}: coverage_frac={coverage_per_cam[c]:.4f}")
+    return canvases
+
+
 def apply_option_b_reweight(
     erp_weights: dict[str, np.ndarray] | list[np.ndarray],
-    confidence_mask: np.ndarray,
+    confidence_mask: np.ndarray | dict[str, np.ndarray],
     alpha: float = 1.0,
 ) -> dict[str, np.ndarray] | list[np.ndarray]:
     """Multiply each per-cam ERP weight by (1 + alpha * confidence_mask).
 
+    Supports TWO modes:
+      v1 (single mask, NEG-by-effect):
+          confidence_mask is a single (H, W) array.
+          All cams get the same boost — multiband normalize cancels it.
+          Kept for backward compat + the NEG test on record.
+
+      v2 (per-cam differential, fixed):
+          confidence_mask is a dict {cam_name: (H, W) mask}.
+          Each cam's weight gets multiplied by its OWN mask's boost. This is
+          the differential form: cams that "saw" the 3D structure are boosted
+          more than cams that didn't, so multiband normalize doesn't cancel
+          out.  REQUIRES erp_weights to also be a dict (cam_name keys must
+          match).
+
     Args:
-        erp_weights: either {cam_name: (H, W) float} or a list of (H, W)
-            float arrays. The returned container has the same type and key
-            order as the input.
-        confidence_mask: (H_erp, W_erp) float in [0, 1] (output of
-            `build_stereo_confidence_mask`).
-        alpha: boost magnitude.  Must be >= 0. With alpha=0 the output equals
-            the input (identity reweight).
+        erp_weights: {cam_name: (H, W) float} dict (preferred), or list of
+            (H, W) arrays (legacy; only with v1 single-mask input).
+        confidence_mask: either single 2D array (v1) or dict[cam, 2D array]
+            (v2 differential).
+        alpha: boost magnitude (>= 0). alpha=0 -> identity reweight.
 
     Returns:
-        New container of the same type / order as `erp_weights`, with each
-        weight array multiplied elementwise by (1 + alpha * confidence_mask).
-        The input is NOT mutated.
+        New container of the same type / order as `erp_weights`. Input NOT
+        mutated.
 
-    Notes:
-        * Multiband blending re-normalizes per-pixel weights to sum to 1, so
-          you don't need to clip or rescale these. The reweight is purely a
-          relative-importance signal between cams at each pixel.
-        * alpha < 0 is allowed but unusual (would DOWN-weight high-confidence
-          regions) — we just enforce >= 0 to avoid silent foot-shooting.
+    Raises:
+        TypeError: incompatible input shapes for per-cam mode (list input +
+            dict mask, or vice versa).
+        ValueError: alpha < 0, shape mismatch, or per-cam mode missing a cam
+            in the mask dict (every cam in erp_weights MUST have a mask key).
     """
     if alpha < 0:
         raise ValueError(f"alpha must be >= 0, got {alpha}")
+
+    # Dispatch on confidence_mask type
+    if isinstance(confidence_mask, dict):
+        # v2 per-cam path
+        if not isinstance(erp_weights, dict):
+            raise TypeError(
+                "per-cam reweight requires erp_weights to also be a dict "
+                f"(got {type(erp_weights).__name__}). Use single-mask v1 with a "
+                "list, or convert your weights to a dict keyed by cam name."
+            )
+        out_dict: dict[str, np.ndarray] = {}
+        for cam, w in erp_weights.items():
+            if cam not in confidence_mask:
+                raise ValueError(
+                    f"per-cam reweight: cam '{cam}' missing from confidence_mask "
+                    f"dict (keys present: {sorted(confidence_mask.keys())})"
+                )
+            mask_i = confidence_mask[cam]
+            if mask_i.ndim != 2:
+                raise ValueError(
+                    f"confidence_mask['{cam}'] must be 2D, got shape {mask_i.shape}"
+                )
+            if w.shape != mask_i.shape:
+                raise ValueError(
+                    f"weight/mask shape mismatch for cam={cam}: "
+                    f"weight {w.shape} vs mask {mask_i.shape}"
+                )
+            mask_max = float(mask_i.max()) if mask_i.size > 0 else 0.0
+            if mask_max > 1.0 + 1e-3:
+                import warnings
+                warnings.warn(
+                    f"apply_option_b_reweight: confidence_mask['{cam}'] max = "
+                    f"{mask_max:.3f} > 1.0; expected normalized [0, 1].",
+                    RuntimeWarning, stacklevel=2,
+                )
+            boost = (1.0 + alpha * mask_i).astype(np.float32)
+            out_dict[cam] = (w.astype(np.float32) * boost).astype(np.float32)
+        return out_dict
+
+    # v1 single-mask path (legacy + NEG-by-effect)
     if confidence_mask.ndim != 2:
-        raise ValueError(f"confidence_mask must be 2D, got shape {confidence_mask.shape}")
+        raise ValueError(
+            f"confidence_mask must be 2D (or dict), got shape {confidence_mask.shape}"
+        )
 
     mask_max = float(confidence_mask.max()) if confidence_mask.size > 0 else 0.0
     if mask_max > 1.0 + 1e-3:
         import warnings
         warnings.warn(
             f"apply_option_b_reweight: confidence_mask max = {mask_max:.3f} > 1.0; "
-            "expected normalized [0, 1] mask. Reweight will scale weights by "
-            f"(1 + alpha * {mask_max:.2f}) at peak. If unintentional, normalize via mask /= mask.max() first.",
+            "expected normalized [0, 1] mask.",
             RuntimeWarning,
             stacklevel=2,
         )
@@ -271,15 +477,15 @@ def apply_option_b_reweight(
     boost = (1.0 + alpha * confidence_mask).astype(np.float32)
 
     if isinstance(erp_weights, dict):
-        out_dict: dict[str, np.ndarray] = {}
+        out_dict_v1: dict[str, np.ndarray] = {}
         for cam, w in erp_weights.items():
             if w.shape != confidence_mask.shape:
                 raise ValueError(
                     f"weight shape mismatch for cam={cam}: "
                     f"{w.shape} vs mask {confidence_mask.shape}"
                 )
-            out_dict[cam] = (w.astype(np.float32) * boost).astype(np.float32)
-        return out_dict
+            out_dict_v1[cam] = (w.astype(np.float32) * boost).astype(np.float32)
+        return out_dict_v1
 
     if isinstance(erp_weights, list):
         out_list: list[np.ndarray] = []

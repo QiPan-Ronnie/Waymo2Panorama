@@ -91,6 +91,12 @@ def main() -> int:
                     help="Stddev (in ERP pixels) of the Gaussian splat per stereo point.")
     ap.add_argument("--no-reweight", action="store_true",
                     help="A/B flag: skip stereo + reweight, just write plain L1 ERP.")
+    ap.add_argument("--mask-mode", choices=["v1", "v2"], default="v2",
+                    help="v1: single uniform mask (NEG-by-effect: multiband normalize "
+                         "cancels uniform boost). v2 (default): per-cam differential "
+                         "masks (only cams that saw the stereo pair get boosted; "
+                         "differential survives multiband normalize). Kept v1 for "
+                         "reproducing the NEG result.")
     ap.add_argument("--no-ego-mask", action="store_true",
                     help="Disable heuristic AV2 ego mask (WS1.2) — for A/B parity with "
                          "older runs that did not have the mask.")
@@ -108,6 +114,7 @@ def main() -> int:
     from waymo2panorama.pipeline.option_b_reweight import (
         apply_option_b_reweight,
         build_stereo_confidence_mask,
+        build_stereo_confidence_masks_per_cam,
     )
     from waymo2panorama.projection.sphere_projection import render_camera_to_erp
 
@@ -153,6 +160,7 @@ def main() -> int:
 
     # ---- build stereo confidence mask + reweight (unless --no-reweight) ----
     confidence_mask: np.ndarray | None = None
+    confidence_masks_per_cam: dict[str, np.ndarray] | None = None
     n_stereo_files = 0
     if not args.no_reweight:
         stereo_dir = Path(args.stereo_cache_dir)
@@ -163,12 +171,32 @@ def main() -> int:
         if n_stereo_files == 0:
             print(f"[option_b] WARN: no stereo_*.npz files in {stereo_dir} — falling back to plain L1")
         t_mask0 = time.time()
-        confidence_mask = build_stereo_confidence_mask(
-            stereo_paths, erp_hw=erp_hw, sigma_px=args.sigma_px,
-        )
+
+        # Convert list weights → dict (cam-keyed) so per-cam mask path works
+        sph_weights_dict = {cam: w for cam, w in zip(cams, sph_weights)}
+
+        if args.mask_mode == "v2":
+            confidence_masks_per_cam = build_stereo_confidence_masks_per_cam(
+                stereo_paths, erp_hw=erp_hw, cam_names=cams, sigma_px=args.sigma_px,
+            )
+            sph_weights_dict = apply_option_b_reweight(
+                sph_weights_dict, confidence_masks_per_cam, alpha=args.alpha,
+            )
+            # Save a "max-over-cams" viz mask for QA (same shape as v1 mask)
+            confidence_mask = np.max(
+                np.stack([confidence_masks_per_cam[c] for c in cams], axis=0), axis=0,
+            )
+        else:  # v1 — legacy / NEG reproducer
+            confidence_mask = build_stereo_confidence_mask(
+                stereo_paths, erp_hw=erp_hw, sigma_px=args.sigma_px,
+            )
+            sph_weights_dict = apply_option_b_reweight(
+                sph_weights_dict, confidence_mask, alpha=args.alpha,
+            )
+
+        # Back to list-of-cams (cams order) for multiband_blend
+        sph_weights = [sph_weights_dict[c] for c in cams]
         t_mask_s = time.time() - t_mask0
-        # Reweight weights in-place-on-copy.
-        sph_weights = apply_option_b_reweight(sph_weights, confidence_mask, alpha=args.alpha)
     else:
         t_mask_s = 0.0
 
@@ -198,9 +226,23 @@ def main() -> int:
             "frac_above_0.5":  float((confidence_mask > 0.5).mean()),
         }
 
+    # Per-cam mask stats (v2 only)
+    per_cam_mask_stats: dict[str, dict] | None = None
+    if confidence_masks_per_cam is not None:
+        per_cam_mask_stats = {
+            c: {
+                "max": float(confidence_masks_per_cam[c].max()),
+                "frac_above_0.05": float((confidence_masks_per_cam[c] > 0.05).mean()),
+            }
+            for c in cams
+        }
+
     summary = {
         "route": "13 / 新-D Option B",
-        "mode": "no-reweight (plain L1)" if args.no_reweight else "reweight",
+        "mode": (
+            "no-reweight (plain L1)" if args.no_reweight
+            else f"reweight ({args.mask_mode})"
+        ),
         "pi3_dir": str(pi3_dir),
         "stereo_cache_dir": (None if args.no_reweight else str(args.stereo_cache_dir)),
         "n_stereo_files": n_stereo_files,
@@ -210,9 +252,11 @@ def main() -> int:
             "sigma_px": args.sigma_px if not args.no_reweight else None,
             "num_bands": args.num_bands,
             "no_ego_mask": bool(args.no_ego_mask),
+            "mask_mode": (None if args.no_reweight else args.mask_mode),
         },
         "per_cam": per_cam_log,
         "mask_stats": mask_stats,
+        "per_cam_mask_stats": per_cam_mask_stats,
         "runtime_s": {
             "projection": round(t_proj_s, 3),
             "confidence_mask": round(t_mask_s, 3),

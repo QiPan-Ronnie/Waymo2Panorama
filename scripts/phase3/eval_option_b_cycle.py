@@ -118,6 +118,7 @@ def _eval_one_anchor(
     sigma_px: float,
     num_bands: int,
     no_ego_mask: bool,
+    mask_mode: str = "v2",
 ) -> dict:
     """Run both L1-baseline and L1-reweighted blends, compute cycle PSNR (L1 vs
     L1_reweighted) on the union of L1 coverage. Returns a per-anchor summary dict.
@@ -138,6 +139,7 @@ def _eval_one_anchor(
     from waymo2panorama.pipeline.option_b_reweight import (
         apply_option_b_reweight,
         build_stereo_confidence_mask,
+        build_stereo_confidence_masks_per_cam,
     )
     from waymo2panorama.projection.sphere_projection import render_camera_to_erp
 
@@ -171,18 +173,33 @@ def _eval_one_anchor(
         alphas.append(alpha_map)
     t_proj_s = time.time() - t_proj0
 
-    # Build stereo confidence mask
+    # Build stereo confidence mask(s)
     stereo_paths = sorted(stereo_dir.glob("stereo_*.npz"))
     t_mask0 = time.time()
-    confidence_mask = build_stereo_confidence_mask(
-        stereo_paths, erp_hw=erp_hw, sigma_px=sigma_px,
-    )
-    t_mask_s = time.time() - t_mask0
+    confidence_masks_per_cam: dict[str, np.ndarray] | None = None
 
-    # Reweight
-    weights_reweighted = apply_option_b_reweight(
-        weights_baseline, confidence_mask, alpha=alpha,
-    )
+    if mask_mode == "v2":
+        confidence_masks_per_cam = build_stereo_confidence_masks_per_cam(
+            stereo_paths, erp_hw=erp_hw, cam_names=cams, sigma_px=sigma_px,
+        )
+        # Max-over-cams view for downstream conf_region logic
+        confidence_mask = np.max(
+            np.stack([confidence_masks_per_cam[c] for c in cams], axis=0), axis=0,
+        )
+        # Reweight using per-cam dict
+        weights_baseline_dict = {c: w for c, w in zip(cams, weights_baseline)}
+        weights_reweighted_dict = apply_option_b_reweight(
+            weights_baseline_dict, confidence_masks_per_cam, alpha=alpha,
+        )
+        weights_reweighted = [weights_reweighted_dict[c] for c in cams]
+    else:  # v1 — legacy single mask
+        confidence_mask = build_stereo_confidence_mask(
+            stereo_paths, erp_hw=erp_hw, sigma_px=sigma_px,
+        )
+        weights_reweighted = apply_option_b_reweight(
+            weights_baseline, confidence_mask, alpha=alpha,
+        )
+    t_mask_s = time.time() - t_mask0
 
     # Blend twice
     t_blend0 = time.time()
@@ -288,6 +305,7 @@ def _eval_one_anchor_for_checkpoint(
     sigma_px: float,
     num_bands: int,
     no_ego_mask: bool,
+    mask_mode: str = "v2",
 ) -> dict:
     """Primitive-arg wrapper so colab_direct.checkpointed can serialize args."""
     return _eval_one_anchor(
@@ -298,6 +316,7 @@ def _eval_one_anchor_for_checkpoint(
         sigma_px=sigma_px,
         num_bands=num_bands,
         no_ego_mask=no_ego_mask,
+        mask_mode=mask_mode,
     )
 
 
@@ -322,6 +341,9 @@ def main() -> int:
     ap.add_argument("--alpha", type=float, default=1.0)
     ap.add_argument("--sigma-px", type=float, default=12.0)
     ap.add_argument("--no-ego-mask", action="store_true")
+    ap.add_argument("--mask-mode", choices=["v1", "v2"], default="v2",
+                    help="v2 (default): per-cam differential masks. v1: legacy "
+                         "single uniform mask (NEG-by-effect, kept for reproduce).")
     ap.add_argument("--checkpoint-dir", type=Path, default=None,
                     help="Directory for colab_direct.checkpointed .done markers. "
                          "If unset, defaults to <output-dir>/_checkpoints. Ignored "
@@ -377,6 +399,7 @@ def main() -> int:
             sigma_px=args.sigma_px,
             num_bands=args.num_bands,
             no_ego_mask=args.no_ego_mask,
+            mask_mode=args.mask_mode,
         )
         # colab_direct.checkpointed returns None for cached anchors -> reload from
         # the per-anchor JSON we wrote during the original run.
@@ -422,6 +445,7 @@ def main() -> int:
         "route": "13 / 新-D Option B cycle eval",
         "alpha": args.alpha,
         "sigma_px": args.sigma_px,
+        "mask_mode": args.mask_mode,
         "erp_hw": [args.erp_h, args.erp_w],
         "per_anchor": per_anchor,
         "aggregate": agg,
