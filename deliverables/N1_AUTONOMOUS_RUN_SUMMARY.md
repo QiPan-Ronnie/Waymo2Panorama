@@ -196,7 +196,19 @@ d5224d5  Phase A: cam-translation-aware L1 (the foundational fix)
 
 ---
 
-**Session 起止**: 2026-05-26 ~21:30 - ~23:00 UTC  
-**Colab kernel**: L4 GPU (CPU-only ops used; GPU 没用上)  
+**Session 起止**: 2026-05-26 ~21:30 - 2026-05-27 ~00:30 UTC (~3 hr autonomous)  
+**Colab kernel**: L4 GPU. Phase A/C/N2/HDR/§1b 是 CPU-only ops; Phase D (DA-V2) 用了 GPU 跑 transformer inference  
 **API endpoint**: `https://aware-oct-shopping-cove.trycloudflare.com` (token in active_url.json)  
-**Github**: github.com/QiPan-Ronnie/Waymo2Panorama main @ commit `8d934da`
+**Github**: github.com/QiPan-Ronnie/Waymo2Panorama main @ commit `a120a44`  
+**End state**: Cloudflare tunnel died ~00:15 UTC (HTTP 530, cloudflared 进程挂了; Colab kernel alive 但 tunnel 不通). 需用户重启 notebook cell 恢复 tunnel. Frame selection driver (`score_ghost_per_anchor.py`) 写好但未运行 — 等用户 ready 时一行命令就能跑.
+
+**Total commits this session**: 13 (d5224d5 → a120a44)  
+**Total lines added**: ~2200 LOC (code + drivers + scripts + docs)  
+**Total deliverable PNGs**: 35+ panels across phases A/C/C+N2/D/full-stack  
+
+## 醒来 first actions (排序)
+
+1. **(2 min) 看 `deliverables/n1_full_stack/bmw_da_vs_lidar.png`** — 决定性 3-row 证据
+2. **(5 min) 读这个 doc 的 "Phase D 决定性 A/B" 段** — 理解为什么 N1 paradigm 走到 dead end
+3. **(可选) 重启 Colab notebook 让 tunnel 恢复**, 然后我 (或下个 session 的 agent) 可以跑 `scripts/phase3/score_ghost_per_anchor.py` 出 frame selection 结果
+4. **决定方向**: view synthesis paradigm shift (1-2 week) 还是 strategic reframe (frame selection + 给 Bosch 干净 subset, 1 day)
