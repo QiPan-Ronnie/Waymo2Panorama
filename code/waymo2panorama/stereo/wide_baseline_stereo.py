@@ -505,13 +505,19 @@ def _load_pi3_anchor(anchor_dir: Path, cam: str) -> dict:
     return {"image": image, "K": K, "T_ego_cam": T}
 
 
-def process_anchor_all_pairs(
-    anchor_dir: Path,
+def process_anchor_all_pairs_from_data(
+    cams_data: dict[str, dict],
     device: str = "cpu",
     **stereo_kwargs,
 ) -> dict[tuple[str, str], StereoMatchResult]:
-    """Run the full stereo pipeline on all 7 adjacent pairs of an anchor."""
-    cams_data = {cam: _load_pi3_anchor(anchor_dir, cam) for cam in RING_CAMS_7}
+    """Run stereo on all 7 adjacent pairs given pre-loaded cam data.
+
+    cams_data: dict {cam_name: {"image": HxWx3 uint8, "K": 3x3 float64,
+                                "T_ego_cam": 4x4 float64}}.
+
+    Decoupled from disk layout so callers can feed AV2 raw (via AV2RingLoader)
+    or pi3-cache (via _load_pi3_anchor) or any other source.
+    """
     out: dict[tuple[str, str], StereoMatchResult] = {}
     for cam_a, cam_b in ADJACENT_PAIRS:
         da = cams_data[cam_a]
@@ -525,3 +531,18 @@ def process_anchor_all_pairs(
         )
         out[(cam_a, cam_b)] = res
     return out
+
+
+def process_anchor_all_pairs(
+    anchor_dir: Path,
+    device: str = "cpu",
+    **stereo_kwargs,
+) -> dict[tuple[str, str], StereoMatchResult]:
+    """Run the full stereo pipeline on all 7 adjacent pairs of an anchor.
+
+    Loads inputs from a pi3_cache anchor dir layout. For other input sources
+    (e.g. AV2 raw via AV2RingLoader), call process_anchor_all_pairs_from_data
+    directly with a pre-built cams_data dict.
+    """
+    cams_data = {cam: _load_pi3_anchor(anchor_dir, cam) for cam in RING_CAMS_7}
+    return process_anchor_all_pairs_from_data(cams_data, device=device, **stereo_kwargs)

@@ -57,8 +57,10 @@ from waymo2panorama.stereo.wide_baseline_stereo import (  # noqa: E402
     ADJACENT_PAIRS,
     RING_CAMS_7,
     StereoMatchResult,
-    process_anchor_all_pairs,
+    _load_pi3_anchor,
+    process_anchor_all_pairs_from_data,
 )
+from waymo2panorama.data_io.av2_loader import AV2RingLoader  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -138,6 +140,25 @@ def _load_pi3_image(anchor_dir: Path, cam: str) -> np.ndarray:
     return np.asarray(Image.open(anchor_dir / f"image_{cam}.png").convert("RGB"))
 
 
+def _load_av2_raw_anchor(loader: AV2RingLoader, anchor_idx: int) -> dict[str, dict]:
+    """Build cams_data dict from AV2 raw at the given anchor index.
+
+    Same return shape as _load_pi3_anchor (one entry per cam), but loads full-res
+    images and factory K / T_ego_cam directly from the sensor log — no letterbox
+    degradation.
+    """
+    anchor_ts = loader.anchor_timestamps_ns()[anchor_idx]
+    frame = loader.load_synced_frame(anchor_ts)
+    return {
+        cam: {
+            "image": frame.images[cam],
+            "K": frame.calibrations[cam].K.astype(np.float64),
+            "T_ego_cam": frame.calibrations[cam].T_ego_cam.astype(np.float64),
+        }
+        for cam in RING_CAMS_7
+    }
+
+
 # ---------------------------------------------------------------------------
 # Mosaic builder (paper figure)
 # ---------------------------------------------------------------------------
@@ -176,16 +197,22 @@ def _build_mosaic(viz_pngs: list[Path], cols: int = 2, gap: int = 6) -> np.ndarr
 
 
 def run_one_anchor(
-    pi3_dir: Path,
+    cams_data: dict[str, dict],
     output_dir: Path,
     device: str,
     stereo_kwargs: dict,
+    source_label: str = "",
 ) -> dict:
+    """Stereo extract one anchor given pre-loaded cam data.
+
+    source_label: human-readable string (e.g. "pi3:anchor_060" or "av2raw:log_xxx:anchor_60")
+    saved into summary.json for provenance tracking.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
 
     t_all = time.time()
-    results: dict[tuple[str, str], StereoMatchResult] = process_anchor_all_pairs(
-        anchor_dir=pi3_dir, device=device, **stereo_kwargs,
+    results: dict[tuple[str, str], StereoMatchResult] = process_anchor_all_pairs_from_data(
+        cams_data, device=device, **stereo_kwargs,
     )
 
     per_pair_summary: list[dict] = []
@@ -208,8 +235,8 @@ def run_one_anchor(
             baseline_m=np.array(r.baseline_m),
         )
 
-        img_a = _load_pi3_image(pi3_dir, cam_a)
-        img_b = _load_pi3_image(pi3_dir, cam_b)
+        img_a = cams_data[cam_a]["image"]
+        img_b = cams_data[cam_b]["image"]
         title = (
             f"{cam_a} -> {cam_b}    baseline={r.baseline_m:.2f} m    "
             f"matches={r.notes['n_matches_lightglue']}  "
@@ -249,7 +276,7 @@ def run_one_anchor(
     # Aggregate stats
     n_finals = [p["n_final_pts"] for p in per_pair_summary]
     summary = {
-        "pi3_dir": str(pi3_dir),
+        "source": source_label,
         "output_dir": str(output_dir),
         "n_pairs": len(per_pair_summary),
         "stereo_kwargs": stereo_kwargs,
@@ -284,31 +311,80 @@ def run_one_anchor(
 # ---------------------------------------------------------------------------
 
 
-def _resolve_anchor_dirs(args: argparse.Namespace) -> list[tuple[Path, Path]]:
-    """Return list of (pi3_dir, out_dir) pairs."""
+def _resolve_anchor_tasks(args: argparse.Namespace) -> list[tuple[dict[str, dict], Path, str]]:
+    """Return list of (cams_data, out_dir, source_label) tasks.
+
+    Supports two input modes:
+      - pi3-cache: --pi3-dir / --pi3-cache-root + --anchors
+      - AV2 raw:   --av2-log-dir + --anchor-idx (single) or --anchors (multi)
+    """
+    # --- pi3-cache: single anchor ---
     if args.pi3_dir is not None:
         if args.output_dir is None:
             raise ValueError("--output-dir is required with --pi3-dir")
-        return [(Path(args.pi3_dir), Path(args.output_dir))]
-    if args.pi3_cache_root is None or args.anchors is None or args.output_root is None:
-        raise ValueError("must provide --pi3-dir+--output-dir OR --pi3-cache-root+--anchors+--output-root")
-    pairs = []
-    root = Path(args.pi3_cache_root)
-    out_root = Path(args.output_root)
-    for a in args.anchors:
-        pi3_dir = root / f"anchor_{int(a):03d}"
-        out_dir = out_root / f"anchor_{int(a):03d}"
-        if not pi3_dir.exists():
-            raise FileNotFoundError(f"missing pi3 cache: {pi3_dir}")
-        pairs.append((pi3_dir, out_dir))
-    return pairs
+        pi3_dir = Path(args.pi3_dir)
+        cams = {cam: _load_pi3_anchor(pi3_dir, cam) for cam in RING_CAMS_7}
+        return [(cams, Path(args.output_dir), f"pi3:{pi3_dir}")]
+
+    # --- pi3-cache: multi anchor ---
+    if args.pi3_cache_root is not None:
+        if args.anchors is None or args.output_root is None:
+            raise ValueError("--pi3-cache-root requires --anchors + --output-root")
+        tasks = []
+        root = Path(args.pi3_cache_root)
+        out_root = Path(args.output_root)
+        for a in args.anchors:
+            pi3_dir = root / f"anchor_{int(a):03d}"
+            if not pi3_dir.exists():
+                raise FileNotFoundError(f"missing pi3 cache: {pi3_dir}")
+            cams = {cam: _load_pi3_anchor(pi3_dir, cam) for cam in RING_CAMS_7}
+            tasks.append((cams, out_root / f"anchor_{int(a):03d}", f"pi3:{pi3_dir}"))
+        return tasks
+
+    # --- AV2 raw ---
+    if args.av2_log_dir is not None:
+        log_dir = Path(args.av2_log_dir)
+        if not log_dir.exists():
+            raise FileNotFoundError(f"missing AV2 log dir: {log_dir}")
+        loader = AV2RingLoader(log_dir)
+
+        # Single-anchor mode via --anchor-idx + --output-dir, OR multi via --anchors + --output-root
+        if args.anchor_idx is not None:
+            if args.output_dir is None:
+                raise ValueError("--av2-log-dir + --anchor-idx requires --output-dir")
+            cams = _load_av2_raw_anchor(loader, args.anchor_idx)
+            label = f"av2raw:{log_dir.name}:anchor_{args.anchor_idx}"
+            return [(cams, Path(args.output_dir), label)]
+
+        if args.anchors is None or args.output_root is None:
+            raise ValueError(
+                "--av2-log-dir requires either --anchor-idx + --output-dir, "
+                "or --anchors + --output-root"
+            )
+        tasks = []
+        out_root = Path(args.output_root)
+        for a in args.anchors:
+            cams = _load_av2_raw_anchor(loader, int(a))
+            label = f"av2raw:{log_dir.name}:anchor_{a}"
+            tasks.append((cams, out_root / f"anchor_{int(a):03d}", label))
+        return tasks
+
+    raise ValueError(
+        "must provide one of: --pi3-dir, --pi3-cache-root + --anchors, "
+        "--av2-log-dir + --anchor-idx, or --av2-log-dir + --anchors"
+    )
 
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Wide-baseline stereo on AV2 ring-cam pairs.")
-    # Single-anchor mode
+    # Single-anchor mode (pi3-cache OR AV2 raw)
     p.add_argument("--pi3-dir", type=str, default=None, help="Path to one pi3_cache anchor dir.")
-    p.add_argument("--output-dir", type=str, default=None, help="Where to write outputs for that anchor.")
+    p.add_argument("--av2-log-dir", type=str, default=None,
+                   help="Path to AV2 sensor log dir for full-res input. Use with "
+                        "--anchor-idx + --output-dir (single) or --anchors + --output-root (multi).")
+    p.add_argument("--anchor-idx", type=int, default=None,
+                   help="Single anchor index for --av2-log-dir mode.")
+    p.add_argument("--output-dir", type=str, default=None, help="Where to write outputs for single anchor.")
     # Multi-anchor mode
     p.add_argument("--pi3-cache-root", type=str, default=None, help="Root containing anchor_NNN subdirs.")
     p.add_argument("--output-root", type=str, default=None, help="Root for per-anchor outputs.")
@@ -351,11 +427,14 @@ def main() -> None:
     print(f"stereo_kwargs: {stereo_kwargs}")
     print(f"device: {args.device}")
 
-    targets = _resolve_anchor_dirs(args)
+    tasks = _resolve_anchor_tasks(args)
     summaries: list[dict] = []
-    for pi3_dir, out_dir in targets:
-        print(f"\n=== anchor: {pi3_dir.name} -> {out_dir} ===")
-        summary = run_one_anchor(pi3_dir, out_dir, args.device, stereo_kwargs)
+    for cams_data, out_dir, source_label in tasks:
+        print(f"\n=== {source_label} -> {out_dir} ===")
+        # Print sample image shape so we know whether we're on raw or letterbox
+        sample_cam = next(iter(cams_data))
+        print(f"  sample image shape ({sample_cam}): {cams_data[sample_cam]['image'].shape}")
+        summary = run_one_anchor(cams_data, out_dir, args.device, stereo_kwargs, source_label=source_label)
         print(f"  total pts across 7 pairs: {summary['agg']['n_final_pts_total']}")
         print(f"  pts/pair mean/min/max: "
               f"{summary['agg']['n_final_pts_mean']:.1f} / "
