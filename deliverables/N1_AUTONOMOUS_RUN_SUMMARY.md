@@ -1,0 +1,158 @@
+# N1 Autonomous Run Summary (5-26 evening → night, autonomous mode)
+
+**TL;DR**: 实施了 N1 cam-translation-aware L1 完整 architecture (3 phases + 5 commits + cross-log validation). **几何上 correct**, 修了 L1 的 documented hidden bug (cam translation 被丢). 但**视觉上**, 单帧 BMW/Porsche doubled ghost **仍存在**, 因为 view-dependent overlap 不能被 per-pixel depth alone 消除. 下一步明确: 真正 dense depth (DVGT) 或 object-aware seam, 或 view synthesis (NeRF/3DGS).
+
+---
+
+## 实施的 5 个 commits (按时序)
+
+| commit | 内容 | 行数 |
+|---|---|---|
+| `d5224d5` | N1 Phase A 代码: `convergence_distance_m` 参数 (sphere_projection + stitch_frame), driver `run_l1_finite_radius.py`, panel `make_n1_phase_a_panel.py`, 7 pytest | +875 |
+| `91b4cfa` | Phase A 实测 + progress 更新 | +34 |
+| `433b043` | Phase C: LiDAR module `lidar_to_erp_depth.py` + driver `run_l1_lidar_depth.py` | +452 |
+| `77fe408` | Phase C 实测 + 诚实 progress 更新 | +35 |
+| `bb0023c` | N2: combined driver `run_l1_lidar_graphcut.py` (Phase C + 新-B graphcut) | +210 |
+| `8d934da` | Phase C+N2 实测 + cross-log validation + 诚实 progress | +40 |
+
+总 +1646 行代码 + 6 git commits + 5 val logs cross-validation.
+
+---
+
+## 关键技术发现
+
+### 发现 1: L1 baseline 一直有 hidden bug
+
+`code/waymo2panorama/projection/sphere_projection.py:86-89` 之前只用 cam rotation, **`T_ego_cam[:3, 3]` (cam translation) 一行没用**. AV2 实际数字 (从 sensor.feather 验证):
+- 相邻 ring cam baseline: **0.21-0.26m** (不是我最初推算的 1m)
+- 所有 7 cam: 1.0-1.6m **forward of ego origin** (systematic offset)
+
+L1 假装 7 个 cam 都在 (0,0,0) → 3m 距离物体预测 ERP angular ghost = 5.6° = ~32px (在 2048×4096 ERP). **跟你观察的 Porsche 双轮 ghost (30-50px) 量级吻合.**
+
+### 发现 2: N1 Phase A (single global r) 不适合视觉评估
+
+跑 `r ∈ {3, 5, 7, 10, 15, 30, ∞}` 7-r sweep:
+- r=∞ byte-identical 现状 L1 (backward-compat 验证 ✓)
+- r=3-7m: 大片 ERP 黑色 (cam-FOV gap, finite-r sphere 切掉 cam 看不见的角度)
+- r=10-30m: 内容逐渐填回, 接近 inf
+
+**单 r 强制 trade-off 近场/远场**. 视觉 gate 在单 r 下不能 attribute ghost 改进, 因为整个 angular mapping 都变了.
+
+### 发现 3: Phase C (per-pixel LiDAR r) 解决 coverage 问题但不消 ghost
+
+LiDAR 投到 ERP + kNN-fill 6px 之外用 1000m far-fill:
+- 1.1-3.5% pixels 有真 LiDAR 命中
+- 7.7-10% pixels 被 densify (kNN 填)
+- ~88-91% pixels 用 far-fill (1000m, ≈ legacy infinity)
+
+视觉上 l1_lidar 跟 l1_inf 看起来很像 (coverage 完全保留), 但**BMW 上仍 visible doubled wheel**, 而且**引入新 seam tear** (车体被 cam 边界明显切线).
+
+### 发现 4: Phase C + N2 (graphcut hard seam) 也不消 ghost
+
+跟 cos² blend 比 mean_diff 只有 5/765 = 0.7% — graphcut 在这场景的 overlap energy 跟 cos² 几何中线接近, 没 routing 绕开 BMW.
+
+**5 val logs (anchor 0) 全跑过, 普遍 doubled near-field ghost 仍存在.**
+
+### 发现 5: ghost 的真正根因 (三层)
+
+经过 4 个版本的实测, 我现在的最佳理解:
+
+1. **几何层 (修了)**: cam translation drop. N1 修复.
+2. **多视角 overlap 层 (未修)**: 两 cam 看同一物体的**不同 view**, 即使 angular alignment correct, 显示出的 pixel content 来自不同 angles. Multiband blender 混合 = 看到两个 "侧脸". Hard graphcut hover只 picks one cam, 但 seam 附近 visual continuity 仍 brittle.
+3. **LiDAR sparsity 层 (未完全修)**: LiDAR 在 smooth car surfaces 上 sparse, kNN-fill 把 body 内部 depth 拉到周围 ground/building, cam projection 错位.
+
+---
+
+## 视觉证据 (放在 `deliverables/` 下)
+
+| 路径 | 内容 |
+|---|---|
+| `deliverables/n1_phase_a/` | Phase A 单 r sweep panels (1024×2048, 5 PNG) |
+| `deliverables/n1_phase_a_hires/` | Phase A 高分辨率 + 分析 script (2048×4096) |
+| `deliverables/n1_phase_c/` | Phase C LiDAR per-pixel panels (含 depth viz, 3-way compare) |
+| `deliverables/n1_phase_c_plus_n2/` | Phase C+N2 panels (BMW 3-way + xlog_grid_thumb) |
+
+**Drive 上完整 outputs** at `MyDrive/koi_waymo2pano_colab/outputs/phase3/`:
+- `n1_phase_a/02a00399/anchor_0/` (7 ERPs + summary)
+- `n1_phase_a/02a00399/anchor_0_hires/` (2048×4096, 7 ERPs)
+- `n1_phase_c/02a00399/anchor_0/` (l1_inf, l1_lidar, depth_viz, lidar_depth_map.npz)
+- `n1_phase_c_plus_n2/<5 log_ids>/anchor_0/` (cross-log results)
+
+---
+
+## 我推荐的下一步 (按 信心 × 投入 排序)
+
+### 1. **DVGT 替代 LiDAR-kNN-fill 当 depth source** (1-2 day, ~$15 GPU)
+
+[DVGT CVPR 2026](https://arxiv.org/abs/2512.16919) 是你 5-15 brainstorm 标的 L3 首选, 一直没跑. 
+- DVGT 输出 dense per-pixel depth (vs LiDAR sparse)
+- DVGT metric-scaled, 不需 Sim(3) 对齐
+- 训练数据含 AV2 同源 (nuScenes/Waymo/KITTI/DDAD) → 大概率 generalize 到 AV2 ring
+- 直接接入现有的 `render_camera_to_erp(convergence_distance_m=dvgt_depth_map)` API
+
+**预期**: 比 kNN-fill 的 LiDAR 更 dense + smoother, 应该修发现 5 的 #3 (sparsity 问题). 但**不修** view-dependent overlap (#2).
+
+**风险**: model 在 AV2 ring cam (60° baseline ring) generalize 不一定好.
+
+### 2. **Object-aware graphcut seam routing** (1 day)
+
+YOLO 或 SAM 在 ERP 上检测 car/pedestrian bbox, 喂进 `compute_pair_overlap_energy` 作为额外 cost term (bbox 内部 cost = ∞). Forces seam 绕开物体.
+
+**预期**: 修发现 5 的 #2 (view-dependent overlap), 因为只有一个 cam 贡献物体区. 但**seam 切线可能可见**.
+
+### 3. **View synthesis (NeRF / 3DGS)** (1-2 week heavy)
+
+[Seam360GS](https://arxiv.org/abs/2508.20080) (Aug 2025) 或 [CylinderSplat](https://arxiv.org/abs/2603.05882) feed-forward panoramic 3DGS.
+
+直接 generate 单一 view 不依赖多 cam blend. **理论上 唯一能完全 fix doubled-near-field ghost 的 paradigm**. 但是 paradigm shift, 不再是"改进 L1".
+
+### 4. **Frame selection (放弃个别 frame)** (0.5 day)
+
+跑过所有 anchor 计算每帧的 ghost score, 给 Bosch 的 dataset 只交 ghost-free 子集. Bosch 不需要每帧完美.
+
+---
+
+## 关键 commits 链 (按 commit hash)
+
+```
+8d934da  Phase C+N2 honest result
+bb0023c  N2: combined driver
+77fe408  Phase C honest result
+433b043  Phase C: LiDAR module + driver
+91b4cfa  Phase A complete: visual gate inconclusive
+d5224d5  Phase A: cam-translation-aware L1 (the foundational fix)
+5f7221a  (prior) Stage 3 v5 ghost-truth audit
+```
+
+---
+
+## 5.22 prompt 状态 (vs. session 开始)
+
+| # | item | 进展 |
+|---|---|---|
+| §1a 2-wheel ghost | 之前 9 NEG, v5 视觉不动 | **架构 fix** (N1 修了 L1 真 bug), **视觉 ghost 未消** (view-dependent + sparsity). Path forward identified. |
+| §1b AV2 color shift | 未做 | **未做** — 用户深夜睡了, 我决定优先 N1 plan. 可作下一 sprint 早起项. |
+| §2 cylinder 长方形 + seam | 已修 (Stage 3 Phase B) | 之前已 closed |
+| §3a L1 综合 quality | 之前只有 metric polish | **N1 是真正的 L1 改进** (修 documented bug). 但 visible quality 没大变 |
+| §3b ORB+L1 | T5 NEG | 之前已 closed (NEG) |
+| §4 探索新路线 | 之前没做 | **部分**: depth-aware 路线 (N1+LiDAR+graphcut) 实施完整 architecture. 还有 DVGT / view synthesis 没试 |
+| §5 Waymo | 用户主动 deprioritize | (跳过) |
+| 队友 work | 用户主动 deprioritize | (跳过) |
+
+---
+
+## 给你 (人) 的建议: 醒来后 3 步
+
+1. **(5 min) 读这个 doc + 看 `xlog_grid_thumb.png`** (5 logs 视觉对照)
+2. **(15 min) 决定方向**: 
+   - 接受 N1 architecture, 上 DVGT (#1 above) 看能否清掉 sparsity 问题
+   - 或换 paradigm 试 view synthesis (#3 above)
+   - 或战略 reframe (#4 above — frame selection 给 Bosch 子集而不是修每帧)
+3. **(余下时间)** 按选择执行
+
+---
+
+**Session 起止**: 2026-05-26 ~21:30 - ~23:00 UTC  
+**Colab kernel**: L4 GPU (CPU-only ops used; GPU 没用上)  
+**API endpoint**: `https://aware-oct-shopping-cove.trycloudflare.com` (token in active_url.json)  
+**Github**: github.com/QiPan-Ronnie/Waymo2Panorama main @ commit `8d934da`
