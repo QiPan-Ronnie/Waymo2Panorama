@@ -75,3 +75,61 @@ def build_pair_disparity_magnitude(
         gauss = np.exp(-d2 * inv_two_sigma_sq).astype(np.float32)
         np.maximum(out, gauss * rel_disp, out=out)
     return out
+
+
+def find_min_disparity_seam(
+    disparity_mag: np.ndarray,
+    overlap_mask: np.ndarray,
+    u_smoothness: float = 1.0,
+) -> np.ndarray:
+    """1D dynamic-programming seam finder through the overlap region.
+
+    For each row v, picks a column u_seam(v) such that:
+      (a) the path stays inside overlap_mask
+      (b) total cumulative disparity along the path is minimized
+      (c) consecutive rows' u_seam values are close (u_smoothness penalty)
+
+    Uses DP: at each row, cost[v, u] = disp[v, u] + min(cost[v-1, u'] +
+    u_smoothness * |u' - u|) over u' in valid overlap. Returns the argmin
+    backtrace.
+
+    Args:
+        disparity_mag: (H, W) float32. Higher = avoid this pixel.
+        overlap_mask: (H, W) bool. True where seam allowed to pass.
+        u_smoothness: penalty per pixel of row-to-row column change.
+
+    Returns:
+        seam_u: (H,) int array. seam_u[v] = column index of the seam at row v.
+            For rows where overlap_mask is empty, seam_u[v] = midpoint of W.
+    """
+    H, W = disparity_mag.shape
+    INF = 1e9
+    cost = np.full((H, W), INF, dtype=np.float64)
+    back = np.zeros((H, W), dtype=np.int64)
+    # Initial row
+    cost[0] = np.where(overlap_mask[0], disparity_mag[0].astype(np.float64), INF)
+    for v in range(1, H):
+        prev = cost[v - 1]
+        for u in range(W):
+            if not overlap_mask[v, u]:
+                continue
+            # Search u' in [u - 3, u + 3] (small window, smoothness penalty
+            # implicitly limits jump). Faster than full O(W^2).
+            best = INF
+            best_up = u
+            for up in range(max(0, u - 3), min(W, u + 4)):
+                c = prev[up] + u_smoothness * abs(up - u)
+                if c < best:
+                    best = c
+                    best_up = up
+            cost[v, u] = best + float(disparity_mag[v, u])
+            back[v, u] = best_up
+    # Backtrace from last row
+    seam_u = np.full(H, W // 2, dtype=np.int64)
+    if cost[H - 1].min() < INF:
+        u = int(np.argmin(cost[H - 1]))
+        seam_u[H - 1] = u
+        for v in range(H - 1, 0, -1):
+            u = int(back[v, u])
+            seam_u[v - 1] = u
+    return seam_u

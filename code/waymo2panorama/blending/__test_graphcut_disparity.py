@@ -39,3 +39,20 @@ def test_disparity_nonzero_when_displacements_differ():
         cam_a_anchors, cam_b_anchors, erp_hw=erp_hw, sigma_px=10.0,
     )
     assert disp_mag[30, 60] > 4.0  # |3 - (-3)| = 6 pixels of relative disp
+
+
+def test_find_seam_picks_min_disparity_column():
+    """Seam should pass through low-disparity column, avoid high-disparity column."""
+    from waymo2panorama.blending.graphcut_disparity import find_min_disparity_seam
+    H, W = 32, 64
+    # Setup: uniform high disp inside overlap EXCEPT a low-disp valley at col 34-36.
+    # This forces the DP to route through the valley (since uniform background is
+    # higher cost everywhere else inside the overlap mask).
+    disp = np.full((H, W), 10.0, dtype=np.float32)
+    disp[:, 34:36] = 0.1  # low-disp valley
+    overlap_mask = np.zeros((H, W), dtype=bool)
+    overlap_mask[:, 15:45] = True
+    seam_u = find_min_disparity_seam(disp, overlap_mask, u_smoothness=0.5)
+    assert seam_u.shape == (H,)
+    # Seam should be near columns 34-35 (the only low-cost region inside overlap).
+    assert np.all((seam_u >= 32) & (seam_u <= 40)), f"seam {seam_u} should be near 35"
