@@ -43,9 +43,33 @@ def _load_pi3_cam(pi3_dir: Path, cam: str) -> dict:
     }
 
 
+def _load_av2_raw_per_cam(av2_log_dir: Path, anchor_idx: int, cams: list[str]):
+    """Load per-cam dict from AV2 raw at full resolution. Mirrors _load_pi3_cam shape."""
+    # Local import to avoid forcing AV2 deps when only pi3-cache mode is used.
+    from waymo2panorama.data_io.av2_loader import AV2RingLoader  # noqa: PLC0415
+    loader = AV2RingLoader(av2_log_dir)
+    anchor_ts = loader.anchor_timestamps_ns()[anchor_idx]
+    frame = loader.load_synced_frame(anchor_ts)
+    return {
+        cam: {
+            "image": frame.images[cam],
+            "K": frame.calibrations[cam].K.astype(np.float64),
+            "T_ego_cam": frame.calibrations[cam].T_ego_cam.astype(np.float64),
+        }
+        for cam in cams
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
-    ap.add_argument("--pi3-dir", type=Path, required=True)
+    # Input source — exactly one of:
+    ap.add_argument("--pi3-dir", type=Path, default=None,
+                    help="pi3-cache anchor dir (504x504 letterboxed). Mutually exclusive with --av2-log-dir.")
+    ap.add_argument("--av2-log-dir", type=Path, default=None,
+                    help="AV2 sensor log dir for full-res input (~2048x1550). "
+                         "Requires --anchor-idx. Mutually exclusive with --pi3-dir.")
+    ap.add_argument("--anchor-idx", type=int, default=None,
+                    help="Anchor index when using --av2-log-dir.")
     ap.add_argument("--stereo-cache-dir", type=Path, required=True)
     ap.add_argument("--output-dir", type=Path, required=True)
     ap.add_argument("--erp-h", type=int, default=1024)
@@ -58,6 +82,12 @@ def main() -> int:
     ap.add_argument("--confidence-sigma-px", type=float, default=20.0)
     ap.add_argument("--w2p-code", default=None)
     args = ap.parse_args()
+
+    # Input source validation
+    if (args.pi3_dir is None) == (args.av2_log_dir is None):
+        ap.error("must provide exactly one of --pi3-dir / --av2-log-dir")
+    if args.av2_log_dir is not None and args.anchor_idx is None:
+        ap.error("--av2-log-dir requires --anchor-idx")
 
     here = Path(__file__).resolve().parent
     w2p_code = Path(args.w2p_code) if args.w2p_code else (here / DEFAULT_W2P_CODE_REL).resolve()
@@ -72,10 +102,18 @@ def main() -> int:
     out_dir = Path(args.output_dir); out_dir.mkdir(parents=True, exist_ok=True)
     erp_hw = (args.erp_h, args.erp_w)
     cams = list(RING_CAMS_7)
-    print(f"[a2-sparse-disp] mode={'NO-WARP plain L1' if args.no_warp else 'A2 displacement warp'}, "
-          f"erp_hw={erp_hw}", flush=True)
 
-    per_cam = {cam: _load_pi3_cam(args.pi3_dir, cam) for cam in cams}
+    if args.av2_log_dir is not None:
+        source_label = f"av2raw:{args.av2_log_dir.name}:anchor_{args.anchor_idx}"
+        per_cam = _load_av2_raw_per_cam(args.av2_log_dir, args.anchor_idx, cams)
+    else:
+        source_label = f"pi3:{args.pi3_dir}"
+        per_cam = {cam: _load_pi3_cam(args.pi3_dir, cam) for cam in cams}
+
+    sample = per_cam[cams[0]]
+    print(f"[a2-sparse-disp] mode={'NO-WARP plain L1' if args.no_warp else 'A2 displacement warp'}, "
+          f"erp_hw={erp_hw}, source={source_label}, sample_img_shape={sample['image'].shape}", flush=True)
+
     cam_image_shapes = {cam: per_cam[cam]["image"].shape[:2] for cam in cams}
     ego_masks = build_ego_masks(cams, cam_image_shapes, enabled=not args.no_ego_mask)
 
@@ -123,7 +161,11 @@ def main() -> int:
     summary = {
         "route": "WS4 A2 — L1 + sparse stereo ERP displacement",
         "mode": "no-warp (plain L1)" if args.no_warp else "warped",
-        "pi3_dir": str(args.pi3_dir),
+        "source": source_label,
+        "pi3_dir": str(args.pi3_dir) if args.pi3_dir else None,
+        "av2_log_dir": str(args.av2_log_dir) if args.av2_log_dir else None,
+        "anchor_idx": args.anchor_idx,
+        "sample_img_shape": list(sample["image"].shape),
         "stereo_cache_dir": str(args.stereo_cache_dir),
         "erp_hw": list(erp_hw),
         "params": {
