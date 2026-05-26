@@ -1,5 +1,46 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~20:00 UTC — [Stage 3 v5 ghost-truth audit — v5 ship state does NOT visibly fix 2-wheel parallax ghost. Honest negative.]
+> - **怎么做**: 用户问 "v5 真的修了 5.22 §1 的 2-wheel 轮胎问题吗?". 之前所有 v1-v5 都是 metric-driven, 没直接视觉确认 visible ghost 被减少. 这次本 anchor 在 2048×4096 高分辨率 plain L1 找 visible ghost, 然后 v5 + v6/v7/v8/v9 sweep, 局部 zoom A/B.
+> - **找到 visible ghost**: log 02a00399 anchor 0, top-3 parallax score (0.411). 渲染高分辨率 (2048×4096) plain L1, 在 SR-RR seam 找到 2 个明显 ghost target:
+>   - **Porsche Cayenne** (col ~1500, row ~1000-1300): 前轮 2 个位置, 车身 halo overlap
+>   - **白 BMW SUV** (col ~3500, row ~900-1300): 轮子双重 ghost, 车身被 cam 边界切成 2 半
+> - **v5 ghost A/B 结果 (smoking gun)**:
+>   - Porsche zoom **max_diff = 0, nz_pct = 0.00%** — **v5 一个像素都没改动 Porsche**
+>   - BMW zoom: max_diff = 77, nz_pct = 5.11% — v5 只改了散点 (轮毂边缘、车身门缝), **ghost 完全没消**
+>   - 视觉上 v5 panel ≈ plain panel
+> - **为什么 v5 漏掉 ghost**: ghost 区域内 stereo 找到的 anchors **parallax 都 < 10 px** (被 min_parallax_px=10 filter 滤掉), OR gaussian_width_px=10 too tight, anchors 影响半径不到 ghost wheel. v5 metric -0.08 ΔL1 改善 全在 sky/building 微纹理, **不在 ghost 区**.
+> - **v6-v9 sweep (loosen params, 想触到 ghost)**:
+>     ```
+>     variant            | Porsche nz_pct | BMW nz_pct | visual on ghost
+>     ──────────────────────────────────────────────────────────────────
+>     v5  g=10 minp=10   |    0.00%       |    5.11%   | 等于 plain (no fix)
+>     v6  g=40 minp=0    |    4.36%       |   21.57%   | 车体平移, 仍有 doubled overlap
+>     v7  g=80 minp=0    |    5.09%       |   25.26%   | 类似 v6
+>     v8  TPS minp=0     |    6.64%       |   28.26%   | 类似
+>     v9  ideal g=40     |    5.69%       |   22.81%   | **catastrophic swirly** BMW 大变形
+>     ```
+> - **决定性视觉结论**: v6-v9 也不修 2-wheel ghost. v6/v7/v8 把车体整体 translate, 但 ghost 仍在 (translate ≠ true parallax compensation). v9 (ideal target) 灾难性 swirly distortion — 验证 Stage 3 Phase A 的原始 NEG 是真的, 不只是 metric 现象.
+> - **结构性 honest 结论**: **L1 sphere + 任何 sparse-displacement A2/B1 算法都改不了 2-wheel ghost**. L1 sphere 用 infinity-depth, near-field 物体在不同 cam 上有不同 angular position → ghost 是 L1 投影自身的 geometric artifact. Post-hoc displacement warp 可以平移像素但不能合成 unobserved viewpoint. 要真修 ghost, 需要 depth-aware projection (L3-style forward splat, 已有 route) 或 view synthesis (NeRF/3DGS), 不是 L1+warp.
+> - **诚实纠正 prior claims**:
+>   - "v5 ship state": ✗ metric polished 是真, 但 visible 2-wheel ghost fix 是假
+>   - "190× metric NEG reduction": ✓ 真的, 从 A2 ideal 的 +5.70 → v5 +0.03, 但**这是 overlap-region L1 metric**, 和 visible ghost 不直接相关
+>   - "First positive metric across 9-attempt sequence": ✓ 真的, anchor 60 ΔL1 = -0.08 POS, 但 -0.08/23.65 ≈ 0.3% 改善, micro-correction not ghost-fix
+>   - "cross-log validation 2/3 POS": ✓ metric 真的 POS, 但没视觉 ghost reduction 证据
+> - **Lesson**: 这次完美 demonstrate "metric optimization 跑得越远, 越远离 visual goal" 的失败模式. 之前 9 attempts 都 metric-driven, 没人在 visible parallax ghost 上做直接 A/B. v5 polished 状态是"在不相关 metric 上 polished", 不是"在 ghost 上 polished".
+> - **Deliverables** `deliverables/stage3_ghost_proof_2026_05_26/`:
+>   - `a000_2_seam_SR-RR.jpg` — Porsche ghost source 视觉 (plain | v5)
+>   - `a000_v5_diff_overlay.jpg` — 全 ERP heatmap: v5 red dots 主要在 sky/building, 不在 Porsche
+>   - `a000_bmw_wheels_zoom.jpg` — BMW ultra-tight 3 列 (plain | v5 | diff*4): 5% scatter 散点
+>   - `a000_porsche_v5_thru_v9.jpg` — Porsche 6 行 stack: v5=plain identical, v6-v9 平移但 ghost 不消, v9 swirly catastrophic
+>   - `a000_bmw_wheels_v5_thru_v9.jpg` — BMW 同上 6 行 stack
+> - Status: [DONE Stage 3 v5 ghost-truth audit — v5 NOT a visible-ghost fix. Structural reframing needed.]
+> - **Next options for the user** (本次工作 honest 终点):
+>   - (a) **重新定义 metric**: 用 perceptual ghost metric (e.g., bounding-box-localized SSIM on detected vehicles) — 现在 overlap-region mean L1 metric 不反映 ghost
+>   - (b) **换 algorithm class**: 上 depth-aware route (L3 forward splat, 已有 module) 或 dense optical-flow blending — A2 sparse displacement 结构性不够
+>   - (c) **接受 L1 baseline + 视 ghost 为 fundamental limit**: 写 paper 说 "L1 sphere produces inherent 2-wheel parallax for d<10m objects in 60° cam baseline, no post-hoc warp can fix"
+>   - (d) **/schedule** 之后再做, 现在 cap
+
 > ### 2026-05-26 ~14:00 UTC — [Stage 3 Phase C v5 cross-log validation — 2/3 anchors POS, generalizes across scenes/stereo-densities]
 > - **怎么做**: v5 polished 之后, /goal hook 还 active. 试 v5 跨 log 验证 (之前只测 log 02a00399). 拉 2c652f9e (dark SUV 场景, 4.6 pts/pair stereo, 稀疏) + 9f871fb4 (urban street, 53 pts/pair stereo, 密集) anchor 60 each. 各跑 stereo 抽取 (18s on GPU) + plain L1 + v5 + 2 eval.
 > - **3 anchor cross-log results**:
