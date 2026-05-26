@@ -81,7 +81,12 @@ def _draw_depth_viz(
 
     Color codes depth from cam_a (turbo colormap). Outliers shown in gray.
     """
-    h, w = img_a.shape[:2]
+    # AV2 raw front_center is portrait (2048x1550) while other cams are landscape
+    # (1550x2048). Use max dims so both fit; center-align each image in its half.
+    h_a, w_a = img_a.shape[:2]
+    h_b, w_b = img_b.shape[:2]
+    h = max(h_a, h_b)
+    w = max(w_a, w_b)
     out = np.zeros((h + 60, 2 * w + 8, 3), dtype=np.uint8)
     out[:, :] = 32
 
@@ -131,8 +136,13 @@ def _draw_depth_viz(
         (220, 220, 220), 1, cv2.LINE_AA,
     )
 
-    out[60:60 + h, :w] = img_a_vis
-    out[60:60 + h, w + 8:2 * w + 8] = img_b_vis
+    # Center each image in its half-cell so portrait/landscape mixes still fit
+    y_a = 60 + (h - h_a) // 2
+    x_a = (w - w_a) // 2
+    y_b = 60 + (h - h_b) // 2
+    x_b = w + 8 + (w - w_b) // 2
+    out[y_a:y_a + h_a, x_a:x_a + w_a] = img_a_vis
+    out[y_b:y_b + h_b, x_b:x_b + w_b] = img_b_vis
     return out
 
 
