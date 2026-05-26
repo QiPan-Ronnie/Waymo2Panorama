@@ -1,8 +1,10 @@
 # N1 Autonomous Run Summary (5-26 evening → night, autonomous mode)
 
-**TL;DR**: 实施了 N1 cam-translation-aware L1 完整 architecture (3 phases + 8 commits + cross-log validation + 5.22 §1b color audit). **几何上 correct**, 修了 L1 的 documented hidden bug. 但**最重要的诚实 finding**: 5-way visual A/B (legacy / HDR / N1 / HDR+N1 / HDR+N1+graphcut) 显示 **N1+LiDAR 在 BMW frame 上视觉更糟** (seam tears + body fragmentation), plain L1 仍最干净. 根因: LiDAR 在 smooth car surface 太 sparse, kNN-fill 把 body depth 错填成周围地面/建筑物 depth, 加上 multi-view overlap 显示不同 angle. **下一步必须换 path**: 不是 keep iterating N1, 是 (a) dense depth backbone (DVGT 需 user auth) 或 (b) view synthesis (NeRF/3DGS) 或 (c) 接受 L1 baseline + HDR + frame selection.
+**TL;DR**: 实施了 N1 cam-translation-aware L1 完整 architecture (4 phases + 12 commits). **几何上 correct**, 修了 L1 的 documented hidden bug. 但**最重要的诚实 finding**: 即使用 dense depth (Phase D: Depth Anything V2) 替代 sparse LiDAR (Phase C), **N1 还是不能 visually 消除 BMW 双轮 ghost**. 决定性结论 — **doubled-near-field-object 是 fundamentally multi-view overlap 问题, 不是 depth-estimation 问题**. 两个 cam 看同一物体的不同 angle, blend 出来就是 doubled. **真正的 fix path 只有 view synthesis (NeRF / 3DGS / Seam360GS) 或 frame selection (战略 reframe — 给 Bosch 干净 subset)**.
 
 **重要副 finding**: §1b AV2 cross-cam lum gap mean **5.5 dB** (max 9.1 dB on 02a00399), 我们之前以为没问题是 wrong. 新-E HDR 应 default ON.
+
+**Phase D 实测 (Depth Anything V2 替代 DVGT, DVGT 被 auto-mode 拒)**: DA dense 改 58% pixels (vs LiDAR 21%), 但视觉上 BMW body 反而 warped/fragmented — DA depth 在 car body 上不准确. 跟 LiDAR sparse 一样, 不消 ghost.
 
 ---
 
@@ -79,6 +81,24 @@ LiDAR 投到 ERP + kNN-fill 6px 之外用 1000m far-fill:
 - `n1_phase_a/02a00399/anchor_0_hires/` (2048×4096, 7 ERPs)
 - `n1_phase_c/02a00399/anchor_0/` (l1_inf, l1_lidar, depth_viz, lidar_depth_map.npz)
 - `n1_phase_c_plus_n2/<5 log_ids>/anchor_0/` (cross-log results)
+
+---
+
+## Phase D 决定性 A/B — DA-V2 dense depth ALSO 不修 ghost
+
+`deliverables/n1_full_stack/bmw_da_vs_lidar.png` 3-row stack:
+
+```
+Row 1: legacy L1         — BMW + doubled wheel + halo, CLEANEST body
+Row 2: N1 + DA-V2 dense   — DA changes 58% pixels, body looks warped/fragmented
+Row 3: N1 + LiDAR sparse  — LiDAR changes 21% pixels, BMW smaller/shifted, still doubled
+```
+
+**这证明了**: doubled-BMW 不是因为 depth 信息不够 dense (LiDAR sparse), 也不是因为 depth source 不够好 (DA dense). 是 multi-view overlap 本质问题. 两个 cam 物理位置不同, 看 BMW 的 angle 不同, blend 两个 view 永远 doubled. **per-pixel depth-aware projection 解不了**.
+
+唯一能 fix 的 paradigm:
+- **View synthesis** (NeRF / 3DGS) — 重建 single coherent view
+- **Frame selection** — 避免 doubled-frame, 给 Bosch 干净 subset
 
 ---
 

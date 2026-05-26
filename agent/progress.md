@@ -1,5 +1,40 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~00:30 UTC — [N1 Phase D — Depth Anything V2 dense depth backbone tested. ALSO doesn't fix BMW ghost. Decisive convergence: doubled-near-field-object is multi-view overlap, NOT depth estimation. Path forward: view synthesis or frame selection ONLY.]
+> - **怎么做**: DVGT 被 auto-mode classifier 拒 (untrusted external repo clone — github.com/wzzheng/DVGT not in trusted org list). 改用 trusted-org 的 substitute: **Depth Anything V2 Metric Outdoor Small** (HuggingFace `depth-anything/Depth-Anything-V2-Metric-Outdoor-Small-hf`, pip install via transformers). 同 spirit (dense per-pixel metric depth), 不需 git clone.
+> - **新代码 `scripts/phase3/run_l1_da_depth.py`** (~300 LOC): 加载 HF DA pipeline → 每 cam 跑 DA → per-cam ERP-sized depth map (inverse-project ERP rays back to cam image, sample DA depth, convert to range-from-ego using cam translation) → N1 render with that cam-specific ERP depth → multiband blend. Each cam uses ITS OWN depth.
+> - **Colab run** (anchor 0, 1024×2048, L4):
+>   - DA load: 5.4s
+>   - DA inference per cam: 0.08-1.26s (1st cam warmup), 7 cams ~3s
+>   - DA depth range per cam: 2.6-79.9m (clamped at 80m max)
+>   - per-cam ERP depth build: ~1s each
+>   - render + blend: ~5s
+>   - Total ~25s
+> - **A/B metrics on BMW/Porsche** vs legacy L1:
+>   ```
+>   metric                  DA vs inf            LiDAR vs inf      DA vs LiDAR
+>   ──────────────────────────────────────────────────────────────────────────
+>   BMW mean diff           244 (out of 765)     75                248
+>   BMW frac changed >100    58%                 21%               59%
+>   Porsche mean diff       156                  51                155
+>   Porsche frac changed    39%                  16%               38%
+>   ```
+>   DA changes 2.5-3× more pixels than LiDAR (dense vs sparse). 几乎 saturate 的 disagreement between DA and LiDAR (mean 248 close to max 765). 两个 depth source agree on very few pixels.
+> - **视觉 A/B (decisive, `deliverables/n1_full_stack/bmw_da_vs_lidar.png`)**:
+>   - Row 1 legacy L1: BMW 可见, doubled wheel ghost, **CLEANEST body**
+>   - Row 2 N1+DA: BMW 在不同 ERP 位置, body **warped + fragmented**, 比 legacy 看起来糟
+>   - Row 3 N1+LiDAR: BMW 较小, shifted, still doubled wheel
+>   - **DA 跟 LiDAR 都没修 ghost. legacy 最干净.**
+> - **DECISIVE 结论 (convergence across LiDAR + DA + graphcut)**:
+>   - **doubled-near-field-object 是 FUNDAMENTAL multi-view overlap 问题, NOT depth estimation**
+>   - Per-pixel depth (无论 sparse LiDAR 还是 dense DA) 都只 修 ANGULAR alignment
+>   - 但 ANGULAR alignment 修了之后, 两个 cam 显示的还是同一物体的不同 view (cam_a 看 front-side, cam_b 看 side-rear)
+>   - Blend 两个 view → 永远 doubled features. Hard seam (graphcut) 也只 hide overlap, 不合成 single view
+>   - **唯一 fix: view synthesis (NeRF / 3DGS / Seam360GS) 重建 single coherent view, OR 战略 reframe (frame selection)**
+> - **Phase D code commits**: `3b70f8c` (DA driver) + `21807ef` (artifacts checkpoint, 35 files)
+> - Status: [DONE Phase D, decisive convergence finding. N1 architecture work fully explored across LiDAR + DA + graphcut. Visible doubled-ghost is FUNDAMENTAL multi-view issue.]
+> - **下一步必须 architectural shift**: view synthesis (Seam360GS / 3DGS) OR frame selection (path c — give Bosch ghost-free subset, not fix every frame).
+>
 > ### 2026-05-26 ~24:00 UTC — [N1 FINAL 5-way A/B — full stack tested, **N1+LiDAR makes BMW WORSE than legacy L1**. Honest negative for current dense-depth strategy. Next must change approach.]
 > - **怎么做**: 写 `scripts/phase3/run_l1_hdr_lidar_graphcut.py` (162 LOC) — combined driver runs 5 outputs on same anchor: l1_inf (legacy) / l1_hdr (+新-E) / l1_lidar (+N1+LiDAR Phase C) / l1_hdr_lidar (+HDR+N1) / l1_hdr_lidar_graphcut (+graphcut full stack). 在 02a00399 anchor 0 (Porsche/BMW frame) 跑, 1024×2048, 53s wall.
 > - **HDR gains 实际解出** (anchor cam = ring_front_center, gain=1.0 pinned): [1.0, 0.925, 0.872, 0.883, 0.897, 0.911, 0.805 (front_right)]. front_right cam (audit 最暗 lum=68) 反而被 HDR REDUCE 到 gain=0.805 — least-squares 在 overlap pixels 上找的优化点, 跟简单 "暗 cam pull bright" 不一样. 这是 multi-pair joint solve 的合理结果.
