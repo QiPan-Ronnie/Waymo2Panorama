@@ -188,6 +188,7 @@ def bundle_adjust_rotations(
     anchor_cam: str,
     pair_weights: Optional[dict[tuple[str, str], float]] = None,
     verbose: bool = False,
+    l2_reg_weight: float = 1e-3,
 ) -> dict[str, np.ndarray]:
     """Estimate per-cam rotation refinements dR_i (3, 3) to minimize pair-wise
     rotation residuals.
@@ -266,15 +267,27 @@ def bundle_adjust_rotations(
             R_residual = R_obs @ R_pred.T
             v = R_to_axis_angle(R_residual) * w
             res.append(v)
+        # L2 regularization: bias all dRs toward identity (keeps the BA
+        # well-conditioned when the pair graph is under-determined, e.g.
+        # held-out cam drops some pair fits). l2_reg_weight=1e-3 means each
+        # axis-angle component contributes ~1e-3 to the residual vector --
+        # negligible compared to typical pair residuals (~1e-2 to 1e-1) so
+        # well-constrained cams move freely; only un-constrained cams get
+        # pulled back to identity.
+        if l2_reg_weight > 0:
+            res.append((omegas_flat * l2_reg_weight).copy())
         return np.concatenate(res)
 
     x0 = np.zeros(n_unknowns, dtype=np.float64)
     if verbose:
         r0 = _residuals(x0)
         print(f"[BA] initial residual norm = {float(np.linalg.norm(r0)):.6f} "
-              f"(over {len(pairs_list)} pairs, anchor={anchor_cam})")
+              f"(over {len(pairs_list)} pairs + {n_unknowns} reg, anchor={anchor_cam})")
 
-    result = least_squares(_residuals, x0, method="lm", max_nfev=200)
+    # trf handles under-determined cases (n_residuals < n_vars) safely.
+    # With l2_reg we add n_unknowns extra residuals, so it's always
+    # well-conditioned even when feature pairs are sparse.
+    result = least_squares(_residuals, x0, method="trf", max_nfev=200)
     if verbose:
         rf = _residuals(result.x)
         print(f"[BA] final   residual norm = {float(np.linalg.norm(rf)):.6f} "
