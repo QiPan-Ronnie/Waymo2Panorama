@@ -1,5 +1,30 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~10:30 UTC — [Stage 3 Phase B — re-render 4 stage-1 route_*.png on AV2 raw, clean paper figures]
+> - **怎么做**: Phase B 重 render 老 stage-1 figures (deliverables/images/route_*.png) 用 AV2 raw 替换 pi3-cache. Audit 后发现 driver 现状:
+>   - `route_graphcut_seam_compare.png` — driver `run_graphcut_seam.py` 已支持 `--input-mode av2 --log-dir`, 直接用 ✓
+>   - `route_hdr_before_after.png` — driver `run_hdr_compensation.py` 已支持 `--input-mode av2 --log-dir --anchor-frames`, 直接用 ✓
+>   - `route_wide_baseline_depth.png` — Stage 3 A.3 我们已经 re-extract 了 AV2 raw stereo, mosaic 自动写了 ✓
+>   - `route_cylinder_vs_sphere.png` — Diag3 已 render 干净版本 (复用)
+>   - `route_ipm_multi_region_compare.png` — **依赖 pi3 `local_points.npy` (per-pixel depth)**, 不重 render. IPM 是 method positive (+0.20 dB ground), figure 重点是 region 分解 (ground/sky/building masks), 不是 halo 区域. 保留 pi3-cache 版本可接受.
+> - **运行** (all anchor 60 of log `02a00399`, Colab A100, 总 wall ~50s):
+>   - graphcut: 32s, compare PNG 2 行 (L1 baseline + graphcut seam), 视觉干净
+>   - HDR: 11s, lum_gap 14.56 → 7.27 dB (delta +7.29 dB, 50% gap reduction). before/after 视觉 confirm
+>   - wide_baseline_depth_mosaic: 35 MB 原图 → downsample to 2048 wide, 3.9 MB, 7 cam pair viz with depth-colored matches. 跟 Stage 3 A.3 一致.
+> - **结果**: 4/5 stage-1 figures 现在有 AV2-raw clean 版本 in `deliverables/images/av2raw/`:
+>   - `route_cylinder_vs_sphere_av2raw.png` (2.5 MB)
+>   - `route_graphcut_seam_compare_av2raw.png` (2.1 MB)
+>   - `route_hdr_before_after_av2raw.png` (2.0 MB, 1024×2124 labeled 2-row)
+>   - `route_wide_baseline_depth_av2raw.png` (3.9 MB, downsampled mosaic)
+>   - (IPM 保留原 pi3-cache 版本, depth 依赖)
+> - **视觉确认 (用 vision 看, 不光看 metric)**:
+>   - graphcut: 2 行 panel 都干净, seam lines 显示在右侧 cam-overlap, 没 halo/wash
+>   - HDR before/after: 右侧 cam 在 after 上明显被 brighten, 跟 lum_gap 数字一致
+>   - wide_baseline depth: 7 cam pair 都看得清, "REAL VIRTUA" 招牌可读, depth-colored match points 覆盖到 near-field 区
+> - **Deliverables**: 4 PNG in `deliverables/images/av2raw/`. 1 commit (this).
+> - Status: [DONE Stage 3 Phase B] — paper figure set complete (with IPM caveat). 没新代码要写.
+> - Next: Phase C paper writeup (3-5 days), 或者 stop here 等队友 Waymo 实测.
+>
 > ### 2026-05-26 ~10:00 UTC — [Source AV2 raw cams verified CLEAN — 2-wheel ghost is purely a stitching limitation, NOT data issue]
 > - **怎么做**: 用户提问 "再去查证原图是不是有这个问题, 如果 AV2 原图有这个问题可能是图片问题". 直接验证: 拉 log `02a00399` anchor 60 的 7 张 AV2 raw cam 源图 (2048×1550 / 1550×2048), downsample 到 ~1024px, 用 vision 一张张看. 关键 ring_side_right 上能清楚读出 "locustprojects" + "REAL VIRTUA" + "COME IN WE'RE" + "EXPERIENCE THE Karte..." 招牌 — **跟 5.22 prompt §1 reference 同 storefront**, 确认是同 log/anchor 的场景.
 >   - 4 张源 cam (front_center / front_right / front_left / side_right) 视觉 review: **全部 clean**, 每辆车 (front_right 上的红色 Camaro 在 ~10m 距离) 锐利单影, 一套轮子, 没 duplicate, 没 ghost, 没 motion blur, 没 sensor artifact.
