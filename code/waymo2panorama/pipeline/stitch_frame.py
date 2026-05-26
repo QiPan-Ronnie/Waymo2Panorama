@@ -99,7 +99,7 @@ def stitch_one_frame_with_prewarp(
     ring_order: Optional[list[str]] = None,
     return_diagnostics: bool = True,
     warp_model: str = "rotation_only",
-    max_corner_outside_frac: float = 0.5,
+    min_warp_coverage_frac: float = 0.5,
 ) -> tuple[np.ndarray, dict]:
     """WS2 — L1 sphere stitch WITH chain-warp overlap-homography prewarp.
 
@@ -204,7 +204,7 @@ def stitch_one_frame_with_prewarp(
             chain_warps[cam] = np.eye(3, dtype=np.float64)
             chain_log[cam] = {
                 "n_hops": 0, "is_identity": True,
-                "safety_fallback": False, "corner_outside_frac": 0.0,
+                "safety_fallback": False, "post_warp_coverage_frac": 1.0,
             }
             continue
         H_chain = ring_path_homography(
@@ -213,16 +213,28 @@ def stitch_one_frame_with_prewarp(
             pair_homographies=pair_H,
             ring_order=ring,
         )
-        # SAFETY VALVE (v2): if chain warp pushes corners more than
-        # `max_corner_outside_frac * img_dim` outside the canvas, fall back
-        # to identity for this cam. Otherwise we get black slabs from rear
-        # cams whose 3-hop H pushed everything off-canvas (v1 NEG mode).
+        # SAFETY VALVE (v2): adjacent ring cams point in different directions, so
+        # geometrically-correct pair warps DO map full-image corners far off the
+        # receiving cam's canvas — corner-projection check would over-trigger.
+        # Instead we run the warp, count how many output pixels are non-zero,
+        # and only fall back if coverage collapsed below the threshold (which
+        # IS the v1 NEG mode: rear cams' 3-hop perspective chain pushes all
+        # image content off-canvas -> all-black slab -> ERP rear region empty).
         img = per_cam[cam]["image"]
-        is_safe, outside_frac = validate_warp_corners(
-            H_chain, image_hw=img.shape[:2],
-            max_outside_frac=max_corner_outside_frac,
+        h_src, w_src = img.shape[:2]
+        warped_probe = cv2.warpPerspective(
+            np.ones((h_src, w_src), dtype=np.uint8),
+            H_chain, (w_src, h_src),
+            flags=cv2.INTER_NEAREST,
+            borderMode=cv2.BORDER_CONSTANT, borderValue=0,
         )
-        safety_fallback = not is_safe
+        post_warp_coverage = float(warped_probe.mean())
+        # If less than `min_warp_coverage_frac` fraction of the canvas is
+        # non-zero after warp -> warp pushed image off; fall back to identity.
+        # Default 0.5 means "require at least 50% of the canvas to be covered
+        # by warped image content". For pure rotation between adjacent ring cams,
+        # this is easily satisfied (~80-95% coverage typical).
+        safety_fallback = post_warp_coverage < min_warp_coverage_frac
         if safety_fallback:
             H_chain = np.eye(3, dtype=np.float64)
             n_chain_safety_fallbacks += 1
@@ -235,7 +247,7 @@ def stitch_one_frame_with_prewarp(
             "n_hops": int(n_hops),
             "is_identity": bool(np.allclose(H_chain, np.eye(3), atol=1e-9)),
             "safety_fallback": bool(safety_fallback),
-            "corner_outside_frac": float(outside_frac),
+            "post_warp_coverage_frac": post_warp_coverage,
         }
 
     # ---- Step 3: warp each non-reference cam ------------------------------
@@ -320,7 +332,7 @@ def stitch_one_frame_with_prewarp(
         "n_pairs_ok": int(sum(1 for r in pair_results.values() if r["status"] == "ok")),
         "reference_cam": reference_cam,
         "warp_model": warp_model,
-        "max_corner_outside_frac": float(max_corner_outside_frac),
+        "min_warp_coverage_frac": float(min_warp_coverage_frac),
         "n_chain_safety_fallbacks": int(n_chain_safety_fallbacks),
         "runtime": {
             "feature_match_s": round(t_fm_s, 3),

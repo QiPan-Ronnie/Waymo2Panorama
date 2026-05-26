@@ -120,11 +120,11 @@ def main() -> int:
                          "(8 DOF, drifts after 3-hop chain); 'similarity' = 4 DOF (rotation+scale+"
                          "translation, bounded under chain compose); 'rotation_only' (default) = "
                          "3 DOF rigid 3D rotation via Procrustes on backprojected rays, requires K.")
-    ap.add_argument("--max-corner-outside-frac", type=float, default=0.5,
-                    help="Safety valve: if a cam's chain warp pushes corners more than this "
-                         "fraction of the image dim outside the canvas, fall back to identity "
-                         "for that cam (prevents the v1 NEG mode where rear cams' 3-hop warps "
-                         "flew off-canvas).")
+    ap.add_argument("--min-warp-coverage-frac", type=float, default=0.5,
+                    help="Safety valve: if post-warp non-zero pixel coverage falls below this "
+                         "fraction (e.g. <50% of canvas still covered), fall back to identity. "
+                         "This catches the v1 NEG mode where rear-cam 3-hop perspective chain "
+                         "pushed all image content off-canvas, producing all-black slabs.")
     ap.add_argument("--w2p-code", default=None,
                     help="Path to the `code/` dir holding the waymo2panorama package.")
     args = ap.parse_args()
@@ -233,7 +233,7 @@ def main() -> int:
             reference_cam=args.reference_cam,
             return_diagnostics=True,
             warp_model=args.warp_model,
-            max_corner_outside_frac=args.max_corner_outside_frac,
+            min_warp_coverage_frac=args.min_warp_coverage_frac,
         )
     t_stitch_s = time.time() - t_stitch0
 
