@@ -19,9 +19,16 @@ render_camera_to_erp, multiband_blend, or stitch_frame.
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 
 from waymo2panorama.pipeline.lift_and_project import ego_points_to_erp_uv
+from waymo2panorama.pipeline.option_b_reweight import (
+    STEREO_NPZ_PTS_KEY,
+    STEREO_NPZ_CAM_A_KEY,
+    STEREO_NPZ_CAM_B_KEY,
+)
 
 
 def _compute_l1_erp_pixel_per_cam(
@@ -67,3 +74,64 @@ def _compute_l1_erp_pixel_per_cam(
     ray_ego = R_ego_cam @ ray_cam
     u_f, v_f, valid = ego_points_to_erp_uv(ray_ego.reshape(1, 3), erp_hw=erp_hw)
     return np.array([float(u_f[0]), float(v_f[0])], dtype=np.float64)
+
+
+def _load_stereo_pair(path: Path) -> tuple[str, str, np.ndarray] | None:
+    """Load (cam_a, cam_b, pts_3d_ego) from one stereo .npz file."""
+    with np.load(path) as npz:
+        if STEREO_NPZ_CAM_A_KEY not in npz.files or STEREO_NPZ_CAM_B_KEY not in npz.files:
+            return None
+        if STEREO_NPZ_PTS_KEY not in npz.files:
+            return None
+        cam_a = str(npz[STEREO_NPZ_CAM_A_KEY])
+        cam_b = str(npz[STEREO_NPZ_CAM_B_KEY])
+        pts = np.asarray(npz[STEREO_NPZ_PTS_KEY], dtype=np.float64)
+    if pts.ndim != 2 or pts.shape[1] != 3 or pts.shape[0] == 0:
+        return None
+    return cam_a, cam_b, pts
+
+
+def build_per_cam_displacements_from_stereo(
+    stereo_npz_paths,
+    cam_K: dict[str, np.ndarray],
+    cam_T_ego_cam: dict[str, np.ndarray],
+    cam_names: list[str],
+    erp_hw: tuple[int, int],
+) -> dict[str, list[tuple[np.ndarray, np.ndarray]]]:
+    """Build sparse per-cam displacement vectors from cached stereo .npz files.
+
+    For each cam X in cam_names and each 3D ego point pt seen by a stereo
+    pair involving X:
+      ideal_uv = ego_points_to_erp_uv(pt)  # depth-aware ERP location
+      l1_uv   = _compute_l1_erp_pixel_per_cam(pt, K_X, T_X)
+      delta_uv = ideal_uv - l1_uv  # cam X's slab needs to shift by this
+
+    Returns dict {cam_name: list of (ideal_uv, delta_uv) tuples}. Cams not
+    appearing in any stereo pair get an empty list.
+    """
+    cam_set = set(cam_names)
+    out: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {c: [] for c in cam_names}
+    for p in stereo_npz_paths:
+        loaded = _load_stereo_pair(Path(p))
+        if loaded is None:
+            continue
+        cam_a, cam_b, pts = loaded
+        if cam_a not in cam_set or cam_b not in cam_set:
+            continue
+        for pt in pts:
+            u_ideal, v_ideal, _ = ego_points_to_erp_uv(pt.reshape(1, 3), erp_hw=erp_hw)
+            ideal_uv = np.array([float(u_ideal[0]), float(v_ideal[0])], dtype=np.float64)
+            for cam in (cam_a, cam_b):
+                l1_uv = _compute_l1_erp_pixel_per_cam(
+                    pt, cam_K[cam], cam_T_ego_cam[cam], erp_hw,
+                )
+                if np.any(np.isnan(l1_uv)):
+                    continue
+                # Handle wrap-around in u (use shortest signed delta)
+                delta_u = (ideal_uv[0] - l1_uv[0])
+                W = erp_hw[1]
+                if delta_u > W / 2: delta_u -= W
+                elif delta_u < -W / 2: delta_u += W
+                delta_uv = np.array([delta_u, ideal_uv[1] - l1_uv[1]], dtype=np.float64)
+                out[cam].append((ideal_uv, delta_uv))
+    return out
