@@ -1,6 +1,6 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-24 (agent-colab-direct v0.1.0 shipped + Colab smoke-test passed + repo migrated off agent-colab-queue. Paper work blocked pending Koi feedback.)
+**Updated**: 2026-05-26 (Stage 2 Days 1-2 + WS4-D6 all NEG. 7 parallax-fix attempts exhausted; WS4-D7 decision gate pending user.)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
 
 ---
@@ -9,18 +9,23 @@
 
 Sub-project of the Koi paper chain. Goal: take **Argoverse 2 ring 7-cam frames** (same timestamp) and stitch them into a **360° ERP panorama** that downstream consumers (Pantheon360 / GEN3C / Cosmos) can use. Target venue: **3DV 2026** (main or D&B), advisor Koi Chen.
 
-**Current state (2026-05-24)**:
-- **8 stitching routes done + benchmarked** (L1 sphere, L3 Pi3 forward-splat, IPM ground hybrid, 新-A cylinder, 新-B graph-cut seam, 新-C IPM multi-region, 新-D wide-baseline stereo, 新-E HDR compensation).
-- **Final Koi deliverable shipped**: `deliverables/handoff_to_koi_w2_2026-05-21_v6cpu_done.{md,pdf}` (13 pages, 11 figures, 8 routes + 3 external NEG + 3 downstream demos). **7 video supplementaries** shipped 2026-05-23 to Drive (see "Video deliverables" section below).
+**Current state (2026-05-26)**:
+- **8 stitching routes done + benchmarked** (L1 sphere, L3 Pi3 forward-splat, IPM ground hybrid, 新-A cylinder, 新-B graph-cut seam, 新-C IPM multi-region, 新-D wide-baseline stereo, 新-E HDR compensation). Plus **2 Stage-2 attempts** (T4 Option B reweight, T5 L1+ORB hybrid → rotation refinement) **and 2 WS4 parallax attempts** (A2 sparse-stereo displacement, B1 disparity-aware graphcut seam) — all 4 NEG for principled documented reasons.
+- **Final Koi deliverable shipped**: `deliverables/handoff_to_koi_w2_2026-05-21_v6cpu_done.{md,pdf}` (13 pages, 11 figures, 8 routes + 3 external NEG + 3 downstream demos). **7 video supplementaries** shipped 2026-05-23 to Drive.
+- **Stage 2 result (2026-05-25 → 26)**: 7 NEG attempts at fixing parallax-induced overlap halo. Pattern: any fix applied **on top of L1 sphere ERP output** cannot resolve the artifact. Root cause traced (see WS4-D6 diagnostic) to absence of near-field signal in stereo cache. **Real fix requires depth-aware reconstruction** (RAFT dense flow / Pi3 forward-splat redo / 4D Gaussian) or different paradigm. See `agent/progress.md` top 3 entries + `deliverables/parallax_visual_review/diagnostic_notes.md`.
 - **新-F VGGT** (4th backbone NEG) — **blocked**: `facebook/VGGT-1B-Commercial` is gated repo, user needs to click "Agree and access" on HF first.
-- **T13 self-sup Pi3 finetune** — **deferred pending Koi feedback** (5-6 day GPU train, high cost, gated on paper angle decision).
-- **Paper angle**: candidate is **A' Method paper** (3 stack-able positive contributions: 新-C IPM ground +0.20 dB / 新-E HDR -18% color gap / 新-B graph-cut visual win) + 4-5 NEG. **Awaiting Koi 拍板** (G3 v6 gate) — paper work is GATED on this input.
-- **Infrastructure**: migrated 2026-05-24 from agent-colab-queue (git-as-queue, polluting main with 15+ commits/day) to [`agent-colab-direct`](https://github.com/QiPan-Ronnie/agent-colab-direct) v0.1.0 (HTTPS executor in Colab via Cloudflare Tunnel). Smoke-tested end-to-end on real Colab; **daily-use validation pending** — first time we use the new framework for a real research task we may hit rough edges. See "Infrastructure: agent-colab-direct" section.
+- **T13 self-sup Pi3 finetune** — **deferred pending Koi feedback**.
+- **Paper angle**: original candidate **A' Method paper** (3 positives + 4-5 NEG). After Stage 2, the **NEG list is now 7+ attempts** with clear structural reasons — strengthens the "Negative-only" or "Method + extensive ablation" angles. **Still awaiting Koi 拍板** (G3 v6 gate).
+- **Infrastructure**: agent-colab-direct v0.1.0 active. Used successfully in Stage 2 + WS4 (multiple Colab GPU runs, including 8.5-min batch of 12 renders + 4 panels + 2 cycle eval on 2026-05-26). No framework bugs hit beyond the Windows notebook path issue already fixed.
 
 **What the next agent should do**:
-- **If user has new Koi input**: read `agent/progress.md` top 3 entries, then act on paper-angle decision (A' vs B-with-C vs Negative-only). Decision tree in "Open decisions" below.
-- **If user wants to run a Colab task**: use `notebooks/runtime.ipynb` + MCP tool `mcp__colab-direct__exec(...)` (NOT `mcp__agent-colab-queue__submit_job`). This is the **first real-world use** of the new framework — flag any friction back to user; we may need v0.1.1 polish.
-- **If user wants paper draft work**: gated on Koi response. Don't proactively start drafting until Koi 拍板.
+- **If user wants to make WS4-D7 decision**: open `deliverables/parallax_visual_review/diagnostic_notes.md` — it has 4 options with risk/effort + recommendation. The 8 visual panels are in the same folder; user inspects them to confirm visual NEG.
+- **If user picks (a) C1 RAFT**: write new `code/waymo2panorama/alignment/dense_flow_raft.py` per the WS4 plan (`agent/plans/2026-05-26-parallax-overlap-fix-plan.md` Phase 6, Tasks 6.1-6.3). GPU required.
+- **If user picks (b) L3 Pi3 redo**: substantial new module work — read original L3 NEG diagnosis first (handoff §1.2 + `notes/baseline_diagnosis.md`).
+- **If user picks (c) re-extract stereo with looser settings**: 1-2 day investigation, modify `code/waymo2panorama/stereo/wide_baseline_stereo.py` DISK/LightGlue thresholds + re-run anchor 060 to check if near-field anchors emerge.
+- **If user picks (d) paper writeup all-NEG**: write up the 7 attempts as a complete ablation; no more code attempts.
+- **If user has new Koi input**: act on paper-angle decision (A' vs B-with-C vs Negative-only). Decision tree in "Open decisions" below.
+- **If user wants to run a Colab task**: notebook + HTTP-direct via `agent-colab-direct`. MCP server not registered in some sessions — fallback to raw HTTP curl with token from `MyDrive/.../runtime/active_url.json` works fine (used successfully on 2026-05-26).
 
 ---
 
