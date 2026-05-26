@@ -1,0 +1,44 @@
+[
+  {
+    "log_id": "02a00399",
+    "anchor_index": 105,
+    "ts_ns": 315966075799927209,
+    "score": 0
+  },
+  {
+    "log_id": "02a00399",
+    "anchor_index": 200,
+    "ts_ns": 315966080549927216,
+    "score": 0
+  },
+  {
+    "log_id": "02a00399",
+    "anchor_index": 201,
+    "ts_ns": 315966080599927219,
+    "score": 0
+  },
+  {
+    "log_id": "02a00399",
+    "anchor_index": 204,
+    "ts_ns": 315966080749927223,
+    "score": 0
+  },
+  {
+    "log_id": "02a00399",
+    "anchor_index": 209,
+    "ts_ns": 315966080999927218,
+    "score": 0
+  },
+  {
+    "log_id": "02a00399",
+    "anchor_index": 210,
+    "ts_ns": 315966081049927222,
+    "score": 0
+  },
+  {
+    "log_id": "02a00399",
+    "anchor_index": 211,
+    "ts_ns": 315966081099927209,
+    "score": 0
+  }
+]
