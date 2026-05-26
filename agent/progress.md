@@ -1,5 +1,33 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~11:30 UTC — [Stage 3 Phase C — Joint per-pair midpoint displacement: A2 architectural NEG **partially fixed** (visual swirl gone, metric still NEG vs plain L1)]
+> - **怎么做**: 实现 (i) joint per-pair displacement 修 A2 per-cam-independent flaw. 在 `sparse_displacement.py:build_per_cam_displacements_from_stereo` 加 `target_mode` 参数: "ideal" (orig A2 depth-aware ERP target) vs "midpoint" (新, 2D wrap-aware midpoint between L1_uv_a 和 L1_uv_b). 加 2 个 helper (`_shortest_wrap_delta`, `_midpoint_uv_wrap`). orchestrator + driver 加 target_mode pass-through. 3 个新 pytest: symmetric anchor + ideal-vs-midpoint diff + invalid mode raises. 11/11 pytest pass. 1 commit `2634beb`.
+> - **Colab 实测** (anchor 60 of log 02a00399, AV2 raw, with --target-mode midpoint, 41s wall):
+>   - 视觉 (我自己用眼看, 不只 metric): Q4 storefront 区"REAL VIRTU"上 ideal 那个 **swirled face/blob 怪图案完全消失** ✓. 看 q4_zoom_3way panel: plain L1 干净 → ideal 漩涡 → midpoint 接近 plain. 决定性 visual win over ideal.
+>   - 4-anchor metric (`eval_parallax_ghost_alignment.py --target-mode midpoint`):
+>     ```
+>     anchor  plain L1       A2 ideal       A2 midpoint    midpoint Δ vs plain
+>     ─────────────────────────────────────────────────────────────────────────
+>        0   15.70 / 0.821  21.72 / 0.751  18.11 / 0.767  +2.41 / -0.054
+>       60   23.66 / 0.746  34.39 / 0.628  26.08 / 0.677  +2.43 / -0.069  ← worst case for ideal, midpoint ↓ catastrophe
+>       90   24.92 / 0.810  27.01 / 0.775  28.21 / 0.711  +3.29 / -0.099
+>      150   28.10 / 0.762  32.04 / 0.723  30.55 / 0.658  +2.46 / -0.105
+>     ```
+>     - **midpoint vs ideal**: mean ΔL1 = -3.05 (midpoint better), mean ΔP = +0.027 in worst case anchor 60 (midpoint less catastrophic)
+>     - **midpoint vs plain L1**: mean ΔL1 = +2.65 (slightly worse), mean ΔP = -0.082 (worse) — **midpoint STILL NEG vs baseline**
+> - **解读 (architectural diagnosis 部分对了, 但 partial)**:
+>   - 视觉 ✓ midpoint 彻底解决 ideal 的 catastrophic 漩涡 — 证明 per-cam-asymmetry 是 ideal 的关键 flaw
+>   - metric 部分: midpoint 让 anchor 60 (强 parallax) 减半 NEG, 但在 anchor 90/150 (弱 parallax) 反而比 ideal 的 Pearson 更 NEG
+>   - **新 insight**: midpoint 对 cam_a + cam_b **不分情况** 都 warp 向 midpoint. 在弱 parallax 区 (L1_uv_a ~ L1_uv_b 本来就近), midpoint 仍 warp 引入不必要的 lateral shift → 损 Pearson. 在强 parallax 区, midpoint 减少 catastrophe but TPS extrapolation 仍 leak 一些 noise.
+>   - **新方向**: **adaptive midpoint** — 只在 |L1_uv_a - L1_uv_b| > threshold 的 anchor 上应用 warp (强 parallax 区域), 弱 parallax 区跳过 (no-op). 1 day. OR: filter stereo points by depth, 只用 near-field (depth < 10m) anchor 算 displacement.
+> - **结论 (诚实)**: §1 parallax 没真修. 但**今天第一次有视觉清晰的算法改进**: A2-midpoint vs A2-ideal 在 anchor 60 q4 是肉眼可见的 fix. 不是 0 进展. 是 partial win + clear next step.
+> - **Deliverables**: `deliverables/stage3_phase_c_joint_midpoint/`:
+>   - `q4_zoom_3way.png` (782 KB, anchor 60 Q4 storefront, plain/ideal/midpoint 3 行 zoom — **核心视觉证据**, ideal 漩涡 → midpoint 干净)
+>   - `REVIEW_phase_c_4anchors_3way.png` (3.5 MB, 4 anchor × 3 mode 12 行 compact)
+>   - `anchor060_midpoint.png` (1 MB full-res anchor 60 midpoint ERP)
+> - Status: [DONE Stage 3 Phase C with partial win + clear next iteration]
+> - Next: Phase C v2 — **adaptive midpoint** (只在大 parallax anchor 上 warp). Or: filter stereo by depth (only use near-field). Both ~1 day. Then re-eval.
+>
 > ### 2026-05-26 ~10:30 UTC — [Stage 3 Phase B — re-render 4 stage-1 route_*.png on AV2 raw, clean paper figures]
 > - **怎么做**: Phase B 重 render 老 stage-1 figures (deliverables/images/route_*.png) 用 AV2 raw 替换 pi3-cache. Audit 后发现 driver 现状:
 >   - `route_graphcut_seam_compare.png` — driver `run_graphcut_seam.py` 已支持 `--input-mode av2 --log-dir`, 直接用 ✓
