@@ -207,17 +207,32 @@ def interpolate_dense_displacement_field(
     erp_hw: tuple[int, int],
     regularization: float = 1.0,
     kernel: str = "thin_plate_spline",
+    gaussian_width_px: float | None = None,
 ) -> np.ndarray:
-    """Interpolate sparse {(ideal_uv, delta_uv)} into a dense (H, W, 2) field.
+    """Interpolate sparse {(anchor_uv, delta_uv)} into a dense (H, W, 2) field.
 
-    Uses scipy.interpolate.RBFInterpolator with thin-plate-spline kernel by
-    default. `regularization` (smoothing param) trades off exact-fit (=0)
-    vs smooth-overall (>>0). Higher regularization is more robust when sparse
-    anchors are noisy but loses anchor exactness.
+    Uses scipy.interpolate.RBFInterpolator. Two kernel choices:
 
-    Returns (H, W, 2) float32 displacement field. The (i, j) element gives
-    the per-pixel (delta_u, delta_v) — i.e., "where in the original L1 slab
-    to read from when painting this ERP pixel".
+      "thin_plate_spline" (default): smooth, globally-interpolating field.
+        Reproduces anchor deltas exactly at anchor locations and smoothly
+        varies in between. **BUT extrapolates globally** — far-from-anchor
+        regions get non-zero displacement, polluting non-parallax zones.
+
+      "gaussian": locally-decaying field. With explicit `gaussian_width_px`,
+        the field strength decays exponentially with distance from each anchor.
+        Pixels far from any anchor get ~zero displacement. Use this when
+        you want anchor effects to be SPATIALLY LOCAL — Phase C v2 finding:
+        TPS smoothing leaks anchor deltas into already-aligned regions,
+        hurting metric. gaussian + degree=-1 keeps the field localized.
+
+    gaussian_width_px (used when kernel='gaussian'):
+        Sigma-like decay scale in pixels. Field magnitude at distance d
+        from an anchor: ~exp(-(d/width)^2). Default = 5% of min(H, W) (i.e.
+        51 px on 1024x2048 ERP). Smaller width = tighter localization.
+
+    `regularization` (smoothing param) trades off exact-fit (=0) vs smooth-
+    overall (>>0). Higher regularization is more robust when sparse anchors
+    are noisy but loses anchor exactness.
 
     Empty sparse_anchors → all-zero field (no displacement).
     """
@@ -226,22 +241,24 @@ def interpolate_dense_displacement_field(
         return np.zeros((H, W, 2), dtype=np.float32)
     anchors_xy = np.array([a[0] for a in sparse_anchors], dtype=np.float64)
     deltas = np.array([a[1] for a in sparse_anchors], dtype=np.float64)
-    # RBF needs at least kernel-dim points; for TPS this is 3 in 2D. Fallback
-    # to gaussian (with shape param) if too few. We want the gaussian to decay
-    # to ~0 well outside the anchor support so isolated anchors don't paint
-    # a constant displacement everywhere.
+
     rbf_kwargs: dict = {"kernel": kernel, "smoothing": float(regularization)}
-    if anchors_xy.shape[0] < 3 and kernel == "thin_plate_spline":
+    # TPS needs ≥3 anchors in 2D; fallback to gaussian if too few or if
+    # caller explicitly chose gaussian.
+    use_gaussian = (kernel == "gaussian") or (
+        anchors_xy.shape[0] < 3 and kernel == "thin_plate_spline"
+    )
+    if use_gaussian:
         rbf_kwargs["kernel"] = "gaussian"
-        # scipy gaussian: exp(-(epsilon*r)^2). Pick width such that the field
-        # decays to ~0 well outside the anchor support (avoids painting a
-        # constant displacement everywhere when only 1-2 anchors exist).
-        # degree=-1 disables the polynomial tail so the field truly decays.
-        width_px = max(1.0, 0.05 * float(min(H, W)))
+        # scipy gaussian: exp(-(epsilon*r)^2). Width = 1/epsilon.
+        # degree=-1 disables polynomial tail so the field truly decays.
+        if gaussian_width_px is None:
+            width_px = max(1.0, 0.05 * float(min(H, W)))
+        else:
+            width_px = max(1.0, float(gaussian_width_px))
         rbf_kwargs["epsilon"] = 1.0 / width_px
         rbf_kwargs["degree"] = -1
     rbf = RBFInterpolator(anchors_xy, deltas, **rbf_kwargs)
-    # Evaluate on every ERP pixel (vectorized; reasonably fast for 1024x2048)
     ys, xs = np.mgrid[0:H, 0:W]
     grid = np.stack([xs.ravel(), ys.ravel()], axis=-1).astype(np.float64)
     out = rbf(grid).reshape(H, W, 2).astype(np.float32)
@@ -331,6 +348,8 @@ def build_warped_slabs_a2(
     wrap_horizontal: bool = True,
     target_mode: str = "ideal",
     min_parallax_px: float = 0.0,
+    kernel: str = "thin_plate_spline",
+    gaussian_width_px: float | None = None,
 ) -> tuple[dict[str, np.ndarray], dict]:
     """Orchestrator: L1 slabs + stereo cache -> warped slabs.
 
@@ -369,6 +388,7 @@ def build_warped_slabs_a2(
             continue
         dense_disp = interpolate_dense_displacement_field(
             anchors_for_cam, erp_hw=erp_hw, regularization=rbf_regularization,
+            kernel=kernel, gaussian_width_px=gaussian_width_px,
         )
         anchor_uvs = [a[0] for a in anchors_for_cam]
         conf = build_anchor_confidence_map(
@@ -387,6 +407,8 @@ def build_warped_slabs_a2(
         "n_stereo_files_used": n_stereo_total,
         "target_mode": target_mode,
         "min_parallax_px": min_parallax_px,
+        "kernel": kernel,
+        "gaussian_width_px": gaussian_width_px,
         "per_cam": per_cam_stats,
     }
     return out_slabs, summary

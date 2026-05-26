@@ -94,6 +94,21 @@ def main() -> int:
               "midpoint to avoid warping mild-parallax regions (Phase C v2). "
               "0.0 = no filter (default), 5-10 = typical."),
     )
+    ap.add_argument(
+        "--kernel", choices=["thin_plate_spline", "gaussian"],
+        default="thin_plate_spline",
+        help=("RBF kernel for dense field interpolation. 'thin_plate_spline' "
+              "(default, smooth global) — TPS extrapolates everywhere, may "
+              "leak into non-anchor zones. 'gaussian' (Phase C v3) — localized "
+              "decay, field ~0 far from anchors. Combine with --gaussian-width-px "
+              "to tune locality."),
+    )
+    ap.add_argument(
+        "--gaussian-width-px", type=float, default=None,
+        help=("When --kernel=gaussian: spatial decay scale in pixels. "
+              "Default = 5%% of min(H, W) (~51 px on 1024x2048). Smaller = "
+              "tighter localization, displacement confined near anchors."),
+    )
     ap.add_argument("--w2p-code", default=None)
     args = ap.parse_args()
 
@@ -159,6 +174,8 @@ def main() -> int:
             confidence_sigma_px=args.confidence_sigma_px,
             target_mode=args.target_mode,
             min_parallax_px=args.min_parallax_px,
+            kernel=args.kernel,
+            gaussian_width_px=args.gaussian_width_px,
         )
         slabs_dict = warped
     t_warp_s = time.time() - t_warp0

@@ -108,6 +108,11 @@ def main() -> int:
                     help="When --apply-a2: 'ideal' (orig A2) or 'midpoint' (Stage 3 Phase C joint).")
     ap.add_argument("--min-parallax-px", type=float, default=0.0,
                     help="When --apply-a2: skip stereo anchors with |L1_uv_a - L1_uv_b| < threshold.")
+    ap.add_argument("--kernel", choices=["thin_plate_spline", "gaussian"],
+                    default="thin_plate_spline",
+                    help="RBF kernel for displacement field (Phase C v3).")
+    ap.add_argument("--gaussian-width-px", type=float, default=None,
+                    help="When --kernel=gaussian: locality scale (default 5%% min(H,W)).")
     ap.add_argument("--erp-h", type=int, default=1024)
     ap.add_argument("--erp-w", type=int, default=2048)
     ap.add_argument("--no-ego-mask", action="store_true")
@@ -159,6 +164,8 @@ def main() -> int:
             erp_hw=erp_hw,
             target_mode=args.target_mode,
             min_parallax_px=args.min_parallax_px,
+            kernel=args.kernel,
+            gaussian_width_px=args.gaussian_width_px,
         )
         slabs = warped
     else:
