@@ -165,6 +165,8 @@ def _eval_one_anchor(
     max_residual_px: float,
     reference_cam: str,
     no_prewarp: bool,
+    warp_model: str = "rotation_only",
+    max_corner_outside_frac: float = 0.5,
 ) -> dict:
     """Run both plain-L1 baseline and L1+prewarp blends, compute cycle PSNR
     (L1+prewarp vs L1) on union of L1 coverage AND on the multi-cam overlap
@@ -268,6 +270,8 @@ def _eval_one_anchor(
             },
             reference_cam=reference_cam,
             return_diagnostics=True,
+            warp_model=warp_model,
+            max_corner_outside_frac=max_corner_outside_frac,
         )
         # Re-attribute internal stitch_one_frame_with_prewarp runtime to our timing buckets.
         rt = prewarp_summary.get("runtime", {})
@@ -411,6 +415,8 @@ def _eval_one_anchor_for_checkpoint(
     max_residual_px: float,
     reference_cam: str,
     no_prewarp: bool,
+    warp_model: str = "rotation_only",
+    max_corner_outside_frac: float = 0.5,
 ) -> dict:
     """Primitive-arg wrapper so colab_direct.checkpointed can serialize args."""
     return _eval_one_anchor(
@@ -425,6 +431,8 @@ def _eval_one_anchor_for_checkpoint(
         max_residual_px=max_residual_px,
         reference_cam=reference_cam,
         no_prewarp=no_prewarp,
+        warp_model=warp_model,
+        max_corner_outside_frac=max_corner_outside_frac,
     )
 
 
@@ -450,6 +458,13 @@ def main() -> int:
     ap.add_argument("--lightglue-min-confidence", type=float, default=0.2)
     ap.add_argument("--ransac-threshold-px", type=float, default=3.0)
     ap.add_argument("--max-residual-px", type=float, default=2.0)
+    ap.add_argument("--warp-model", choices=["homography", "similarity", "rotation_only"],
+                    default="rotation_only",
+                    help="v2: rotation_only (default, 3 DOF, Procrustes); similarity (4 DOF, "
+                         "cv2.estimateAffinePartial2D); homography (v1, 8 DOF, drifts on chain).")
+    ap.add_argument("--max-corner-outside-frac", type=float, default=0.5,
+                    help="Safety valve: fall back to identity if chain warp pushes corners "
+                         "more than this fraction of image dim outside canvas.")
     ap.add_argument("--reference-cam", default="ring_front_center",
                     help="Global anchor cam for the chain warp.")
     ap.add_argument("--no-prewarp", action="store_true",
@@ -510,6 +525,8 @@ def main() -> int:
             max_residual_px=args.max_residual_px,
             reference_cam=args.reference_cam,
             no_prewarp=args.no_prewarp,
+            warp_model=args.warp_model,
+            max_corner_outside_frac=args.max_corner_outside_frac,
         )
         # colab_direct.checkpointed returns None for cached anchors -> reload from
         # the per-anchor JSON we wrote during the original run.

@@ -114,6 +114,17 @@ def main() -> int:
     ap.add_argument("--reference-cam", default="ring_front_center",
                     help="Global anchor cam for the chain warp (every other cam is warped "
                          "into this cam's image-plane frame). Default = ring_front_center.")
+    ap.add_argument("--warp-model", choices=["homography", "similarity", "rotation_only"],
+                    default="rotation_only",
+                    help="Warp model used for pair fitting. 'homography' = v1 full perspective "
+                         "(8 DOF, drifts after 3-hop chain); 'similarity' = 4 DOF (rotation+scale+"
+                         "translation, bounded under chain compose); 'rotation_only' (default) = "
+                         "3 DOF rigid 3D rotation via Procrustes on backprojected rays, requires K.")
+    ap.add_argument("--max-corner-outside-frac", type=float, default=0.5,
+                    help="Safety valve: if a cam's chain warp pushes corners more than this "
+                         "fraction of the image dim outside the canvas, fall back to identity "
+                         "for that cam (prevents the v1 NEG mode where rear cams' 3-hop warps "
+                         "flew off-canvas).")
     ap.add_argument("--w2p-code", default=None,
                     help="Path to the `code/` dir holding the waymo2panorama package.")
     args = ap.parse_args()
@@ -221,6 +232,8 @@ def main() -> int:
             },
             reference_cam=args.reference_cam,
             return_diagnostics=True,
+            warp_model=args.warp_model,
+            max_corner_outside_frac=args.max_corner_outside_frac,
         )
     t_stitch_s = time.time() - t_stitch0
 

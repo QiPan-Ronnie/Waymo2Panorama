@@ -104,6 +104,7 @@ __all__ = [
     "compute_overlap_homography",
     "compose_homographies",
     "ring_path_homography",
+    "validate_warp_corners",
 ]
 
 
@@ -118,6 +119,11 @@ _DEFAULT_MIN_MATCHES = 50          # fewer raw matches -> "no_matches" fallback
 _DEFAULT_MIN_INLIERS = 30          # fewer RANSAC inliers -> "low_inliers" fallback
 _DEFAULT_MAX_RESIDUAL_PX = 2.0     # median reprojection error above -> "high_residual" fallback
 _DEFAULT_RANSAC_THRESHOLD_PX = 3.0 # cv2.findHomography RANSAC inlier threshold
+
+
+# Allowed warp models (v2). "similarity" + "rotation_only" added to fix v1
+# chain-compose drift NEG (full perspective compounds badly across 3+ hops).
+_WARP_MODELS = ("homography", "similarity", "rotation_only")
 
 
 def _identity_H() -> np.ndarray:
@@ -163,6 +169,84 @@ def _crop_with_offset(
     return img[y:y2, x:x2], (x, y)
 
 
+def _fit_rotation_only_homography(
+    mkpts_a: np.ndarray, mkpts_b: np.ndarray,
+    K_a: np.ndarray, K_b: np.ndarray,
+    ransac_threshold_px: float,
+) -> tuple[Optional[np.ndarray], np.ndarray]:
+    """Fit a rotation-only homography H = K_b @ R @ K_a^-1 via robust Procrustes.
+
+    Geometric model: each cam sees a 3D scene; with infinite-distance assumption
+    (or rotation-around-shared-center), pixel matches relate by a pure 3D rotation
+    R between cam_a and cam_b coordinate frames. R has 3 DOF (vs 8 for full
+    homography), so it's much more stable to chain compose across the ring.
+
+    Algorithm:
+      1. Backproject each match to a unit ray in cam frame: r = normalize(K^-1 @ [u, v, 1])
+      2. Find R minimizing sum ||R @ r_a - r_b||^2 via SVD (Procrustes / Wahba).
+      3. RANSAC inlier loop: sample 3 matches, fit R, count inliers, repeat.
+
+    Returns:
+        (H_3x3, inlier_mask) where H = K_b @ R @ K_a^-1. None if degenerate.
+    """
+    n = mkpts_a.shape[0]
+    if n < 3:
+        return None, np.zeros(n, dtype=bool)
+
+    # Backproject all matches to unit rays in respective cam frames.
+    K_a_inv = np.linalg.inv(K_a.astype(np.float64))
+    K_b_inv = np.linalg.inv(K_b.astype(np.float64))
+    ones = np.ones((n, 1), dtype=np.float64)
+    pix_a_h = np.hstack([mkpts_a.astype(np.float64), ones])  # (N, 3)
+    pix_b_h = np.hstack([mkpts_b.astype(np.float64), ones])
+    ray_a = (K_a_inv @ pix_a_h.T).T  # (N, 3)
+    ray_b = (K_b_inv @ pix_b_h.T).T
+    ray_a /= np.linalg.norm(ray_a, axis=1, keepdims=True).clip(min=1e-12)
+    ray_b /= np.linalg.norm(ray_b, axis=1, keepdims=True).clip(min=1e-12)
+
+    def _fit_R(idx: np.ndarray) -> np.ndarray:
+        """Closed-form Procrustes: R = U @ diag(1,1,det(U V^T)) @ V^T for cross-cov M = b^T a."""
+        a = ray_a[idx]; b = ray_b[idx]
+        M = b.T @ a  # (3, 3)
+        U, _, Vt = np.linalg.svd(M)
+        d = np.linalg.det(U @ Vt)
+        S = np.diag([1.0, 1.0, float(np.sign(d))])
+        return U @ S @ Vt
+
+    # RANSAC over rotation hypotheses. Inlier: reprojection error < threshold.
+    # Project ray_a through R, reproject to pixel via K_b, compare to mkpts_b.
+    rng = np.random.default_rng(seed=0xC0FFEE)
+    best_inliers: np.ndarray = np.zeros(n, dtype=bool)
+    best_R: Optional[np.ndarray] = None
+    n_iter = 200
+    for _ in range(n_iter):
+        idx = rng.choice(n, size=3, replace=False)
+        try:
+            R_hyp = _fit_R(idx)
+        except np.linalg.LinAlgError:
+            continue
+        # Score: reproject all rays through R, compare to mkpts_b in pixel space.
+        rot = (R_hyp @ ray_a.T).T  # (N, 3) in cam_b frame
+        z = rot[:, 2]
+        in_front = z > 1e-6
+        z_safe = np.where(in_front, z, 1.0)
+        u_pred = K_b[0, 0] * rot[:, 0] / z_safe + K_b[0, 2]
+        v_pred = K_b[1, 1] * rot[:, 1] / z_safe + K_b[1, 2]
+        err = np.sqrt((u_pred - mkpts_b[:, 0]) ** 2 + (v_pred - mkpts_b[:, 1]) ** 2)
+        inliers = in_front & (err < ransac_threshold_px)
+        if inliers.sum() > best_inliers.sum():
+            best_inliers = inliers
+            best_R = R_hyp
+
+    if best_R is None or best_inliers.sum() < 3:
+        return None, np.zeros(n, dtype=bool)
+
+    # Refit R on all inliers for the final answer.
+    R_final = _fit_R(np.where(best_inliers)[0])
+    H = K_b.astype(np.float64) @ R_final @ K_a_inv
+    return H, best_inliers
+
+
 def compute_overlap_homography(
     img_a: np.ndarray,
     img_b: np.ndarray,
@@ -179,6 +263,7 @@ def compute_overlap_homography(
     min_matches: int = _DEFAULT_MIN_MATCHES,
     min_inliers: int = _DEFAULT_MIN_INLIERS,
     max_residual_px: float = _DEFAULT_MAX_RESIDUAL_PX,
+    warp_model: str = "rotation_only",
 ) -> dict:
     """Estimate a 2D homography H mapping points in img_a to img_b.
 
@@ -235,6 +320,7 @@ def compute_overlap_homography(
             "match_count": 0,
             "status": "no_matches",
             "time_s": 0.0,
+            "warp_model": warp_model,
         }
     if img_a.dtype != np.uint8 or img_b.dtype != np.uint8:
         raise ValueError(
@@ -253,6 +339,7 @@ def compute_overlap_homography(
             "match_count": 0,
             "status": "no_matches",
             "time_s": round(time.time() - t0, 4),
+            "warp_model": warp_model,
         }
 
     # Optionally crop to ROI (saves DISK time on full image).
@@ -275,6 +362,7 @@ def compute_overlap_homography(
             "status": "no_matches",
             "time_s": round(time.time() - t0, 4),
             "error": f"DISK failed: {exc!r}",
+            "warp_model": warp_model,
         }
 
     try:
@@ -292,6 +380,7 @@ def compute_overlap_homography(
             "status": "no_matches",
             "time_s": round(time.time() - t0, 4),
             "error": f"LightGlue failed: {exc!r}",
+            "warp_model": warp_model,
         }
 
     match_count = int(mkpts_a.shape[0])
@@ -311,20 +400,62 @@ def compute_overlap_homography(
             "match_count": match_count,
             "status": "no_matches",
             "time_s": round(time.time() - t0, 4),
+            "warp_model": warp_model,
         }
 
-    # Step 3: cv2.findHomography with RANSAC.
-    # src = mkpts_a (points in img_a), dst = mkpts_b (points in img_b).
-    # H maps src -> dst: H @ x_a ~= x_b.
+    # Step 3: estimate warp via the requested model.
+    if warp_model not in _WARP_MODELS:
+        raise ValueError(
+            f"warp_model must be one of {_WARP_MODELS}, got {warp_model!r}"
+        )
     src = mkpts_a.astype(np.float32).reshape(-1, 1, 2)
     dst = mkpts_b.astype(np.float32).reshape(-1, 1, 2)
-    H, inlier_mask = cv2.findHomography(
-        src, dst,
-        method=cv2.RANSAC,
-        ransacReprojThreshold=float(ransac_threshold_px),
-        maxIters=2000,
-        confidence=0.999,
-    )
+
+    if warp_model == "homography":
+        # v1 behavior: full perspective (8 DOF). Compounds badly across chain.
+        H, inlier_mask = cv2.findHomography(
+            src, dst,
+            method=cv2.RANSAC,
+            ransacReprojThreshold=float(ransac_threshold_px),
+            maxIters=2000,
+            confidence=0.999,
+        )
+    elif warp_model == "similarity":
+        # 4 DOF: rotation + scale + 2D translation. Bounded under chain compose
+        # (similarity x similarity = similarity). cv2 returns 2x3, we lift to 3x3.
+        H_aff, inlier_mask = cv2.estimateAffinePartial2D(
+            src, dst, method=cv2.RANSAC,
+            ransacReprojThreshold=float(ransac_threshold_px),
+            maxIters=2000, confidence=0.999,
+        )
+        if H_aff is not None:
+            H = np.eye(3, dtype=np.float64)
+            H[:2] = H_aff.astype(np.float64)
+        else:
+            H = None
+    else:  # "rotation_only"
+        # 3 DOF: pure 3D rotation between cam frames. Requires K_a + K_b. If
+        # caller didn't pass K, gracefully degrade to similarity (also 3-DOF-ish
+        # for nearly-rectified ring cams).
+        if K_a is None or K_b is None:
+            H_aff, inlier_mask = cv2.estimateAffinePartial2D(
+                src, dst, method=cv2.RANSAC,
+                ransacReprojThreshold=float(ransac_threshold_px),
+                maxIters=2000, confidence=0.999,
+            )
+            if H_aff is not None:
+                H = np.eye(3, dtype=np.float64); H[:2] = H_aff.astype(np.float64)
+            else:
+                H = None
+        else:
+            H_rot, mask_rot = _fit_rotation_only_homography(
+                mkpts_a, mkpts_b,
+                K_a=np.asarray(K_a, dtype=np.float64),
+                K_b=np.asarray(K_b, dtype=np.float64),
+                ransac_threshold_px=float(ransac_threshold_px),
+            )
+            H = H_rot
+            inlier_mask = mask_rot.reshape(-1, 1) if H_rot is not None else None
 
     if H is None or inlier_mask is None:
         return {
@@ -334,6 +465,7 @@ def compute_overlap_homography(
             "match_count": match_count,
             "status": "low_inliers",
             "time_s": round(time.time() - t0, 4),
+            "warp_model": warp_model,
         }
 
     inlier_mask = inlier_mask.ravel().astype(bool)
@@ -347,6 +479,7 @@ def compute_overlap_homography(
             "match_count": match_count,
             "status": "low_inliers",
             "time_s": round(time.time() - t0, 4),
+            "warp_model": warp_model,
         }
 
     # Step 4: residual check on the RANSAC inliers.
@@ -361,6 +494,7 @@ def compute_overlap_homography(
             "match_count": match_count,
             "status": "high_residual",
             "time_s": round(time.time() - t0, 4),
+            "warp_model": warp_model,
         }
 
     return {
@@ -370,6 +504,7 @@ def compute_overlap_homography(
         "match_count": match_count,
         "status": "ok",
         "time_s": round(time.time() - t0, 4),
+        "warp_model": warp_model,
     }
 
 
@@ -476,6 +611,52 @@ def _shortest_ring_path(
     else:
         path = [ring_order[(i - k) % n] for k in range(backward_steps + 1)]
     return path
+
+
+def validate_warp_corners(
+    H: np.ndarray,
+    image_hw: tuple[int, int],
+    max_outside_frac: float = 0.5,
+) -> tuple[bool, float]:
+    """Check that warping a (H, W) image with H keeps corners within a sane box.
+
+    Many v1 failures were rear-cam chain-warps that pushed all 4 image corners
+    far outside the canvas, producing an all-black warped image. This helper
+    catches that case before the warp is applied (caller falls back to identity).
+
+    Args:
+        H: (3, 3) homography.
+        image_hw: (H, W) of the source image.
+        max_outside_frac: how far (fraction of image dimension) corners are
+            allowed to fly past the canvas. E.g. 0.5 means "up to 50% of W
+            outside the left/right edge" is OK. Above that -> reject.
+
+    Returns:
+        (is_safe, max_outside_frac_observed). is_safe == False means the
+        chain warp would push image content too far off-canvas; caller should
+        fall back to identity for that cam.
+    """
+    h_img, w_img = image_hw
+    corners = np.array(
+        [[0, 0], [w_img - 1, 0], [w_img - 1, h_img - 1], [0, h_img - 1]],
+        dtype=np.float64,
+    )
+    corners_h = np.hstack([corners, np.ones((4, 1))])
+    proj_h = (H @ corners_h.T).T
+    z = proj_h[:, 2:3]
+    z_safe = np.where(np.abs(z) < 1e-12, 1.0, z)
+    proj_xy = proj_h[:, :2] / z_safe
+
+    # Per-axis "fraction outside canvas" (negative = inside; positive = outside)
+    outside_left = (-proj_xy[:, 0]) / w_img
+    outside_right = (proj_xy[:, 0] - (w_img - 1)) / w_img
+    outside_top = (-proj_xy[:, 1]) / h_img
+    outside_bot = (proj_xy[:, 1] - (h_img - 1)) / h_img
+    max_out = float(
+        max(outside_left.max(), outside_right.max(),
+            outside_top.max(), outside_bot.max(), 0.0)
+    )
+    return (max_out <= max_outside_frac), max_out
 
 
 def ring_path_homography(

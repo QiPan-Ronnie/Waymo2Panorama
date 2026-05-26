@@ -98,6 +98,8 @@ def stitch_one_frame_with_prewarp(
     adjacent_pairs: Optional[list[tuple[str, str]]] = None,
     ring_order: Optional[list[str]] = None,
     return_diagnostics: bool = True,
+    warp_model: str = "rotation_only",
+    max_corner_outside_frac: float = 0.5,
 ) -> tuple[np.ndarray, dict]:
     """WS2 — L1 sphere stitch WITH chain-warp overlap-homography prewarp.
 
@@ -151,11 +153,13 @@ def stitch_one_frame_with_prewarp(
         RING_ORDER as _DEFAULT_RING_ORDER,
         compute_overlap_homography,
         ring_path_homography,
+        validate_warp_corners,
     )
     import time as _time
 
     hk = dict(homography_kwargs) if homography_kwargs else {}
     hk.setdefault("device", device)
+    hk.setdefault("warp_model", warp_model)
 
     pairs = adjacent_pairs if adjacent_pairs is not None else _DEFAULT_ADJACENT_PAIRS
     ring = ring_order if ring_order is not None else _DEFAULT_RING_ORDER
@@ -194,10 +198,14 @@ def stitch_one_frame_with_prewarp(
     }
     chain_log: dict[str, dict] = {}
     chain_warps: dict[str, np.ndarray] = {}
+    n_chain_safety_fallbacks = 0
     for cam in per_cam.keys():
         if cam == reference_cam:
             chain_warps[cam] = np.eye(3, dtype=np.float64)
-            chain_log[cam] = {"n_hops": 0, "is_identity": True}
+            chain_log[cam] = {
+                "n_hops": 0, "is_identity": True,
+                "safety_fallback": False, "corner_outside_frac": 0.0,
+            }
             continue
         H_chain = ring_path_homography(
             cam_target=cam,
@@ -205,9 +213,20 @@ def stitch_one_frame_with_prewarp(
             pair_homographies=pair_H,
             ring_order=ring,
         )
+        # SAFETY VALVE (v2): if chain warp pushes corners more than
+        # `max_corner_outside_frac * img_dim` outside the canvas, fall back
+        # to identity for this cam. Otherwise we get black slabs from rear
+        # cams whose 3-hop H pushed everything off-canvas (v1 NEG mode).
+        img = per_cam[cam]["image"]
+        is_safe, outside_frac = validate_warp_corners(
+            H_chain, image_hw=img.shape[:2],
+            max_outside_frac=max_corner_outside_frac,
+        )
+        safety_fallback = not is_safe
+        if safety_fallback:
+            H_chain = np.eye(3, dtype=np.float64)
+            n_chain_safety_fallbacks += 1
         chain_warps[cam] = H_chain
-        # Cheap shortest-path length re-derive for diagnostics (no second graph walk
-        # — just the # of pairs on the ring between cam and reference).
         i = ring.index(cam)
         j = ring.index(reference_cam)
         n = len(ring)
@@ -215,6 +234,8 @@ def stitch_one_frame_with_prewarp(
         chain_log[cam] = {
             "n_hops": int(n_hops),
             "is_identity": bool(np.allclose(H_chain, np.eye(3), atol=1e-9)),
+            "safety_fallback": bool(safety_fallback),
+            "corner_outside_frac": float(outside_frac),
         }
 
     # ---- Step 3: warp each non-reference cam ------------------------------
@@ -298,6 +319,9 @@ def stitch_one_frame_with_prewarp(
         "n_pairs_total": len(pair_results),
         "n_pairs_ok": int(sum(1 for r in pair_results.values() if r["status"] == "ok")),
         "reference_cam": reference_cam,
+        "warp_model": warp_model,
+        "max_corner_outside_frac": float(max_corner_outside_frac),
+        "n_chain_safety_fallbacks": int(n_chain_safety_fallbacks),
         "runtime": {
             "feature_match_s": round(t_fm_s, 3),
             "warp_s": round(t_warp_s, 3),

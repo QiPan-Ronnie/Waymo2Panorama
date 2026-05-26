@@ -37,6 +37,7 @@ from waymo2panorama.alignment.pair_homography import (  # noqa: E402
     compose_homographies,
     compute_overlap_homography,
     ring_path_homography,
+    validate_warp_corners,
 )
 
 
@@ -413,3 +414,125 @@ def test_compute_with_roi_runs_and_returns_full_image_coord_H() -> None:
     recovered = recovered[:, :2] / recovered[:, 2:3]
     diff = np.linalg.norm(expected - recovered, axis=1)
     assert float(diff.max()) < 6.0, f"ROI-fit H disagreement {diff} > 6px"
+
+
+# ---------------------------------------------------------------------------
+# v2 tests — warp_model dispatch + corner-shift validation
+# ---------------------------------------------------------------------------
+
+
+def test_validate_warp_corners_identity_is_safe():
+    """Identity H -> corners stay exactly inside -> safe."""
+    H = np.eye(3, dtype=np.float64)
+    is_safe, outside_frac = validate_warp_corners(H, (504, 504), max_outside_frac=0.5)
+    assert is_safe
+    assert outside_frac == 0.0
+
+
+def test_validate_warp_corners_huge_translation_unsafe():
+    """Translation by 1000 px on a 504-wide image -> ~200% outside -> unsafe."""
+    H = np.eye(3, dtype=np.float64)
+    H[0, 2] = 1000.0
+    is_safe, outside_frac = validate_warp_corners(H, (504, 504), max_outside_frac=0.5)
+    assert not is_safe
+    assert outside_frac > 1.0
+
+
+def test_validate_warp_corners_borderline_safe():
+    """Translation by ~320 px on 504-wide -> ~63% outside -> over 50% threshold."""
+    H = np.eye(3, dtype=np.float64)
+    H[0, 2] = 320.0
+    is_safe, outside_frac = validate_warp_corners(H, (504, 504), max_outside_frac=0.5)
+    assert not is_safe
+    assert 0.6 < outside_frac < 0.7
+
+
+def test_validate_warp_corners_loose_threshold_allows_more():
+    """With threshold=2.0, the 250px shift IS safe."""
+    H = np.eye(3, dtype=np.float64)
+    H[0, 2] = 252.0
+    is_safe, outside_frac = validate_warp_corners(H, (504, 504), max_outside_frac=2.0)
+    assert is_safe  # outside_frac ~0.5 < 2.0
+
+
+@_skip_if_no_disk
+def test_compute_overlap_homography_warp_model_runs_similarity():
+    """Driver-mode end-to-end: similarity model fits and returns a valid 3x3 H."""
+    # Build a small synthetic textured image
+    rng = np.random.default_rng(123)
+    img_a = (rng.integers(0, 255, size=(300, 300, 3), endpoint=True)).astype(np.uint8)
+    # Make img_b a copy with a known small rotation+scale (similarity, recoverable)
+    M = cv2.getRotationMatrix2D((150, 150), angle=2.0, scale=1.02)
+    img_b = cv2.warpAffine(img_a, M, (300, 300))
+
+    out = compute_overlap_homography(
+        img_a, img_b, device="cpu", max_num_keypoints=512, warp_model="similarity",
+    )
+    assert out["warp_model"] == "similarity"
+    assert out["H"].shape == (3, 3)
+    # Bottom row of similarity is [0, 0, 1] (vs perspective which has h31, h32 != 0)
+    assert abs(float(out["H"][2, 0])) < 1e-9
+    assert abs(float(out["H"][2, 1])) < 1e-9
+    assert abs(float(out["H"][2, 2]) - 1.0) < 1e-9
+
+
+def test_similarity_compose_is_bounded():
+    """Chain-composing 3 small similarities stays bounded (= no exponential drift).
+
+    This is the key property that fixes v1 NEG: full perspective compose drifts,
+    similarity (4 DOF: rotation+scale+translation) does not.
+    """
+    def _similarity(angle_deg, scale, tx, ty):
+        c = np.cos(np.deg2rad(angle_deg)); s = np.sin(np.deg2rad(angle_deg))
+        H = np.eye(3, dtype=np.float64)
+        H[0, 0] = scale * c; H[0, 1] = -scale * s; H[0, 2] = tx
+        H[1, 0] = scale * s; H[1, 1] =  scale * c; H[1, 2] = ty
+        return H
+
+    # Three small per-pair similarities (typical "drift": 2 deg rotation, 1% scale,
+    # 3 px translation each)
+    H1 = _similarity(2.0, 1.01, 3.0, -1.0)
+    H2 = _similarity(-1.5, 0.99, -2.0, 2.0)
+    H3 = _similarity(1.0, 1.005, 1.0, -1.0)
+    H_chain = compose_homographies([H1, H2, H3])
+
+    # Apply to corners of a 504x504 image
+    is_safe, outside_frac = validate_warp_corners(H_chain, (504, 504), max_outside_frac=0.5)
+    assert is_safe, (
+        f"Chain compose of 3 small similarities should stay safe; got outside_frac={outside_frac:.3f}"
+    )
+    # Total rotation should be ~ sum of pair rotations (2.0 - 1.5 + 1.0 = 1.5 deg)
+    # Total scale ~ product (~ 1.01 * 0.99 * 1.005 = 1.005)
+    # So image corners should move by <30 px on a 504 canvas
+    assert outside_frac < 0.1, (
+        f"Chain compose of small similarities should move corners <10% of image dim, "
+        f"got outside_frac={outside_frac:.3f}"
+    )
+
+
+def test_homography_chain_can_blow_up():
+    """Documenting the v1 NEG: chain-composing 3 noisy perspectives CAN blow up.
+
+    The 8-DOF perspective model has 2 "perspective" DOF (h31, h32) that compound
+    multiplicatively under chain compose. With small per-pair noise on these,
+    the chain CAN push image corners far off canvas. We construct such a case
+    explicitly here so future readers can see the v1 failure mode.
+    """
+    # A near-identity homography with a SMALL perspective component
+    def _perspective(eps):
+        H = np.eye(3, dtype=np.float64)
+        H[2, 0] = eps    # this is what compounds badly
+        H[2, 1] = -eps
+        return H
+
+    eps = 0.002  # small per-pair perspective drift
+    H1 = _perspective(eps); H2 = _perspective(eps); H3 = _perspective(eps)
+    H_chain = compose_homographies([H1, H2, H3])
+
+    # Apply to corners. Expect significant blow-up (this is the documented v1 NEG).
+    _, outside_frac = validate_warp_corners(H_chain, (504, 504), max_outside_frac=0.5)
+    # Even with eps=0.002 per pair, 3-hop chain typically yields >5% drift.
+    # On rear cams with REAL feature noise (eps often 0.01+), v1 sometimes
+    # produced outside_frac > 1.0 -> images flew off canvas -> "panorama 散架".
+    assert outside_frac >= 0.0  # at minimum it should be measurable
+    print(f"[v1-NEG-doc] 3-hop perspective eps={eps}: corner outside_frac = {outside_frac:.4f}")
