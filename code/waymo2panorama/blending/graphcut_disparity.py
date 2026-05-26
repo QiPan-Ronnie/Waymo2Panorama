@@ -133,3 +133,40 @@ def find_min_disparity_seam(
             u = int(back[v, u])
             seam_u[v - 1] = u
     return seam_u
+
+
+def apply_seam_to_pair_weights(
+    w_a: np.ndarray,
+    w_b: np.ndarray,
+    seam_u: np.ndarray,
+    overlap_mask: np.ndarray,
+    soft_px: int = 2,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Convert soft cos^2 blend to graphcut seam: left of seam = cam_a, right = cam_b.
+
+    Inside overlap_mask:
+      - Columns < seam_u[v]: w_a = w_a + w_b (cam_a takes over), w_b = 0
+      - Columns >= seam_u[v]: w_b = w_b + w_a (cam_b takes over), w_a = 0
+      - soft_px > 0: small Gaussian blur on the binary mask edge for visual smoothness
+
+    Outside overlap_mask: weights unchanged.
+
+    Returns (w_a_new, w_b_new) float32 arrays same shape as input.
+    """
+    H, W = w_a.shape
+    assert w_b.shape == (H, W) and overlap_mask.shape == (H, W)
+    w_total = (w_a + w_b).astype(np.float32)
+    mask_a_side = np.zeros((H, W), dtype=np.float32)
+    for v in range(H):
+        u_cut = int(seam_u[v])
+        mask_a_side[v, :u_cut] = 1.0  # left of seam belongs to cam_a
+    if soft_px > 0:
+        import cv2
+        k = max(3, soft_px * 2 + 1)
+        mask_a_side = cv2.GaussianBlur(mask_a_side, (k, k), soft_px)
+    mask_b_side = 1.0 - mask_a_side
+    # Only apply inside overlap
+    in_overlap = overlap_mask.astype(np.float32)
+    w_a_new = w_a * (1.0 - in_overlap) + (w_total * mask_a_side) * in_overlap
+    w_b_new = w_b * (1.0 - in_overlap) + (w_total * mask_b_side) * in_overlap
+    return w_a_new.astype(np.float32), w_b_new.astype(np.float32)

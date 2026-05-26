@@ -56,3 +56,23 @@ def test_find_seam_picks_min_disparity_column():
     assert seam_u.shape == (H,)
     # Seam should be near columns 34-35 (the only low-cost region inside overlap).
     assert np.all((seam_u >= 32) & (seam_u <= 40)), f"seam {seam_u} should be near 35"
+
+
+def test_apply_seam_zero_one_mask():
+    """Apply seam: left of seam = cam_a only, right of seam = cam_b only."""
+    from waymo2panorama.blending.graphcut_disparity import apply_seam_to_pair_weights
+    H, W = 16, 32
+    w_a = np.ones((H, W), dtype=np.float32) * 0.5
+    w_b = np.ones((H, W), dtype=np.float32) * 0.5
+    seam_u = np.full(H, 16, dtype=np.int64)
+    overlap_mask = np.zeros((H, W), dtype=bool)
+    overlap_mask[:, 10:22] = True
+    w_a_new, w_b_new = apply_seam_to_pair_weights(
+        w_a, w_b, seam_u, overlap_mask, soft_px=0,
+    )
+    # In overlap, left of seam (10-15) → cam_a=1.0, cam_b=0
+    # Right of seam (17-21) → cam_a=0, cam_b=1.0
+    # Outside overlap: weights unchanged (0.5 each)
+    assert w_a_new[5, 12] > 0.9 and w_b_new[5, 12] < 0.1
+    assert w_a_new[5, 19] < 0.1 and w_b_new[5, 19] > 0.9
+    assert abs(w_a_new[5, 5] - 0.5) < 0.01  # outside overlap, unchanged
