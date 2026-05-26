@@ -1,5 +1,17 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~06:30 UTC — [BREAKTHROUGH: hard cam selection (no blend) eliminates doubled-BMW ghost.]
+> - **怎么做**: 5 行代码: `argmax(weights_stack, axis=0)` → 每个 ERP 像素只来自 cos² weight 最大的那个 cam, 完全不 blend. `scripts/phase3/test_hard_select.py` 跑 BMW anchor (02a00399 a0) 和 ghosty anchor (fbee355f a95, YOLO score 13). 输出 `deliverables/hard_select/bmw_compare.png` + `full_compare.png` (BMW) 和 `bmw_compare_fbee_a95.png` + `full_compare_fbee_a95.png` (ghosty).
+> - **核心发现 — 验证 user 的 "depth 是错的, 从 overlap 下手" 直觉**:
+>   - **BMW anchor**: multiband 显示明确的 doubled BMW (两个车身, 两个轮子). Hard select **BMW crisp, single, no ghost**.
+>   - **Ghosty anchor (fbee a95, parking garage with multiple cars)**: hard select 比 multiband 锐利, 但 column 处 seam 可见 (texture cut). 蓝车 ghost 消除.
+>   - 18 sec/anchor at 2048×4096, no new dependencies (just numpy argmax).
+> - **为什么 work (诚实分析)**: doubled ghost 是 "两个 cam 看同一物体不同 angle → blend 加在一起" 的产物. depth 解不了 (角度差异本质存在). 但 hard select 通过 "每像素只信一个 cam" 绕开 blending → 自动消除 view-mixing ghost. 代价: cam 间 seams 可见 (color jumps + texture cuts), 但显著好于 ghosted blur.
+> - **Trade-off**: seams 在 (i) cam exposure 差异处 (color jumps), (ii) seam 切穿物体处 (texture cuts) 可见. 比 ghost 接受度高但不完美.
+> - **next**: 候选改进 (a') narrow seam feather (~10 px Gaussian 而非 full 212 px multiband), (a'') HDR 先做 per-cam exposure correction (新-E from §1b 5.5 dB cross-cam gap), (a''') (a')+(a'') combo.
+> - **学到**: 死磕 depth 4 phases (N1 A/C/N2/D) 全部 NEG, 5 行 basic CV 就解了核心问题. User 的 "不要太复杂, 从 overlap 下手" 完全正确, 我钻牛角尖了.
+> - 提交: `4a570f7` test script, `34c2d07` BMW result PNGs.
+
 > ### 2026-05-27 ~03:00 UTC — [Path (c) v2 YOLO COMPLETE — final 5-log Bosch deliverable. 7 strict ghost-free + 146 relaxed anchors identified, 视觉 confirmed.]
 > - **怎么做**: 串行跑 5 val logs (stride=1 for 02a00399, stride=5 for others 因为 timeout 限制) on Colab T4. 总 575 anchors scanned. Aggregator (`scripts/phase3/aggregate_yolo_clean_subset.py`) 把 per-log JSON merge 成 final summary + strict/relaxed anchor lists. Preview renderer (`scripts/phase3/render_clean_subset_preview.py`) 渲染 7 strict 作 grid 视觉确认.
 > - **Per-log breakdown**:
