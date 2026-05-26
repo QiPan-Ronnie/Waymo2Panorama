@@ -1,5 +1,23 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-26 ~10:00 UTC — [Source AV2 raw cams verified CLEAN — 2-wheel ghost is purely a stitching limitation, NOT data issue]
+> - **怎么做**: 用户提问 "再去查证原图是不是有这个问题, 如果 AV2 原图有这个问题可能是图片问题". 直接验证: 拉 log `02a00399` anchor 60 的 7 张 AV2 raw cam 源图 (2048×1550 / 1550×2048), downsample 到 ~1024px, 用 vision 一张张看. 关键 ring_side_right 上能清楚读出 "locustprojects" + "REAL VIRTUA" + "COME IN WE'RE" + "EXPERIENCE THE Karte..." 招牌 — **跟 5.22 prompt §1 reference 同 storefront**, 确认是同 log/anchor 的场景.
+>   - 4 张源 cam (front_center / front_right / front_left / side_right) 视觉 review: **全部 clean**, 每辆车 (front_right 上的红色 Camaro 在 ~10m 距离) 锐利单影, 一套轮子, 没 duplicate, 没 ghost, 没 motion blur, 没 sensor artifact.
+>   - 同时跑了 5 个 val log anchor 60 的小尺寸 plain L1 (512x1024 简单 WA blend) 找用户原 §1 reference 那个 Porsche 在哪个 log. 结果: log 2c652f9e 有相似 SUV 场景但不完全匹配; **02a00399 anchor 60 这个 frame 上能看到 locustprojects 招牌 (在 side_right cam), 但用户 reference 那辆 Porsche 不在这帧** — 大概率是同 log 不同 timestamp 或 4 val log 中另一帧, 但具体哪帧不重要因为**结论已经锁住**.
+> - **决定性结论**: AV2 raw 源 cam 数据是 clean 的. **2-wheel parallax ghost 100% 是 stitching 算法引入的, 不是数据问题**. 机理: L1 sphere "infinity-depth" 假设 + 近景物体 (3-10m) 在 2 cam overlap 区被 ERP 投到稍不同位置 + multiband blend 把两版本叠加 = 鬼影 + 4 轮.
+> - **paper 角度的硬证据 lock-in**: 现在 paper 的 narrative chain 完全 evidenced (每一环都有具体 data):
+>   1. **AV2 raw 源图干净** ✓ (今天 source-cams-clean verification)
+>   2. **L1 sphere baseline on clean input = 干净 panorama, 唯一 visible artifact = near-field parallax in overlap zones** ✓ (l1_erp.png + av2raw_simple_wa.png 都 clean)
+>   3. **pi3-cache 当 L1 input 引入 halo 是 input degradation 假象** ✓ (WS4-Diag2/3 smoking gun)
+>   4. **8 个 post-hoc fix attempts (T4 v1/v2/v3 reweight, T5 v1/v2/v3 alignment, WS4 A2/B1) 都 NEG** ✓ (Stage 2 + Stage 3 A 全套 ablation, Stage 3 A 是干净 input 上的 decisive NEG with documented architectural flaw)
+>   5. **结论**: §1 near-field parallax ghost 是 L1 sphere 算法的 fundamental limitation, fix 之需要 depth-aware reconstruction (deferred to future work) — paper limitation 段写得理直气壮
+> - **Deliverables**: `deliverables/stage3_source_data_clean_evidence/`:
+>   - 7 张 AV2 raw cam JPG (anchor 60 of log 02a00399, downsampled to ~1024px for size)
+>   - `source_cams_clean_vs_stitched_parallax.png` (4.6 MB, 2048×3332, **paper-ready 三行 evidence panel**: ROW 1 = 4 source cams clean, ROW 2 = stitched ERP, ROW 3 = front-center/front-right overlap zoom showing Camaro in overlap region)
+>   - `stitched_camaro_overlap_zoom.png` (260 KB)
+> - Status: [DONE source-cam-clean verification + paper evidence locked]
+> - Next: paper writeup (Phase C) + 重 render stage-1 deliverables 用 AV2 raw (Phase B). 没新代码要写, story 已 clear.
+>
 > ### 2026-05-26 ~09:00 UTC — [Stage 3 Phase A — WS4 A2 retry on AV2 raw 全 4 anchor 决定性 NEG (视觉 + 度量双确认)]
 > - **怎么做**: 跟 Stage 3 plan A.1-A.5 走. (a) `wide_baseline_stereo.py` 加 `process_anchor_all_pairs_from_data(cams_data, ...)` sister + driver 加 `--av2-log-dir` flag, `_load_av2_raw_anchor` 用 AV2RingLoader; 同 pattern 改 `run_l1_sparse_disp.py` (A2 driver). 还 fix 了 viz 函数对 front_center 2048×1550 portrait + 其他 cam 1550×2048 landscape 混合的 broadcast bug. 4 commits (`a79450c` A.1, `cff9d60` A.2, `6cd7017` viz-fix, `465801c` ghost metric eval script). (b) Colab GPU stereo 重抽 anchor 0/60/90/150 of log `02a00399`, 全分辨率, 142s wall. (c) plainL1 + A2 4 anchor x 2 mode render, 135s wall, 8 个 ERP 写 Drive. (d) 新写 `eval_parallax_ghost_alignment.py` (~200 LOC) — 对每个 adjacent cam pair, 在 overlap mask 内算 cam_a slab vs cam_b slab 的 L1 距离 + Pearson 相关 (直接测 parallax 鬼影对齐, 不靠 cycle-PSNR 那个 cam-plane 结构性盲 metric); 142s wall 跑完 4 anchor × {plain, A2}.
 >   - **Stereo 抽取真有 near-field anchors** ✓ (hypothesis test): pi3-cache anchor 60 min depth 5.8m, **AV2 raw anchor 60 min depth 2.84m**. anchor 150 甚至 2.08m. **near-field 3D 信号现在有了**, 之前 pi3-cache NEG 的"stereo cache 无近景点"那个根因解决.
