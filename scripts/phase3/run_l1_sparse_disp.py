@@ -87,6 +87,13 @@ def main() -> int:
               "Phase C): both cams in a pair move halfway toward each other's "
               "L1 projection — no depth, symmetric, fixes A2 per-cam asymmetry."),
     )
+    ap.add_argument(
+        "--min-parallax-px", type=float, default=0.0,
+        help=("Adaptive filter: skip stereo anchors whose ERP parallax "
+              "|L1_uv_a - L1_uv_b| < min_parallax_px. Useful with --target-mode "
+              "midpoint to avoid warping mild-parallax regions (Phase C v2). "
+              "0.0 = no filter (default), 5-10 = typical."),
+    )
     ap.add_argument("--w2p-code", default=None)
     args = ap.parse_args()
 
@@ -151,6 +158,7 @@ def main() -> int:
             rbf_regularization=args.rbf_regularization,
             confidence_sigma_px=args.confidence_sigma_px,
             target_mode=args.target_mode,
+            min_parallax_px=args.min_parallax_px,
         )
         slabs_dict = warped
     t_warp_s = time.time() - t_warp0

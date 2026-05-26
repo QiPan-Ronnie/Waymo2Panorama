@@ -106,6 +106,8 @@ def main() -> int:
                     help="Apply WS4 A2 displacement warp before computing alignment.")
     ap.add_argument("--target-mode", choices=["ideal", "midpoint"], default="ideal",
                     help="When --apply-a2: 'ideal' (orig A2) or 'midpoint' (Stage 3 Phase C joint).")
+    ap.add_argument("--min-parallax-px", type=float, default=0.0,
+                    help="When --apply-a2: skip stereo anchors with |L1_uv_a - L1_uv_b| < threshold.")
     ap.add_argument("--erp-h", type=int, default=1024)
     ap.add_argument("--erp-w", type=int, default=2048)
     ap.add_argument("--no-ego-mask", action="store_true")
@@ -156,6 +158,7 @@ def main() -> int:
             cam_K=cam_K, cam_T_ego_cam=cam_T, cam_names=cams,
             erp_hw=erp_hw,
             target_mode=args.target_mode,
+            min_parallax_px=args.min_parallax_px,
         )
         slabs = warped
     else:

@@ -122,6 +122,7 @@ def build_per_cam_displacements_from_stereo(
     cam_names: list[str],
     erp_hw: tuple[int, int],
     target_mode: str = "ideal",
+    min_parallax_px: float = 0.0,
 ) -> dict[str, list[tuple[np.ndarray, np.ndarray]]]:
     """Build sparse per-cam displacement vectors from cached stereo .npz files.
 
@@ -152,6 +153,8 @@ def build_per_cam_displacements_from_stereo(
     """
     if target_mode not in ("ideal", "midpoint"):
         raise ValueError(f"target_mode must be 'ideal' or 'midpoint', got {target_mode!r}")
+    if min_parallax_px < 0:
+        raise ValueError(f"min_parallax_px must be >= 0, got {min_parallax_px}")
     cam_set = set(cam_names)
     W = erp_hw[1]
     out: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {c: [] for c in cam_names}
@@ -168,6 +171,18 @@ def build_per_cam_displacements_from_stereo(
             l1_uv_b = _compute_l1_erp_pixel_per_cam(pt, cam_K[cam_b], cam_T_ego_cam[cam_b], erp_hw)
             if np.any(np.isnan(l1_uv_a)) or np.any(np.isnan(l1_uv_b)):
                 continue
+
+            # Adaptive filter: skip mild-parallax anchors. If the two cams already
+            # project the 3D point to nearly the same ERP location, no warp needed
+            # (and applying one introduces unnecessary lateral shifts that hurt
+            # alignment in surrounding pixels — Stage 3 Phase C v1 finding on
+            # anchors 90/150 where midpoint hurt Pearson vs ideal).
+            if min_parallax_px > 0.0:
+                du = _shortest_wrap_delta(l1_uv_b[0], l1_uv_a[0], W)
+                dv = l1_uv_b[1] - l1_uv_a[1]
+                parallax_px = float(np.hypot(du, dv))
+                if parallax_px < min_parallax_px:
+                    continue
 
             if target_mode == "ideal":
                 # Depth-aware ERP location; same target for both cams in pair
@@ -315,6 +330,7 @@ def build_warped_slabs_a2(
     confidence_sigma_px: float = 20.0,
     wrap_horizontal: bool = True,
     target_mode: str = "ideal",
+    min_parallax_px: float = 0.0,
 ) -> tuple[dict[str, np.ndarray], dict]:
     """Orchestrator: L1 slabs + stereo cache -> warped slabs.
 
@@ -339,6 +355,7 @@ def build_warped_slabs_a2(
     sparse_per_cam = build_per_cam_displacements_from_stereo(
         stereo_npz_paths, cam_K=cam_K, cam_T_ego_cam=cam_T_ego_cam,
         cam_names=cam_names, erp_hw=erp_hw, target_mode=target_mode,
+        min_parallax_px=min_parallax_px,
     )
     out_slabs: dict[str, np.ndarray] = {}
     per_cam_stats: dict[str, dict] = {}
@@ -369,6 +386,7 @@ def build_warped_slabs_a2(
     summary = {
         "n_stereo_files_used": n_stereo_total,
         "target_mode": target_mode,
+        "min_parallax_px": min_parallax_px,
         "per_cam": per_cam_stats,
     }
     return out_slabs, summary
