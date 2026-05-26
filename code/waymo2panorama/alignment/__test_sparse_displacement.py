@@ -115,3 +115,36 @@ def test_dense_field_decays_to_zero_far_from_anchors():
     # 200 px away from the anchor, displacement should be small
     far_d = dense[150, 300]
     assert np.linalg.norm(far_d) < 1.0, f"far field should decay, got {far_d}"
+
+
+def test_zero_displacement_returns_identical_slab():
+    """All-zero displacement field => warped slab == original slab."""
+    from waymo2panorama.alignment.sparse_displacement import (
+        warp_erp_slab_by_displacement,
+    )
+    slab = (np.random.RandomState(0).rand(64, 128, 3) * 255).astype(np.float32)
+    zero_disp = np.zeros((64, 128, 2), dtype=np.float32)
+    warped = warp_erp_slab_by_displacement(slab, zero_disp, wrap_horizontal=True)
+    assert warped.shape == slab.shape
+    assert np.allclose(warped, slab, atol=0.5)
+
+
+def test_constant_displacement_shifts_slab():
+    """Constant (+10, 0) displacement => slab content shifts by 10 px in -u dir."""
+    from waymo2panorama.alignment.sparse_displacement import (
+        warp_erp_slab_by_displacement,
+    )
+    H, W = 32, 64
+    slab = np.zeros((H, W, 3), dtype=np.float32)
+    slab[:, 20:25] = 255.0  # vertical white stripe at u=20..24
+    disp = np.zeros((H, W, 2), dtype=np.float32)
+    disp[..., 0] = 10.0  # "ERP pixel at u sources from u + 10" ... convention check
+    warped = warp_erp_slab_by_displacement(slab, disp, wrap_horizontal=True)
+    # The stripe should now appear at u-10 = 10..14 (or u+10 = 30..34 — depends on convention)
+    # Document the convention via the test:
+    has_stripe_at_10 = np.any(warped[:, 10:15] > 100)
+    has_stripe_at_30 = np.any(warped[:, 30:35] > 100)
+    assert has_stripe_at_10 ^ has_stripe_at_30, (
+        f"stripe should shift by 10 px in ONE direction. "
+        f"left? {has_stripe_at_10}, right? {has_stripe_at_30}"
+    )

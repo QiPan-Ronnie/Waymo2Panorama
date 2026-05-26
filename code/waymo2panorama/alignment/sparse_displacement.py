@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import cv2
 import numpy as np
 from scipy.interpolate import RBFInterpolator
 
@@ -182,3 +183,45 @@ def interpolate_dense_displacement_field(
     grid = np.stack([xs.ravel(), ys.ravel()], axis=-1).astype(np.float64)
     out = rbf(grid).reshape(H, W, 2).astype(np.float32)
     return out
+
+
+def warp_erp_slab_by_displacement(
+    slab: np.ndarray,
+    displacement: np.ndarray,
+    wrap_horizontal: bool = True,
+) -> np.ndarray:
+    """Warp an ERP slab by a dense (H, W, 2) displacement field.
+
+    Convention: displacement[v, u] = (du, dv) tells us that ERP pixel (u, v)
+    in the OUTPUT should be sourced from (u - du, v - dv) in the INPUT slab.
+    (This matches the "warp slab toward the ideal location" semantic — the
+    sparse delta_uv was ideal - L1, so dst[ideal] = src[L1] = src[ideal - delta].)
+
+    Uses cv2.remap with bilinear interpolation. Handles ERP horizontal wrap
+    when wrap_horizontal=True via modulo on the source u coordinate.
+
+    Args:
+        slab: (H, W, C) float32 ERP slab.
+        displacement: (H, W, 2) float32. displacement[..., 0] = du, [..., 1] = dv.
+        wrap_horizontal: if True, mod source u into [0, W).
+
+    Returns:
+        Warped (H, W, C) float32 slab.
+    """
+    H, W = slab.shape[:2]
+    assert displacement.shape == (H, W, 2)
+    ys, xs = np.mgrid[0:H, 0:W].astype(np.float32)
+    src_u = xs - displacement[..., 0]
+    src_v = ys - displacement[..., 1]
+    if wrap_horizontal:
+        src_u = np.mod(src_u, W).astype(np.float32)
+    else:
+        src_u = np.clip(src_u, 0, W - 1).astype(np.float32)
+    src_v = np.clip(src_v, 0, H - 1).astype(np.float32)
+    warped = cv2.remap(
+        slab, src_u, src_v,
+        interpolation=cv2.INTER_LINEAR,
+        borderMode=cv2.BORDER_CONSTANT,
+        borderValue=0,
+    )
+    return warped
