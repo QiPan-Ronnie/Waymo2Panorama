@@ -22,6 +22,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+from scipy.interpolate import RBFInterpolator
 
 from waymo2panorama.pipeline.lift_and_project import ego_points_to_erp_uv
 from waymo2panorama.pipeline.option_b_reweight import (
@@ -134,4 +135,50 @@ def build_per_cam_displacements_from_stereo(
                 elif delta_u < -W / 2: delta_u += W
                 delta_uv = np.array([delta_u, ideal_uv[1] - l1_uv[1]], dtype=np.float64)
                 out[cam].append((ideal_uv, delta_uv))
+    return out
+
+
+def interpolate_dense_displacement_field(
+    sparse_anchors: list[tuple[np.ndarray, np.ndarray]],
+    erp_hw: tuple[int, int],
+    regularization: float = 1.0,
+    kernel: str = "thin_plate_spline",
+) -> np.ndarray:
+    """Interpolate sparse {(ideal_uv, delta_uv)} into a dense (H, W, 2) field.
+
+    Uses scipy.interpolate.RBFInterpolator with thin-plate-spline kernel by
+    default. `regularization` (smoothing param) trades off exact-fit (=0)
+    vs smooth-overall (>>0). Higher regularization is more robust when sparse
+    anchors are noisy but loses anchor exactness.
+
+    Returns (H, W, 2) float32 displacement field. The (i, j) element gives
+    the per-pixel (delta_u, delta_v) — i.e., "where in the original L1 slab
+    to read from when painting this ERP pixel".
+
+    Empty sparse_anchors → all-zero field (no displacement).
+    """
+    H, W = erp_hw
+    if len(sparse_anchors) == 0:
+        return np.zeros((H, W, 2), dtype=np.float32)
+    anchors_xy = np.array([a[0] for a in sparse_anchors], dtype=np.float64)
+    deltas = np.array([a[1] for a in sparse_anchors], dtype=np.float64)
+    # RBF needs at least kernel-dim points; for TPS this is 3 in 2D. Fallback
+    # to gaussian (with shape param) if too few. We want the gaussian to decay
+    # to ~0 well outside the anchor support so isolated anchors don't paint
+    # a constant displacement everywhere.
+    rbf_kwargs: dict = {"kernel": kernel, "smoothing": float(regularization)}
+    if anchors_xy.shape[0] < 3 and kernel == "thin_plate_spline":
+        rbf_kwargs["kernel"] = "gaussian"
+        # scipy gaussian: exp(-(epsilon*r)^2). Pick width such that the field
+        # decays to ~0 well outside the anchor support (avoids painting a
+        # constant displacement everywhere when only 1-2 anchors exist).
+        # degree=-1 disables the polynomial tail so the field truly decays.
+        width_px = max(1.0, 0.05 * float(min(H, W)))
+        rbf_kwargs["epsilon"] = 1.0 / width_px
+        rbf_kwargs["degree"] = -1
+    rbf = RBFInterpolator(anchors_xy, deltas, **rbf_kwargs)
+    # Evaluate on every ERP pixel (vectorized; reasonably fast for 1024x2048)
+    ys, xs = np.mgrid[0:H, 0:W]
+    grid = np.stack([xs.ravel(), ys.ravel()], axis=-1).astype(np.float64)
+    out = rbf(grid).reshape(H, W, 2).astype(np.float32)
     return out

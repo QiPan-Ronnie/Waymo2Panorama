@@ -74,3 +74,44 @@ def test_displacements_zero_for_distant_synthetic_pts(tmp_path):
         assert np.linalg.norm(delta_uv) < 5.0, (
             f"far-point delta should be ~0, got {delta_uv}"
         )
+
+
+def test_dense_field_at_anchors_matches_sparse():
+    """The dense field at exactly the sparse anchor positions equals the sparse delta."""
+    from waymo2panorama.alignment.sparse_displacement import (
+        interpolate_dense_displacement_field,
+    )
+    erp_hw = (256, 512)
+    sparse = [
+        (np.array([100.0, 50.0]), np.array([3.0, -2.0])),
+        (np.array([300.0, 100.0]), np.array([-1.0, 4.0])),
+        (np.array([400.0, 150.0]), np.array([2.0, 1.0])),
+    ]
+    dense = interpolate_dense_displacement_field(
+        sparse, erp_hw=erp_hw, regularization=1e-3,
+    )
+    assert dense.shape == (erp_hw[0], erp_hw[1], 2)
+    # At the anchor pixels, value should be ~ the sparse delta (within reg tolerance)
+    for ideal_uv, delta_uv in sparse:
+        u, v = int(round(ideal_uv[0])), int(round(ideal_uv[1]))
+        d = dense[v, u]
+        assert np.linalg.norm(d - delta_uv) < 0.5, (
+            f"anchor at {ideal_uv} delta={delta_uv} but dense[v,u]={d}"
+        )
+
+
+def test_dense_field_decays_to_zero_far_from_anchors():
+    """Outside the anchor support, displacement should decay to ~0."""
+    from waymo2panorama.alignment.sparse_displacement import (
+        interpolate_dense_displacement_field,
+    )
+    erp_hw = (256, 512)
+    sparse = [
+        (np.array([100.0, 50.0]), np.array([3.0, -2.0])),
+    ]
+    dense = interpolate_dense_displacement_field(
+        sparse, erp_hw=erp_hw, regularization=1.0,
+    )
+    # 200 px away from the anchor, displacement should be small
+    far_d = dense[150, 300]
+    assert np.linalg.norm(far_d) < 1.0, f"far field should decay, got {far_d}"
