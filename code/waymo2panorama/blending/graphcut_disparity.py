@@ -170,3 +170,111 @@ def apply_seam_to_pair_weights(
     w_a_new = w_a * (1.0 - in_overlap) + (w_total * mask_a_side) * in_overlap
     w_b_new = w_b * (1.0 - in_overlap) + (w_total * mask_b_side) * in_overlap
     return w_a_new.astype(np.float32), w_b_new.astype(np.float32)
+
+
+from pathlib import Path
+
+from waymo2panorama.alignment.sparse_displacement import (
+    build_per_cam_displacements_from_stereo,
+)
+
+
+def build_seam_weights_b1(
+    l1_weights: dict[str, np.ndarray],
+    stereo_npz_paths,
+    cam_K: dict[str, np.ndarray],
+    cam_T_ego_cam: dict[str, np.ndarray],
+    adjacent_pairs: list[tuple[str, str]],
+    erp_hw: tuple[int, int],
+    disparity_sigma_px: float = 20.0,
+    seam_smoothness: float = 1.0,
+    seam_soft_px: int = 2,
+) -> tuple[dict[str, np.ndarray], dict]:
+    """Orchestrator: L1 weights + stereo cache -> seam-modified weights per pair.
+
+    For each adjacent pair (cam_a, cam_b):
+      1. Find overlap mask (both weights > eps)
+      2. Build per-pair disparity from stereo .npz that involves THIS pair
+      3. Find min-disparity seam through overlap
+      4. Replace soft cos^2 blend with hard 0/1 mask (with soft edge)
+    """
+    cam_names = list(l1_weights.keys())
+    sparse_per_cam = build_per_cam_displacements_from_stereo(
+        stereo_npz_paths, cam_K=cam_K, cam_T_ego_cam=cam_T_ego_cam,
+        cam_names=cam_names, erp_hw=erp_hw,
+    )
+    # Re-index sparse displacements by stereo .npz path for per-pair lookup
+    pair_anchors: dict[tuple[str, str], tuple[list, list]] = {}
+    from waymo2panorama.alignment.sparse_displacement import _load_stereo_pair
+    for p in stereo_npz_paths:
+        loaded = _load_stereo_pair(Path(p))
+        if loaded is None: continue
+        cam_a, cam_b, pts = loaded
+        if cam_a not in cam_names or cam_b not in cam_names: continue
+        cam_a_anchors_for_pair = []
+        cam_b_anchors_for_pair = []
+        from waymo2panorama.alignment.sparse_displacement import (
+            _compute_l1_erp_pixel_per_cam,
+        )
+        from waymo2panorama.pipeline.lift_and_project import ego_points_to_erp_uv
+        for pt in pts:
+            u_ideal, v_ideal, _ = ego_points_to_erp_uv(pt.reshape(1, 3), erp_hw=erp_hw)
+            ideal_uv = np.array([float(u_ideal[0]), float(v_ideal[0])])
+            l1_a = _compute_l1_erp_pixel_per_cam(pt, cam_K[cam_a], cam_T_ego_cam[cam_a], erp_hw)
+            l1_b = _compute_l1_erp_pixel_per_cam(pt, cam_K[cam_b], cam_T_ego_cam[cam_b], erp_hw)
+            if np.any(np.isnan(l1_a)) or np.any(np.isnan(l1_b)): continue
+            W = erp_hw[1]
+            def _wrap(d):
+                if d > W / 2: return d - W
+                elif d < -W / 2: return d + W
+                return d
+            delta_a = np.array([_wrap(ideal_uv[0] - l1_a[0]), ideal_uv[1] - l1_a[1]])
+            delta_b = np.array([_wrap(ideal_uv[0] - l1_b[0]), ideal_uv[1] - l1_b[1]])
+            cam_a_anchors_for_pair.append((ideal_uv, delta_a))
+            cam_b_anchors_for_pair.append((ideal_uv, delta_b))
+        if cam_a_anchors_for_pair:
+            pair_anchors[(cam_a, cam_b)] = (cam_a_anchors_for_pair, cam_b_anchors_for_pair)
+
+    out_weights = {c: l1_weights[c].astype(np.float32).copy() for c in cam_names}
+    n_pairs_done = 0
+    per_pair_log: list[dict] = []
+    for (cam_a, cam_b) in adjacent_pairs:
+        if cam_a not in out_weights or cam_b not in out_weights:
+            continue
+        overlap_mask = (out_weights[cam_a] > 1e-3) & (out_weights[cam_b] > 1e-3)
+        if not overlap_mask.any():
+            per_pair_log.append({
+                "cam_a": cam_a, "cam_b": cam_b, "status": "no_overlap",
+            })
+            continue
+        anchors = pair_anchors.get((cam_a, cam_b))
+        if anchors is None:
+            per_pair_log.append({
+                "cam_a": cam_a, "cam_b": cam_b, "status": "no_stereo",
+            })
+            continue
+        disp_mag = build_pair_disparity_magnitude(
+            anchors[0], anchors[1], erp_hw=erp_hw, sigma_px=disparity_sigma_px,
+        )
+        # Boost cost outside overlap to keep seam inside
+        cost_field = disp_mag.copy()
+        cost_field[~overlap_mask] = 1e6
+        seam_u = find_min_disparity_seam(
+            cost_field, overlap_mask, u_smoothness=seam_smoothness,
+        )
+        out_weights[cam_a], out_weights[cam_b] = apply_seam_to_pair_weights(
+            out_weights[cam_a], out_weights[cam_b], seam_u,
+            overlap_mask, soft_px=seam_soft_px,
+        )
+        n_pairs_done += 1
+        per_pair_log.append({
+            "cam_a": cam_a, "cam_b": cam_b, "status": "ok",
+            "n_anchors": len(anchors[0]),
+            "max_disp_mag": float(disp_mag.max()),
+        })
+    summary = {
+        "n_pairs_total": len(adjacent_pairs),
+        "n_pairs_with_seam": n_pairs_done,
+        "per_pair": per_pair_log,
+    }
+    return out_weights, summary

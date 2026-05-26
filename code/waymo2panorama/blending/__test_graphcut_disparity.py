@@ -76,3 +76,20 @@ def test_apply_seam_zero_one_mask():
     assert w_a_new[5, 12] > 0.9 and w_b_new[5, 12] < 0.1
     assert w_a_new[5, 19] < 0.1 and w_b_new[5, 19] > 0.9
     assert abs(w_a_new[5, 5] - 0.5) < 0.01  # outside overlap, unchanged
+
+
+def test_orchestrator_no_stereo_returns_unchanged_weights(tmp_path):
+    """If no stereo data, orchestrator returns weights unchanged."""
+    from waymo2panorama.blending.graphcut_disparity import build_seam_weights_b1
+    weights = {f"cam_{i}": np.ones((32, 64), dtype=np.float32) * 0.5 for i in range(3)}
+    cam_K = {c: np.eye(3) for c in weights}
+    cam_T = {c: np.eye(4) for c in weights}
+    out, summary = build_seam_weights_b1(
+        l1_weights=weights, stereo_npz_paths=[],
+        cam_K=cam_K, cam_T_ego_cam=cam_T,
+        adjacent_pairs=[("cam_0", "cam_1"), ("cam_1", "cam_2")],
+        erp_hw=(32, 64),
+    )
+    for c in weights:
+        assert np.allclose(out[c], weights[c], atol=1e-6)
+    assert summary["n_pairs_with_seam"] == 0
