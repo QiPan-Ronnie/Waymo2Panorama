@@ -1,6 +1,8 @@
 # N1 Autonomous Run Summary (5-26 evening → night, autonomous mode)
 
-**TL;DR**: 实施了 N1 cam-translation-aware L1 完整 architecture (3 phases + 5 commits + cross-log validation). **几何上 correct**, 修了 L1 的 documented hidden bug (cam translation 被丢). 但**视觉上**, 单帧 BMW/Porsche doubled ghost **仍存在**, 因为 view-dependent overlap 不能被 per-pixel depth alone 消除. 下一步明确: 真正 dense depth (DVGT) 或 object-aware seam, 或 view synthesis (NeRF/3DGS).
+**TL;DR**: 实施了 N1 cam-translation-aware L1 完整 architecture (3 phases + 8 commits + cross-log validation + 5.22 §1b color audit). **几何上 correct**, 修了 L1 的 documented hidden bug. 但**最重要的诚实 finding**: 5-way visual A/B (legacy / HDR / N1 / HDR+N1 / HDR+N1+graphcut) 显示 **N1+LiDAR 在 BMW frame 上视觉更糟** (seam tears + body fragmentation), plain L1 仍最干净. 根因: LiDAR 在 smooth car surface 太 sparse, kNN-fill 把 body depth 错填成周围地面/建筑物 depth, 加上 multi-view overlap 显示不同 angle. **下一步必须换 path**: 不是 keep iterating N1, 是 (a) dense depth backbone (DVGT 需 user auth) 或 (b) view synthesis (NeRF/3DGS) 或 (c) 接受 L1 baseline + HDR + frame selection.
+
+**重要副 finding**: §1b AV2 cross-cam lum gap mean **5.5 dB** (max 9.1 dB on 02a00399), 我们之前以为没问题是 wrong. 新-E HDR 应 default ON.
 
 ---
 
@@ -79,6 +81,28 @@ LiDAR 投到 ERP + kNN-fill 6px 之外用 1000m far-fill:
 - `n1_phase_c_plus_n2/<5 log_ids>/anchor_0/` (cross-log results)
 
 ---
+
+## 决定性 5-way visual A/B (BMW frame in 02a00399 anchor 0)
+
+`deliverables/n1_full_stack/bmw_5way_tight.png` 5 行 tight crop:
+
+```
+Row 1: legacy L1          — BMW + doubled wheel + body halo  ← visually BEST
+Row 2: + HDR only         — same BMW, photometric subtle改进
+Row 3: + N1+LiDAR          — BMW shifted to LiDAR-correct angle BUT seam tears + body fragmented  ← WORSE
+Row 4: + HDR + N1          — slightly better than row 3 but still worse than rows 1-2
+Row 5: + FULL stack + graphcut — comparable to row 4
+```
+
+**Honest takeaway**: N1+LiDAR architecture is GEOMETRICALLY more correct but VISUALLY worse for this frame because:
+- LiDAR is sparse on BMW's smooth white body (mostly mirror/edge returns)
+- kNN-fill propagates wrong depth from surrounding ground/buildings
+- Two cams' different views of BMW (front-side vs side-rear) don't visually overlay cleanly even at correct angular position
+
+Implication: **don't keep iterating N1**. The next move is either:
+- **dense depth backbone** (DVGT or RGB-guided LiDAR completion) — fixes sparsity
+- **view synthesis** (NeRF/3DGS) — fixes multi-view overlap
+- **accept legacy L1 + HDR + frame selection** — pragmatic for Bosch dataset goal
 
 ## 我推荐的下一步 (按 信心 × 投入 排序)
 
