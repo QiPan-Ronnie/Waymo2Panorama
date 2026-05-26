@@ -30,6 +30,9 @@
 ## 2.3 针孔相机模型 (Pinhole Camera Model)
 
 **What**: 经典物理模型, 3D 点 (x, y, z) 投到 2D 像素 (u, v) 的公式是:
+
+**焦距**就是：相机“成像中心”到“成像平面”的距离。它决定画面是更广角，还是更放大。
+
 ```
 u = fx * x / z + cx
 v = fy * y / z + cy
@@ -39,6 +42,30 @@ v = fy * y / z + cy
 **Why**: 这是相机成像的物理原理, 100% 准确 (除非有 fisheye / 鱼眼镜头). 所有 CV 项目第一步.
 
 **Code**: `depth_to_cam_points()` in `scripts/phase3/run_depth_backbone_swap.py:105-128` — 这是反过来 (back-projection), 但同样的公式.
+
+所以还要考虑：
+
+- 焦距用像素单位表示：$f_x, f_y$
+- 图像中心点，也叫 principal point：$(c_x, c_y)$
+
+于是：
+$$
+u = f_x \frac{X}{Z} + c_x
+$$
+$$ v = f_y \frac{Y}{Z} + c_y $$
+
+这里：
+
+- $u$：像素横坐标
+- $v$：像素纵坐标
+- $f_x, f_y$：水平和垂直方向焦距
+- $c_x, c_y$：图像中心，一般接近图片宽高的一半
+
+比如一张 $640 \times 480$ 的图，中心大概是：
+$$
+c_x = 320, \qquad c_y = 240
+$$
+
 
 ---
 
@@ -93,14 +120,23 @@ T_ego_cam = [[ R(3×3),  t(3×1) ],
 
 **Code**: `frame.calibrations[cam].T_ego_cam` in `code/waymo2panorama/data_io/av2_loader.py`. 形状 (4, 4).
 
+
+
+
+
+
+
+
 ---
+
+
 
 ## 2.7 坐标系 (World / Ego / Cam)
 
 **What**: 一个场景里有多个 3D 坐标系:
 - **World**: 全局固定坐标系 (e.g., 地图原点)
 - **Ego**: 以车辆中心为原点的坐标系, 随车移动
-- **Cam_<name>**: 以某个相机为原点的坐标系, 朝向是相机光轴
+- Cam_<name> : 以某个相机为原点的坐标系, 朝向是相机光轴
 
 **Why**: 不同算法在不同 frame 里好做.
 - Pi3 输出 `local_points` 在 cam frame
@@ -115,7 +151,11 @@ T_ego_cam = [[ R(3×3),  t(3×1) ],
 
 **Code**: 各种 transformation function in `code/waymo2panorama/pipeline/lift_and_project.py`.
 
+
+
+
 ---
+
 
 ## 2.8 齐次坐标 (Homogeneous Coordinates)
 
@@ -476,3 +516,8 @@ v_erp = (lat + π/2) / π * H_erp
 ---
 
 **下一章**: [03_methods_walkthrough.md](03_methods_walkthrough.md) — 8 条拼接路线深度讲解
+
+
+
+
+

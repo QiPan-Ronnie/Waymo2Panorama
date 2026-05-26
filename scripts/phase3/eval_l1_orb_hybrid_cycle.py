@@ -166,7 +166,7 @@ def _eval_one_anchor(
     reference_cam: str,
     no_prewarp: bool,
     warp_model: str = "rotation_only",
-    min_warp_coverage_frac: float = 0.5,
+    min_warp_coverage_frac: float = 0.10,
 ) -> dict:
     """Run both plain-L1 baseline and L1+prewarp blends, compute cycle PSNR
     (L1+prewarp vs L1) on union of L1 coverage AND on the multi-cam overlap
@@ -416,7 +416,7 @@ def _eval_one_anchor_for_checkpoint(
     reference_cam: str,
     no_prewarp: bool,
     warp_model: str = "rotation_only",
-    min_warp_coverage_frac: float = 0.5,
+    min_warp_coverage_frac: float = 0.10,
 ) -> dict:
     """Primitive-arg wrapper so colab_direct.checkpointed can serialize args."""
     return _eval_one_anchor(
@@ -462,7 +462,7 @@ def main() -> int:
                     default="rotation_only",
                     help="v2: rotation_only (default, 3 DOF, Procrustes); similarity (4 DOF, "
                          "cv2.estimateAffinePartial2D); homography (v1, 8 DOF, drifts on chain).")
-    ap.add_argument("--min-warp-coverage-frac", type=float, default=0.5,
+    ap.add_argument("--min-warp-coverage-frac", type=float, default=0.10,
                     help="Safety valve: fall back to identity if post-warp non-zero coverage "
                          "falls below this fraction (catches v1 散架 where everything fell off canvas).")
     ap.add_argument("--reference-cam", default="ring_front_center",

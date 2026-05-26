@@ -120,7 +120,7 @@ def main() -> int:
                          "(8 DOF, drifts after 3-hop chain); 'similarity' = 4 DOF (rotation+scale+"
                          "translation, bounded under chain compose); 'rotation_only' (default) = "
                          "3 DOF rigid 3D rotation via Procrustes on backprojected rays, requires K.")
-    ap.add_argument("--min-warp-coverage-frac", type=float, default=0.5,
+    ap.add_argument("--min-warp-coverage-frac", type=float, default=0.10,
                     help="Safety valve: if post-warp non-zero pixel coverage falls below this "
                          "fraction (e.g. <50% of canvas still covered), fall back to identity. "
                          "This catches the v1 NEG mode where rear-cam 3-hop perspective chain "

@@ -99,7 +99,7 @@ def stitch_one_frame_with_prewarp(
     ring_order: Optional[list[str]] = None,
     return_diagnostics: bool = True,
     warp_model: str = "rotation_only",
-    min_warp_coverage_frac: float = 0.5,
+    min_warp_coverage_frac: float = 0.10,
 ) -> tuple[np.ndarray, dict]:
     """WS2 — L1 sphere stitch WITH chain-warp overlap-homography prewarp.
 
@@ -323,6 +323,8 @@ def stitch_one_frame_with_prewarp(
             "H": H.tolist(),
             "n_hops": info["n_hops"],
             "is_identity": info["is_identity"],
+            "safety_fallback": info.get("safety_fallback", False),
+            "post_warp_coverage_frac": info.get("post_warp_coverage_frac", 1.0),
         }
 
     summary = {
