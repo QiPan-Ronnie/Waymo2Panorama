@@ -1,15 +1,21 @@
 """
 Spherical projection: one perspective camera image -> ERP slab (Phase 1, L1 baseline).
 
-L1 assumption: ignore the camera's translation. Treat every ring camera as if it
-were mounted at the ego-vehicle origin. Only the camera's rotation matters.
+Two modes:
+  - Default (convergence_distance_m=None) — legacy L1: ignore the camera's
+    translation, treat every ring camera as if at the ego-vehicle origin. Only
+    rotation matters. Correct for far objects, wrong for close objects (ghost).
+  - N1 mode (convergence_distance_m=float | (H,W) array) — cam-translation-aware
+    finite-radius projection. Place a 3D point at distance r along each ERP ray
+    in ego frame, then translate to the cam's true position before pinhole. For
+    objects at distance ~r, adjacent cams converge to the same ERP pixel.
 
 Consequences:
-  + Math is trivial; no depth needed; runs on CPU.
-  + Correct for far objects (where parallax is small).
-  - Wrong for close objects: same 3D point seen by two cams maps to two different
-    ERP locations -> visible ghosting near the seams. This is EXPECTED at L1 and
-    is exactly the failure mode Phase 2 (Pi3/DVGT 3D-lift) is meant to fix.
+  + Math is trivial; no depth needed in default mode; runs on CPU.
+  + Default mode correct for far objects (where parallax is small).
+  - Default mode wrong for close objects: same 3D point seen by two cams maps
+    to different ERP locations -> visible ghosting near seams. Use N1 mode with
+    r ~= near-object distance (3-10m typical for driving) to compensate.
 
 Conventions:
   - ERP image: 2:1 aspect. Origin top-left.
@@ -32,6 +38,7 @@ def render_camera_to_erp(
     T_ego_cam: np.ndarray,
     erp_hw: tuple[int, int] = (1024, 2048),
     ego_mask: np.ndarray | None = None,
+    convergence_distance_m: float | np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Render one camera image onto an ERP canvas.
 
@@ -42,6 +49,15 @@ def render_camera_to_erp(
         erp_hw:     (H_erp, W_erp). H_erp:W_erp must be 1:2 for valid equirectangular.
         ego_mask:   optional (H_src, W_src) uint8 mask in source-image coords.
                     Value 1 keeps the pixel; value 0 excludes it (e.g. ego vehicle hood).
+        convergence_distance_m: optional convergence distance for N1
+                    cam-translation-aware projection.
+                      - None (default): legacy L1, ignore T_ego_cam[:3, 3]. Ghost
+                        on near-field objects.
+                      - float r > 0: place a 3D point at distance r along each ERP
+                        ray in ego frame, then translate to cam at its true position
+                        before pinhole. Adjacent cams converge at distance ~r.
+                      - (H_erp, W_erp) ndarray: per-pixel distance (e.g. LiDAR / depth
+                        net) for fully depth-aware projection.
 
     Returns:
         erp_rgb     (H_erp, W_erp, 3) float32, sampled RGB in [0, 255]
@@ -83,10 +99,43 @@ def render_camera_to_erp(
         axis=-1,
     )  # (H_erp, W_erp, 3)
 
-    # 3) Rotate ray to camera frame: d_cam = R_ego_cam.T @ d_ego
+    # 3) Map ERP ray to cam-frame coordinates. Two branches:
+    #    - Legacy (convergence_distance_m=None): rotate-only, treat cam at ego origin.
+    #    - N1 (convergence_distance_m=float | array): place 3D point at distance r in
+    #      ego frame, then translate to cam-centered frame before rotating.
     R_ego_cam = T_ego_cam[:3, :3]
     R_cam_ego = R_ego_cam.T
-    d_cam = d_ego @ R_cam_ego.T  # equivalent to einsum('ij,...j->...i', R_cam_ego, d_ego)
+
+    if convergence_distance_m is None:
+        # Legacy L1: unit ray rotation. T_ego_cam[:3, 3] silently dropped.
+        d_cam = d_ego @ R_cam_ego.T  # equivalent to einsum('ij,...j->...i', R_cam_ego, d_ego)
+        # For a unit ray, z component equals cos(angle to optic axis); used in step 6.
+        cos_axis_z = d_cam[..., 2]
+    else:
+        # N1 cam-translation-aware:
+        t_ego_cam = T_ego_cam[:3, 3]
+        if isinstance(convergence_distance_m, np.ndarray):
+            if convergence_distance_m.shape != (h_erp, w_erp):
+                raise ValueError(
+                    f"convergence_distance_m array shape {convergence_distance_m.shape} "
+                    f"must match erp_hw {erp_hw}"
+                )
+            r_map = convergence_distance_m.astype(np.float64)
+            P_ego = r_map[..., None] * d_ego
+        else:
+            r_val = float(convergence_distance_m)
+            if not np.isfinite(r_val) or r_val <= 0:
+                raise ValueError(
+                    f"convergence_distance_m must be positive finite or None, got "
+                    f"{convergence_distance_m}"
+                )
+            P_ego = r_val * d_ego
+        # Translate to cam-centered ego frame, then rotate to cam frame.
+        P_cam_centered = P_ego - t_ego_cam
+        d_cam = P_cam_centered @ R_cam_ego.T  # 3D POINT in cam frame (not unit ray)
+        # For weight calc we need cos(angle to optic axis) = normalized z component.
+        norm = np.linalg.norm(d_cam, axis=-1)
+        cos_axis_z = np.where(norm > 1e-9, d_cam[..., 2] / norm, 0.0)
 
     # 4) Pinhole projection (only valid in front of camera: z_cam > 0)
     z_cam = d_cam[..., 2]
@@ -115,8 +164,9 @@ def render_camera_to_erp(
     )
 
     # 6) Feather weight: cos^2(angle from optical axis).
-    # In cam frame, optical axis is +z, so cos(angle) = z_cam for a unit ray.
-    cos_axis = np.clip(z_cam, 0.0, 1.0)
+    # `cos_axis_z` was set in step 3: equals z_cam in legacy mode (unit ray), or
+    # the normalized d_cam[..., 2] in N1 mode (since d_cam is a 3D POINT in meters).
+    cos_axis = np.clip(cos_axis_z, 0.0, 1.0)
     weight = (cos_axis ** 2).astype(np.float32)
 
     # 7) Optional ego mask in source-image coords (1 = keep, 0 = exclude)

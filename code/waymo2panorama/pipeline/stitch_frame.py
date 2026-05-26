@@ -27,8 +27,14 @@ def stitch_one_frame(
     num_bands: int = 5,
     ego_masks: Optional[dict[str, np.ndarray]] = None,
     wrap: bool = True,
+    convergence_distance_m: float | np.ndarray | None = None,
 ) -> np.ndarray:
-    """Stitch one synchronized frame's 7 ring cams into a single ERP image (uint8 HxWx3)."""
+    """Stitch one synchronized frame's 7 ring cams into a single ERP image (uint8 HxWx3).
+
+    `convergence_distance_m` is forwarded to render_camera_to_erp. None (default)
+    runs the legacy L1 baseline (cam at ego origin). Float r > 0 or per-pixel
+    (H,W) array enables N1 cam-translation-aware finite-radius projection.
+    """
     slabs: list[np.ndarray] = []
     weights: list[np.ndarray] = []
     for cam in RING_CAMS_7:
@@ -41,6 +47,7 @@ def stitch_one_frame(
             T_ego_cam=calib.T_ego_cam,
             erp_hw=erp_hw,
             ego_mask=mask,
+            convergence_distance_m=convergence_distance_m,
         )
         slabs.append(rgb)
         weights.append(w)
@@ -100,6 +107,7 @@ def stitch_one_frame_with_prewarp(
     return_diagnostics: bool = True,
     warp_model: str = "rotation_only",
     min_warp_coverage_frac: float = 0.10,
+    convergence_distance_m: float | np.ndarray | None = None,
 ) -> tuple[np.ndarray, dict]:
     """WS2 — L1 sphere stitch WITH chain-warp overlap-homography prewarp.
 
@@ -276,6 +284,7 @@ def stitch_one_frame_with_prewarp(
 
     # ---- Step 4: L1 sphere project + multi-band blend ---------------------
     # NB: each cam still uses its ORIGINAL K and T_ego_cam (v1 simplification).
+    # convergence_distance_m forwarded so prewarp + N1 can be combined.
     t_proj0 = _time.time()
     slabs: list[np.ndarray] = []
     weights: list[np.ndarray] = []
@@ -288,6 +297,7 @@ def stitch_one_frame_with_prewarp(
             T_ego_cam=data["T_ego_cam"],
             erp_hw=erp_hw,
             ego_mask=mask,
+            convergence_distance_m=convergence_distance_m,
         )
         slabs.append(rgb)
         weights.append(w)
