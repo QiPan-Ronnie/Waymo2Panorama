@@ -104,6 +104,8 @@ def main() -> int:
                     help="Required when --apply-a2; ignored otherwise.")
     ap.add_argument("--apply-a2", action="store_true",
                     help="Apply WS4 A2 displacement warp before computing alignment.")
+    ap.add_argument("--target-mode", choices=["ideal", "midpoint"], default="ideal",
+                    help="When --apply-a2: 'ideal' (orig A2) or 'midpoint' (Stage 3 Phase C joint).")
     ap.add_argument("--erp-h", type=int, default=1024)
     ap.add_argument("--erp-w", type=int, default=2048)
     ap.add_argument("--no-ego-mask", action="store_true")
@@ -153,6 +155,7 @@ def main() -> int:
             l1_slabs=slabs, stereo_npz_paths=stereo_paths,
             cam_K=cam_K, cam_T_ego_cam=cam_T, cam_names=cams,
             erp_hw=erp_hw,
+            target_mode=args.target_mode,
         )
         slabs = warped
     else:

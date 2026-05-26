@@ -80,6 +80,13 @@ def main() -> int:
     ap.add_argument("--no-ego-mask", action="store_true")
     ap.add_argument("--rbf-regularization", type=float, default=1.0)
     ap.add_argument("--confidence-sigma-px", type=float, default=20.0)
+    ap.add_argument(
+        "--target-mode", choices=["ideal", "midpoint"], default="ideal",
+        help=("'ideal' (default, original A2): warp each cam toward depth-aware "
+              "ERP location per 3D point. 'midpoint' (joint per-pair, Stage 3 "
+              "Phase C): both cams in a pair move halfway toward each other's "
+              "L1 projection — no depth, symmetric, fixes A2 per-cam asymmetry."),
+    )
     ap.add_argument("--w2p-code", default=None)
     args = ap.parse_args()
 
@@ -111,7 +118,7 @@ def main() -> int:
         per_cam = {cam: _load_pi3_cam(args.pi3_dir, cam) for cam in cams}
 
     sample = per_cam[cams[0]]
-    print(f"[a2-sparse-disp] mode={'NO-WARP plain L1' if args.no_warp else 'A2 displacement warp'}, "
+    print(f"[a2-sparse-disp] mode={'NO-WARP plain L1' if args.no_warp else f'A2 displacement warp (target={args.target_mode})'}, "
           f"erp_hw={erp_hw}, source={source_label}, sample_img_shape={sample['image'].shape}", flush=True)
 
     cam_image_shapes = {cam: per_cam[cam]["image"].shape[:2] for cam in cams}
@@ -143,6 +150,7 @@ def main() -> int:
             erp_hw=erp_hw,
             rbf_regularization=args.rbf_regularization,
             confidence_sigma_px=args.confidence_sigma_px,
+            target_mode=args.target_mode,
         )
         slabs_dict = warped
     t_warp_s = time.time() - t_warp0

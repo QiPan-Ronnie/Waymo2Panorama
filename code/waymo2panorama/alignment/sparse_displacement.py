@@ -93,25 +93,67 @@ def _load_stereo_pair(path: Path) -> tuple[str, str, np.ndarray] | None:
     return cam_a, cam_b, pts
 
 
+def _shortest_wrap_delta(u_target: float, u_src: float, W: int) -> float:
+    """Shortest-path signed horizontal delta on a wrap-around ERP."""
+    d = u_target - u_src
+    if d > W / 2:
+        d -= W
+    elif d < -W / 2:
+        d += W
+    return d
+
+
+def _midpoint_uv_wrap(uv_a: np.ndarray, uv_b: np.ndarray, W: int) -> np.ndarray:
+    """Midpoint of two ERP positions, respecting horizontal wrap-around.
+
+    The v-axis (latitude) is linear; midpoint is straightforward.
+    The u-axis (longitude) wraps at W; midpoint is uv_a + 0.5 * shortest_delta(uv_a, uv_b).
+    """
+    half_du = _shortest_wrap_delta(uv_b[0], uv_a[0], W) * 0.5
+    u_mid = (uv_a[0] + half_du) % W
+    v_mid = 0.5 * (uv_a[1] + uv_b[1])
+    return np.array([u_mid, v_mid], dtype=np.float64)
+
+
 def build_per_cam_displacements_from_stereo(
     stereo_npz_paths,
     cam_K: dict[str, np.ndarray],
     cam_T_ego_cam: dict[str, np.ndarray],
     cam_names: list[str],
     erp_hw: tuple[int, int],
+    target_mode: str = "ideal",
 ) -> dict[str, list[tuple[np.ndarray, np.ndarray]]]:
     """Build sparse per-cam displacement vectors from cached stereo .npz files.
 
-    For each cam X in cam_names and each 3D ego point pt seen by a stereo
-    pair involving X:
-      ideal_uv = ego_points_to_erp_uv(pt)  # depth-aware ERP location
-      l1_uv   = _compute_l1_erp_pixel_per_cam(pt, K_X, T_X)
-      delta_uv = ideal_uv - l1_uv  # cam X's slab needs to shift by this
+    target_mode controls where each pair's two cams are warped to:
 
-    Returns dict {cam_name: list of (ideal_uv, delta_uv) tuples}. Cams not
-    appearing in any stereo pair get an empty list.
+      "ideal" (default, original A2 / WS4-D1): for each 3D point pt,
+        target = ego_points_to_erp_uv(pt)  # depth-aware ERP location
+        cam_X's delta = target - L1_projection_X
+        Architectural risk: per-cam anchor lists built INDEPENDENTLY. If
+        cam_b has zero anchors from its OTHER pairs, only this pair's
+        anchors warp it — but other regions of cam_b's slab stay put,
+        breaking alignment elsewhere. Decisive NEG (Stage 3 A.4-A.5 eval).
+
+      "midpoint" (joint per-pair, Stage 3 Phase C): for each stereo pair
+        (cam_a, cam_b) and 3D point pt:
+          L1_uv_a = _compute_l1_erp_pixel_per_cam(pt, ..., cam_a)
+          L1_uv_b = _compute_l1_erp_pixel_per_cam(pt, ..., cam_b)
+          target  = wrap-aware midpoint(L1_uv_a, L1_uv_b)
+          cam_a's delta = target - L1_uv_a
+          cam_b's delta = target - L1_uv_b
+        Both cams in the pair are forced to meet halfway. Symmetric, no
+        depth required, no asymmetry from "one cam has anchors, other
+        doesn't" because each pair-stereo contributes equally to both
+        cams' anchor lists.
+
+    Returns dict {cam_name: list of (anchor_uv, delta_uv) tuples}. Cams
+    not appearing in any stereo pair get an empty list.
     """
+    if target_mode not in ("ideal", "midpoint"):
+        raise ValueError(f"target_mode must be 'ideal' or 'midpoint', got {target_mode!r}")
     cam_set = set(cam_names)
+    W = erp_hw[1]
     out: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {c: [] for c in cam_names}
     for p in stereo_npz_paths:
         loaded = _load_stereo_pair(Path(p))
@@ -121,21 +163,27 @@ def build_per_cam_displacements_from_stereo(
         if cam_a not in cam_set or cam_b not in cam_set:
             continue
         for pt in pts:
-            u_ideal, v_ideal, _ = ego_points_to_erp_uv(pt.reshape(1, 3), erp_hw=erp_hw)
-            ideal_uv = np.array([float(u_ideal[0]), float(v_ideal[0])], dtype=np.float64)
-            for cam in (cam_a, cam_b):
-                l1_uv = _compute_l1_erp_pixel_per_cam(
-                    pt, cam_K[cam], cam_T_ego_cam[cam], erp_hw,
-                )
-                if np.any(np.isnan(l1_uv)):
-                    continue
-                # Handle wrap-around in u (use shortest signed delta)
-                delta_u = (ideal_uv[0] - l1_uv[0])
-                W = erp_hw[1]
-                if delta_u > W / 2: delta_u -= W
-                elif delta_u < -W / 2: delta_u += W
-                delta_uv = np.array([delta_u, ideal_uv[1] - l1_uv[1]], dtype=np.float64)
-                out[cam].append((ideal_uv, delta_uv))
+            # Per-cam L1 sphere projections (used by both modes)
+            l1_uv_a = _compute_l1_erp_pixel_per_cam(pt, cam_K[cam_a], cam_T_ego_cam[cam_a], erp_hw)
+            l1_uv_b = _compute_l1_erp_pixel_per_cam(pt, cam_K[cam_b], cam_T_ego_cam[cam_b], erp_hw)
+            if np.any(np.isnan(l1_uv_a)) or np.any(np.isnan(l1_uv_b)):
+                continue
+
+            if target_mode == "ideal":
+                # Depth-aware ERP location; same target for both cams in pair
+                u_ideal, v_ideal, _ = ego_points_to_erp_uv(pt.reshape(1, 3), erp_hw=erp_hw)
+                target_uv = np.array([float(u_ideal[0]), float(v_ideal[0])], dtype=np.float64)
+            else:  # midpoint
+                target_uv = _midpoint_uv_wrap(l1_uv_a, l1_uv_b, W)
+
+            for cam, l1_uv in [(cam_a, l1_uv_a), (cam_b, l1_uv_b)]:
+                delta_u = _shortest_wrap_delta(target_uv[0], l1_uv[0], W)
+                delta_uv = np.array([delta_u, target_uv[1] - l1_uv[1]], dtype=np.float64)
+                # Anchor at DESTINATION (target_uv); delta tells the warp
+                # what to source-shift to put l1_uv content at target_uv.
+                # warp_erp_slab_by_displacement does dst[u, v] = src[u - du, v - dv],
+                # so dst[target_uv] = src[target_uv - (target_uv - l1_uv)] = src[l1_uv]. ✓
+                out[cam].append((target_uv.copy(), delta_uv))
     return out
 
 
@@ -266,25 +314,31 @@ def build_warped_slabs_a2(
     rbf_regularization: float = 1.0,
     confidence_sigma_px: float = 20.0,
     wrap_horizontal: bool = True,
+    target_mode: str = "ideal",
 ) -> tuple[dict[str, np.ndarray], dict]:
-    """Orchestrator: L1 slabs + stereo cache -> warped slabs (A2 method).
+    """Orchestrator: L1 slabs + stereo cache -> warped slabs.
 
     Pipeline per cam:
-      1. Build sparse {(ideal_uv, delta_uv)} from stereo .npz files involving cam
+      1. Build sparse {(anchor_uv, delta_uv)} from stereo .npz files involving cam
       2. Interpolate to dense (H, W, 2) displacement field via TPS RBF
       3. Build (H, W) confidence map from anchor positions
       4. Gate displacement: dense_disp * confidence
       5. Warp slab via cv2.remap
 
+    target_mode (passed through to build_per_cam_displacements_from_stereo):
+        "ideal"    : original A2 — depth-aware ERP location per 3D point
+        "midpoint" : joint per-pair — both cams in pair move halfway toward
+                     each other's L1 projection (no depth, no asymmetry)
+
     Returns:
         (warped_slabs, summary_dict)
         - warped_slabs: same keys as l1_slabs, gated-warp applied
-        - summary: n_stereo_files_used, per-cam #anchors and max |delta|
+        - summary: n_stereo_files_used, target_mode, per-cam #anchors and max |delta|
     """
     n_stereo_total = len(list(stereo_npz_paths))
     sparse_per_cam = build_per_cam_displacements_from_stereo(
         stereo_npz_paths, cam_K=cam_K, cam_T_ego_cam=cam_T_ego_cam,
-        cam_names=cam_names, erp_hw=erp_hw,
+        cam_names=cam_names, erp_hw=erp_hw, target_mode=target_mode,
     )
     out_slabs: dict[str, np.ndarray] = {}
     per_cam_stats: dict[str, dict] = {}
@@ -314,6 +368,7 @@ def build_warped_slabs_a2(
         }
     summary = {
         "n_stereo_files_used": n_stereo_total,
+        "target_mode": target_mode,
         "per_cam": per_cam_stats,
     }
     return out_slabs, summary

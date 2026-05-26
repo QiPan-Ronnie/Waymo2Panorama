@@ -168,6 +168,110 @@ def test_confidence_map_high_near_anchors_zero_far():
     assert float(conf.min()) >= 0.0
 
 
+def test_midpoint_target_mode_symmetric_displacement(tmp_path):
+    """Stage 3 Phase C: target_mode='midpoint' produces symmetric deltas.
+
+    For a single 3D point seen by 2 cams (cam_a, cam_b):
+      - cam_a's delta = midpoint - L1_uv_a
+      - cam_b's delta = midpoint - L1_uv_b
+    These should be exactly opposite in the v-axis (linear, no wrap) and
+    sum to zero on the u-axis modulo W (handled by shortest-wrap delta).
+    Both anchors should land at the SAME u-target (the midpoint).
+    """
+    from waymo2panorama.alignment.sparse_displacement import (
+        build_per_cam_displacements_from_stereo,
+    )
+    from waymo2panorama.pipeline.option_b_reweight import (
+        STEREO_NPZ_PTS_KEY, STEREO_NPZ_CAM_A_KEY, STEREO_NPZ_CAM_B_KEY,
+    )
+    K = np.array([[500.0, 0, 252.0], [0, 500.0, 252.0], [0, 0, 1.0]])
+    R = np.array([[0, 0, 1], [-1, 0, 0], [0, -1, 0]], dtype=np.float64)
+    # cam_a 0.5m forward, cam_b 0.5m forward + 0.3m to ego-left
+    T_a = np.eye(4); T_a[:3, :3] = R; T_a[:3, 3] = [0.5, 0.0, 0.0]
+    T_b = np.eye(4); T_b[:3, :3] = R; T_b[:3, 3] = [0.5, 0.3, 0.0]
+    # Near-field point (5m forward) - measurable parallax
+    pts_near = np.array([[5.0, 0.0, 0.0]], dtype=np.float32)
+    npz = tmp_path / "stereo_cam_a__cam_b.npz"
+    np.savez_compressed(npz, **{
+        STEREO_NPZ_PTS_KEY: pts_near,
+        STEREO_NPZ_CAM_A_KEY: np.array("cam_a"),
+        STEREO_NPZ_CAM_B_KEY: np.array("cam_b"),
+    })
+    cam_K = {"cam_a": K, "cam_b": K}
+    cam_T = {"cam_a": T_a, "cam_b": T_b}
+    disps = build_per_cam_displacements_from_stereo(
+        [npz], cam_K=cam_K, cam_T_ego_cam=cam_T, cam_names=["cam_a", "cam_b"],
+        erp_hw=(1024, 2048), target_mode="midpoint",
+    )
+    assert len(disps["cam_a"]) == 1
+    assert len(disps["cam_b"]) == 1
+    anchor_a, delta_a = disps["cam_a"][0]
+    anchor_b, delta_b = disps["cam_b"][0]
+    # Both anchors should be at the SAME midpoint location (within float tol)
+    assert np.allclose(anchor_a, anchor_b, atol=1e-6), (
+        f"midpoint mode: both cams should have anchor at same target. "
+        f"a={anchor_a}, b={anchor_b}"
+    )
+    # v-axis deltas should be opposite-sign and equal magnitude (linear, no wrap)
+    assert abs(delta_a[1] + delta_b[1]) < 1e-6, (
+        f"v-delta should sum to 0. a={delta_a[1]}, b={delta_b[1]}"
+    )
+    # u-axis: each delta is target_u - L1_u, summed = target_u - L1_u_a + target_u - L1_u_b
+    # but target = midpoint(L1_u_a, L1_u_b), so each delta is HALF the L1 difference.
+    # That means delta_a == -delta_b on u-axis (assuming no wrap).
+    assert abs(delta_a[0] + delta_b[0]) < 0.5, (  # 0.5 tolerance for wrap interaction
+        f"u-delta should sum near 0. a={delta_a[0]}, b={delta_b[0]}"
+    )
+
+
+def test_midpoint_vs_ideal_targets_differ_for_near_field(tmp_path):
+    """For near-field point with parallax, ideal target (depth-aware ERP) ≠ midpoint target."""
+    from waymo2panorama.alignment.sparse_displacement import (
+        build_per_cam_displacements_from_stereo,
+    )
+    from waymo2panorama.pipeline.option_b_reweight import (
+        STEREO_NPZ_PTS_KEY, STEREO_NPZ_CAM_A_KEY, STEREO_NPZ_CAM_B_KEY,
+    )
+    K = np.array([[500.0, 0, 252.0], [0, 500.0, 252.0], [0, 0, 1.0]])
+    R = np.array([[0, 0, 1], [-1, 0, 0], [0, -1, 0]], dtype=np.float64)
+    T_a = np.eye(4); T_a[:3, :3] = R; T_a[:3, 3] = [0.5, 0.0, 0.0]
+    T_b = np.eye(4); T_b[:3, :3] = R; T_b[:3, 3] = [0.5, 0.3, 0.0]
+    pts = np.array([[3.0, 0.0, 0.0]], dtype=np.float32)  # 3m, strong parallax
+    npz = tmp_path / "stereo_cam_a__cam_b.npz"
+    np.savez_compressed(npz, **{
+        STEREO_NPZ_PTS_KEY: pts,
+        STEREO_NPZ_CAM_A_KEY: np.array("cam_a"),
+        STEREO_NPZ_CAM_B_KEY: np.array("cam_b"),
+    })
+    cam_K = {"cam_a": K, "cam_b": K}
+    cam_T = {"cam_a": T_a, "cam_b": T_b}
+    disps_ideal = build_per_cam_displacements_from_stereo(
+        [npz], cam_K=cam_K, cam_T_ego_cam=cam_T, cam_names=["cam_a", "cam_b"],
+        erp_hw=(1024, 2048), target_mode="ideal",
+    )
+    disps_mid = build_per_cam_displacements_from_stereo(
+        [npz], cam_K=cam_K, cam_T_ego_cam=cam_T, cam_names=["cam_a", "cam_b"],
+        erp_hw=(1024, 2048), target_mode="midpoint",
+    )
+    anchor_a_ideal, _ = disps_ideal["cam_a"][0]
+    anchor_a_mid, _ = disps_mid["cam_a"][0]
+    # The two target_modes should produce different anchor locations
+    diff = float(np.linalg.norm(anchor_a_ideal - anchor_a_mid))
+    assert diff > 0.1, f"ideal vs midpoint targets should differ for near-field, got diff={diff}"
+
+
+def test_target_mode_invalid_raises():
+    """Invalid target_mode should raise ValueError immediately."""
+    from waymo2panorama.alignment.sparse_displacement import (
+        build_per_cam_displacements_from_stereo,
+    )
+    with pytest.raises(ValueError, match="target_mode"):
+        build_per_cam_displacements_from_stereo(
+            [], cam_K={}, cam_T_ego_cam={}, cam_names=[],
+            erp_hw=(64, 128), target_mode="bogus",
+        )
+
+
 def test_orchestrator_no_stereo_returns_unchanged_slabs(tmp_path):
     """If no stereo files provided, orchestrator returns slabs unchanged."""
     from waymo2panorama.alignment.sparse_displacement import build_warped_slabs_a2
