@@ -118,7 +118,8 @@ def _eval_one_anchor(
     sigma_px: float,
     num_bands: int,
     no_ego_mask: bool,
-    mask_mode: str = "v2",
+    mask_mode: str = "v3",
+    v3_selection: str = "winner_take_all",
 ) -> dict:
     """Run both L1-baseline and L1-reweighted blends, compute cycle PSNR (L1 vs
     L1_reweighted) on the union of L1 coverage. Returns a per-anchor summary dict.
@@ -140,6 +141,7 @@ def _eval_one_anchor(
         apply_option_b_reweight,
         build_stereo_confidence_mask,
         build_stereo_confidence_masks_per_cam,
+        build_stereo_confidence_masks_per_cam_v3,
     )
     from waymo2panorama.projection.sphere_projection import render_camera_to_erp
 
@@ -178,7 +180,22 @@ def _eval_one_anchor(
     t_mask0 = time.time()
     confidence_masks_per_cam: dict[str, np.ndarray] | None = None
 
-    if mask_mode == "v2":
+    if mask_mode == "v3":
+        cam_T_ego_cam = {cam: per_cam[cam]["T_ego_cam"] for cam in cams}
+        confidence_masks_per_cam = build_stereo_confidence_masks_per_cam_v3(
+            stereo_paths, erp_hw=erp_hw, cam_names=cams,
+            cam_T_ego_cam=cam_T_ego_cam, sigma_px=sigma_px,
+            selection_mode=v3_selection,
+        )
+        confidence_mask = np.max(
+            np.stack([confidence_masks_per_cam[c] for c in cams], axis=0), axis=0,
+        )
+        weights_baseline_dict = {c: w for c, w in zip(cams, weights_baseline)}
+        weights_reweighted_dict = apply_option_b_reweight(
+            weights_baseline_dict, confidence_masks_per_cam, alpha=alpha,
+        )
+        weights_reweighted = [weights_reweighted_dict[c] for c in cams]
+    elif mask_mode == "v2":
         confidence_masks_per_cam = build_stereo_confidence_masks_per_cam(
             stereo_paths, erp_hw=erp_hw, cam_names=cams, sigma_px=sigma_px,
         )
@@ -305,7 +322,8 @@ def _eval_one_anchor_for_checkpoint(
     sigma_px: float,
     num_bands: int,
     no_ego_mask: bool,
-    mask_mode: str = "v2",
+    mask_mode: str = "v3",
+    v3_selection: str = "winner_take_all",
 ) -> dict:
     """Primitive-arg wrapper so colab_direct.checkpointed can serialize args."""
     return _eval_one_anchor(
@@ -317,6 +335,7 @@ def _eval_one_anchor_for_checkpoint(
         num_bands=num_bands,
         no_ego_mask=no_ego_mask,
         mask_mode=mask_mode,
+        v3_selection=v3_selection,
     )
 
 
@@ -341,9 +360,13 @@ def main() -> int:
     ap.add_argument("--alpha", type=float, default=1.0)
     ap.add_argument("--sigma-px", type=float, default=12.0)
     ap.add_argument("--no-ego-mask", action="store_true")
-    ap.add_argument("--mask-mode", choices=["v1", "v2"], default="v2",
-                    help="v2 (default): per-cam differential masks. v1: legacy "
-                         "single uniform mask (NEG-by-effect, kept for reproduce).")
+    ap.add_argument("--mask-mode", choices=["v1", "v2", "v3"], default="v3",
+                    help="v3 (default): per-cam ASYMMETRIC ray-angle winner-take-all. "
+                         "v2: per-cam symmetric (NEG, same mask both cams in a pair). "
+                         "v1: single uniform mask (NEG, multiband cancels).")
+    ap.add_argument("--v3-selection", choices=["winner_take_all", "soft_cos_angle"],
+                    default="winner_take_all",
+                    help="v3 only: which asymmetric splat rule.")
     ap.add_argument("--checkpoint-dir", type=Path, default=None,
                     help="Directory for colab_direct.checkpointed .done markers. "
                          "If unset, defaults to <output-dir>/_checkpoints. Ignored "
@@ -400,6 +423,7 @@ def main() -> int:
             num_bands=args.num_bands,
             no_ego_mask=args.no_ego_mask,
             mask_mode=args.mask_mode,
+            v3_selection=args.v3_selection,
         )
         # colab_direct.checkpointed returns None for cached anchors -> reload from
         # the per-anchor JSON we wrote during the original run.
@@ -446,6 +470,7 @@ def main() -> int:
         "alpha": args.alpha,
         "sigma_px": args.sigma_px,
         "mask_mode": args.mask_mode,
+        "v3_selection": args.v3_selection if args.mask_mode == "v3" else None,
         "erp_hw": [args.erp_h, args.erp_w],
         "per_anchor": per_anchor,
         "aggregate": agg,

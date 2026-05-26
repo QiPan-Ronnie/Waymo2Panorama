@@ -27,10 +27,12 @@ from waymo2panorama.pipeline.lift_and_project import ego_points_to_erp_uv  # noq
 from waymo2panorama.pipeline.option_b_reweight import (  # noqa: E402
     STEREO_NPZ_CAM_A_KEY,
     STEREO_NPZ_CAM_B_KEY,
+    STEREO_NPZ_PTS_CAM_A_KEY,
     STEREO_NPZ_PTS_KEY,
     apply_option_b_reweight,
     build_stereo_confidence_mask,
     build_stereo_confidence_masks_per_cam,
+    build_stereo_confidence_masks_per_cam_v3,
 )
 
 
@@ -431,3 +433,244 @@ def test_v2_per_cam_npz_missing_cam_keys_skipped(tmp_path: Path) -> None:
     )
     for c in _CAMS_7:
         assert masks[c].max() == 0.0, f"cam {c} should be untouched, got max={masks[c].max()}"
+
+
+# ---------------------------------------------------------------------------
+# v3: per-cam ASYMMETRIC masks via ray-angle winner-take-all
+# ---------------------------------------------------------------------------
+
+
+def _write_stereo_npz_v3(
+    path: Path,
+    pts_ego: np.ndarray,
+    pts_cam_a: np.ndarray,
+    cam_a: str,
+    cam_b: str,
+) -> None:
+    """Write a stereo_*.npz with v3-required keys (pts_3d_ego + pts_3d_cam_a + cams)."""
+    np.savez_compressed(
+        path,
+        **{
+            STEREO_NPZ_PTS_KEY: pts_ego.astype(np.float32),
+            STEREO_NPZ_PTS_CAM_A_KEY: pts_cam_a.astype(np.float32),
+            STEREO_NPZ_CAM_A_KEY: np.array(cam_a),
+            STEREO_NPZ_CAM_B_KEY: np.array(cam_b),
+        },
+    )
+
+
+def _rot_y(angle_rad: float) -> np.ndarray:
+    """Rotation matrix around y-axis (RHR). Maps +z -> direction at angle from +z toward +x."""
+    c, s = np.cos(angle_rad), np.sin(angle_rad)
+    return np.array(
+        [[c,  0,  s],
+         [0,  1,  0],
+         [-s, 0,  c]],
+        dtype=np.float32,
+    )
+
+
+def _T_ego_cam(R: np.ndarray, t: np.ndarray) -> np.ndarray:
+    """Build a (4, 4) T_ego_cam (point_in_ego = T_ego_cam @ point_in_cam)."""
+    T = np.eye(4, dtype=np.float32)
+    T[:3, :3] = R.astype(np.float32)
+    T[:3, 3] = t.astype(np.float32)
+    return T
+
+
+def test_v3_winner_take_all_all_points_to_cam_a(tmp_path: Path) -> None:
+    """All points head-on for cam_a, off-axis for cam_b -> cam_b mask all zero.
+
+    Geometry (AV2 ego: x forward, y left, z up):
+      - cam_a looks toward ego +x (R_y(+pi/2) maps cam +z -> ego +x)
+      - cam_b looks toward ego -x (R_y(-pi/2)). Cams point in OPPOSITE directions.
+      - Points are at ego (+10, 0, 0..) — in FRONT of cam_a, BEHIND cam_b.
+    """
+    from waymo2panorama.pipeline.option_b_reweight import (
+        build_stereo_confidence_masks_per_cam_v3,
+    )
+    erp_hw = (32, 64)
+    cam_names = ["cam_a", "cam_b"]
+    T_ego_cam_a = _T_ego_cam(_rot_y(np.pi / 2), np.zeros(3, dtype=np.float32))
+    T_ego_cam_b = _T_ego_cam(_rot_y(-np.pi / 2), np.zeros(3, dtype=np.float32))
+
+    # 3 points at ego +x direction (forward), small lateral spread to avoid pole.
+    pts_ego = np.array(
+        [[10.0, 0.0, 0.0],
+         [12.0, 0.5, 0.0],
+         [11.0, -0.5, 0.5]], dtype=np.float32,
+    )
+    # cam_a frame: pts_cam_a = inv(R_y(+pi/2)) @ pts_ego = R_y(-pi/2) @ pts_ego
+    # which sends ego +x -> cam_a +z. Manually: (10,0,0)_ego -> (0,0,10)_cam_a
+    R_cam_a_ego = _rot_y(-np.pi / 2)  # inverse of R_y(+pi/2)
+    pts_cam_a = (pts_ego @ R_cam_a_ego.T).astype(np.float32)
+
+    npz = tmp_path / "stereo_a__b.npz"
+    _write_stereo_npz_v3(npz, pts_ego, pts_cam_a, "cam_a", "cam_b")
+
+    masks = build_stereo_confidence_masks_per_cam_v3(
+        [npz], erp_hw=erp_hw, cam_names=cam_names,
+        cam_T_ego_cam={"cam_a": T_ego_cam_a, "cam_b": T_ego_cam_b},
+        sigma_px=2.0,
+    )
+    assert masks["cam_a"].max() > 0.5, (
+        f"cam_a should have peaks > 0.5, got {masks['cam_a'].max()}"
+    )
+    assert masks["cam_b"].max() == 0.0, (
+        f"cam_b should be all zero (lost all winner-take-all), got max={masks['cam_b'].max()}"
+    )
+
+
+def test_v3_winner_take_all_split_between_cams(tmp_path: Path) -> None:
+    """Half points head-on for cam_a, half for cam_b -> both masks non-zero AND differ.
+
+    This is the KEY property v3 must satisfy that v2 violated: per-cam masks
+    must DIFFER for cam_a and cam_b (otherwise multiband normalize cancels).
+    """
+    from waymo2panorama.pipeline.option_b_reweight import (
+        build_stereo_confidence_masks_per_cam_v3,
+    )
+    erp_hw = (32, 64)
+    cam_names = ["cam_a", "cam_b"]
+    # cam_a looks ego +x (front of car); cam_b looks ego -x (rear)
+    T_ego_cam_a = _T_ego_cam(_rot_y(np.pi / 2), np.zeros(3, dtype=np.float32))
+    T_ego_cam_b = _T_ego_cam(_rot_y(-np.pi / 2), np.zeros(3, dtype=np.float32))
+
+    # First 3 pts in front of car (cam_a wins); last 3 behind (cam_b wins).
+    pts_ego = np.array(
+        [[10.0, 0.0, 0.0], [12.0, 0.5, 0.0], [11.0, -0.5, 0.5],
+         [-10.0, 0.0, 0.0], [-12.0, 0.5, 0.0], [-11.0, -0.5, 0.5]],
+        dtype=np.float32,
+    )
+    R_cam_a_ego = _rot_y(-np.pi / 2)  # inverse of R_y(+pi/2)
+    pts_cam_a = (pts_ego @ R_cam_a_ego.T).astype(np.float32)
+
+    npz = tmp_path / "stereo_a__b.npz"
+    _write_stereo_npz_v3(npz, pts_ego, pts_cam_a, "cam_a", "cam_b")
+
+    masks = build_stereo_confidence_masks_per_cam_v3(
+        [npz], erp_hw=erp_hw, cam_names=cam_names,
+        cam_T_ego_cam={"cam_a": T_ego_cam_a, "cam_b": T_ego_cam_b},
+        sigma_px=2.0,
+    )
+
+    assert masks["cam_a"].max() > 0.0, "cam_a should have winning points"
+    assert masks["cam_b"].max() > 0.0, "cam_b should have winning points"
+
+    # THE KEY ASSERTION: cam_a's mask and cam_b's mask must DIFFER.
+    # If they were equal (v2 NEG bug), multiband normalize would cancel the boost.
+    diff = np.abs(masks["cam_a"] - masks["cam_b"])
+    assert float(diff.max()) > 0.1, (
+        f"v3 NEG: cam_a's mask and cam_b's mask are too similar (max diff {diff.max():.3f}); "
+        "v2 bug is back."
+    )
+    # Also: they should NOT have any pixel where BOTH cams' masks > 0 (winner-take-all)
+    overlap = (masks["cam_a"] > 0.01) & (masks["cam_b"] > 0.01)
+    assert float(overlap.mean()) < 0.05, (
+        f"winner-take-all should give disjoint masks; got {overlap.sum()} overlap pixels"
+    )
+
+
+def test_v3_soft_cos_angle_produces_different_masks(tmp_path: Path) -> None:
+    """soft_cos_angle mode splats both cams but with different amplitudes."""
+    from waymo2panorama.pipeline.option_b_reweight import (
+        build_stereo_confidence_masks_per_cam_v3,
+    )
+    erp_hw = (32, 64)
+    cam_names = ["cam_a", "cam_b"]
+    # cam_a looks ego +x; cam_b 45 deg off (ego +x rotated 45 deg toward +z).
+    T_ego_cam_a = _T_ego_cam(_rot_y(np.pi / 2), np.zeros(3, dtype=np.float32))
+    T_ego_cam_b = _T_ego_cam(_rot_y(np.pi / 2 + np.pi / 4), np.zeros(3, dtype=np.float32))
+
+    # Point on ego +x: head-on for cam_a, 45-deg off for cam_b
+    pts_ego = np.array([[10.0, 0.0, 0.0], [11.0, 0.5, 0.0]], dtype=np.float32)
+    R_cam_a_ego = _rot_y(-np.pi / 2)
+    pts_cam_a = (pts_ego @ R_cam_a_ego.T).astype(np.float32)
+
+    npz = tmp_path / "stereo_a__b.npz"
+    _write_stereo_npz_v3(npz, pts_ego, pts_cam_a, "cam_a", "cam_b")
+
+    masks = build_stereo_confidence_masks_per_cam_v3(
+        [npz], erp_hw=erp_hw, cam_names=cam_names,
+        cam_T_ego_cam={"cam_a": T_ego_cam_a, "cam_b": T_ego_cam_b},
+        sigma_px=2.0,
+        selection_mode="soft_cos_angle",
+    )
+
+    # Both cams should have non-zero (both saw the point), but cam_a (head-on) has
+    # higher amp than cam_b (45-deg off-axis).
+    assert masks["cam_a"].max() > 0.0
+    assert masks["cam_b"].max() > 0.0
+    assert masks["cam_a"].max() > masks["cam_b"].max(), (
+        f"cam_a (head-on) should outweigh cam_b (off-axis): "
+        f"cam_a max={masks['cam_a'].max():.3f} vs cam_b max={masks['cam_b'].max():.3f}"
+    )
+
+
+def test_v3_globally_normalized_to_one(tmp_path: Path) -> None:
+    """After global normalize, at least one cam has max == 1.0."""
+    from waymo2panorama.pipeline.option_b_reweight import (
+        build_stereo_confidence_masks_per_cam_v3,
+    )
+    cam_names = ["cam_a", "cam_b"]
+    T_ego_cam_a = _T_ego_cam(_rot_y(np.pi / 2), np.zeros(3, dtype=np.float32))
+    T_ego_cam_b = _T_ego_cam(_rot_y(-np.pi / 2), np.zeros(3, dtype=np.float32))
+    pts_ego = np.array([[10.0, 0.0, 0.0], [11.0, 0.5, 0.0]], dtype=np.float32)
+    R_cam_a_ego = _rot_y(-np.pi / 2)
+    pts_cam_a = (pts_ego @ R_cam_a_ego.T).astype(np.float32)
+    npz = tmp_path / "stereo_a__b.npz"
+    _write_stereo_npz_v3(npz, pts_ego, pts_cam_a, "cam_a", "cam_b")
+
+    masks = build_stereo_confidence_masks_per_cam_v3(
+        [npz], erp_hw=(32, 64), cam_names=cam_names,
+        cam_T_ego_cam={"cam_a": T_ego_cam_a, "cam_b": T_ego_cam_b},
+        sigma_px=2.0,
+    )
+    global_max = max(float(m.max()) for m in masks.values())
+    assert global_max == pytest.approx(1.0, abs=1e-6)
+    for c in cam_names:
+        assert float(masks[c].max()) <= 1.0 + 1e-6
+
+
+def test_v3_raises_on_missing_T(tmp_path: Path) -> None:
+    """Missing cam_T_ego_cam entry must raise."""
+    from waymo2panorama.pipeline.option_b_reweight import (
+        build_stereo_confidence_masks_per_cam_v3,
+    )
+    with pytest.raises(ValueError, match="cam_T_ego_cam missing entries"):
+        build_stereo_confidence_masks_per_cam_v3(
+            [], erp_hw=(32, 64), cam_names=["cam_a", "cam_b"],
+            cam_T_ego_cam={"cam_a": np.eye(4, dtype=np.float32)},  # cam_b missing
+        )
+
+
+def test_v3_raises_on_bad_selection_mode() -> None:
+    """Unknown selection_mode must raise."""
+    from waymo2panorama.pipeline.option_b_reweight import (
+        build_stereo_confidence_masks_per_cam_v3,
+    )
+    with pytest.raises(ValueError, match="selection_mode"):
+        build_stereo_confidence_masks_per_cam_v3(
+            [], erp_hw=(32, 64), cam_names=["cam_a"],
+            cam_T_ego_cam={"cam_a": np.eye(4, dtype=np.float32)},
+            selection_mode="bogus",
+        )
+
+
+def test_v3_npz_missing_pts_cam_a_skipped(tmp_path: Path) -> None:
+    """A v2-style npz (no pts_3d_cam_a key) is skipped with a warning."""
+    from waymo2panorama.pipeline.option_b_reweight import (
+        build_stereo_confidence_masks_per_cam_v3,
+    )
+    pts_ego = _grid_in_front(n=3)
+    p = tmp_path / "stereo_v2_style.npz"
+    _write_stereo_npz_with_cams(p, pts_ego, "cam_a", "cam_b")  # no pts_cam_a
+
+    T = _T_ego_cam(np.eye(3, dtype=np.float32), np.zeros(3, dtype=np.float32))
+    masks = build_stereo_confidence_masks_per_cam_v3(
+        [p], erp_hw=(32, 64), cam_names=["cam_a", "cam_b"],
+        cam_T_ego_cam={"cam_a": T, "cam_b": T},
+    )
+    # Length mismatch -> skipped
+    for c in ["cam_a", "cam_b"]:
+        assert masks[c].max() == 0.0

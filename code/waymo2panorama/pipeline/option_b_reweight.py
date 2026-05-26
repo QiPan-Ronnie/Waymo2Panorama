@@ -81,8 +81,10 @@ __all__ = [
     "STEREO_NPZ_PTS_KEY",
     "STEREO_NPZ_CAM_A_KEY",
     "STEREO_NPZ_CAM_B_KEY",
+    "STEREO_NPZ_PTS_CAM_A_KEY",
     "build_stereo_confidence_mask",
     "build_stereo_confidence_masks_per_cam",
+    "build_stereo_confidence_masks_per_cam_v3",
     "apply_option_b_reweight",
 ]
 
@@ -92,6 +94,8 @@ __all__ = [
 STEREO_NPZ_PTS_KEY: str = "pts_3d_ego"
 STEREO_NPZ_CAM_A_KEY: str = "cam_a"
 STEREO_NPZ_CAM_B_KEY: str = "cam_b"
+# v3 needs cam_a-frame coords to compute cam_a's ray angle without re-transforming.
+STEREO_NPZ_PTS_CAM_A_KEY: str = "pts_3d_cam_a"
 
 
 def _load_stereo_pts_ego(path: Path) -> np.ndarray:
@@ -121,6 +125,40 @@ def _load_stereo_cam_pair(path: Path) -> tuple[str, str] | None:
         cam_a = str(npz[STEREO_NPZ_CAM_A_KEY])
         cam_b = str(npz[STEREO_NPZ_CAM_B_KEY])
     return (cam_a, cam_b)
+
+
+def _load_stereo_pts_cam_a(path: Path) -> np.ndarray:
+    """Load (N, 3) cam_a-frame 3D points (z = depth along cam_a optical axis)."""
+    with np.load(path) as npz:
+        if STEREO_NPZ_PTS_CAM_A_KEY not in npz.files:
+            return np.zeros((0, 3), dtype=np.float32)
+        pts = np.asarray(npz[STEREO_NPZ_PTS_CAM_A_KEY], dtype=np.float32)
+    if pts.ndim != 2 or pts.shape[1] != 3:
+        return np.zeros((0, 3), dtype=np.float32)
+    return pts
+
+
+def _ego_to_cam(pts_ego: np.ndarray, T_ego_cam: np.ndarray) -> np.ndarray:
+    """Transform (N, 3) ego-frame points to cam frame using T_ego_cam (4, 4).
+
+    T_ego_cam is the "ego-from-cam" transform (point_in_ego = T_ego_cam @ point_in_cam),
+    so to go ego -> cam we apply the inverse.
+    """
+    T_cam_ego = np.linalg.inv(T_ego_cam.astype(np.float64))
+    R = T_cam_ego[:3, :3].astype(np.float32)
+    t = T_cam_ego[:3, 3].astype(np.float32)
+    return (pts_ego @ R.T) + t
+
+
+def _per_cam_ray_cos_angle(pts_cam: np.ndarray) -> np.ndarray:
+    """Per-point cos(angle) between the point ray and the cam's optical axis (+z).
+
+    For (N, 3) points in CAM frame (where z is forward along the optical axis),
+    cos(theta_i) = z_i / ||p_i||. Returns (N,) in [-1, 1]. Points behind the
+    camera (z < 0) get negative cos (won't win in a winner-take-all comparison).
+    """
+    norms = np.linalg.norm(pts_cam, axis=1).clip(min=1e-6)
+    return (pts_cam[:, 2] / norms).astype(np.float32)
 
 
 def _build_gaussian_kernel(sigma_px: float) -> tuple[np.ndarray, int]:
@@ -377,6 +415,238 @@ def build_stereo_confidence_masks_per_cam(
     for c in cam_list:
         print(f"[option_b/v2]   {c}: coverage_frac={coverage_per_cam[c]:.4f}")
     return canvases
+
+
+def build_stereo_confidence_masks_per_cam_v3(
+    stereo_npz_paths: Iterable[Path],
+    erp_hw: tuple[int, int],
+    cam_names: Iterable[str],
+    cam_T_ego_cam: dict[str, np.ndarray],
+    sigma_px: float = 12.0,
+    selection_mode: str = "winner_take_all",
+) -> dict[str, np.ndarray]:
+    """V3: per-cam ASYMMETRIC confidence masks (fixes v2 NEG).
+
+    Why v2 NEG-ed
+    -------------
+    v2 splatted every stereo point into BOTH cam_a and cam_b's masks with the
+    SAME amplitude. In ring-cam ERP, pair-only overlap regions have only cam_a
+    and cam_b contributing to multiband_blend. When both their masks are equal,
+    `(1 + alpha * mask_a) / ((1 + alpha * mask_a) + (1 + alpha * mask_b))` =
+    `0.5` regardless of alpha — exactly the same as without reweight. Multiband
+    normalize absorbs the boost. (Confirmed empirically on 4 anchors:
+    PSNR(v2 reweight vs L1 baseline) = inf / 111.39 dB = byte identical.)
+
+    v3 fix: per-point asymmetric splat
+    ----------------------------------
+    For each stereo 3D point X from pair (cam_a, cam_b):
+
+      1. Compute cos(theta_a) = cos(angle between X's ray from cam_a's center and
+         cam_a's optical axis). Larger cos_theta means "more head-on" — cam_a
+         sees this point with less foreshortening / less lens distortion.
+      2. Same for cam_b: cos(theta_b).
+      3. selection_mode="winner_take_all" (default): splat into ONLY the cam
+         with larger cos_theta. The other cam's mask stays 0 for this point.
+      4. selection_mode="soft_cos_angle": splat amp = max(cos_theta, 0)^2 into
+         each cam respectively. Both get something but with different amplitudes.
+
+    Result: cam_a's mask and cam_b's mask are now DIFFERENT (even for points
+    they both saw). Multiband normalize can no longer cancel the boost — the
+    winner cam gets stronger weight in the blend at that ERP location.
+
+    Verified by `__test_t4_v3_hypothesis.py`: even modest asymmetry (cam_0=0.8
+    vs cam_1=0.2, alpha=1) produces visible output diff (max 29 levels on
+    synthetic 7-cam ring scene). v1 NEG uniform mask -> diff=0.
+
+    Args:
+        stereo_npz_paths: stereo_<a>__<b>.npz files (must contain pts_3d_ego,
+            pts_3d_cam_a, cam_a, cam_b).
+        erp_hw: (H, W) of target ERP canvas.
+        cam_names: ring cam names. cam_a and cam_b of every npz MUST be in here.
+        cam_T_ego_cam: {cam_name: (4, 4) T_ego_cam} ego-from-cam transforms.
+            Needed to compute cam_b's ray angles (cam_a-frame coords come from
+            the npz directly; cam_b-frame coords are computed by transforming
+            pts_3d_ego via inv(T_ego_cam[cam_b])).
+        sigma_px: Gaussian splat std-dev in ERP pixels.
+        selection_mode: "winner_take_all" or "soft_cos_angle".
+
+    Returns:
+        dict {cam_name: (H, W) float32 mask in [0, 1]}, globally normalized.
+        Cams with no winning points get all-zero masks.
+    """
+    if selection_mode not in ("winner_take_all", "soft_cos_angle"):
+        raise ValueError(
+            f"selection_mode must be 'winner_take_all' or 'soft_cos_angle', "
+            f"got {selection_mode!r}"
+        )
+
+    h_erp, w_erp = erp_hw
+    if h_erp <= 0 or w_erp <= 0:
+        raise ValueError(f"erp_hw must be positive, got {erp_hw}")
+    if sigma_px <= 0:
+        raise ValueError(f"sigma_px must be > 0, got {sigma_px}")
+
+    cam_list = list(cam_names)
+    if not cam_list:
+        raise ValueError("cam_names must be non-empty")
+    cam_set = set(cam_list)
+
+    missing_T = [c for c in cam_list if c not in cam_T_ego_cam]
+    if missing_T:
+        raise ValueError(f"cam_T_ego_cam missing entries for: {missing_T}")
+
+    kernel, half = _build_gaussian_kernel(sigma_px)
+    canvases: dict[str, np.ndarray] = {
+        c: np.zeros((h_erp, w_erp), dtype=np.float32) for c in cam_list
+    }
+
+    paths = list(stereo_npz_paths)
+    n_files_total = len(paths)
+    n_files_used = 0
+    n_pts_total = 0
+    n_pts_to_a = 0
+    n_pts_to_b = 0
+    cams_touched: set[str] = set()
+    unknown_cams: set[str] = set()
+
+    for p in paths:
+        try:
+            pts_ego = _load_stereo_pts_ego(p)
+            pts_cam_a = _load_stereo_pts_cam_a(p)
+        except (FileNotFoundError, OSError, ValueError) as exc:
+            print(f"[option_b/v3] warn: cannot load {p}: {exc}")
+            continue
+        if pts_ego.shape[0] == 0:
+            print(f"[option_b/v3] warn: {p.name} has 0 inliers, skipping")
+            continue
+        if pts_cam_a.shape[0] != pts_ego.shape[0]:
+            print(
+                f"[option_b/v3] warn: {p.name} pts_cam_a/pts_ego length "
+                f"mismatch ({pts_cam_a.shape[0]} vs {pts_ego.shape[0]}), skipping"
+            )
+            continue
+        cam_pair = _load_stereo_cam_pair(p)
+        if cam_pair is None:
+            print(f"[option_b/v3] warn: {p.name} missing cam_a/cam_b keys, skipping")
+            continue
+        cam_a, cam_b = cam_pair
+
+        if cam_a not in cam_set:
+            unknown_cams.add(cam_a)
+            continue
+        if cam_b not in cam_set:
+            unknown_cams.add(cam_b)
+            continue
+
+        n_files_used += 1
+
+        cos_a = _per_cam_ray_cos_angle(pts_cam_a)
+        pts_cam_b = _ego_to_cam(pts_ego, cam_T_ego_cam[cam_b])
+        cos_b = _per_cam_ray_cos_angle(pts_cam_b)
+
+        if selection_mode == "winner_take_all":
+            a_wins = cos_a >= cos_b
+            pts_for_a = pts_ego[a_wins]
+            pts_for_b = pts_ego[~a_wins]
+            n_a = _splat_points_to_canvas(canvases[cam_a], pts_for_a, kernel, half)
+            n_b = _splat_points_to_canvas(canvases[cam_b], pts_for_b, kernel, half)
+        else:  # soft_cos_angle: amp = max(cos, 0)^2 per point
+            # _splat_points_to_canvas uses unit-amp kernel; for variable per-point
+            # amplitudes we splat the full point set into both canvases using a
+            # scaled kernel per point (loop). Cheaper alternative: bucket by amp
+            # quantile; here we just call splat 1-by-1 with a scaled kernel,
+            # which is N_pts * kernel_area work — fine for sparse stereo (~300 pts).
+            amp_a = np.clip(cos_a, 0.0, 1.0) ** 2
+            amp_b = np.clip(cos_b, 0.0, 1.0) ** 2
+            n_a = _splat_points_with_amp(
+                canvases[cam_a], pts_ego, amp_a, kernel, half,
+            )
+            n_b = _splat_points_with_amp(
+                canvases[cam_b], pts_ego, amp_b, kernel, half,
+            )
+
+        if n_a > 0:
+            cams_touched.add(cam_a)
+        if n_b > 0:
+            cams_touched.add(cam_b)
+        n_pts_total += pts_ego.shape[0]
+        n_pts_to_a += n_a
+        n_pts_to_b += n_b
+
+    global_max = max((float(c.max()) for c in canvases.values()), default=0.0)
+    if global_max > 1e-9:
+        for c in canvases:
+            canvases[c] = canvases[c] / global_max
+
+    if unknown_cams:
+        print(
+            f"[option_b/v3] warn: stereo files referenced unknown cams: "
+            f"{sorted(unknown_cams)}"
+        )
+
+    coverage_per_cam = {
+        c: float((canvases[c] > 0.05).mean()) for c in cam_list
+    }
+    print(
+        f"[option_b/v3] built per-cam ASYM masks (mode={selection_mode}): "
+        f"erp_hw={erp_hw}, files_used={n_files_used}/{n_files_total}, "
+        f"cams_touched={len(cams_touched)}/{len(cam_list)}, "
+        f"pts_total={n_pts_total}, pts_to_a={n_pts_to_a}, pts_to_b={n_pts_to_b}, "
+        f"sigma_px={sigma_px}"
+    )
+    for c in cam_list:
+        print(f"[option_b/v3]   {c}: coverage_frac={coverage_per_cam[c]:.4f}")
+    return canvases
+
+
+def _splat_points_with_amp(
+    canvas: np.ndarray,
+    pts_ego: np.ndarray,
+    amps: np.ndarray,
+    kernel: np.ndarray,
+    half: int,
+) -> int:
+    """Max-merge per-point-amplitude-scaled Gaussian splats. Returns n splatted.
+
+    Per-point scaling: pixel value contribution = amps[i] * kernel[k_row, k_col].
+    Points with amp <= 0 are skipped (no negative splat).
+    """
+    h_erp, w_erp = canvas.shape
+    if pts_ego.shape[0] == 0:
+        return 0
+
+    u_f, v_f, valid = ego_points_to_erp_uv(pts_ego, erp_hw=(h_erp, w_erp))
+    valid &= (v_f >= 0.0) & (v_f < h_erp)
+    valid &= (amps > 0.0)
+    if not np.any(valid):
+        return 0
+
+    u_int = np.round(u_f[valid]).astype(np.int64)
+    v_int = np.round(v_f[valid]).astype(np.int64)
+    u_int = np.mod(u_int, w_erp)
+    v_int = np.clip(v_int, 0, h_erp - 1)
+    amps_v = amps[valid].astype(np.float32)
+
+    ksize = 2 * half + 1
+    n_splatted = 0
+    for ui, vi, amp in zip(u_int, v_int, amps_v):
+        y0 = vi - half
+        y1 = vi + half + 1
+        ky0 = max(0, -y0)
+        ky1 = ksize - max(0, y1 - h_erp)
+        cy0 = max(0, y0)
+        cy1 = min(h_erp, y1)
+        if cy1 <= cy0 or ky1 <= ky0:
+            continue
+        for k_col in range(ksize):
+            cx = (ui - half + k_col) % w_erp
+            np.maximum(
+                canvas[cy0:cy1, cx],
+                amp * kernel[ky0:ky1, k_col],
+                out=canvas[cy0:cy1, cx],
+            )
+        n_splatted += 1
+    return n_splatted
 
 
 def apply_option_b_reweight(

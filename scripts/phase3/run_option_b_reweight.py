@@ -91,12 +91,19 @@ def main() -> int:
                     help="Stddev (in ERP pixels) of the Gaussian splat per stereo point.")
     ap.add_argument("--no-reweight", action="store_true",
                     help="A/B flag: skip stereo + reweight, just write plain L1 ERP.")
-    ap.add_argument("--mask-mode", choices=["v1", "v2"], default="v2",
+    ap.add_argument("--mask-mode", choices=["v1", "v2", "v3"], default="v3",
                     help="v1: single uniform mask (NEG-by-effect: multiband normalize "
-                         "cancels uniform boost). v2 (default): per-cam differential "
-                         "masks (only cams that saw the stereo pair get boosted; "
-                         "differential survives multiband normalize). Kept v1 for "
-                         "reproducing the NEG result.")
+                         "cancels uniform boost). v2: per-cam symmetric (same points "
+                         "splatted into both cams in a pair -> still cancels in 2-cam "
+                         "overlap regions). v3 (default): per-cam ASYMMETRIC using ray-"
+                         "angle winner-take-all (each stereo point splatted into the cam "
+                         "with smaller ray angle, NOT both). Breaks the symmetry that "
+                         "killed v2.")
+    ap.add_argument("--v3-selection", choices=["winner_take_all", "soft_cos_angle"],
+                    default="winner_take_all",
+                    help="v3 only: which asymmetric splat rule. winner_take_all (default) "
+                         "picks one cam per point; soft_cos_angle splats both with "
+                         "amp = cos(angle)^2.")
     ap.add_argument("--no-ego-mask", action="store_true",
                     help="Disable heuristic AV2 ego mask (WS1.2) — for A/B parity with "
                          "older runs that did not have the mask.")
@@ -115,6 +122,7 @@ def main() -> int:
         apply_option_b_reweight,
         build_stereo_confidence_mask,
         build_stereo_confidence_masks_per_cam,
+        build_stereo_confidence_masks_per_cam_v3,
     )
     from waymo2panorama.projection.sphere_projection import render_camera_to_erp
 
@@ -175,7 +183,20 @@ def main() -> int:
         # Convert list weights → dict (cam-keyed) so per-cam mask path works
         sph_weights_dict = {cam: w for cam, w in zip(cams, sph_weights)}
 
-        if args.mask_mode == "v2":
+        if args.mask_mode == "v3":
+            cam_T_ego_cam = {cam: per_cam_data[cam]["T_ego_cam"] for cam in cams}
+            confidence_masks_per_cam = build_stereo_confidence_masks_per_cam_v3(
+                stereo_paths, erp_hw=erp_hw, cam_names=cams,
+                cam_T_ego_cam=cam_T_ego_cam, sigma_px=args.sigma_px,
+                selection_mode=args.v3_selection,
+            )
+            sph_weights_dict = apply_option_b_reweight(
+                sph_weights_dict, confidence_masks_per_cam, alpha=args.alpha,
+            )
+            confidence_mask = np.max(
+                np.stack([confidence_masks_per_cam[c] for c in cams], axis=0), axis=0,
+            )
+        elif args.mask_mode == "v2":
             confidence_masks_per_cam = build_stereo_confidence_masks_per_cam(
                 stereo_paths, erp_hw=erp_hw, cam_names=cams, sigma_px=args.sigma_px,
             )
@@ -253,6 +274,9 @@ def main() -> int:
             "num_bands": args.num_bands,
             "no_ego_mask": bool(args.no_ego_mask),
             "mask_mode": (None if args.no_reweight else args.mask_mode),
+            "v3_selection": (
+                args.v3_selection if (not args.no_reweight and args.mask_mode == "v3") else None
+            ),
         },
         "per_cam": per_cam_log,
         "mask_stats": mask_stats,
