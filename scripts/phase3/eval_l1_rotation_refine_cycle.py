@@ -252,11 +252,11 @@ def main() -> int:
     ap.add_argument("--ransac-threshold-px", type=float, default=3.0)
     ap.add_argument("--min-inliers", type=int, default=30)
     ap.add_argument("--anchor-cam-for-BA", default="ring_front_center")
-    ap.add_argument("--l2-reg-weight", type=float, default=0.05,
+    ap.add_argument("--l2-reg-weight", type=float, default=0.10,
                     help="L2 reg on dR axis-angle params. Higher = stronger pull to "
                          "identity (smaller refinements). Default 0.05 caps dRs to "
                          "~0.5-1 deg, defending against bad pair fits from parallax bias.")
-    ap.add_argument("--max-pair-deviation-deg", type=float, default=1.5,
+    ap.add_argument("--max-pair-deviation-deg", type=float, default=1.0,
                     help="Drop pair fits whose observed R deviates from calibration "
                          "by more than this angle. Near-field parallax can give bogus "
                          "fits with 5+ deg deviation; default 1.5 deg keeps only "

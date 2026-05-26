@@ -144,9 +144,13 @@ def test_bundle_adjust_recovers_known_per_cam_delta():
         a, b = cam_names[i], cam_names[i + 1]
         pair_R_observed[(a, b)] = R_ego_cam_refined[b].T @ R_ego_cam_refined[a]
 
+    # Disable L2 reg for this exact-recovery test (the default l2 reg biases
+    # the optimum toward identity, which prevents recovery of the true 0.8 deg
+    # deltas to <0.01 deg precision).
     dR_recovered = bundle_adjust_rotations(
         pair_R_observed, cams, cam_names=cam_names,
         anchor_cam=cam_names[0], verbose=False,
+        l2_reg_weight=0.0,
     )
 
     # Recovered dR should match true_dR within numerical precision.

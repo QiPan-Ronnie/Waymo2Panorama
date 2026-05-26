@@ -188,7 +188,7 @@ def bundle_adjust_rotations(
     anchor_cam: str,
     pair_weights: Optional[dict[tuple[str, str], float]] = None,
     verbose: bool = False,
-    l2_reg_weight: float = 1e-3,
+    l2_reg_weight: float = 0.10,
 ) -> dict[str, np.ndarray]:
     """Estimate per-cam rotation refinements dR_i (3, 3) to minimize pair-wise
     rotation residuals.

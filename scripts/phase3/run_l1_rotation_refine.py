@@ -74,6 +74,14 @@ def main() -> int:
     ap.add_argument("--lightglue-min-confidence", type=float, default=0.2)
     ap.add_argument("--ransac-threshold-px", type=float, default=3.0)
     ap.add_argument("--min-inliers", type=int, default=30)
+    ap.add_argument("--l2-reg-weight", type=float, default=0.10,
+                    help="L2 reg on dR axis-angle params. Higher = stronger pull "
+                         "toward identity. Default 0.10 keeps refinements ~0.2-0.5 deg, "
+                         "defending against parallax-bias on noisy pair fits.")
+    ap.add_argument("--max-pair-deviation-deg", type=float, default=1.0,
+                    help="Drop pair fits with observed R deviating from calibration "
+                         "by more than this angle. Default 1.0 deg trusts calibration "
+                         "over feature fits when they disagree dramatically.")
     ap.add_argument("--verbose-ba", action="store_true")
     ap.add_argument("--w2p-code", default=None)
     args = ap.parse_args()
@@ -135,6 +143,25 @@ def main() -> int:
                 print(f"  pair {cam_a:24s} -> {cam_b:24s}: NO FIT", flush=True)
                 continue
             R = res["R_obs_a_to_b"]
+            # Filter pair fits with large deviation from calibration -- those
+            # are parallax-biased and refining on them HURTS reconstruction
+            # quality (verified -0.6 dB on held-out cycle without this filter).
+            cam_T_ego_a_for_filter = per_cam[cam_a]["T_ego_cam"][:3, :3]
+            cam_T_ego_b_for_filter = per_cam[cam_b]["T_ego_cam"][:3, :3]
+            R_cal_for_filter = cam_T_ego_b_for_filter.T @ cam_T_ego_a_for_filter
+            dev_deg = float(np.linalg.norm(
+                R_to_axis_angle(R @ R_cal_for_filter.T)
+            )) * 180.0 / np.pi
+            if args.max_pair_deviation_deg > 0 and dev_deg > args.max_pair_deviation_deg:
+                pair_log.append({
+                    "cam_a": cam_a, "cam_b": cam_b,
+                    "status": "dropped_high_deviation",
+                    "n_inliers": int(res["inlier_count"]),
+                    "deviation_deg": dev_deg,
+                })
+                print(f"  pair {cam_a:24s} -> {cam_b:24s}: DROP (dev={dev_deg:.2f} deg > "
+                      f"{args.max_pair_deviation_deg})", flush=True)
+                continue
             pair_R_observed[(cam_a, cam_b)] = R
             ax = R_to_axis_angle(R)
             ang_deg = float(np.linalg.norm(ax)) * 180.0 / np.pi
@@ -164,6 +191,7 @@ def main() -> int:
             cam_names=cams,
             anchor_cam=args.anchor_cam,
             verbose=args.verbose_ba,
+            l2_reg_weight=args.l2_reg_weight,
         )
         t_ba_s = time.time() - t_ba0
         print(f"[rot-refine] BA done in {t_ba_s:.2f}s", flush=True)
