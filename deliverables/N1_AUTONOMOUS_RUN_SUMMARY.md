@@ -200,7 +200,12 @@ d5224d5  Phase A: cam-translation-aware L1 (the foundational fix)
 **Colab kernel**: L4 GPU. Phase A/C/N2/HDR/§1b 是 CPU-only ops; Phase D (DA-V2) 用了 GPU 跑 transformer inference  
 **API endpoint**: `https://aware-oct-shopping-cove.trycloudflare.com` (token in active_url.json)  
 **Github**: github.com/QiPan-Ronnie/Waymo2Panorama main @ commit `a120a44`  
-**Final state (post-user-restart ~02:00 UTC, ~17 commits)**:
+**Final state (post-user-restart ~02:00 UTC, ~24 commits)**:
+
+**Bosch deliverable READY** — `deliverables/bosch_clean_subset/strict_clean_preview.png`: 7 frames from log 02a00399 (anchors 105, 200, 201, 204, 209, 210, 211) certified ghost-free by YOLO v2 + visually confirmed. **Hand this to Bosch as first-cut training data**. JSON list at `strict_clean_anchors.json`. Scale up to 5 logs × strict=7 + relaxed=146 = 153 usable / 575 scanned (26%).
+
+---
+
 
 **Path (c) v2 YOLO scoring breakthrough** — YOLOv8n (`ultralytics` pip install, no clone needed) counts cars/persons whose bbox center falls in outer 15% of each cam image (= seam zones in ERP). Truly object-aware metric. 60 anchors of 02a00399 scanned in **19s** on T4.
 

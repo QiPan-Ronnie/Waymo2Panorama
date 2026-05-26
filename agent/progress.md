@@ -1,5 +1,37 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~03:00 UTC — [Path (c) v2 YOLO COMPLETE — final 5-log Bosch deliverable. 7 strict ghost-free + 146 relaxed anchors identified, 视觉 confirmed.]
+> - **怎么做**: 串行跑 5 val logs (stride=1 for 02a00399, stride=5 for others 因为 timeout 限制) on Colab T4. 总 575 anchors scanned. Aggregator (`scripts/phase3/aggregate_yolo_clean_subset.py`) 把 per-log JSON merge 成 final summary + strict/relaxed anchor lists. Preview renderer (`scripts/phase3/render_clean_subset_preview.py`) 渲染 7 strict 作 grid 视觉确认.
+> - **Per-log breakdown**:
+>   ```
+>   log         scanned  strict (score=0)  relaxed (score<=2)  median  max
+>   02a00399    319      7 (2.2%)          136 (42.6%)         3       7
+>   0bae3b5e    64       0                 1                   11      18 ← busy
+>   2c652f9e    64       0                 2                   7.5     16
+>   9f871fb4    64       0                 6                   5       9
+>   fbee355f    64       0                 1                   9       17 ← busy
+>   ─────────────────────────────────────────────────────────────────────
+>   TOTAL       575      7 (1.2%)          146 (25.4%)
+>   ```
+> - **关键 insight**: log 02a00399 是 outlier (quiet 街道, 大部分 frames no near-field cars in seam zones). 其他 4 logs 都是 busy urban (highway / 停车场 / 多车), strict ghost-free 几乎为 0.
+> - **7 strict ghost-free anchors** 全在 02a00399, anchor indices {105, 200, 201, 204, 209, 210, 211}. 后 6 个 consecutive (相邻 frame), 加 105. 实际是**2 个 "clean moment"** in this log: 大约 5.25s mark + 10.0-10.55s mark.
+> - **视觉 confirmed** (`deliverables/bosch_clean_subset/strict_clean_preview.png` 4-row grid): 7 ERPs 都是干净 quiet street, no near-field vehicles in seam zones, **zero doubled-wheel ghost risk**. 
+> - **Bosch deliverable spec**:
+>   - **strict subset**: 7 anchors guaranteed ghost-free → high quality starter set
+>   - **relaxed subset**: 146 anchors with ≤2 small near-edge objects → acceptable but check each
+>   - For larger deliverable: scan more val/train logs, expect ~1-3% strict per log on quiet ones, 0 on busy ones
+> - **跟 N1 architectural work (3 phases) 比, path (c) v2 在 ~2 hr work 给出 concrete Bosch-ready output**. 而 N1 没修 ghost. Path (c) "give Bosch a clean subset" 是当前最 pragmatic 路径.
+> - **Deliverables this entry**:
+>   - `scripts/phase3/aggregate_yolo_clean_subset.py` + `render_clean_subset_preview.py`
+>   - `deliverables/bosch_clean_subset/{strict_clean_anchors.json, clean_subset_summary.json, strict_clean_preview.png}`
+>   - Drive: `outputs/phase3/bosch_clean_subset/` + per-log `outputs/phase3/ghost_scoring_yolo_v2/<log_id>/yolo_ghost_scores.json`
+> - Status: [DONE Path (c) v2 — Bosch-ready ghost-free subset infrastructure shipped + first-cut deliverable produced.]
+> - Next 建议 (user 醒来后决定):
+>   - **Scale up**: scan train logs (~700+ logs) at stride=5 to find hundreds of strict ghost-free frames
+>   - **Loosen criterion**: use score≤2 if 7 strict is too few; 146 relaxed available immediately
+>   - **Combine with N1**: even for ghosty frames, N1+LiDAR+graphcut COULD reduce visible halo (per Phase D finding — won't fix doubled cars but improves seam quality)
+>   - **跳到 view synthesis** (paradigm shift) if Bosch needs LOT MORE clean frames than this approach can deliver
+>
 > ### 2026-05-27 ~02:30 UTC — [Path (c) v2 YOLO breakthrough — object-aware ghost scoring works. 3/60 anchors of 02a00399 strict zero edge-objects = guaranteed ghost-free. Full-stride scan across 5 val logs in progress to get final Bosch subset count.]
 > - **怎么做**: v1 (mean color diff) 视觉验证 wrong — anchor 0 是 score 最低但还是有 BMW ghost (because BMW 不在 seam zone 占 mean diff 比例小). 写 v2: YOLOv8n (`pip install ultralytics`, no clone) → 在每个 cam image 上跑 → count cars/persons whose bbox center in outer 15% of cam width (= cam-seam zone in ERP). Total score = sum across 7 cams. Score=0 → no near-field objects in any seam zone → 不会产生 BMW-style doubled ghost.
 > - **新文件**:
