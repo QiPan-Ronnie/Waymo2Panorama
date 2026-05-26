@@ -166,3 +166,20 @@ def test_confidence_map_high_near_anchors_zero_far():
     assert conf[200, 400] < 0.1
     assert float(conf.max()) <= 1.0 + 1e-6
     assert float(conf.min()) >= 0.0
+
+
+def test_orchestrator_no_stereo_returns_unchanged_slabs(tmp_path):
+    """If no stereo files provided, orchestrator returns slabs unchanged."""
+    from waymo2panorama.alignment.sparse_displacement import build_warped_slabs_a2
+    slabs = {f"cam_{i}": (np.random.RandomState(i).rand(32, 64, 3) * 255).astype(np.float32)
+             for i in range(3)}
+    cam_K = {c: np.eye(3) for c in slabs}
+    cam_T = {c: np.eye(4) for c in slabs}
+    out_slabs, summary = build_warped_slabs_a2(
+        l1_slabs=slabs, stereo_npz_paths=[],
+        cam_K=cam_K, cam_T_ego_cam=cam_T, cam_names=list(slabs),
+        erp_hw=(32, 64),
+    )
+    for c in slabs:
+        assert np.allclose(out_slabs[c], slabs[c], atol=0.5)
+    assert summary["n_stereo_files_used"] == 0

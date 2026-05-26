@@ -254,3 +254,66 @@ def build_anchor_confidence_map(
         contrib = np.exp(-d2 * inv_two_sigma_sq).astype(np.float32)
         np.maximum(out, contrib, out=out)
     return out
+
+
+def build_warped_slabs_a2(
+    l1_slabs: dict[str, np.ndarray],
+    stereo_npz_paths,
+    cam_K: dict[str, np.ndarray],
+    cam_T_ego_cam: dict[str, np.ndarray],
+    cam_names: list[str],
+    erp_hw: tuple[int, int],
+    rbf_regularization: float = 1.0,
+    confidence_sigma_px: float = 20.0,
+    wrap_horizontal: bool = True,
+) -> tuple[dict[str, np.ndarray], dict]:
+    """Orchestrator: L1 slabs + stereo cache -> warped slabs (A2 method).
+
+    Pipeline per cam:
+      1. Build sparse {(ideal_uv, delta_uv)} from stereo .npz files involving cam
+      2. Interpolate to dense (H, W, 2) displacement field via TPS RBF
+      3. Build (H, W) confidence map from anchor positions
+      4. Gate displacement: dense_disp * confidence
+      5. Warp slab via cv2.remap
+
+    Returns:
+        (warped_slabs, summary_dict)
+        - warped_slabs: same keys as l1_slabs, gated-warp applied
+        - summary: n_stereo_files_used, per-cam #anchors and max |delta|
+    """
+    n_stereo_total = len(list(stereo_npz_paths))
+    sparse_per_cam = build_per_cam_displacements_from_stereo(
+        stereo_npz_paths, cam_K=cam_K, cam_T_ego_cam=cam_T_ego_cam,
+        cam_names=cam_names, erp_hw=erp_hw,
+    )
+    out_slabs: dict[str, np.ndarray] = {}
+    per_cam_stats: dict[str, dict] = {}
+    for cam in cam_names:
+        slab = l1_slabs[cam]
+        anchors_for_cam = sparse_per_cam.get(cam, [])
+        n_anchors = len(anchors_for_cam)
+        if n_anchors == 0:
+            out_slabs[cam] = slab.astype(np.float32)
+            per_cam_stats[cam] = {"n_anchors": 0, "max_abs_delta_px": 0.0}
+            continue
+        dense_disp = interpolate_dense_displacement_field(
+            anchors_for_cam, erp_hw=erp_hw, regularization=rbf_regularization,
+        )
+        anchor_uvs = [a[0] for a in anchors_for_cam]
+        conf = build_anchor_confidence_map(
+            anchor_uvs, erp_hw=erp_hw, sigma_px=confidence_sigma_px,
+        )
+        gated_disp = dense_disp * conf[..., None]
+        max_delta = float(np.linalg.norm(gated_disp, axis=-1).max())
+        out_slabs[cam] = warp_erp_slab_by_displacement(
+            slab.astype(np.float32), gated_disp, wrap_horizontal=wrap_horizontal,
+        )
+        per_cam_stats[cam] = {
+            "n_anchors": int(n_anchors),
+            "max_abs_delta_px": max_delta,
+        }
+    summary = {
+        "n_stereo_files_used": n_stereo_total,
+        "per_cam": per_cam_stats,
+    }
+    return out_slabs, summary
