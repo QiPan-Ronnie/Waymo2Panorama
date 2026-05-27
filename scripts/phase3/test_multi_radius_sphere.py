@@ -37,7 +37,7 @@ LABELS = ["R=inf (legacy)", "R=30m", "R=10m", "R=5m", "R=3m"]
 
 
 def render_at_radius(frame, erp_hw, R):
-    out, _summary = stitch_one_frame(
+    out = stitch_one_frame(
         frame=frame,
         erp_hw=erp_hw,
         convergence_distance_m=R,
