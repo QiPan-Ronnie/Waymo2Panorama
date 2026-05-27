@@ -181,10 +181,11 @@ def main() -> int:
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--case", action="append", required=True)
     ap.add_argument("--halo-px", action="append", type=int, required=True)
-    ap.add_argument("--gamma", action="append", type=float, default=[1.0])
+    ap.add_argument("--gamma", action="append", type=float, default=None)
     ap.add_argument("--crop", action="append", default=[])
     ap.add_argument("--overall-width", type=int, default=1024)
     args = ap.parse_args()
+    gammas = args.gamma if args.gamma is not None else [1.0]
 
     init_path = Path(args.init_image)
     out_dir = Path(args.out_dir)
@@ -204,7 +205,7 @@ def main() -> int:
         review_rows.append((f"{name} raw", raw))
 
         for halo_px in args.halo_px:
-            for gamma in args.gamma:
+            for gamma in gammas:
                 comp, alpha_vis, metrics = _compose(init, mask_path, raw_path, halo_px, gamma)
                 setting = f"h{halo_px:03d}_g{int(round(gamma * 100)):03d}"
                 out_name = f"{name}_{setting}"
