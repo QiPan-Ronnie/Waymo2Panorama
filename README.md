@@ -4,7 +4,7 @@ Multi-camera **360° panorama stitching** for autonomous-driving datasets (prima
 
 **Target venue**: 3DV 2026 (main or D&B track).
 **Maintainer**: Qi Pan (panq@usc.edu), advisor Koi Chen.
-**Status (2026-05-21)**: 8 stitching routes implemented + benchmarked, Koi snapshot shipped, paper draft pending.
+**Status (2026-05-27)**: 8 stitching routes implemented + benchmarked, Koi snapshot shipped, seam-root-cause follow-up ongoing. Current safest visual baseline is AV2 raw L1 `hard_select`; DiT360 outpaint / seam completion is a constrained qualitative baseline, not production training data yet.
 
 ---
 
@@ -13,6 +13,17 @@ Multi-camera **360° panorama stitching** for autonomous-driving datasets (prima
 Take Argoverse 2's **7-camera ring** (synchronized RGB at the same timestamp) and stitch into a **1024×2048 equirectangular (ERP) panorama** that downstream 3D-aware models can consume. Evaluated with **cycle-PSNR** (hold-one-cam reconstruction) since no panorama ground-truth exists for AV data.
 
 Key finding so far: **classical sphere projection + multiband blending (L1) beats SOTA neural 3D-lift (Pi3 forward-splat, L3) by ~3 dB** — and 4 different depth backbones (Pi3, Apple Depth Pro, Temporal Pi3, OmniStitch) all fail similarly. Algorithm-class problem, not backbone-selection problem.
+
+---
+
+## Current seam status (2026-05-27)
+
+The latest seam work moved beyond the original 8-route snapshot:
+
+- `hard_select` fixes the multiband ghost/halo on AV2 raw and avoids near-field optical-flow fragmentation. It is the conservative Bosch-facing baseline.
+- No-DL seam-local ECC alignment and DP seam-routing were tested on BMW / pedestrian / clean anchors. Both are safer ablations than full-image OF, but neither clearly beats `hard_select`.
+- DiT360 masked seam completion now runs on A100. Raw DiT edits can fill seam strips, but they alter driving evidence. A hard post-compose variant restores all non-mask pixels exactly; however tiny masks do not repair geometry and wider masks introduce vertical/block artifacts.
+- The current research framing is therefore: different optical centers make perfect single-surface panorama impossible; without depth or object-level coherence, the practical target is artifact minimization plus honest failure/confidence reporting.
 
 ---
 
@@ -76,7 +87,7 @@ agent/
 notes/
   new_{a,b,c,d,e,f}_*.md     per-route research / design docs
   t13_*.md                   T13 self-sup finetune design
-jobs/*.json                  Colab queue specs (worker pulls these)
+jobs/*.json                  Historical Colab queue specs (do not use for new runs)
 outputs/phase3/*             run results (gitignored; aggregate JSONs tracked manually)
 ```
 
@@ -106,7 +117,7 @@ outputs/phase3/*             run results (gitignored; aggregate JSONs tracked ma
 - Pi3: `../../../01-pi3/code/official/Pi3` (local clone) + HF `yyfz233/Pi3X` (open)
 - VGGT: `git clone https://github.com/facebookresearch/vggt` + HF `facebook/VGGT-1B-Commercial` (GATED — needs user click)
 - Compute: Colab Pro A100 (panq@usc.edu)
-- Queue: agent-colab-queue MCP framework (worker bootstrap at `scripts/cell_worker_bootstrap.py`)
+- Colab execution: `agent-colab-direct` raw HTTP `/exec` via the active Cloudflare URL/token written to Drive `runtime/active_url.json`. The older `agent-colab-queue` path is frozen and should not be used for new experiments.
 
 ---
 

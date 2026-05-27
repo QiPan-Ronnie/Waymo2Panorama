@@ -1,0 +1,38 @@
+{
+  "runs": [
+    {
+      "name": "seam_r004_tau1",
+      "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v4/02a00399_a000/02a00399_a000_hard_select_1024x2048.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v4/02a00399_a000/02a00399_a000_mask_preserve_nonseam_r004.png",
+      "raw_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v5_bmw_tiny_tau1/seam_r004_tau1/seam_r004_tau1.png",
+      "postcompose_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v5_bmw_tiny_tau1_postcompose/seam_r004_tau1/seam_r004_tau1_postcompose.png",
+      "mask_convention": "white/255 preserves source; black/0 uses DiT360 output",
+      "preserve_fraction": 0.991096019744873,
+      "generate_fraction": 0.008903980255126953,
+      "raw_preserve_mae": 3.930119514465332,
+      "raw_preserve_rmse": 7.958916187286377,
+      "raw_preserve_psnr": 30.11372498238822,
+      "postcompose_preserve_mae": 0.0,
+      "postcompose_preserve_rmse": 0.0,
+      "postcompose_preserve_psnr": 168.13080360867912,
+      "generated_region_raw_vs_init_mae": 14.151251792907715
+    },
+    {
+      "name": "seam_r008_tau1",
+      "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v4/02a00399_a000/02a00399_a000_hard_select_1024x2048.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v4/02a00399_a000/02a00399_a000_mask_preserve_nonseam_r008.png",
+      "raw_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v5_bmw_tiny_tau1/seam_r008_tau1/seam_r008_tau1.png",
+      "postcompose_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v5_bmw_tiny_tau1_postcompose/seam_r008_tau1/seam_r008_tau1_postcompose.png",
+      "mask_convention": "white/255 preserves source; black/0 uses DiT360 output",
+      "preserve_fraction": 0.9836888313293457,
+      "generate_fraction": 0.016311168670654297,
+      "raw_preserve_mae": 4.013601779937744,
+      "raw_preserve_rmse": 8.155984878540039,
+      "raw_preserve_psnr": 29.901275370462663,
+      "postcompose_preserve_mae": 0.0,
+      "postcompose_preserve_rmse": 0.0,
+      "postcompose_preserve_psnr": 168.13080360867912,
+      "generated_region_raw_vs_init_mae": 22.344432830810547
+    }
+  ]
+}

@@ -1,5 +1,73 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~15:20 UTC - [DiT360 outpaint + tiny seam-mask post-compose tested on BMW A100 run: MIXED / weak NEG. Evidence preservation can be forced, but seam geometry is not solved.]
+> - **Purpose**: follow the user's proposed generative route more fairly. Instead of only testing one wide seam mask, test (a) outpainting invalid black ERP regions from L1 `hard_select`, (b) small seam completion masks, and (c) hard post-compose so DiT360 is allowed to affect only the masked pixels.
+> - **Code added / changed**:
+>   - `scripts/phase3/prepare_dit360_seam_inputs.py`: now also writes `invalid_outpaint` masks where valid AV camera pixels are preserved and invalid black ERP top/bottom regions are generated.
+>   - `scripts/phase3/run_dit360_mask_batch.py`: batch DiT360 runner, one FLUX/DiT360 load for multiple masks; fixed a second-case crash by resetting Flux attention processors between cases.
+>   - `scripts/phase3/postcompose_dit360_masks.py`: new post-processing utility. It restores the original hard-select panorama wherever the mask is white and keeps DiT360 output only where the mask is black.
+> - **A100 runtime**: `NVIDIA A100-SXM4-40GB`; repo pulled to `e36c6de`; no GPU needed for post-compose, but outputs were written on Drive via the active Colab executor.
+> - **Inputs**:
+>   ```text
+>   anchor: 02a00399 anchor 0, BMW case
+>   init: L1 hard_select, 1024x2048
+>   inputs_v3: invalid_outpaint + seam r008/r012/r020
+>   inputs_v4: tiny seam r004/r008
+>   mask convention: white/255 = preserve source, black/0 = generate/fill
+>   ```
+> - **DiT360 raw runs**:
+>   ```text
+>   v4 outpaint/small, tau=5:
+>     outpaint_invalid  generate 72.58%, preserve PSNR 19.94 dB
+>     seam r008         generate  1.63%, preserve PSNR 29.83 dB
+>     seam r012         generate  2.41%, preserve PSNR 30.05 dB
+>     seam r020         generate  4.05%, preserve PSNR 30.03 dB
+>   v5 tiny, tau=1:
+>     seam r004         generate  0.89%, preserve PSNR 30.11 dB
+>     seam r008         generate  1.63%, preserve PSNR 29.90 dB
+>   ```
+> - **Post-compose metrics**:
+>   ```text
+>   all post-composed cases: preserve MAE = 0.0, preserve RMSE = 0.0
+>   generated-region raw-vs-init MAE:
+>     outpaint_invalid 130.58
+>     r004 tau1         14.15
+>     r008 tau1         22.34
+>     r008 tau5         23.28
+>     r012 tau5         27.37
+>     r020 tau5         36.27
+>   ```
+> - **Drive outputs**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5_postcompose/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v5_bmw_tiny_tau1/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v5_bmw_tiny_tau1_postcompose/
+>   ```
+> - **Local/Git evidence**:
+>   ```text
+>   deliverables/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5/
+>     runs_v4_outputs_review_1024.jpg
+>     runs_v4_crop_review_bmw_center_suv.jpg
+>   deliverables/dit360_seam_completion/runs_v5_bmw_tiny_tau1/
+>     runs_v5_crop_review_bmw_center_suv.jpg
+>   deliverables/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5_postcompose/
+>     postcompose_overall_review.jpg
+>     postcompose_crop_review.jpg
+>     postcompose_summary.json
+>   deliverables/dit360_seam_completion/runs_v5_bmw_tiny_tau1_postcompose/
+>     postcompose_overall_review.jpg
+>     postcompose_crop_review.jpg
+>     postcompose_summary.json
+>   ```
+> - **Visual verdict**:
+>   - Raw DiT360 small masks are much less destructive than the first r040/tau20 test, but still rewrite non-mask evidence such as storefront text, road texture, and building texture. This is not acceptable for Bosch training data by itself.
+>   - Post-compose is the correct constrained variant: non-mask pixels are exactly restored, so outside-mask fidelity is solved.
+>   - However, with tiny masks (`r004/r008 tau1`) the output is visually almost the same as L1 `hard_select`; it does not clearly fix the seam geometry.
+>   - With wider masks (`r012/r020 tau5`) DiT360 creates visible vertical strips / block artifacts around the right SUV seam and building edges. r020 is clearly worse.
+>   - Invalid-region outpainting fills black top/bottom sky/road, but it hallucinates huge unobserved regions and should not be treated as evidence-preserving driving data.
+> - **Conclusion**: [MIXED / weak NEG] DiT360 plus post-compose is the least bad generative variant so far and is worth mentioning as a constrained qualitative baseline. It is still not a reliable seam solver for Bosch training data: narrow masks do not repair geometry, wider masks hallucinate artifacts. Current safest production baseline remains L1 `hard_select` on AV2 raw.
+
 > ### 2026-05-27 ~14:55 UTC - [Stage B DiT360 BMW seam completion ran successfully on A100, but visual verdict is NEG for Bosch training data.]
 > - **Purpose**: after no-DL seam-routing failed to beat L1 `hard_select`, test Koi's DiT360 idea end-to-end: preserve our stitched panorama away from camera seams, mask seam strips, and let DiT360 fill the transition.
 > - **Auth / runtime**:

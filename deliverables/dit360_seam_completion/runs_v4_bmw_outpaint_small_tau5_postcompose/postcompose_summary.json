@@ -1,0 +1,72 @@
+{
+  "runs": [
+    {
+      "name": "outpaint_invalid_tau5",
+      "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v3/02a00399_a000/02a00399_a000_hard_select_1024x2048.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v3/02a00399_a000/02a00399_a000_mask_preserve_valid_outpaint_invalid.png",
+      "raw_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5/outpaint_invalid_tau5/outpaint_invalid_tau5.png",
+      "postcompose_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5_postcompose/outpaint_invalid_tau5/outpaint_invalid_tau5_postcompose.png",
+      "mask_convention": "white/255 preserves source; black/0 uses DiT360 output",
+      "preserve_fraction": 0.27415895462036133,
+      "generate_fraction": 0.7258410453796387,
+      "raw_preserve_mae": 20.215402603149414,
+      "raw_preserve_rmse": 25.667583465576172,
+      "raw_preserve_psnr": 19.943103950066966,
+      "postcompose_preserve_mae": 0.0,
+      "postcompose_preserve_rmse": 0.0,
+      "postcompose_preserve_psnr": 168.13080360867912,
+      "generated_region_raw_vs_init_mae": 130.58087158203125
+    },
+    {
+      "name": "seam_r008_tau5",
+      "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v3/02a00399_a000/02a00399_a000_hard_select_1024x2048.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v3/02a00399_a000/02a00399_a000_mask_preserve_nonseam_r008.png",
+      "raw_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5/seam_r008_tau5/seam_r008_tau5.png",
+      "postcompose_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5_postcompose/seam_r008_tau5/seam_r008_tau5_postcompose.png",
+      "mask_convention": "white/255 preserves source; black/0 uses DiT360 output",
+      "preserve_fraction": 0.9836888313293457,
+      "generate_fraction": 0.016311168670654297,
+      "raw_preserve_mae": 3.9821715354919434,
+      "raw_preserve_rmse": 8.227764129638672,
+      "raw_preserve_psnr": 29.82516694838257,
+      "postcompose_preserve_mae": 0.0,
+      "postcompose_preserve_rmse": 0.0,
+      "postcompose_preserve_psnr": 168.13080360867912,
+      "generated_region_raw_vs_init_mae": 23.27692222595215
+    },
+    {
+      "name": "seam_r012_tau5",
+      "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v3/02a00399_a000/02a00399_a000_hard_select_1024x2048.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v3/02a00399_a000/02a00399_a000_mask_preserve_nonseam_r012.png",
+      "raw_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5/seam_r012_tau5/seam_r012_tau5.png",
+      "postcompose_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5_postcompose/seam_r012_tau5/seam_r012_tau5_postcompose.png",
+      "mask_convention": "white/255 preserves source; black/0 uses DiT360 output",
+      "preserve_fraction": 0.975921630859375,
+      "generate_fraction": 0.024078369140625,
+      "raw_preserve_mae": 3.974100112915039,
+      "raw_preserve_rmse": 8.016551971435547,
+      "raw_preserve_psnr": 30.051051359633696,
+      "postcompose_preserve_mae": 0.0,
+      "postcompose_preserve_rmse": 0.0,
+      "postcompose_preserve_psnr": 168.13080360867912,
+      "generated_region_raw_vs_init_mae": 27.368148803710938
+    },
+    {
+      "name": "seam_r020_tau5",
+      "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v3/02a00399_a000/02a00399_a000_hard_select_1024x2048.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v3/02a00399_a000/02a00399_a000_mask_preserve_nonseam_r020.png",
+      "raw_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5/seam_r020_tau5/seam_r020_tau5.png",
+      "postcompose_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v4_bmw_outpaint_small_tau5_postcompose/seam_r020_tau5/seam_r020_tau5_postcompose.png",
+      "mask_convention": "white/255 preserves source; black/0 uses DiT360 output",
+      "preserve_fraction": 0.9595422744750977,
+      "generate_fraction": 0.040457725524902344,
+      "raw_preserve_mae": 3.9365458488464355,
+      "raw_preserve_rmse": 8.038556098937988,
+      "raw_preserve_psnr": 30.027242669975706,
+      "postcompose_preserve_mae": 0.0,
+      "postcompose_preserve_rmse": 0.0,
+      "postcompose_preserve_psnr": 168.13080360867912,
+      "generated_region_raw_vs_init_mae": 36.26729965209961
+    }
+  ]
+}
