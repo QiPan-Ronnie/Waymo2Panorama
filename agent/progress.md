@@ -1,5 +1,17 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~09:00 UTC — [L1+L2+L3 basic-CV pipeline shipped + 5-log run kicked off (stride=10, ~1.75 hr).]
+> - **怎么做**: 把 prototype 三层 (hard_select / joint global HDR / Farneback OF chain warp) 整合成 `code/waymo2panorama/blending/hard_hdr_of.py` 模块, 在 `stitch_one_frame` 加 `blend_mode` 参数 (`multiband` / `hard_hdr` / `hard_hdr_of`). 新 CLI `scripts/phase3/render_log_with_hard_hdr_of.py` 一键渲染 log 全部 anchor.
+> - **关键 design choices**:
+>   - L2 HDR: **joint global lstsq** (closes ring loop via back-seam constraint) vs 之前的 chain solve (drift 28%). 现在 gain span 18%, back-seam ratio 1.07.
+>   - L2 HDR: **luminance-only (Y in YCrCb)** vs 之前的 per-channel (rear cam green=1.33→magenta cast). Y-only 保 hue, 只调 exposure.
+>   - 顺序: project → L2 → L3 → L1. HDR 在 OF 之前 (flow 不会 lock onto brightness mismatch); hard_select 最后 (final per-pixel pick).
+> - **Verification on 3 anchors of 02a00399** (BMW + 2 clean): 40s/anchor, 视觉确认 BMW single, brightness uniform, lane lines continuous.
+> - **5-log full run** kicked off in background, stride=10 (~32 anchors/log × 5 logs = 160 panoramas, ~1.75 hr at 40s/anchor). 输出到 `outputs/phase3/full_pipeline_v1/{02a00399, 0bae3b5e, 2c652f9e, 9f871fb4, fbee355f}`.
+> - **Handoff doc**: `deliverables/HARD_HDR_OF_PIPELINE.md` — 完整 design 解释 + 所有 NEG ablation 历史 + usage code samples + paper framing 建议.
+> - **复盘**: N1 4 phases (A/C/N2/D) 死磕 depth 全 NEG → 5 行 hard_select 解 doubled ghost → +joint HDR 解 brightness step → +OF 解 spatial parallax. User 的 "depth 是错的, basic CV root cause" + "不用 ML, 用基础" 判断全对.
+> - 提交: `4a570f7` (hard_select script), `34c2d07` (BMW PNG win), `93fe494` (OF), `912d97b/a37d86a` (HDR v1+v2), `94ce6ad` (joint HDR), `490090d` (shipped module).
+
 > ### 2026-05-27 ~06:30 UTC — [BREAKTHROUGH: hard cam selection (no blend) eliminates doubled-BMW ghost.]
 > - **怎么做**: 5 行代码: `argmax(weights_stack, axis=0)` → 每个 ERP 像素只来自 cos² weight 最大的那个 cam, 完全不 blend. `scripts/phase3/test_hard_select.py` 跑 BMW anchor (02a00399 a0) 和 ghosty anchor (fbee355f a95, YOLO score 13). 输出 `deliverables/hard_select/bmw_compare.png` + `full_compare.png` (BMW) 和 `bmw_compare_fbee_a95.png` + `full_compare_fbee_a95.png` (ghosty).
 > - **核心发现 — 验证 user 的 "depth 是错的, 从 overlap 下手" 直觉**:
