@@ -1,0 +1,23 @@
+# Line endings: auto-detect text, normalize to LF in repo
+# Working tree gets native (CRLF on Windows, LF on macOS/Linux)
+* text=auto eol=lf
+
+# Binary files (never line-ending convert, never diff)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.tfrecord binary
+*.npz binary
+*.npy binary
+*.ply binary
+*.pcd binary
+*.bag binary
+*.feather binary
+*.mp4 binary
+*.mov binary
+*.zip binary
+*.tar binary
+*.tar.zst binary
+*.tgz binary

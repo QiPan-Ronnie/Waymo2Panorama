@@ -67,3 +67,13 @@ Thumbs.db
 # Pandoc-generated PDFs and intermediate files (regenerate from MD via deliverables/_render_pdf.py)
 deliverables/*.pdf
 deliverables/*.print.md
+
+# User personal notes (not project deliverables) — added 2026-05-27
+# Note: self_learning/00..05_*.md (6 originally-tracked notes) STAY tracked.
+# Only the NEW sub-notes and HTMLs get ignored.
+self reading.md
+self_learning/*.html
+self_learning/assets/
+self_learning/02_cv_foundations 0*.md
+self_learning/小孔成像模型.html
+agent/plans/5.26 review 进程后的plan.md
