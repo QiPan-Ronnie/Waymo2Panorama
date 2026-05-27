@@ -213,7 +213,9 @@ def main() -> int:
     }
     for name, cams in alternating_sets.items():
         selected = np.isin(label, np.array(cams, dtype=np.uint8)) & valid
-        preserve = base_preserve & selected
+        preserve = selected.copy()
+        if not args.generate_invalid:
+            preserve |= ~valid
         mask = np.where(preserve, 255, 0).astype(np.uint8)
         stem = f"{run_name}_mask_{name}"
         _save_gray(out_dir / f"{stem}.png", mask)
