@@ -1,6 +1,6 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-27 (Xihan handoff shipped — L1 sphere 原理 doc + 2 新 AV2 范例 + Waymo brighten -18% seam |ΔY| post-hoc on his pre-stitched panorama. See `deliverables/handoff_to_xihan_2026-05-27_brighten_and_l1.md`. Prior milestone: WS4-Diag2 ROOT CAUSE locked + 5.27 hard_hdr_of NCC +25.3%.)
+**Updated**: 2026-05-27 ~23:00 (Our L1+L2 HDR pipeline RUN on Xihan's REAL Waymo E2ED frame via Colab T4 — color shift visually solved on `8e737334b...` frame. See `deliverables/xihan/l1_on_waymo/README.md`. Prior: Xihan handoff doc + brighten -18% on his pre-stitched pano; Calibration check 1.3 px bias [direction A dead]; multi-R sphere first look.)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
 
 ---
