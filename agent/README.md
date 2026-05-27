@@ -4,6 +4,20 @@
 
 ---
 
+## Current Seam State (2026-05-27)
+
+Read `handoff.md` first, then the top of `progress.md`.
+
+- **Safest visual baseline**: AV2 raw L1 `hard_select`. It removes multiband ghost/halo and avoids near-field OF fragmentation.
+- **No-DL seam fixes tested**: calibration BA, fixed-radius sphere, multi-radius selection, seam-local ECC, and DP seam-routing are all NEG or weak MIXED. They do not beat L1 `hard_select`.
+- **Stage A latest**: DP seam-routing v2 moves the hard seam path only, but still cuts visible cars/people/lane structures. Evidence: `deliverables/seam_routing_v2/three_anchor_v1_review/`.
+- **Stage B latest**: DiT360 masked seam completion ran successfully on A100 after HF auth, `torchao` upgrade, and VAE tiling. It fills seam strips but hallucinates/rewrites driving-critical scene content, so it is **VISUAL NEG for Bosch training data**. Evidence: `deliverables/dit360_seam_completion/runs_v3/02a00399_a000_r040_tau20_tiled/`.
+- **Recommendation**: keep L1 `hard_select` as the conservative training-data baseline; use DiT360 only as qualitative generative baseline / negative evidence unless a future constrained-editing variant proves fidelity.
+
+Most recent execution plan: `plans/2026-05-27-seam-routing-dit360-goal.md`.
+
+---
+
 ## 🔒 Rules for new agents (per user 2026-05-27)
 
 These rules exist because the repo had bloated to **47 stale finding/summary mds** that duplicated information already in `progress.md`. User asked to consolidate and enforce going forward.
@@ -78,7 +92,7 @@ Everything else is historical context (`2026-05-15-brainstorm-survey.md` for the
 
 ## Active project plan
 
-Active plan v6.1 lives in `~/.claude/plans/snug-shimmying-wave.md` (managed by Claude Code planmode, NOT in this folder).
+Most recent concrete plan: `plans/2026-05-27-seam-routing-dit360-goal.md`. Its Stage A and Stage B tasks are completed and documented at the top of `progress.md`.
 
 ## Parent project
 
