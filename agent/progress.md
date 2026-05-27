@@ -1,5 +1,18 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~11:30 UTC — [5 algorithm variants shipped via parallel subagent dispatch + 7-way A/B panel.]
+> - **Subagent-driven-development pattern** (user-invoked): dispatched 5 implementer subagents in parallel (Opus 4.7 effort max), each with a clear divergent algorithm idea. Each followed by spec compliance reviewer + code quality reviewer + fixer (when needed). All committed to main.
+> - **Shipped variants**:
+>   - **A chroma correction** (`hard_hdr_of_chroma.py`): Tikhonov-regularized Cr/Cb offsets in YCrCb. Reviewed+fixed (dead code + warn-on-all-outlier-rejection). +1.0s overhead.
+>   - **B graphcut smart seam** (`hard_hdr_of_graphcut.py`): cv2.detail.GraphCutSeamFinder on ±30px band around cos² Voronoi midline. Dijkstra-DP fallback. +1.4s overhead. Approved.
+>   - **F self-stereo** (`hard_hdr_of_selfstereo.py`): derive depth from cam-pair Farneback OF → re-project with N1 mode. **NEG**: math works (correct depth 2.59m BMW, 43.9m buildings) but N1 reprojection narrows FOV cones → BMW coverage 98.7%→62.1% → black holes through car body. **Validates L3 OF as correct 2D-warp approach over any depth-based reprojection.**
+>   - **G freq-band hybrid** (`hard_hdr_of_freqhybrid.py`): high-freq bands hard-select, low-freq bands cos² blend. cutoff=2/5. Validated synthetically (cutoff=0==multiband, cutoff>num_bands==hard_select). Approved.
+>   - **H bidirectional OF** (`hard_hdr_of_bidir.py`): `mode="chain"` (true bidirectional via mean half-flow per cam — equivalent to single Jacobi iter of joint solve), `mode="joint"` (global lstsq with anchor+Tikhonov), `mode="half_chain"` (legacy). Reviewed+fixed (chain semantics, module constants, linearization warning).
+> - **Doubled-pair YOLO metric** (`score_panorama_doubled.py`): tested at conf=0.3 and 0.1. **NEG**: count scales with detection count, doesn't isolate ghosts. Documented in `deliverables/doubled_metric_negative_finding.md`.
+> - **All-variants A/B panel** (`deliverables/all_variants_bmw.png`): 7 pipelines stacked on real BMW @ 2048×4096. Runtimes: multiband 3.6s, L1-only 1.3s, all full pipelines 35-37s.
+> - **Comprehensive doc**: `deliverables/ALGORITHM_VARIANTS_SUMMARY.md` catalogs all 7 variants with status, runtime, and recommended defaults.
+> - 总共 ~25 commits in this subagent-driven session.
+
 > ### 2026-05-27 ~10:30 UTC — [v2 pipeline shipped + 5-log seam-gap metric: 38% mean improvement, paper drafts done.]
 > - **v2 改进 shipped**:
 >   - **L2v3 centered gains**: HDR gains 在 log space 居中 (geometric mean = 1) 而不是 anchor front_center=1. 修复了 "front_center 在阴影里" 失败模式. seam-gap 在 6 anchors 上 8.2% → 10.8% mean improvement, 最差 case (200, 250) 从 -7%/-2% 翻正到 +1%.
