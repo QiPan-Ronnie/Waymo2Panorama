@@ -1,0 +1,3228 @@
+{
+  "n_common_anchors": 160,
+  "conf_threshold": 0.3,
+  "per_anchor": {
+    "02a00399/anchor_0000.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0010.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0020.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0030.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0040.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0050.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0060.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0070.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0080.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0090.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0100.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0110.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      }
+    },
+    "02a00399/anchor_0120.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0130.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0140.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0150.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0160.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0170.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0180.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0190.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0200.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0210.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0220.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0230.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 3,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0240.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0250.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0260.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "02a00399/anchor_0270.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "02a00399/anchor_0280.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "02a00399/anchor_0290.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "02a00399/anchor_0300.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "02a00399/anchor_0310.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0000.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "0bae3b5e/anchor_0010.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0020.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0030.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0040.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0050.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0060.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0070.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0080.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0090.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0100.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0110.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "0bae3b5e/anchor_0120.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0130.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0140.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "0bae3b5e/anchor_0150.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0160.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0170.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0180.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "0bae3b5e/anchor_0190.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0200.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0210.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0220.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0230.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0240.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0250.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "0bae3b5e/anchor_0260.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "0bae3b5e/anchor_0270.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "0bae3b5e/anchor_0280.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "0bae3b5e/anchor_0290.png": {
+      "multiband": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 4
+      }
+    },
+    "0bae3b5e/anchor_0300.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "0bae3b5e/anchor_0310.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0000.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "2c652f9e/anchor_0010.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0020.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "2c652f9e/anchor_0030.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 3,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "2c652f9e/anchor_0040.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "2c652f9e/anchor_0050.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0060.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0070.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 4,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 4
+      }
+    },
+    "2c652f9e/anchor_0080.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 3,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "2c652f9e/anchor_0090.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      }
+    },
+    "2c652f9e/anchor_0100.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "2c652f9e/anchor_0110.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "2c652f9e/anchor_0120.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      }
+    },
+    "2c652f9e/anchor_0130.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "2c652f9e/anchor_0140.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "2c652f9e/anchor_0150.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "2c652f9e/anchor_0160.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "2c652f9e/anchor_0170.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "2c652f9e/anchor_0180.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0190.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "2c652f9e/anchor_0200.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0210.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "2c652f9e/anchor_0220.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0230.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      }
+    },
+    "2c652f9e/anchor_0240.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 3,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 3,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 4
+      }
+    },
+    "2c652f9e/anchor_0250.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      }
+    },
+    "2c652f9e/anchor_0260.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0270.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0280.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 2,
+        "all_count": 4
+      }
+    },
+    "2c652f9e/anchor_0290.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 1
+      }
+    },
+    "2c652f9e/anchor_0300.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "2c652f9e/anchor_0310.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0000.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      }
+    },
+    "9f871fb4/anchor_0010.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      }
+    },
+    "9f871fb4/anchor_0020.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      }
+    },
+    "9f871fb4/anchor_0030.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      }
+    },
+    "9f871fb4/anchor_0040.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 4
+      }
+    },
+    "9f871fb4/anchor_0050.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 4
+      }
+    },
+    "9f871fb4/anchor_0060.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0070.png": {
+      "multiband": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 3,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 6
+      }
+    },
+    "9f871fb4/anchor_0080.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 5
+      }
+    },
+    "9f871fb4/anchor_0090.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 4
+      }
+    },
+    "9f871fb4/anchor_0100.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0110.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0120.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0130.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0140.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0150.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0160.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0170.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "9f871fb4/anchor_0180.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 2,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0190.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0200.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0210.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0220.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0230.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 4
+      }
+    },
+    "9f871fb4/anchor_0240.png": {
+      "multiband": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 4
+      },
+      "hard_hdr_of": {
+        "person": 3,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 5
+      }
+    },
+    "9f871fb4/anchor_0250.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0260.png": {
+      "multiband": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0270.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 3,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 5
+      }
+    },
+    "9f871fb4/anchor_0280.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "9f871fb4/anchor_0290.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "9f871fb4/anchor_0300.png": {
+      "multiband": {
+        "person": 3,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "9f871fb4/anchor_0310.png": {
+      "multiband": {
+        "person": 3,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 3,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "fbee355f/anchor_0000.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0010.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0020.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 1,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 1,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "fbee355f/anchor_0030.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 3,
+        "all_count": 3
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 2,
+        "all_count": 2
+      }
+    },
+    "fbee355f/anchor_0040.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 1,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 1,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "fbee355f/anchor_0050.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 3
+      }
+    },
+    "fbee355f/anchor_0060.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0070.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0080.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0090.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0100.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0110.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0120.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "fbee355f/anchor_0130.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "fbee355f/anchor_0140.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 2,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 3
+      }
+    },
+    "fbee355f/anchor_0150.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "fbee355f/anchor_0160.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "fbee355f/anchor_0170.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0180.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0190.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0200.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0210.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "fbee355f/anchor_0220.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0230.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0240.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 1
+      }
+    },
+    "fbee355f/anchor_0250.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "fbee355f/anchor_0260.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 2,
+        "truck": 0,
+        "all_count": 4
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 2,
+        "motorcycle": 0,
+        "bus": 1,
+        "truck": 0,
+        "all_count": 4
+      }
+    },
+    "fbee355f/anchor_0270.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      }
+    },
+    "fbee355f/anchor_0280.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 1,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 2
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 1,
+        "all_count": 1
+      }
+    },
+    "fbee355f/anchor_0290.png": {
+      "multiband": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      },
+      "hard_hdr_of": {
+        "person": 0,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 0
+      }
+    },
+    "fbee355f/anchor_0300.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    },
+    "fbee355f/anchor_0310.png": {
+      "multiband": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      },
+      "hard_hdr_of": {
+        "person": 1,
+        "bicycle": 0,
+        "car": 0,
+        "motorcycle": 0,
+        "bus": 0,
+        "truck": 0,
+        "all_count": 1
+      }
+    }
+  },
+  "aggregate": {
+    "multiband": {
+      "total_person": 47,
+      "total_bicycle": 0,
+      "total_car": 112,
+      "total_motorcycle": 0,
+      "total_bus": 4,
+      "total_truck": 7,
+      "total_all_count": 170,
+      "mean_all_per_panorama": 1.06
+    },
+    "hard_hdr_of": {
+      "total_person": 62,
+      "total_bicycle": 0,
+      "total_car": 141,
+      "total_motorcycle": 0,
+      "total_bus": 3,
+      "total_truck": 37,
+      "total_all_count": 243,
+      "mean_all_per_panorama": 1.52
+    }
+  }
+}
