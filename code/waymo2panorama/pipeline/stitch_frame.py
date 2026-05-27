@@ -17,6 +17,7 @@ import cv2
 import numpy as np
 
 from waymo2panorama.blending.multiband import multiband_blend
+from waymo2panorama.blending.hard_hdr_of import blend_hard_hdr_of
 from waymo2panorama.data_io.av2_loader import RING_CAMS_7, FrameSample
 from waymo2panorama.projection.sphere_projection import render_camera_to_erp
 
@@ -28,12 +29,24 @@ def stitch_one_frame(
     ego_masks: Optional[dict[str, np.ndarray]] = None,
     wrap: bool = True,
     convergence_distance_m: float | np.ndarray | None = None,
+    blend_mode: str = "multiband",
 ) -> np.ndarray:
     """Stitch one synchronized frame's 7 ring cams into a single ERP image (uint8 HxWx3).
 
     `convergence_distance_m` is forwarded to render_camera_to_erp. None (default)
     runs the legacy L1 baseline (cam at ego origin). Float r > 0 or per-pixel
     (H,W) array enables N1 cam-translation-aware finite-radius projection.
+
+    `blend_mode` selects the final blend:
+      - "multiband" (default, backward-compat) — cos² feather + multi-band blend.
+        Smooth seams but produces doubled-feature ghost in overlap on near-field
+        objects (e.g. BMW car body doubled at front-right seam).
+      - "hard_hdr_of" — 3-layer basic-CV pipeline (see hard_hdr_of.py):
+          L1 hard_select  → kills view-mixing ghost
+          L2 joint HDR    → equalizes cross-cam exposure
+          L3 OF chain warp → corrects spatial parallax at seams
+        ~50s/anchor at 2048x4096 vs ~6s for multiband, but ghost-free.
+      - "hard_hdr"       — same as above without L3 OF (~20s/anchor).
     """
     slabs: list[np.ndarray] = []
     weights: list[np.ndarray] = []
@@ -51,7 +64,18 @@ def stitch_one_frame(
         )
         slabs.append(rgb)
         weights.append(w)
-    return multiband_blend(slabs, weights, num_bands=num_bands, wrap=wrap)
+
+    if blend_mode == "multiband":
+        return multiband_blend(slabs, weights, num_bands=num_bands, wrap=wrap)
+    elif blend_mode == "hard_hdr_of":
+        return blend_hard_hdr_of(slabs, weights, apply_of=True)
+    elif blend_mode == "hard_hdr":
+        return blend_hard_hdr_of(slabs, weights, apply_of=False)
+    else:
+        raise ValueError(
+            f"blend_mode={blend_mode!r} not recognized. "
+            "Use 'multiband', 'hard_hdr', or 'hard_hdr_of'."
+        )
 
 
 # ---------------------------------------------------------------------------
