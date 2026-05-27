@@ -1,27 +1,51 @@
 # Agent Workspace — Waymo2Panorama
 
-This folder holds **agent-facing** docs for the Waymo2Panorama sub-project. **Kept intentionally lean** — only 3 living docs:
+> **TL;DR for agents new to this repo**: write to `handoff.md` + `progress.md` + this `README.md` ONLY. Don't create new `.md` files under `deliverables/`. Read the [rules below](#-rules-for-new-agents-per-user-2026-05-27) FIRST.
 
-## The 3 source-of-truth files (read these, write to these)
+---
 
-- **`handoff.md`** — current-state onboarding doc for any agent picking up this work. **Read this first.**
+## 🔒 Rules for new agents (per user 2026-05-27)
+
+These rules exist because the repo had bloated to **47 stale finding/summary mds** that duplicated information already in `progress.md`. User asked to consolidate and enforce going forward.
+
+### ✅ DO
+
+| When you... | Do this |
+|---|---|
+| Finish an experiment | Add a new entry **at the top of `agent/progress.md`** (format: 怎么做 / 结果 / Deliverables / Status / Next) |
+| Have visual evidence (PNG/JPG) | Put under `deliverables/<topic>/*.png` — images are NOT bloat, they're evidence |
+| Need to hand off to a human (advisor/teammate) | Create `deliverables/handoff_to_<name>_<date>.md` (the one allowed type of new .md in deliverables/) |
+| Write paper sections | Put under `paper/` (e.g. `paper/method_draft.md`) |
+| Take random research notes | Add to a `progress.md` entry's body, or as a code-module docstring |
+
+### ❌ DON'T
+
+| Don't... | Because... |
+|---|---|
+| Create `deliverables/*_FINDING.md` / `*_SUMMARY.md` / `*_PIPELINE.md` | Info belongs in `progress.md`; standalone files go stale + bloat |
+| Create per-experiment standalone `.md` in `deliverables/` | Same — use a `progress.md` entry |
+| Move/rename `handoff.md`, `progress.md`, `README.md` | They're stable entry points; renaming breaks future agents |
+| Add new files to `deliverables/archived/` or `notes/archived/` | Those folders are read-only history snapshots |
+| Commit user personal files (`self_learning/`, `self reading.md`, `agent/plans/5.26 *`) | They're in `.gitignore` — keep them out |
+
+### Commit hygiene (added 2026-05-27)
+
+- `.gitignore` excludes user personal notes, large data (`.tfrecord`/`.npy`/`.feather`), generated PDFs.
+- `.gitattributes` normalizes line endings (`eol=lf` in repo) + declares binaries (PNG/JPG/PDF/tfrecord/npy). No more `LF will be replaced by CRLF` warnings on Windows.
+- Direct push to `main` authorized for THIS repo (per `[[feedback-direct-push-main-waymo2pano]]` memory) — no PR review needed.
+- Commit messages: imperative subject (≤ 60 chars), then a blank line, then a short body. End with `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`.
+
+---
+
+## The 3 source-of-truth files
+
+- **`handoff.md`** — current-state onboarding doc for any agent picking up this work. **Read this first.** Includes documentation rules (same as here) + recent milestones + infrastructure notes.
 - **`progress.md`** — append-only timeline. Each completed track → a 4-line block (怎么做 / 结果 / Deliverables / Status / Next). Latest entry at top.
-- **`README.md`** — this file. The agent dir guide.
+- **`README.md`** — this file. The agent dir guide. Updated when rules change.
 
 Everything else is historical context (`2026-05-15-brainstorm-survey.md` for the original L0-L4 method landscape) or sub-folders.
 
-## Rules for new agents (per user 2026-05-27)
-
-✅ **DO**:
-- Add experiment results to `progress.md` as a new entry at the top
-- Put PNG/visual evidence under `../deliverables/<topic>/*.png`
-- For formal handoffs to humans (advisor/teammate), create `../deliverables/handoff_to_<name>_<date>.md`
-- Put paper drafts under `../paper/`
-
-❌ **DON'T**:
-- Don't create `deliverables/*_FINDING.md` / `*_SUMMARY.md` / `*_PIPELINE.md` (info belongs in `progress.md` — those files become stale and bloat the repo)
-- Don't create per-experiment standalone docs in `deliverables/` — use `progress.md` entries instead
-- Don't move/rename `handoff.md` or `progress.md` — they're stable entry points
+---
 
 ## Where everything else lives
 
@@ -33,12 +57,24 @@ Everything else is historical context (`2026-05-15-brainstorm-survey.md` for the
 | Old design specs | `specs/` (here, historical) |
 | External-facing handoffs (delivered to advisor/teammate) | `../deliverables/handoff_to_*.md` |
 | User-facing learning doc | `../deliverables/learning_plan.md` |
-| User's deep self-study | `../self_learning/` (5 chapters) |
+| User's deep self-study | `../self_learning/` (gitignored, except 6 originally-tracked overview mds) |
 | Per-route research notes (archived) | `../notes/archived/` |
 | Old experiment-finding mds (archived 2026-05-27) | `../deliverables/archived/` |
 | Code | `../code/` |
 | Run drivers | `../scripts/` |
 | Run outputs (Drive primary) | `../outputs/` (mostly gitignored, `agg_*.json` tracked) |
+
+---
+
+## Latest housekeeping (2026-05-27)
+
+- **47 mds archived** (10 deliverables/*_FINDING/*_SUMMARY → `deliverables/archived/`, 37 notes/*.md → `notes/archived/`).
+- **6 paper drafts moved** to `paper/`.
+- **3 living docs lock** enforced via the rules above.
+- **`.gitignore`** updated for user personal notes + commit hygiene.
+- **`.gitattributes`** added for line-ending + binary file declarations.
+
+---
 
 ## Active project plan
 

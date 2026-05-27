@@ -36,10 +36,38 @@ In reverse chronological order — the 8-route TL;DR below is the broader projec
 - L3 OF chain still 7-cam-bound (ValueError on 8 cams) — color shift already solved by L1+L2; L3 is parallax not color, port to follow.
 - New scripts: `scripts/phase3/{parse_waymo_e2ed_frame, run_waymo_e2ed_l1, compare_xihan_vs_l1, compare_waymo_4way}.py`.
 
-### 2026-05-27 ~21:30 — Seam root-cause investigation
-- Direction A (BA calibration refine) **dead**: SIFT+RANSAC calibration check shows AV2 extrinsics bias ~1.3 px median (front cam pairs sub-pixel, side cam pairs 1-2.7 px) — vs parallax of 3m BMW = 46 ERP px, calibration bias is negligible.
-- Direction B (geometry) **investigating**: first multi-R sphere visual on BMW crop — `R=∞ ≈ R=30m` visually identical, `R=10m` subtle improvement, `R=5/R=3` distorts far field. No single R fits all depths. Per-pixel R selection via cross-cam NCC is the logical next step (avoids selfstereo's FOV-gap pathology).
-- See `deliverables/CALIBRATION_CHECK_FINDING.md` + `deliverables/multi_radius_test/bmw_crop_stack_small.jpg`.
+### 2026-05-27 ~22:30 — **Seam root-cause investigation conclusion: 4 "no-depth" layers all NEG, empirical impossibility evidence**
+Tested 4 layers of fix without explicit depth:
+1. ❌ **L0 Calibration refine (BA)** — AV2 bias ~1.3 px global. Negligible vs 46 ERP px parallax.
+2. ❌ **L1 Single fixed R** — R={∞,30,10,5,3} all trade-offs, no winner (fbee a95 行人 在 R=5/3 反而更糟).
+3. ❌ **L1 Multi-R per-pixel v1** (Y diff argmin) — Frankenstein doubling at object boundaries.
+4. ❌ **L1 Multi-R per-pixel v2** (HDR + 9×9 NCC + 11px median R) — marginally better than v1 but still doubled, still worse than L1 hard_select.
+
+**Fundamental diagnosis**: at object/background boundary, foreground (5m) wants R=5m, background (30m) wants R=30m. Per-pixel argmin switches rapidly, even with smoothing → cam_A's R=5m slab + cam_B's R=30m slab composited = Frankenstein. **Criterion is right, execution can't enforce object-level coherence.** Real fix needs MRF/graphcut on R label map OR SAM segmentation-aware OR bilateral filter on R map OR go back to explicit depth (user excluded NeRF/3DGS).
+
+**Empirically confirms what brainstorm derived analytically**: 7-cam different optical centers ⇒ no `2D surface` projection fits all depths exactly. Any "no-depth basic-CV" method has ceiling = L1 hard_select + L2 HDR + L3 OF (current ship, +25.3% NCC). Going beyond needs MRF/segmentation/explicit-depth.
+
+**Code shipped (clean, don't pollute AV2 main)**:
+- `code/waymo2panorama/blending/multi_radius_select.py` — both v1 (per-pixel argmin) + v2 (HDR+NCC+medR)
+- `scripts/phase3/calibration_check.py` — RANSAC + data F vs calib F comparison
+- `scripts/phase3/test_multi_radius_sphere.py` — single-R sweep
+- `scripts/phase3/test_multi_r_select.py` — v1 driver
+- `scripts/phase3/test_multi_r_select_v2.py` — v2 driver
+
+**Visual evidence (all on `main`)**:
+- `deliverables/multi_radius_test/bmw_crop_stack_small.jpg` — 5-row R sweep
+- `deliverables/multi_radius_test/02a00399_a000_bmw_crop_hires_q88.jpg` — hi-res sweep
+- `deliverables/multi_r_select/fbee355f_a095_bmw_crop_q85.jpg` — v1 NEG evidence (pedestrian doubled)
+- `deliverables/multi_r_select_v2/fbee355f_a095_v2_bmw_crop_q85.jpg` — v2 NEG (still doubled)
+
+**Quantitative**: `outputs/calibration_check/{02a00399,0bae3b5e,fbee355f}_v2.json` on Drive.
+
+**Full historical writeup**: `deliverables/archived/CALIBRATION_CHECK_FINDING.md` (CALIBRATION_CHECK_FINDING was moved to archived/ during 2026-05-27 doc consolidation).
+
+**3 paths from here** (user-decided):
+- (B') **Substantial fix**: MRF graphcut / SAM / bilateral filter on R map (half day to 1 day)
+- (C) **Paper pivot to "impossibility framing"**: write paper around mathematical impossibility + artifact-minimization framework (2-3 hr drafting)
+- (D) **Ship as-is**: L1+L2+L3 `hard_hdr_of` already +25.3% NCC, -37.7% seam-gap. Done deliverable for Bosch.
 
 ### 2026-05-27 ~17:30 — Xihan handoff: L1 principle + 2 examples + Waymo brighten
 - `deliverables/l1_sphere_principle.md` (8 sections) — full L1 baseline math + Waymo porting caveats.
