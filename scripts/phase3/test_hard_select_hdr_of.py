@@ -50,33 +50,52 @@ def overlap_mean_rgb(
     return mean_a, mean_b
 
 
+# All adjacent pairs in the 7-cam ring (including back seam between cam 3 & 4)
+RING_PAIRS = [
+    (0, 1), (1, 2), (2, 3),   # CCW: front_center → left half
+    (0, 6), (6, 5), (5, 4),   # CW: front_center → right half
+    (3, 4),                   # back seam — closes the loop, prevents drift
+]
+
+
 def compute_hdr_gains(
     slabs: list[np.ndarray], weights: list[np.ndarray],
 ) -> list[float]:
-    """Chain solve per-cam SCALAR luminance gain so adjacent cams' Y means match.
+    """Joint global least-squares solve for per-cam luminance gain.
 
-    Luminance-only (Y channel in YCrCb): preserves chroma/hue, only adjusts
-    exposure. Avoids the per-channel chain-accumulation that produces a color
-    cast on the chain tail (rear cams).
+    For each adjacent pair (i, j), enforce in log space:
+      log(g_i) + log(mean_Y_i) = log(g_j) + log(mean_Y_j)
+    i.e. matched brightness in overlap. Anchor: log(g_0) = 0.
+    Solve over all 7 ring pairs (including back seam) via lstsq — no chain
+    drift because the back-seam constraint closes the loop.
 
-    Returns list of 7 scalars. gains[0] = 1.0 (anchor=front_center).
+    Returns 7 scalar gains. gains[0] = 1.0 (anchor=front_center).
     """
     n = len(slabs)
-    gains: list[float] = [1.0] * n
-    for chain in [CCW, CW]:
-        for i in range(1, len(chain)):
-            prev = chain[i-1]; cur = chain[i]
-            overlap = (weights[prev] > 1e-6) & (weights[cur] > 1e-6)
-            if int(overlap.sum()) < 100:
-                continue
-            y_prev = cv2.cvtColor(slabs[prev].astype(np.uint8), cv2.COLOR_RGB2YCrCb)[..., 0]
-            y_cur = cv2.cvtColor(slabs[cur].astype(np.uint8), cv2.COLOR_RGB2YCrCb)[..., 0]
-            mean_prev = float(y_prev[overlap].mean())
-            mean_cur = float(y_cur[overlap].mean())
-            ratio = mean_prev / max(mean_cur, 1.0)
-            ratio = float(np.clip(ratio, 0.7, 1.43))  # tighter clip than per-channel
-            gains[cur] = gains[prev] * ratio
-    return gains
+    A_rows: list[np.ndarray] = []
+    b_rows: list[float] = []
+    for (i, j) in RING_PAIRS:
+        overlap = (weights[i] > 1e-6) & (weights[j] > 1e-6)
+        if int(overlap.sum()) < 100:
+            continue
+        y_i = cv2.cvtColor(slabs[i].astype(np.uint8), cv2.COLOR_RGB2YCrCb)[..., 0]
+        y_j = cv2.cvtColor(slabs[j].astype(np.uint8), cv2.COLOR_RGB2YCrCb)[..., 0]
+        m_i = max(float(y_i[overlap].mean()), 1.0)
+        m_j = max(float(y_j[overlap].mean()), 1.0)
+        # log(g_i) - log(g_j) = log(m_j) - log(m_i)
+        row = np.zeros(n)
+        row[i] = 1.0; row[j] = -1.0
+        A_rows.append(row)
+        b_rows.append(np.log(m_j) - np.log(m_i))
+    # Anchor: log(g_0) = 0
+    anchor = np.zeros(n); anchor[0] = 1.0
+    A_rows.append(anchor); b_rows.append(0.0)
+
+    A = np.array(A_rows); b = np.array(b_rows)
+    log_g, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
+    gains = np.exp(log_g)
+    gains = np.clip(gains, 0.5, 2.0)
+    return list(gains)
 
 
 def apply_hdr(slabs: list[np.ndarray], gains: list[float]) -> list[np.ndarray]:
