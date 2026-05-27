@@ -19,6 +19,7 @@ import numpy as np
 from waymo2panorama.blending.multiband import multiband_blend
 from waymo2panorama.blending.hard_hdr_of import blend_hard_hdr_of
 from waymo2panorama.blending.seam_local_align import blend_seam_local_align
+from waymo2panorama.blending.seam_routing import blend_seam_routing
 from waymo2panorama.data_io.av2_loader import RING_CAMS_7, FrameSample
 from waymo2panorama.projection.sphere_projection import render_camera_to_erp
 
@@ -51,6 +52,7 @@ def stitch_one_frame(
       - "hard_localalign" — LPAM-inspired seam-local translation alignment,
         no HDR. Keeps hard_select's one-camera-per-pixel contract.
       - "hard_hdr_localalign" — centered Y-only HDR + seam-local alignment.
+      - "hard_seamroute" — visibility-aware DP seam routing, no HDR/OF/warp.
     """
     slabs: list[np.ndarray] = []
     weights: list[np.ndarray] = []
@@ -79,11 +81,13 @@ def stitch_one_frame(
         return blend_seam_local_align(slabs, weights, apply_hdr_pre=False)
     elif blend_mode == "hard_hdr_localalign":
         return blend_seam_local_align(slabs, weights, apply_hdr_pre=True)
+    elif blend_mode == "hard_seamroute":
+        return blend_seam_routing(slabs, weights)
     else:
         raise ValueError(
             f"blend_mode={blend_mode!r} not recognized. "
             "Use 'multiband', 'hard_hdr', 'hard_hdr_of', "
-            "'hard_localalign', or 'hard_hdr_localalign'."
+            "'hard_localalign', 'hard_hdr_localalign', or 'hard_seamroute'."
         )
 
 
