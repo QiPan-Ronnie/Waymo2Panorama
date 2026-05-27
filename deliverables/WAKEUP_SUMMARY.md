@@ -46,6 +46,32 @@ Here's where we are now.
 | Bosch v2 panoramas | `outputs/phase3/full_pipeline_v2/` (on Drive, rendering) |
 | All N1 NEG history | `deliverables/N1_AUTONOMOUS_RUN_SUMMARY.md` |
 
+## What's running NOW (user is out, T4 stays open)
+
+- ✅ **v1 5-log render DONE** (160 panoramas in `outputs/phase3/full_pipeline_v1/`)
+- ✅ **Final preview grid** (`deliverables/bosch_preview_final.png` — 15 side-by-side rows, 5 logs × 3 anchors)
+- ✅ **YOLO scoring** (`deliverables/yolo_scores.json`)
+- ✅ **Chroma correction Improvement A shipped** (`hard_hdr_of_chroma.py`)
+- 🔄 **4 algorithm subagents in flight** (Opus max effort, divergent thinking):
+  - **B Graphcut smart seam** (cv2.detail.SeamFinder for content-aware seam routing)
+  - **F Self-stereo from 2-cam pair** (derive depth from cam-pair disparity, no external depth needed)
+  - **G Frequency-band hybrid** (low-freq blend + high-freq hard select — multiband's smoothness + hard_select's sharpness)
+  - **H Bidirectional half-warp OF** (both cams meet at midpoint instead of B→A)
+- 🔄 More divergent ideas queued if time permits
+
+## YOLO panorama finding (160 panoramas)
+
+| metric | multiband | hard_hdr_of | delta |
+|---|---|---|---|
+| person | 47 | 62 | +32% |
+| car | 112 | 141 | +26% |
+| truck | 7 | 37 | **+428%** |
+| bus | 4 | 3 | -25% |
+| total | 170 | 243 | **+43%** |
+| mean/pano | 1.06 | 1.52 | +43% |
+
+**Interpretation**: hard_hdr_of detects MORE objects, not FEWER. This is a POSITIVE finding for perception use — sharper objects, more detectable. But it does NOT measure ghost reduction directly. Multiband blurs distant objects into background (especially trucks, where +428%); hard_select preserves them. A true ghost metric needs "doubled bbox" detector (task #59).
+
 ## Key numbers for the paper
 
 - **Multiband baseline**: ~6s/anchor, produces doubled-feature ghost
