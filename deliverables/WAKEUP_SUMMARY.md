@@ -51,7 +51,12 @@ Here's where we are now.
 - **Multiband baseline**: ~6s/anchor, produces doubled-feature ghost
 - **L1+L2+L3 full pipeline**: ~50s/anchor at 2048×4096 on T4, no new deps
 - **N1 family (4 variants, all NEG)**: documented in `progress.md` + `N1_AUTONOMOUS_RUN_SUMMARY.md`
-- **L2 v2 centered seam-gap improvement**: 10.8% mean on 6 anchors of 02a00399
+- **L2 HDR seam-gap improvement across 5 logs (17 anchors)**: **~38% mean reduction**
+  - 02a00399 quiet residential: -13.4% (easiest case)
+  - 0bae3b5e busy urban: -29.7%
+  - 2c652f9e intersection: -52.2%
+  - 9f871fb4 highway: -36.4%
+  - fbee355f parking garage: -56.9% (hardest case, biggest win)
 - **Cross-cam luminance gap**: 5.5 dB mean / 9.1 dB max on AV2 ring (justifies L2 HDR)
 - **AV2 ring parallax**: 0.21-0.26m baseline; 3m object → ~46 px ERP shift (justifies L3 OF)
 

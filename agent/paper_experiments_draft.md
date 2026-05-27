@@ -38,9 +38,24 @@ We measure mean $|\Delta Y|$ at seam pixels — defined as ERP pixels where the 
 
 **Method**: For each seam pixel $(r, c)$ where $\arg\max_i w_i(r, c) \neq \arg\max_i w_i(r, c+1)$, compute $|Y_{i^*(r,c)}(r, c) - Y_{i^*(r,c+1)}(r, c+1)|$ in YCrCb. Average over all seam pixels per anchor, then over anchors.
 
-**Results on log 02a00399** (6 anchors: 0, 50, 100, 150, 200, 250):
+**Results across all 5 val logs** (17 anchors total, stride 30):
 
-| Anchor | Raw (no HDR) | L2 v1 (anchored) | L2 v2 (centered) |
+| Log | Scene | Raw ΔY | L2 v2 ΔY | Improvement |
+|---|---|---|---|---|
+| 02a00399 | quiet residential | 23.80 | 20.45 | **-13.4%** |
+| 0bae3b5e | busy urban | 24.48 | 17.22 | **-29.7%** |
+| 2c652f9e | intersection | 43.86 | 20.97 | **-52.2%** |
+| 9f871fb4 | highway | 32.94 | 20.96 | **-36.4%** |
+| fbee355f | parking garage | 34.76 | 15.09 | **-56.9%** |
+| **Mean (log-weighted)** | | **31.97** | **18.94** | **-37.7%** |
+
+Key observations:
+- **Improvement varies dramatically by scene** (13-57%). The "easiest" log (02a00399, quiet sunny residential) has cams already near-equal exposure; the "hardest" logs (parking garage, intersection) have strongly mismatched cams (shadow vs sunlit) and benefit most.
+- The earlier single-log result (10.8% on 02a00399 anchors {0, 50, 100, 150, 200, 250}) was misleading — that scene is the easiest case. The cross-log mean is ~38%.
+
+**Detailed per-anchor stats on 02a00399** (6 anchors, illustrating centered-vs-anchored ablation):
+
+| Anchor | Raw | L2 v1 (anchored) | L2 v2 (centered) |
 |---|---|---|---|
 | 0 | 14.93 | 14.05 | **13.89** |
 | 50 | 22.64 | 14.05 | 14.15 |
@@ -50,10 +65,7 @@ We measure mean $|\Delta Y|$ at seam pixels — defined as ERP pixels where the 
 | 250 | 26.83 | 28.78 | **26.61** |
 | **Mean** | **24.37** | 22.59 (-8.2%) | **21.89 (-10.8%)** |
 
-Key observations:
-- L2 v1 (anchored) improves on average but **worsens** anchors 200, 250 (front_center in shadow → all other gains > 1 → over-amplification)
-- L2 v2 (centered, geometric mean of gains = 1) fixes worst cases without sacrificing best cases. Robustly $\geq 0$ improvement on all anchors.
-- Best-case improvement on anchor 50: $-37.5\%$ (one cam had strong sun glare; HDR brought it down)
+L2 v1 (anchored) makes anchors 200/250 worse (front_center in shadow → all other gains > 1 → over-amplification). L2 v2 (centered) fixes those without sacrificing best cases.
 
 ### Computational cost
 
