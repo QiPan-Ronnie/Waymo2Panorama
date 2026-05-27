@@ -5,14 +5,17 @@ Replaces the asymmetric `warp_pair_with_of` (which warps B fully to align with
 A, treating A as ground truth) with a SYMMETRIC half-warp that moves both
 cams halfway toward each other in their overlap zone. Two key advantages:
 
-1. **No preferred cam per pair**: A and B are treated symmetrically — neither
-   is privileged as "the reference." This is more honest about the fact that
-   neither cam's ERP projection is the true geometry; both have parallax
-   relative to the underlying scene.
-2. **Half the per-pair displacement magnitude**: each cam moves by F/2
-   instead of F. Smaller displacements → less chance of Farneback OF artifacts
-   (over-shooting on textureless regions) and smaller resampling sub-pixel
-   blur per cam.
+1. **No preferred cam per pair** (pair API): A and B are treated symmetrically
+   in `bidirectional_warp_pair` — neither is privileged as "the reference."
+   The shipped chain still treats front_center as a frozen anchor (so only
+   the back-seam pair in the chain variant gets the full symmetric warp); the
+   joint solve variant makes EVERY non-anchor pair symmetric.
+2. **Half the per-pair resampling distance**: each cam moves by F/2 instead
+   of F. Smaller per-cam warps → smaller resampling sub-pixel blur per cam,
+   and the chain's cumulative resampling error along the ring is roughly
+   halved. NB: the OF is still computed on the FULL-displacement original
+   slabs (no flow magnitude reduction), so Farneback artifact rate per pair
+   is unchanged from the shipped variant.
 
 The L2 HDR and L1 hard_select stages are reused unchanged from `hard_hdr_of`.
 
