@@ -22,6 +22,7 @@ REPO = HERE.parent.parent
 sys.path.insert(0, str(REPO / "code"))
 
 from waymo2panorama.blending.hard_hdr_of import (  # noqa: E402
+    RING_PAIRS,
     blend_hard_hdr_of,
     hard_select,
 )
@@ -29,6 +30,7 @@ from waymo2panorama.blending.multiband import multiband_blend  # noqa: E402
 from waymo2panorama.blending.seam_local_align import blend_seam_local_align  # noqa: E402
 from waymo2panorama.data_io.av2_loader import AV2RingLoader, RING_CAMS_7  # noqa: E402
 from waymo2panorama.projection.sphere_projection import render_camera_to_erp  # noqa: E402
+from measure_overlap_ncc import score_one_anchor  # noqa: E402
 
 
 def _label_panel(rgb: np.ndarray, label: str, label_h: int = 36) -> np.ndarray:
@@ -95,7 +97,13 @@ def main() -> int:
     ap.add_argument("--max-dx", type=int, default=24)
     ap.add_argument("--max-dy", type=int, default=8)
     ap.add_argument("--min-ncc-gain", type=float, default=0.03)
+    ap.add_argument("--ncc-win", type=int, default=9)
+    ap.add_argument("--max-sample-per-pair", type=int, default=20000)
+    ap.add_argument("--save-full", action="store_true",
+                    help="Also save one full-resolution ERP PNG per method.")
     args = ap.parse_args()
+    if args.ncc_win % 2 == 0:
+        args.ncc_win += 1
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -136,6 +144,8 @@ def main() -> int:
             "max_dx": args.max_dx,
             "max_dy": args.max_dy,
             "min_ncc_gain": args.min_ncc_gain,
+            "ncc_win": args.ncc_win,
+            "save_full": args.save_full,
         },
         "runtime_s": {},
     }
@@ -198,8 +208,28 @@ def main() -> int:
         lambda: blend_hard_hdr_of(slabs, weights, apply_of=True),
     )
 
+    diagnostics["overlap_ncc"] = {}
     for name, rgb in methods.items():
-        _save_rgb(out_dir / f"{run_name}_{name}.png", rgb)
+        scores = score_one_anchor(
+            rgb,
+            slabs,
+            weights,
+            RING_PAIRS,
+            win=args.ncc_win,
+            max_sample_per_pair=args.max_sample_per_pair,
+        )
+        diagnostics["overlap_ncc"][name] = scores.get("aggregate", {})
+        agg = diagnostics["overlap_ncc"][name]
+        if agg:
+            print(
+                f"[metric] {name}: NCC={agg['mean_ncc_pano_vs_winner']:.4f} "
+                f"SSD={agg['mean_ssd_pano_vs_winner']:.2f}",
+                flush=True,
+            )
+
+    if args.save_full:
+        for name, rgb in methods.items():
+            _save_rgb(out_dir / f"{run_name}_{name}.png", rgb)
 
     full_stack = _stack_named(methods, labels)
     _save_rgb(out_dir / f"{run_name}_full_stack.png", full_stack)
@@ -221,4 +251,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
