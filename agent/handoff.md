@@ -1,13 +1,13 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-27 (Latest: seam-first local ECC alignment implemented and tested on 3 AV2 anchors; MIXED / weak NEG. Safer than full-image OF but not better than L1 hard_select. Prior: doc consolidation; seam-root-cause investigation; Xihan Waymo E2ED L1+L2 HDR color shift solved; hard_hdr_of NCC +25.3% but visually risky on near-field large objects.)
+**Updated**: 2026-05-27 (Latest: no-DL DP seam-routing v2 implemented and tested on 3 AV2 anchors; NEG / weak MIXED. Moving the hard seam path alone does not beat L1 hard_select and can still cut cars/people. Prior: seam-local ECC MIXED/weak NEG; seam-root-cause investigation; Xihan Waymo E2ED L1+L2 HDR color shift solved; hard_hdr_of NCC +25.3% but visually risky on near-field large objects.)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
 
 ---
 
 ## 🎯 LATEST FINDING (2026-05-27) — read this FIRST
 
-**5 layers of "no-depth / no-DL" seam fixes tested. Seam-local alignment is safer than full OF, but still does not beat L1 hard_select. This reinforces the current framing: without explicit depth or object/label coherence, perfect AV ring-camera panorama is impossible.**
+**6 layers of "no-depth / no-DL" seam fixes tested. Seam-local alignment is safer than full OF, and DP seam-routing is a clean hard-select seam ablation, but neither beats L1 hard_select. This reinforces the current framing: without explicit depth or object/label coherence, perfect AV ring-camera panorama is impossible.**
 
 | # | Method | Result |
 |---|---|---|
@@ -16,17 +16,19 @@
 | 3 | L1 — Multi-R per-pixel v1 (Y-diff argmin) | ❌ Frankenstein doubling at object boundaries (pedestrian) |
 | 4 | L1 — Multi-R per-pixel v2 (HDR + 9×9 NCC + 11px median R) | ❌ Marginally better than v1, still doubled, worse than L1 hard_select |
 | 5 | L2 — Seam-first local ECC alignment on hard_select | ⚠️ MIXED / weak NEG. No BMW fragmentation, but no clear visual improvement over hard_select |
+| 6 | L2 — DP seam-routing v2 on hard_select | ❌ NEG / weak MIXED. Moves seam path but still cuts visible cars/people/lines; not better than hard_select |
 
 **Fundamental diagnosis**: at object/background boundary, foreground (5m) wants R=5m, background (30m) wants R=30m. Per-pixel argmin switches rapidly even with smoothing → cam_A's R=5m slab + cam_B's R=30m slab composited = Frankenstein. **Criterion right, execution can't enforce object-level coherence.**
 
 **Current safest visual baseline**: L1 `hard_select` on AV2 raw. It removes multiband ghost/halo and avoids near-field OF fragmentation. `hard_hdr_of.py` remains an important ablation (+25.3% NCC, -37.7% seam-gap ΔY mean across 5 logs), but do **not** call it unconditional production default after the user visually rejected OF on the BMW near-field case. HDR and OF/local-align should be optional ablations.
 
-**3 paths from here**:
-- **Seam routing / label coherence** — keep hard selection, but optimize where the seam passes; this is the most promising no-DL 2D path.
+**4 paths from here**:
+- **Stage B DiT360 feasibility** — test whether masked seam completion/outpainting can hide seam gaps; reject outputs that hallucinate or alter vehicles/lane lines/signs.
+- **Object/label coherence seam routing** — plain DP cost is NEG; only revisit if adding stronger object/depth/semantic coherence, not another hand-tuned low-level cost.
 - **Paper pivot to "impossibility framing"** — use calibration / fixed-R / multi-R / local-align NEG evidence to argue no-depth panorama has a ceiling, then propose artifact minimization and confidence maps.
 - **Ship hard_select-first baseline** — deliver AV2 raw L1 hard_select (+ optional Y-only HDR where color shift matters) as the conservative Bosch-facing baseline.
 
-**Full details**: `agent/progress.md` top entries + `deliverables/seam_local_align/three_anchor_v1/`.
+**Full details**: `agent/progress.md` top entries + `deliverables/seam_routing_v2/three_anchor_v1_review/` + `deliverables/seam_local_align/three_anchor_v1/`.
 
 ---
 

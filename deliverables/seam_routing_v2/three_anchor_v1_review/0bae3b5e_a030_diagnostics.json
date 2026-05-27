@@ -1,0 +1,200 @@
+{
+  "log_short": "0bae3b5e",
+  "anchor_idx": 30,
+  "erp_hw": [
+    2048,
+    4096
+  ],
+  "params": {
+    "band_half_width": 64,
+    "max_step": 3,
+    "review_w": 2048,
+    "save_full": false,
+    "ncc_win": 9
+  },
+  "runtime_s": {
+    "multiband": 3.42,
+    "hard_select": 1.288,
+    "seam_local_align": 13.918,
+    "seam_routing": 10.926
+  },
+  "seam_routing": {
+    "pairs": [
+      {
+        "band_pixels": 39478,
+        "path_rows": 526,
+        "bbox": [
+          796,
+          1322,
+          1779,
+          1876
+        ],
+        "left_is_a": false,
+        "mean_path_x": 1795.3099365234375,
+        "std_path_x": 9.52747631072998,
+        "mean_cost_on_path": 1.2194321155548096,
+        "edge_cross_count": 223,
+        "status": "ok",
+        "pair": [
+          0,
+          1
+        ],
+        "mutable_pixels": 39478
+      },
+      {
+        "band_pixels": 47173,
+        "path_rows": 506,
+        "bbox": [
+          807,
+          1313,
+          1169,
+          1277
+        ],
+        "left_is_a": false,
+        "mean_path_x": 1222.1541748046875,
+        "std_path_x": 9.713481903076172,
+        "mean_cost_on_path": 0.8983052968978882,
+        "edge_cross_count": 69,
+        "status": "ok",
+        "pair": [
+          1,
+          2
+        ],
+        "mutable_pixels": 47173
+      },
+      {
+        "band_pixels": 46090,
+        "path_rows": 492,
+        "bbox": [
+          797,
+          1289,
+          550,
+          657
+        ],
+        "left_is_a": false,
+        "mean_path_x": 624.0670776367188,
+        "std_path_x": 20.854061126708984,
+        "mean_cost_on_path": 0.985843300819397,
+        "edge_cross_count": 105,
+        "status": "ok",
+        "pair": [
+          2,
+          3
+        ],
+        "mutable_pixels": 46090
+      },
+      {
+        "band_pixels": 40918,
+        "path_rows": 528,
+        "bbox": [
+          792,
+          1320,
+          2217,
+          2316
+        ],
+        "left_is_a": true,
+        "mean_path_x": 2287.617431640625,
+        "std_path_x": 15.518362045288086,
+        "mean_cost_on_path": 1.3433074951171875,
+        "edge_cross_count": 177,
+        "status": "ok",
+        "pair": [
+          0,
+          6
+        ],
+        "mutable_pixels": 40918
+      },
+      {
+        "band_pixels": 47797,
+        "path_rows": 507,
+        "bbox": [
+          807,
+          1314,
+          2808,
+          2918
+        ],
+        "left_is_a": true,
+        "mean_path_x": 2863.285888671875,
+        "std_path_x": 9.980408668518066,
+        "mean_cost_on_path": 0.9544162154197693,
+        "edge_cross_count": 152,
+        "status": "ok",
+        "pair": [
+          6,
+          5
+        ],
+        "mutable_pixels": 47797
+      },
+      {
+        "band_pixels": 46798,
+        "path_rows": 488,
+        "bbox": [
+          803,
+          1291,
+          3431,
+          3537
+        ],
+        "left_is_a": true,
+        "mean_path_x": 3487.243896484375,
+        "std_path_x": 13.808110237121582,
+        "mean_cost_on_path": 0.9166064858436584,
+        "edge_cross_count": 109,
+        "status": "ok",
+        "pair": [
+          5,
+          4
+        ],
+        "mutable_pixels": 46798
+      },
+      {
+        "band_pixels": 28092,
+        "path_rows": 0,
+        "bbox": [
+          771,
+          1279,
+          1,
+          4096
+        ],
+        "left_is_a": false,
+        "mean_path_x": null,
+        "std_path_x": null,
+        "mean_cost_on_path": null,
+        "edge_cross_count": 0,
+        "status": "ok",
+        "pair": [
+          3,
+          4
+        ],
+        "mutable_pixels": 28092
+      }
+    ],
+    "routed_pixels_changed": 35084,
+    "seam_mask_pixels": 3047
+  },
+  "overlap_ncc": {
+    "multiband": {
+      "total_overlap_px": 353870,
+      "mean_ncc_pano_vs_winner": 0.6613420890478967,
+      "mean_ncc_winner_vs_loser": 0.10322983846013561,
+      "mean_ssd_pano_vs_winner": 324.3721127014652
+    },
+    "hard_select": {
+      "total_overlap_px": 353870,
+      "mean_ncc_pano_vs_winner": 0.9830759683944413,
+      "mean_ncc_winner_vs_loser": 0.10322983846013561,
+      "mean_ssd_pano_vs_winner": 0.0
+    },
+    "seam_local_align": {
+      "total_overlap_px": 353870,
+      "mean_ncc_pano_vs_winner": 0.8894083670302239,
+      "mean_ncc_winner_vs_loser": 0.10322983846013561,
+      "mean_ssd_pano_vs_winner": 66.33319005790406
+    },
+    "seam_routing": {
+      "total_overlap_px": 353870,
+      "mean_ncc_pano_vs_winner": 0.8766695003056157,
+      "mean_ncc_winner_vs_loser": 0.10322983846013561,
+      "mean_ssd_pano_vs_winner": 135.24639366873882
+    }
+  }
+}

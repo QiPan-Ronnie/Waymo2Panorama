@@ -1,5 +1,40 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~13:45 UTC — [No-DL DP seam-routing v2 implemented + A100 3-anchor validation: NEG / weak MIXED. Moving the hard seam path alone does not beat L1 hard_select.]
+> - **目的**: 继续榨干 no-DL / basic-CV 的 2D 空间，在 `L1 hard_select` 上只移动 seam path，不做 blending / OF / warp / depth / DL；目标是让 seam 绕开物体边缘、车道线和高梯度结构。
+> - **方法**: 新增 `code/waymo2panorama/blending/seam_routing.py`。流程是: L1 ERP slabs + weights → 找 adjacent camera pair 的 hard-select boundary → 在 narrow band 内计算 color diff + gradient mismatch + Canny edge/line crossing penalty + weight reliability + center bias → dynamic programming 最小代价 seam path → final 仍然 hard-select 单 camera 像素。新增 blend mode `hard_seamroute`。
+> - **driver**: `scripts/phase3/test_seam_routing.py` compares `multiband`, `hard_select`, `seam_local_align`, `seam_routing`, `seam_routing_path`; 输出 review/crop/path/diagnostics 到 `deliverables/seam_routing_v2/`。
+> - **本地/Colab 验证**: `pytest code/waymo2panorama/blending/__test_seam_routing.py -q` 本地和 Colab A100 均通过，3 passed。Colab repo synced to `93c6860`。
+> - **Colab validation**: current `agent-colab-direct` A100 via raw HTTP `/exec`，full-res `2048×4096`，3 anchors:
+>   ```text
+>   02a00399 anchor 0   BMW case
+>   fbee355f anchor 95  pedestrian/object seam case
+>   0bae3b5e anchor 30  clean far-field anchor
+>   params: band_half_width=64, max_step=3, ncc_win=9
+>   ```
+> - **runtime + diagnostics**:
+>   ```text
+>                  runtime seam_routing   routed_px_changed   seam_mask_px   edge_cross_total
+>   02a00399 a000        10.884 s              26,872             3,051             394
+>   fbee355f a095        10.857 s              28,694             3,050             548
+>   0bae3b5e a030        10.926 s              35,084             3,047             835
+>   ```
+> - **overlap NCC vs hard-select winning slab**:
+>   ```text
+>                  02a00399 a000   fbee355f a095   0bae3b5e a030
+>   multiband          0.6189          0.6646          0.6613
+>   hard_select        0.9892          0.9820          0.9831
+>   seam_local_align   0.9008          0.9134          0.8894
+>   seam_routing       0.9149          0.8884          0.8767
+>   ```
+> - **visual verdict**:
+>   - BMW crop: seam_routing 没有修出明显更好的 BMW；seam path 仍沿/穿过车体附近高可见区域，视觉不优于 hard_select。
+>   - fbee pedestrian crop: DP path 直接穿过行人附近，说明当前 cost 不能可靠避开关键对象；这是明确 NEG 信号。
+>   - clean far-field: 只是换了硬切位置，没有稳定改善，局部还会让接缝更显眼。
+> - **artifact evidence committed**: `deliverables/seam_routing_v2/three_anchor_v1_review/` contains 3 diagnostics JSON + 3 review JPGs (`02a00399` BMW crop, `fbee355f` pedestrian crop, `0bae3b5e` full review stack). Drive folder: `seam_routing_v2_three_anchor_v1_review`.
+> - **结论**: [NEG / weak MIXED] DP seam-routing v2 confirms that "move the hard seam path" alone is not enough. It is a clean no-DL ablation, but it does not solve the physical parallax seam. A hand-designed cost without semantic/depth/object coherence tends to pick low-cost texture routes that can still cut cars/people/lane structures. Current safest no-DL visual baseline remains **L1 hard_select**.
+> - **Next**: Stage B DiT360 feasibility is justified under the goal condition, but evaluation must be strict: if a generative model makes seams prettier while hallucinating vehicles/lane lines/signs, it is not suitable as Bosch training data and should only be a qualitative paper baseline.
+
 > ### 2026-05-27 ~12:20 UTC — [Seam-first local alignment implemented + Colab 3-anchor validation: MIXED / weak NEG. Safer than full-image OF, but does not beat L1 hard_select visually or by current NCC proxy.]
 > - **目的**: 继续榨干 no-DL / basic-CV seam 修复，在 `L1 hard_select` 上只对接缝附近的小 patch 做局部平移对齐，避免 full-image Farneback OF 把近场 BMW/地面扭碎。
 > - **方法**: 新增 `code/waymo2panorama/blending/seam_local_align.py`。流程是: L1 ERP slabs + weights → 找 adjacent camera pair 的 hard-select boundary → seam band 内按 tile 做 OpenCV ECC translation → `max_dx/max_dy + min_ncc_gain` gate reject unstable tile → seam 附近 tapered local displacement → final 仍然 hard-select 单 camera 像素。新增 blend modes:
