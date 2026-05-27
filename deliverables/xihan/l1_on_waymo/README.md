@@ -2,6 +2,28 @@
 
 **Date**: 2026-05-27
 **Frame**: `8e737334b520fdd0c04e36f463b2d211-085` (Waymo End-to-End Camera Driving Dataset v1.0.0, test 分片 `test_202504211836-202504220845.tfrecord-00000-of-00266`)
+**Updated 11:30 UTC**: 普适性验证 — 同 shard 4 个**不同 driving segment** (frame 100, 300, 500, 700) 全部跑通, 含 **2 个夜景** + 3 个白天. 见 §8.
+
+---
+
+## 视觉对比 (一图看懂)
+
+**输入 → 输出**: `input_vs_output_panel_thumb.png` (1400×2024). 3 行:
+1. 8 个原始 Waymo cam (5 narrow 972×1079 + 3 wide 972×551/587)
+2. Xihan distance-to-boundary panorama (baseline, mid-cam 过曝)
+3. 我们 L1+L2 HDR+multiband 输出 (色差解决, 全景均匀)
+
+**普适性 (5 frames, 5 different segments)**: `batch_frames_5way_thumb.png` (1200×3117). 5 行不同 driving scene 全部色差修正:
+
+| frame | context_name (driving segment) | 场景 | HDR gain spread |
+|---|---|---|---|
+| 0 | `8e737334b520fdd0c04e36f463b2d211-085` | daytime highway (Xihan 原帧) | **1.58×** (REAR shadow 1.33) |
+| 100 | `e8041946d6092246885a3c65c15218-142` | **nighttime** street | 1.11× (cams 均匀) |
+| 300 | `6704761c0c101761cb746fd390a2894c-139` | daytime palm-tree suburban | 1.35× |
+| 500 | `8db930e424b7fde520b156d7351ea811-127` | daytime strong directional sun | **2.44×** (SIDE_R 1.55, REAR 0.63) |
+| 700 | `586d4e26821ad115000a03f725f2feb5-134` | **nighttime** street | 1.13× (cams 均匀) |
+
+**HDR 自适应**: 夜景 cams 都低光均匀, gain spread 小 (~1.1×); 白天强光下 HDR 给最大修正 (2.44× on frame 500). Pipeline 在两个极端都 work.
 
 ---
 
@@ -133,9 +155,33 @@ erp = multiband_blend(slabs_hdr, weights, num_bands=5, wrap=True)
 
 ---
 
+## 8. 普适性测试 (2026-05-27 ~11:30 UTC)
+
+跑了同一 tfrecord shard 0 的 4 个其他 frame indices, 都是不同 driving segments:
+
+```bash
+for idx in 100 300 500 700; do
+  python scripts/phase3/parse_waymo_e2ed_frame.py --tfrecord <SHARD0> --frame-idx $idx --out-dir <EXTRACT>
+  python scripts/phase3/run_waymo_e2ed_l1.py --extracted-dir <EXTRACT> --out-png <OUT> \
+    --erp-h 2048 --erp-w 4096 --blend-mode hdr_multiband
+done
+```
+
+每帧 ~14 s on Colab T4. **5/5 frames 全部跑通, 色差全部修正**.
+
+发现:
+- shard 0 含**多个 driving segments** (context_name 不同), 不是单一连续 drive. 适合 generalization test.
+- HDR 自动适应每个 frame 的光照: nighttime 几乎不调 (~1.1×), strong sun 大幅调 (~2.4×)
+- 即使 nighttime 低光场景 (frame 100, 700), pipeline 也没崩 (sphere projection + L2 HDR + multiband 全部 robust)
+
+视觉证据: `batch_frames_5way_thumb.png` (5 行堆叠).
+Drive 全分辨率 4096×2048: `MyDrive/koi_waymo2pano_colab/data/waymo_e2ed/batch_frames/frame_{100,300,500,700}_l1_hdr_multiband.png`.
+
+---
+
 ## 6. 已知 limitation
 
-1. **只测了 1 帧** (8e737334b...). 在其他 frame 上是否同样有效需要批量验证.
+1. ~~**只测了 1 帧**~~ → 已扩到 5 个不同 segments, 见 §8.
 2. **REAR cam VFOV 不完整**: REAR cam 输入图只有 972×551 (高度不到前 cam 的一半), 推测 Waymo crop 掉了顶部和底部. ERP 投影 REAR 区域看起来比较小. 不影响 HDR/blending, 但 panorama 中下区域(地面) 在 REAR 方向覆盖不够.
 3. **没跑 L3 OF**: `hard_hdr_of.py:241` 的 OF chain warp 是给 AV2 7-cam ring 写的, 在 8-cam 上会 ValueError (slabs shape mismatch). 修这个需要重写 OF chain. 当前 pipeline 只到 L1+L2, 没 L3. 对色差问题不影响 (L3 修的是 parallax, 不是色差).
 4. **HDR gain clip 到 [0.5, 2.0]**: 极端阴影/过曝可能撞 clip 上限, 不能完全修正. 当前 frame 最大 gain 1.331, 没撞上限.

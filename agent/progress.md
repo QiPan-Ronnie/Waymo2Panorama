@@ -1,5 +1,32 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~23:30 UTC — [Waymo L1+HDR pipeline GENERALIZATION verified: 5/5 frames (5 different driving segments incl 2 nighttime) all color-shift-fixed. Plus input-vs-output panel for visual inspection.]
+> - **目的**: 用户要求验证 (a) 看原图 vs 拼接的对比, (b) 多跑几帧看 pipeline 是否普适, 不是 frame 0 偶然.
+> - **做了什么**:
+>   - **input_vs_output panel** (`deliverables/xihan/l1_on_waymo/input_vs_output_panel_thumb.png`, 1400×2024): 3 行 — (1) 8 cam 原图带标签 (FRONT/FL/FR/SL/SR/RL/REAR/RR), (2) Xihan distance-to-boundary panorama, (3) 我们 L1+HDR+multiband 输出. 一图看懂输入到输出.
+>   - **Batch render frame {100, 300, 500, 700}** from same shard 0 tfrecord. 每帧 ~14s on Colab T4. 关键发现: shard 0 实际含**多个 driving segments** (5 个不同 context_name), 不是单连续 drive. 适合普适性测试.
+> - **5 个 frame 跑出来的 HDR gain spread**:
+>   ```
+>   frame  context (driving segment id)                            场景类型              gain spread
+>   ────────────────────────────────────────────────────────────────────────────────────────────────
+>   0      8e737334b520fdd0c04e36f463b2d211-085                    daytime highway       1.58x  ← Xihan 原帧
+>   100    e8041946d6092246885a3c65c15218-142                      nighttime street      1.11x  ← 几乎不调
+>   300    6704761c0c101761cb746fd390a2894c-139                    daytime palm trees    1.35x
+>   500    8db930e424b7fde520b156d7351ea811-127                    daytime strong sun    2.44x  ← 最大调
+>   700    586d4e26821ad115000a03f725f2feb5-134                    nighttime street      1.13x  ← 几乎不调
+>   ```
+> - **HDR 自适应 pattern**: 夜景 cams 都低光均匀 → gain spread ~1.1x (基本不动); 白天强光 (frame 500 SIDE_R 1.55, REAR 0.63) → gain spread 2.44x. 算法自动判断每帧需要多少色差修正.
+> - **5/5 frames 跑通**: sphere projection + L2 HDR + multiband 三层在 daytime + nighttime 都不崩, 视觉色差全部修正.
+> - **视觉证据**:
+>   - `deliverables/xihan/l1_on_waymo/batch_frames_5way_thumb.png` (5 行堆叠, 1200×3117) — 5 个 scene 全部 panorama
+>   - Drive 全分辨率 `MyDrive/koi_waymo2pano_colab/data/waymo_e2ed/batch_frames/frame_{100,300,500,700}_l1_hdr_multiband.png`
+> - **新 scripts**:
+>   - `scripts/phase3/build_waymo_input_vs_output_panel.py` — 输入对输出对比
+>   - `scripts/phase3/build_waymo_batch_panel.py` — 多 frame 堆叠 panel
+> - **README updated**: `deliverables/xihan/l1_on_waymo/README.md` §8 (普适性), 视觉对比段添加到顶部.
+> - Status: [DONE 普适性 verified — 5 个 segments + 2 个夜景, 算法 robust]
+> - Next 建议: (a) 跑 50-100 帧采样定量统计 (cycle-PSNR 或 NCC), (b) port L3 OF 到 8-cam, (c) Bosch deliverable 跑全 shard (738 frames)
+
 > ### 2026-05-27 ~23:00 UTC — [Our L1+L2 HDR pipeline RUN on Xihan's REAL Waymo E2ED frame via Colab T4. Color shift VISUALLY SOLVED. End-to-end: EULA → gsutil cp tfrecord → 8-cam ring HDR → 4-way comparison.]
 > - **怎么做**: 用户接受 Waymo Open Dataset EULA on `panq@usc.edu` → Colab T4 `gcloud auth login` → `gsutil cp gs://waymo_open_dataset_end_to_end_camera_v_1_0_0/test_202504211836-202504220845.tfrecord-00000-of-00266 ...` (1.7 GB shard, 94 s) 到 Drive `koi_waymo2pano_colab/data/waymo_e2ed/`. Install `waymo-open-dataset-tf-2-12-0==1.6.7 --no-deps` (纯 protobuf, 不要 TF).
 > - **`scripts/phase3/parse_waymo_e2ed_frame.py`**: pure-Python tfrecord 解析 (length-prefixed records) + `end_to_end_driving_data_pb2.E2EDFrame`. 抽 8 cam (FRONT/FL/FR/SL/SR/RL/REAR/RR) 的 K + T_ego_cam + distortion + image. **frame_id 验证完全匹配** Xihan `8e737334b520fdd0c04e36f463b2d211-085`.
