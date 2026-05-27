@@ -52,33 +52,41 @@ def overlap_mean_rgb(
 
 def compute_hdr_gains(
     slabs: list[np.ndarray], weights: list[np.ndarray],
-) -> list[np.ndarray]:
-    """Chain solve per-cam per-channel gains so adjacent cams' overlap means match.
+) -> list[float]:
+    """Chain solve per-cam SCALAR luminance gain so adjacent cams' Y means match.
 
-    Returns list of 7 (3,) gain vectors. gains[0] = [1, 1, 1] (anchor).
+    Luminance-only (Y channel in YCrCb): preserves chroma/hue, only adjusts
+    exposure. Avoids the per-channel chain-accumulation that produces a color
+    cast on the chain tail (rear cams).
+
+    Returns list of 7 scalars. gains[0] = 1.0 (anchor=front_center).
     """
     n = len(slabs)
-    gains = [None] * n
-    gains[0] = np.array([1.0, 1.0, 1.0])
+    gains: list[float] = [1.0] * n
     for chain in [CCW, CW]:
         for i in range(1, len(chain)):
             prev = chain[i-1]; cur = chain[i]
-            mean_prev, mean_cur = overlap_mean_rgb(
-                slabs[prev], weights[prev], slabs[cur], weights[cur]
-            )
-            ratio = mean_prev / np.maximum(mean_cur, 1e-3)
-            # Clip extreme ratios (sanity)
-            ratio = np.clip(ratio, 0.5, 2.0)
+            overlap = (weights[prev] > 1e-6) & (weights[cur] > 1e-6)
+            if int(overlap.sum()) < 100:
+                continue
+            y_prev = cv2.cvtColor(slabs[prev].astype(np.uint8), cv2.COLOR_RGB2YCrCb)[..., 0]
+            y_cur = cv2.cvtColor(slabs[cur].astype(np.uint8), cv2.COLOR_RGB2YCrCb)[..., 0]
+            mean_prev = float(y_prev[overlap].mean())
+            mean_cur = float(y_cur[overlap].mean())
+            ratio = mean_prev / max(mean_cur, 1.0)
+            ratio = float(np.clip(ratio, 0.7, 1.43))  # tighter clip than per-channel
             gains[cur] = gains[prev] * ratio
     return gains
 
 
-def apply_hdr(slabs: list[np.ndarray], gains: list[np.ndarray]) -> list[np.ndarray]:
-    """Multiply each slab by its gain (per channel), clip [0, 255]."""
+def apply_hdr(slabs: list[np.ndarray], gains: list[float]) -> list[np.ndarray]:
+    """Multiply Y channel by gain (preserves chroma), convert back to RGB."""
     out = []
     for s, g in zip(slabs, gains):
-        s2 = s.astype(np.float32) * g[None, None, :]
-        out.append(np.clip(s2, 0, 255).astype(np.float32))
+        ycrcb = cv2.cvtColor(s.astype(np.uint8), cv2.COLOR_RGB2YCrCb).astype(np.float32)
+        ycrcb[..., 0] = np.clip(ycrcb[..., 0] * g, 0, 255)
+        rgb = cv2.cvtColor(ycrcb.astype(np.uint8), cv2.COLOR_YCrCb2RGB)
+        out.append(rgb.astype(np.float32))
     return out
 
 
@@ -199,9 +207,9 @@ def main() -> int:
     # Stage 3: HDR (no OF) + hard_select
     t0 = time.time()
     gains = compute_hdr_gains(slabs, weights)
-    print("HDR gains (R, G, B):")
-    for i, (cam, g) in enumerate(zip(RING_CAMS_7, gains)):
-        print(f"  {cam:<18s}: [{g[0]:.3f}, {g[1]:.3f}, {g[2]:.3f}]")
+    print("HDR luminance gains:")
+    for cam, g in zip(RING_CAMS_7, gains):
+        print(f"  {cam:<18s}: {g:.3f}x")
     slabs_hdr = apply_hdr(slabs, gains)
     erp_hs_hdr = hard_select(slabs_hdr, weights)
     print(f"HDR: {time.time()-t0:.1f}s")
