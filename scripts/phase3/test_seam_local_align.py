@@ -231,8 +231,8 @@ def main() -> int:
         for name, rgb in methods.items():
             _save_rgb(out_dir / f"{run_name}_{name}.png", rgb)
 
-    full_stack = _stack_named(methods, labels)
-    _save_rgb(out_dir / f"{run_name}_full_stack.png", full_stack)
+        full_stack = _stack_named(methods, labels)
+        _save_rgb(out_dir / f"{run_name}_full_stack.png", full_stack)
 
     thumb_methods = {
         k: cv2.resize(v, (args.erp_w // 4, args.erp_h // 4), interpolation=cv2.INTER_AREA)
