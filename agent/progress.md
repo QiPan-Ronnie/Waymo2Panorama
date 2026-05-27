@@ -1,5 +1,35 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~21:30 UTC — [Seam-root-cause investigation: AV2 calibration bias ~1.3 px (mild, NOT the root cause). First multi-R sphere visual: R=∞ ≈ R=30m, R=10m subtle, R=5/R=3 distorts far field. → Direction A (BA refine) dead, Direction B (geometry) move.]
+> - **Context**: 用户拒绝 patch 路线 (graphcut+finite R+object-aware 组合), 要 "原理性" 解决接缝问题. 拆出 4 抽象层 (L0 calibration / L1 projection geometry / L2 blending strategy / L3 view synthesis), 之前所有 work 都在 L2 打转. 决定先 verify L0 — 如果 calibration biased, BA refine 一次治本.
+> - **怎么做 (Level 0 calibration check)**: SIFT match in overlap → cv2.findFundamentalMat(RANSAC 3px) for data-driven F → compare Sampson distance to calibration-implied F (= K_B^-T [t]_x R K_A^-1). Data-driven F 给 SIFT noise floor (0.2-0.3 px), calib F 减 data F 给纯 calibration bias (depth-independent).
+> - **结果 (3 logs × 5 anchors × 7 pairs = 105 observations)**:
+>   ```
+>   log         data F sampson  calib F sampson   calib bias
+>   02a00399    0.26 px         1.55 px           +1.28 px
+>   0bae3b5e    0.22 px         1.32 px           +1.10 px
+>   fbee355f    0.29 px         1.68 px           +1.39 px
+>   ```
+>   **Global median calibration bias: ~1.3 px** (consistent across 3 very different scenes).
+> - **Per-pair pattern**: front-cam pairs sub-pixel (0.1-1.0 px), side-cam pairs 1-2.7 px (mild bias). Side cam extrinsics have larger drift than front cams (manufacturer cal less precise on side mounts).
+> - **关键 conclusion**: 1.3 px cam bias ≈ 0.5-1.2 ERP px (cam HFOV 70° → cam_px to ERP_px ≈ 0.4x). **Vs parallax of 3m BMW = 46 ERP px** → calibration bias 是 negligible (parallax dominates 30-40x). **Direction A (BA refine) is dead** — 即使完美 BA 也只剪掉 ≤1-2 ERP px of seam misalignment, 解决不了真正的 visible ghost.
+> - **怎么做 (Level 1 first look — multi-R sphere)**: `convergence_distance_m=R` already exists in `sphere_projection.py` (legacy N1 mode). 新 driver `scripts/phase3/test_multi_radius_sphere.py` 渲 anchor 0 of 02a00399 at R={None=inf, 30, 10, 5, 3} m, multiband blend (keep L1 baseline blend so isolate R effect), stack BMW crop.
+> - **Visual 1024×2048 first look** (`deliverables/multi_radius_test/bmw_crop_stack_small.jpg`):
+>   - **R=∞ ≈ R=30m** (visually identical — confirms 30m+ parallax tiny)
+>   - **R=10m** subtle shift on mid-field BMW area, no distortion on far field
+>   - **R=5m** lane lines start to bend (near-field correct, mid-field wrong)
+>   - **R=3m** major distortion (building leans, lane lines warped — placing 30m+ objects at 3m wrecks geometry)
+> - **关键 insight**: 没有 single R fits all depths. R=10m looks like the safest "global" tweak. **Per-pixel R selection** (implicit depth via cross-cam consistency) 是 logical next step — N1 selfstereo failed because it estimated continuous depth then reprojected (FOV-gap pathology), but multi-sphere **picks from pre-rendered slabs** that already passed `valid` mask check, so should avoid FOV-gap blackholes.
+> - **Deliverables**:
+>   - `scripts/phase3/calibration_check.py` (v2 RANSAC + data F vs calib F comparison)
+>   - `scripts/phase3/test_multi_radius_sphere.py` (renders at 5 R values, stacks BMW crop)
+>   - `outputs/calibration_check/{log}_v2.json` + `_summary.png` (per-pair bias breakdown)
+>   - `deliverables/CALIBRATION_CHECK_FINDING.md` (full writeup of calibration result)
+>   - `deliverables/multi_radius_test/bmw_crop_stack_small.jpg` (5-row R comparison)
+> - **Status**: [Direction A LIKELY DEAD (1.3 px bias < 2 px threshold); Direction B IN PROGRESS — running hi-res 2048×4096 multi-R on BMW (a0) + ghosty (fbee a95) for definitive visual]
+> - **Next**: (1) hi-res multi-R visual on 2 anchors; (2) design per-pixel R selection via cross-cam NCC; (3) implement + test before deciding if Direction B has real legs vs need pivot to L3 view synthesis.
+> - 提交: `1ec738e` (calibration_check v2), `a624c34` (test_multi_radius_sphere), `38a7e63` (calibration finding + first visual).
+
 > ### 2026-05-27 ~17:30 UTC — [Xihan handoff shipped: L1 sphere 原理 doc + 2 新 AV2 范例 + Waymo brighten -18% seam |ΔY| on his pre-stitched panorama.]
 > - **回应**: `meeting/5.22_meeting with xihan/xihan/xihan task.md` (Xihan 自己写的 2 项 ask)
 > - **L1 sphere 原理 doc** `deliverables/l1_sphere_principle.md` (8 section): ERP 坐标系 / sphere ray-cast / multiband / 远近场视差数学 / Waymo 移植 5 坑 / Quick eval. 完全没动 source code, 纯文档化.
