@@ -32,6 +32,7 @@ erp = render_multi_radius_select(frame, erp_hw=(2048, 4096),
 """
 from __future__ import annotations
 
+import cv2
 import numpy as np
 
 from waymo2panorama.data_io.av2_loader import RING_CAMS_7, FrameSample
@@ -157,5 +158,136 @@ def render_multi_radius_select(
         out = (final_A * w_A[..., None] + final_B * w_B[..., None]) / total[..., None]
     else:
         raise ValueError(f"blend_mode must be 'hard_select' or 'weighted', got {blend_mode!r}")
+
+    return np.clip(out, 0, 255).astype(np.uint8), best_R_idx
+
+
+# ---------------------------------------------------------------------------
+# v2: HDR pre-step + Window NCC cost + spatial smoothing of R selection
+# ---------------------------------------------------------------------------
+
+def _window_ncc_cost(slab_A: np.ndarray, slab_B: np.ndarray, win: int) -> np.ndarray:
+    """
+    NCC over a (win x win) box on Y channel.
+    slab_A, slab_B: (n_R, H, W, 3) float
+    Returns: (n_R, H, W) where higher = better match.
+    """
+    n_R, H, W, _ = slab_A.shape
+    out = np.empty((n_R, H, W), dtype=np.float32)
+    k = (win, win)
+    for r in range(n_R):
+        Ya = (0.299 * slab_A[r, ..., 0] + 0.587 * slab_A[r, ..., 1] + 0.114 * slab_A[r, ..., 2]).astype(np.float32)
+        Yb = (0.299 * slab_B[r, ..., 0] + 0.587 * slab_B[r, ..., 1] + 0.114 * slab_B[r, ..., 2]).astype(np.float32)
+        mA = cv2.boxFilter(Ya, -1, k)
+        mB = cv2.boxFilter(Yb, -1, k)
+        s2A = cv2.boxFilter(Ya * Ya, -1, k) - mA * mA
+        s2B = cv2.boxFilter(Yb * Yb, -1, k) - mB * mB
+        sAB = cv2.boxFilter(Ya * Yb, -1, k) - mA * mB
+        denom = np.sqrt(np.maximum(s2A, 1e-6) * np.maximum(s2B, 1e-6))
+        out[r] = sAB / denom
+    return out
+
+
+def render_multi_radius_select_v2(
+    frame: FrameSample,
+    erp_hw: tuple[int, int] = (2048, 4096),
+    R_values: list[float | None] | None = None,
+    blend_mode: str = "hard_select",
+    apply_hdr_pre: bool = True,
+    ncc_window: int = 9,
+    smooth_R_kernel: int = 11,
+):
+    """
+    v2: per-pixel R selection with 3 fixes vs v1:
+      (1) apply_hdr_pre: compute joint global HDR gains on R=inf slabs first,
+          then apply same gains to ALL R renderings. Removes lighting bias.
+      (2) ncc_window: replace per-pixel Y|diff| with windowed NCC. Robust to
+          texture noise — local agreement matters, not single-pixel match.
+      (3) smooth_R_kernel: apply cv2.medianBlur on the chosen-R map before
+          compositing. Kills the "Frankenstein" pixel-jump artifact.
+
+    Returns (erp, R_map). Same interface as v1.
+    """
+    from waymo2panorama.blending.hard_hdr_of import compute_hdr_gains, apply_hdr
+
+    if R_values is None:
+        R_values = [None, 30.0, 10.0, 5.0, 3.0]
+    if None not in R_values:
+        raise ValueError("R_values must contain None (infinity) as the safe fallback")
+    inf_idx = R_values.index(None)
+
+    H, W = erp_hw
+    n_R = len(R_values)
+    n_cam = len(RING_CAMS_7)
+
+    # Step 0 (optional): compute HDR gains on R=inf slabs first
+    if apply_hdr_pre:
+        slabs_inf, weights_inf, _ = render_all_cams_at_R(frame, erp_hw, None)
+        gains = compute_hdr_gains(
+            [slabs_inf[i] for i in range(n_cam)],
+            [weights_inf[i] for i in range(n_cam)],
+            centered=True,
+        )
+    else:
+        gains = [1.0] * n_cam
+
+    # Step 1: render at each R, applying HDR gains to slabs
+    all_slabs = np.empty((n_R, n_cam, H, W, 3), dtype=np.float32)
+    all_weights = np.empty((n_R, n_cam, H, W), dtype=np.float32)
+    all_valid = np.empty((n_R, n_cam, H, W), dtype=bool)
+    for k, R in enumerate(R_values):
+        s, w, v = render_all_cams_at_R(frame, erp_hw, R)
+        if apply_hdr_pre:
+            for i, g in enumerate(gains):
+                ycc = cv2.cvtColor(s[i].astype(np.uint8), cv2.COLOR_RGB2YCrCb).astype(np.float32)
+                ycc[..., 0] = np.clip(ycc[..., 0] * g, 0, 255)
+                s[i] = cv2.cvtColor(ycc.astype(np.uint8), cv2.COLOR_YCrCb2RGB).astype(np.float32)
+        all_slabs[k], all_weights[k], all_valid[k] = s, w, v
+
+    # Step 2: top-2 cams at R=inf
+    ref_w = all_weights[inf_idx]
+    top1 = ref_w.argmax(axis=0)
+    masked = ref_w.copy()
+    rr, cc = np.indices((H, W))
+    masked[top1, rr, cc] = -1.0
+    top2 = masked.argmax(axis=0)
+
+    # Step 3: window NCC cost per R
+    slab_A = all_slabs[:, top1, rr, cc]
+    slab_B = all_slabs[:, top2, rr, cc]
+    valid_A = all_valid[:, top1, rr, cc]
+    valid_B = all_valid[:, top2, rr, cc]
+    both_valid = valid_A & valid_B
+
+    ncc = _window_ncc_cost(slab_A, slab_B, ncc_window)   # n_R x H x W, higher=better
+    cost = -ncc                                          # convert to minimization
+    cost = np.where(both_valid, cost, np.inf)
+
+    # Step 4: pick best R per pixel
+    best_R_idx = cost.argmin(axis=0).astype(np.int32)
+    has_any_valid = both_valid.any(axis=0)
+    best_R_idx = np.where(has_any_valid, best_R_idx, inf_idx)
+    in_overlap = (ref_w[top2, rr, cc] > 0)
+    best_R_idx = np.where(in_overlap, best_R_idx, inf_idx)
+
+    # Step 5: SPATIAL SMOOTHING of R map (median filter)
+    if smooth_R_kernel > 1:
+        # cv2.medianBlur needs uint8 / float32; we use uint8 since labels are small ints
+        best_R_idx = cv2.medianBlur(best_R_idx.astype(np.uint8), smooth_R_kernel).astype(np.int32)
+
+    # Step 6: composite
+    final_A = all_slabs[best_R_idx, top1, rr, cc]
+    final_B = all_slabs[best_R_idx, top2, rr, cc]
+    w_A = all_weights[best_R_idx, top1, rr, cc]
+    w_B = all_weights[best_R_idx, top2, rr, cc]
+
+    if blend_mode == "hard_select":
+        use_A = w_A >= w_B
+        out = np.where(use_A[..., None], final_A, final_B)
+    elif blend_mode == "weighted":
+        total = w_A + w_B + 1e-6
+        out = (final_A * w_A[..., None] + final_B * w_B[..., None]) / total[..., None]
+    else:
+        raise ValueError(f"blend_mode must be 'hard_select' or 'weighted'")
 
     return np.clip(out, 0, 255).astype(np.uint8), best_R_idx
