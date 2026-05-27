@@ -150,7 +150,7 @@ def analyze(loader: AV2RingLoader, anchor_indices: list[int], sift_nfeat: int = 
                 "num_matches": int(n_match),
             }
 
-            if n_match < 20:
+            if n_match < 30:
                 entry["status"] = "too_few_matches"
                 results.append(entry)
                 continue
@@ -158,63 +158,90 @@ def analyze(loader: AV2RingLoader, anchor_indices: list[int], sift_nfeat: int = 
             cal_A = frame.calibrations[cam_A]
             cal_B = frame.calibrations[cam_B]
             R, t = relative_pose(cal_A.T_ego_cam, cal_B.T_ego_cam)
-            F = fundamental_from_calib(cal_A.K, cal_B.K, R, t)
+            F_calib = fundamental_from_calib(cal_A.K, cal_B.K, R, t)
             baseline = float(np.linalg.norm(t))
 
-            sd_sq = sampson_distance(F, pts_A, pts_B)
-            sd_px = np.sqrt(np.maximum(sd_sq, 0.0))
-
-            # Drop egregious outliers (mismatches, not calib): >100 px Sampson means SIFT was wrong
-            inlier_mask = sd_px < 100.0
-            sd_inl = sd_px[inlier_mask]
-            n_inl = int(inlier_mask.sum())
-
-            if n_inl < 10:
-                entry["status"] = "no_inliers"
+            # Step 1: RANSAC-fit a data-driven F to throw out SIFT mismatches.
+            # Threshold 3 px = matches must agree with SOME 2-view geometry within 3 px.
+            # This is INDEPENDENT of our calibration F.
+            F_data, ransac_mask = cv2.findFundamentalMat(
+                pts_A, pts_B, cv2.FM_RANSAC, ransacReprojThreshold=3.0, confidence=0.99,
+            )
+            if F_data is None or ransac_mask is None:
+                entry["status"] = "ransac_failed"
                 entry["baseline_m"] = baseline
                 results.append(entry)
                 continue
+            ransac_mask = ransac_mask.ravel().astype(bool)
+            pts_A_inl = pts_A[ransac_mask]
+            pts_B_inl = pts_B[ransac_mask]
+            n_inl = int(ransac_mask.sum())
+            if n_inl < 15:
+                entry["status"] = "too_few_inliers"
+                entry["baseline_m"] = baseline
+                entry["num_ransac_inliers"] = n_inl
+                results.append(entry)
+                continue
 
+            # Step 2: Sampson distance to BOTH calibration F and data-driven F, on RANSAC inliers.
+            # If calibration ≈ data, both distances are small => calibration correct.
+            # If calib_dist >> data_dist => calibration is biased (epipolar geometry doesn't match).
+            sd_calib = np.sqrt(np.maximum(sampson_distance(F_calib, pts_A_inl, pts_B_inl), 0.0))
+            sd_data = np.sqrt(np.maximum(sampson_distance(F_data,  pts_A_inl, pts_B_inl), 0.0))
+
+            # Parallax sanity check: reprojection error assuming Z=10m
             rep_err_10m = reprojection_error_at_depth(
-                cal_A.K, cal_B.K, R, t, pts_A[inlier_mask], pts_B[inlier_mask], Z=10.0,
+                cal_A.K, cal_B.K, R, t, pts_A_inl, pts_B_inl, Z=10.0,
             )
 
             entry.update(
                 status="ok",
-                num_inliers=n_inl,
+                num_ransac_inliers=n_inl,
+                inlier_rate=float(n_inl) / float(n_match),
                 baseline_m=baseline,
-                sampson_median_px=float(np.median(sd_inl)),
-                sampson_mean_px=float(np.mean(sd_inl)),
-                sampson_std_px=float(np.std(sd_inl)),
-                sampson_p95_px=float(np.percentile(sd_inl, 95)),
+                sampson_calib_median_px=float(np.median(sd_calib)),
+                sampson_calib_mean_px=float(np.mean(sd_calib)),
+                sampson_calib_p95_px=float(np.percentile(sd_calib, 95)),
+                sampson_data_median_px=float(np.median(sd_data)),
+                sampson_data_mean_px=float(np.mean(sd_data)),
+                calib_bias_px=float(np.median(sd_calib) - np.median(sd_data)),
                 reproj_at_10m_median_px=float(np.median(rep_err_10m)),
-                reproj_at_10m_mean_px=float(np.mean(rep_err_10m)),
             )
             results.append(entry)
     return results
 
 
 def summarize(results: list[dict]) -> dict:
-    by_pair: dict[str, list[float]] = {}
+    by_pair: dict[str, dict] = {}
     for r in results:
         if r.get("status") != "ok":
             continue
         key = f"{r['cam_A']} -> {r['cam_B']}"
-        by_pair.setdefault(key, []).append(r["sampson_median_px"])
+        d = by_pair.setdefault(key, {"calib": [], "data": [], "bias": [], "inlier_rate": []})
+        d["calib"].append(r["sampson_calib_median_px"])
+        d["data"].append(r["sampson_data_median_px"])
+        d["bias"].append(r["calib_bias_px"])
+        d["inlier_rate"].append(r["inlier_rate"])
+
     pair_summary = {
         k: {
-            "n_anchors": len(v),
-            "median_across_anchors_px": float(np.median(v)),
-            "min_px": float(np.min(v)),
-            "max_px": float(np.max(v)),
+            "n_anchors": len(v["calib"]),
+            "sampson_calib_median_px": float(np.median(v["calib"])),
+            "sampson_data_median_px":  float(np.median(v["data"])),
+            "calib_bias_median_px":    float(np.median(v["bias"])),
+            "calib_bias_max_px":       float(np.max(v["bias"])),
+            "inlier_rate_median":      float(np.median(v["inlier_rate"])),
         }
         for k, v in by_pair.items()
     }
-    all_medians = [r["sampson_median_px"] for r in results if r.get("status") == "ok"]
+    all_calib   = [r["sampson_calib_median_px"] for r in results if r.get("status") == "ok"]
+    all_data    = [r["sampson_data_median_px"]  for r in results if r.get("status") == "ok"]
+    all_bias    = [r["calib_bias_px"]           for r in results if r.get("status") == "ok"]
     global_summary = {
-        "n_pair_observations": len(all_medians),
-        "global_median_sampson_px": float(np.median(all_medians)) if all_medians else None,
-        "global_mean_sampson_px": float(np.mean(all_medians)) if all_medians else None,
+        "n_pair_observations": len(all_calib),
+        "global_sampson_calib_median_px": float(np.median(all_calib)) if all_calib else None,
+        "global_sampson_data_median_px":  float(np.median(all_data))  if all_data  else None,
+        "global_calib_bias_median_px":    float(np.median(all_bias))  if all_bias  else None,
     }
     return {"per_pair": pair_summary, "global": global_summary}
 
@@ -226,24 +253,36 @@ def render_summary_png(results: list[dict], out_path: Path) -> None:
     if not ok:
         return
     pairs = sorted({f"{r['cam_A']} -> {r['cam_B']}" for r in ok})
-    fig, ax = plt.subplots(figsize=(12, 5))
-    data = []
-    labels = []
-    for p in pairs:
-        vals = [r["sampson_median_px"] for r in ok if f"{r['cam_A']} -> {r['cam_B']}" == p]
-        data.append(vals)
-        labels.append(p.replace("ring_", "").replace(" -> ", "→\n"))
-    bp = ax.boxplot(data, tick_labels=labels, showmeans=True, meanline=True)
+    labels = [p.replace("ring_", "").replace(" -> ", "→\n") for p in pairs]
+    fig, axes = plt.subplots(1, 2, figsize=(16, 5))
+
+    # Left: calibration F vs data F per-pair (both should be small if calib is right)
+    ax = axes[0]
+    calib_data = [[r["sampson_calib_median_px"] for r in ok if f"{r['cam_A']} -> {r['cam_B']}" == p] for p in pairs]
+    data_data  = [[r["sampson_data_median_px"]  for r in ok if f"{r['cam_A']} -> {r['cam_B']}" == p] for p in pairs]
+    positions = np.arange(len(pairs))
+    bp1 = ax.boxplot(calib_data, positions=positions - 0.18, widths=0.3,
+                     patch_artist=True, boxprops=dict(facecolor="lightcoral"))
+    bp2 = ax.boxplot(data_data,  positions=positions + 0.18, widths=0.3,
+                     patch_artist=True, boxprops=dict(facecolor="lightgreen"))
+    ax.set_xticks(positions)
+    ax.set_xticklabels(labels, rotation=15, ha="right")
     ax.set_ylabel("Sampson distance (px) — per anchor median")
-    ax.set_title(
-        "AV2 calibration check (depth-independent Sampson distance)\n"
-        "GOOD < 0.5 px  |  MILD BIAS 0.5-2 px  |  BIAS > 2 px"
-    )
-    ax.axhline(0.5, color="green", linestyle="--", alpha=0.5, label="excellent threshold")
-    ax.axhline(2.0, color="red",   linestyle="--", alpha=0.5, label="bias threshold")
-    ax.legend(loc="upper right")
+    ax.set_title("calib F (red) vs data-driven F (green)\nlarge red+small green = calibration bias")
+    ax.axhline(0.5, color="green", linestyle="--", alpha=0.4)
+    ax.axhline(2.0, color="red",   linestyle="--", alpha=0.4)
     ax.set_yscale("log")
     ax.grid(True, which="both", alpha=0.3)
+
+    # Right: pure bias (calib - data); positive = calibration is worse than data fit
+    ax = axes[1]
+    bias = [[r["calib_bias_px"] for r in ok if f"{r['cam_A']} -> {r['cam_B']}" == p] for p in pairs]
+    ax.boxplot(bias, tick_labels=labels)
+    ax.set_ylabel("calib bias (px) = sampson(calib_F) - sampson(data_F)")
+    ax.set_title("calibration bias per pair\n0 = perfect | >2 px = real bias")
+    ax.axhline(0.0, color="black", linewidth=1)
+    ax.axhline(2.0, color="red", linestyle="--", alpha=0.4, label="bias threshold")
+    ax.grid(True, alpha=0.3)
     plt.xticks(rotation=15, ha="right")
     plt.tight_layout()
     plt.savefig(out_path, dpi=120)
