@@ -1,5 +1,37 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~14:55 UTC - [Stage B DiT360 BMW seam completion ran successfully on A100, but visual verdict is NEG for Bosch training data.]
+> - **Purpose**: after no-DL seam-routing failed to beat L1 `hard_select`, test Koi's DiT360 idea end-to-end: preserve our stitched panorama away from camera seams, mask seam strips, and let DiT360 fill the transition.
+> - **Auth / runtime**:
+>   - HF access to gated `black-forest-labs/FLUX.1-dev` is now working on the A100 Colab runtime.
+>   - First model load after auth hit a `torchao` compatibility blocker (`0.10.0` too old for current `diffusers`); fixed on Colab with `torchao>=0.16.0` (`0.17.0` installed).
+>   - First sampling run then hit VAE decode OOM on A100 40GB. I patched `scripts/phase3/run_dit360_seam_completion.py` to enable VAE tiling/slicing by default, committed as `899ce6a`.
+> - **Successful run**:
+>   ```text
+>   anchor: 02a00399 anchor 0, BMW case
+>   input: L1 hard_select, 1024x2048
+>   mask: preserve non-seam, generate seam strip r=40 px
+>   tau=20, steps=50, seed=0, guidance=2.8, vae_tiling=true
+>   runtime: 227.168 s on A100
+>   ```
+> - **Drive output**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v3/02a00399_a000_r040_tau20_tiled/
+>   ```
+> - **Local/Git evidence**:
+>   ```text
+>   deliverables/dit360_seam_completion/runs_v3/02a00399_a000_r040_tau20_tiled/
+>     02a00399_a000_r040_tau20_tiled_panel.jpg
+>     02a00399_a000_r040_tau20_tiled_output_row.jpg
+>     02a00399_a000_r040_tau20_tiled_diagnostics.json
+>   ```
+> - **Visual verdict**:
+>   - DiT360 fills the red seam strips, but it rewrites scene content rather than preserving AV evidence.
+>   - BMW/road/building seam regions show blurry invented cars/people-like structures and shifted lane/building texture.
+>   - Right-side SUV/building region gets new vertical blocks and inconsistent geometry.
+>   - The output is smoother/prettier in places, but it is not faithful enough for Bosch world-model training data.
+> - **Conclusion**: [RUN SUCCESS / VISUAL NEG] DiT360 is useful as a qualitative generative baseline and maybe a paper discussion point, but this first faithful-masked seam completion test is not a production seam solver. The current safest training-data baseline remains AV2 raw L1 `hard_select` (optional Y-only HDR as an ablation, not unconditional default).
+
 > ### 2026-05-27 ~14:10 UTC — [Stage B DiT360 feasibility: input/mask pipeline ready, official inference blocked by gated FLUX.1-dev auth.]
 > - **目的**: after Stage A no-DL DP seam-routing returned NEG / weak MIXED, test Koi's DiT360 idea: mask/crop seam strips from our current best L1 `hard_select` panorama and let DiT360 complete/outpaint the transition.
 > - **DiT360 study result**:
