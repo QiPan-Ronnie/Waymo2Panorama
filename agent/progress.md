@@ -1,5 +1,48 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~14:10 UTC — [Stage B DiT360 feasibility: input/mask pipeline ready, official inference blocked by gated FLUX.1-dev auth.]
+> - **目的**: after Stage A no-DL DP seam-routing returned NEG / weak MIXED, test Koi's DiT360 idea: mask/crop seam strips from our current best L1 `hard_select` panorama and let DiT360 complete/outpaint the transition.
+> - **DiT360 study result**:
+>   - The repo is not a calibrated AV ring-camera stitcher. It does not directly take 7 cameras + extrinsics and output a faithful AV2 panorama.
+>   - It is a 1024×2048 panorama generation/editing framework using FLUX.1-dev + DiT360 LoRA. `editing.py` supports masked panorama editing/completion.
+>   - Mask convention from code: `create_mask()` maps white/255 to 1. In the DiT360 attention processor this is the preserve/source-consistency mask. For our seam test: white = preserve original hard_select, black = generate/fill seam strip.
+>   - README/code memory need is ~37 GB, so A100 40GB is the right runtime; T4 is not enough for faithful inference.
+> - **Code added**:
+>   - `external/DiT360` as a git submodule pointer to Insta360-Research-Team/DiT360 at `3779fe7`.
+>   - Drive full clone: `/content/drive/MyDrive/koi_waymo2pano_colab/external/DiT360`.
+>   - `scripts/phase3/prepare_dit360_seam_inputs.py`: renders AV2 L1 `hard_select` at 1024×2048 and writes DiT360 masks.
+>   - `scripts/phase3/run_dit360_seam_completion.py`: thin reproducible runner around DiT360 `editing.py` with `--tau`, `--steps`, `--seed`, `--invert-mask` controls.
+> - **Prepared inputs on Colab/Drive**: `/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v2/`
+>   ```text
+>   02a00399 anchor 0   BMW case
+>   fbee355f anchor 95  pedestrian/object seam case
+>   0bae3b5e anchor 30  clean far-field anchor
+>   resolution: 1024×2048
+>   masks: seam strips r=20/40/80 px + alternating camera preserve 1/3/5/7 vs 2/4/6
+>   ```
+> - **Mask coverage after bug fix**:
+>   ```text
+>                  valid frac   boundary px   seam20   seam40   seam80   keep 1/3/5/7   keep 2/4/6
+>   02a00399 a000    0.2742        3744       0.0405   0.0871   0.2053      0.1165        0.1577
+>   fbee355f a095    0.2738        3744       0.0398   0.0858   0.2027      0.1163        0.1574
+>   0bae3b5e a030    0.2742        3753       0.0397   0.0856   0.2020      0.1168        0.1574
+>   ```
+>   `valid frac` is low because the AV2 ring panorama occupies only the middle band of the 1024×2048 ERP; invalid black top/bottom are preserved by default, not generated. For alternating camera masks, I fixed an initial bug where invalid black regions were accidentally marked generate, reducing generate fraction from ~84% to ~12–16%.
+> - **A100 smoke/inference blocker**:
+>   - Import OK: `pa_src.pipeline.RFPanoInversionParallelFluxPipeline`, `pa_src.utils.create_mask`, and DiT360 code import cleanly on Colab.
+>   - Official model load fails before sampling:
+>     ```text
+>     huggingface_hub.errors.GatedRepoError: 401 Unauthorized
+>     Cannot access gated repo for url https://huggingface.co/black-forest-labs/FLUX.1-dev/resolve/main/model_index.json.
+>     Access to model black-forest-labs/FLUX.1-dev is restricted. You must have access to it and be authenticated to access it. Please log in.
+>     ```
+>   - Formal runner command tested on BMW `r040`, Colab job `30921cf5da834ac3be19515d823df8a1`, repo commit `15855bb`; exact blocker JSON saved at `deliverables/dit360_seam_completion/dit360_blocker_02a00399_r040.json`.
+> - **Local/Git evidence**:
+>   - Representative BMW input manifest and r040 mask preview saved under `deliverables/dit360_seam_completion/inputs_v2/02a00399_a000/`.
+>   - Full generated inputs stay on Drive to avoid bloating GitHub.
+> - **Verdict so far**: [BLOCKED, not NEG] DiT360 seam completion is technically plausible as a masked panorama editor, but we cannot evaluate visual fidelity until the Colab runtime is authenticated for `black-forest-labs/FLUX.1-dev`. This is an external gated-checkpoint blocker, not a code/import/GPU-memory blocker.
+> - **Next after HF auth**: rerun `scripts/phase3/run_dit360_seam_completion.py` on `02a00399_a000` seam r040 first with `tau=20`; then inspect whether it preserves BMW/lane lines/signs. If it beautifies seams but changes driving-critical content, mark it unsuitable for Bosch training data and keep only as qualitative paper baseline.
+
 > ### 2026-05-27 ~13:45 UTC — [No-DL DP seam-routing v2 implemented + A100 3-anchor validation: NEG / weak MIXED. Moving the hard seam path alone does not beat L1 hard_select.]
 > - **目的**: 继续榨干 no-DL / basic-CV 的 2D 空间，在 `L1 hard_select` 上只移动 seam path，不做 blending / OF / warp / depth / DL；目标是让 seam 绕开物体边缘、车道线和高梯度结构。
 > - **方法**: 新增 `code/waymo2panorama/blending/seam_routing.py`。流程是: L1 ERP slabs + weights → 找 adjacent camera pair 的 hard-select boundary → 在 narrow band 内计算 color diff + gradient mismatch + Canny edge/line crossing penalty + weight reliability + center bias → dynamic programming 最小代价 seam path → final 仍然 hard-select 单 camera 像素。新增 blend mode `hard_seamroute`。
