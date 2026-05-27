@@ -67,6 +67,7 @@ def main() -> int:
     ap.add_argument("--guidance", type=float, default=2.8)
     ap.add_argument("--tau", type=float, default=20.0)
     ap.add_argument("--invert-mask", action="store_true")
+    ap.add_argument("--disable-vae-tiling", action="store_true")
     ap.add_argument("--output-name", default="dit360_output.png")
     args = ap.parse_args()
 
@@ -90,6 +91,11 @@ def main() -> int:
         low_cpu_mem_usage=True,
     ).to(device)
     pipe.load_lora_weights("Insta360-Research/DiT360-Panorama-Image-Generation")
+    if not args.disable_vae_tiling:
+        if hasattr(pipe.vae, "enable_tiling"):
+            pipe.vae.enable_tiling()
+        if hasattr(pipe.vae, "enable_slicing"):
+            pipe.vae.enable_slicing()
 
     init_image = Image.open(args.init_image).convert("RGB").resize((args.width, args.height))
     latent_h = args.height // (pipe.vae_scale_factor * 2)
@@ -156,6 +162,7 @@ def main() -> int:
         "seed": args.seed,
         "guidance": args.guidance,
         "tau": args.tau,
+        "vae_tiling": not args.disable_vae_tiling,
         "runtime_s": round(time.time() - started, 3),
         "prompt": prompt,
         "new_prompt": new_prompt,
