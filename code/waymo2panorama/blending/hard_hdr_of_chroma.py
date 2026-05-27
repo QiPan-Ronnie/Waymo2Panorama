@@ -51,6 +51,8 @@ References:
 """
 from __future__ import annotations
 
+import warnings
+
 import cv2
 import numpy as np
 
@@ -189,13 +191,11 @@ def compute_chroma_offsets(
 
     cr_constraints: list[tuple[int, int, float]] = []
     cb_constraints: list[tuple[int, int, float]] = []
-    pair_diag: list[dict] = []
 
     for (i, j) in RING_PAIRS:
         overlap = (weights[i] > 1e-6) & (weights[j] > 1e-6)
         n_ovl = int(overlap.sum())
         if n_ovl < MIN_OVERLAP_PIXELS:
-            pair_diag.append({"pair": (i, j), "n_overlap": n_ovl, "skip": "too_small"})
             continue
         cr_i, cr_j, cb_i, cb_j = _chroma_pair_means(
             ycrcb_all[i], ycrcb_all[j], overlap,
@@ -205,17 +205,22 @@ def compute_chroma_offsets(
         # Outlier rejection: skip pair if EITHER channel diff is too large
         # (suggesting real scene chroma difference, not WB drift).
         if abs(cr_diff) > outlier_thresh or abs(cb_diff) > outlier_thresh:
-            pair_diag.append({
-                "pair": (i, j), "n_overlap": n_ovl,
-                "skip": "outlier", "cr_diff": cr_diff, "cb_diff": cb_diff,
-            })
             continue
         cr_constraints.append((i, j, cr_diff))
         cb_constraints.append((i, j, cb_diff))
-        pair_diag.append({
-            "pair": (i, j), "n_overlap": n_ovl,
-            "cr_diff": cr_diff, "cb_diff": cb_diff,
-        })
+
+    # Visibility: if EVERY adjacency pair was rejected we silently fall back to
+    # all-zero offsets (anchor + Tikhonov rows still make the LS well-posed).
+    # That may be the right behavior (no trustworthy WB signal), but it masks a
+    # potentially problematic input — surface it via a warning.
+    if not cr_constraints and not cb_constraints:
+        warnings.warn(
+            f"compute_chroma_offsets: all {len(RING_PAIRS)} adjacency pairs "
+            f"rejected (overlap < {MIN_OVERLAP_PIXELS}px or chroma diff > "
+            f"{outlier_thresh}); returning zero offsets.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
     # Solve each channel independently (chroma channels decouple in this model).
     cr_sol = _solve_one_channel(cr_constraints, n, lam)
