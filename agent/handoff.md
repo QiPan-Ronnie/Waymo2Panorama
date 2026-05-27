@@ -1,7 +1,24 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-27 ~23:00 (Our L1+L2 HDR pipeline RUN on Xihan's REAL Waymo E2ED frame via Colab T4 — color shift visually solved on `8e737334b...` frame. See `deliverables/xihan/l1_on_waymo/README.md`. Prior: Xihan handoff doc + brighten -18% on his pre-stitched pano; Calibration check 1.3 px bias [direction A dead]; multi-R sphere first look.)
+**Updated**: 2026-05-27 (Doc consolidation: 10 finding mds archived to `deliverables/archived/`, 37 research notes archived to `notes/archived/`, paper drafts moved to `paper/`. Only `agent/{handoff,progress,README}.md` are living docs. Prior: seam-root-cause investigation (calibration 1.3 px not root cause, multi-R per-pixel v1+v2 NEG due to object-boundary incoherence) + Xihan Waymo E2ED L1+L2 HDR (color shift visually solved on `8e737334b...`) + hard_hdr_of NCC +25.3%.)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
+
+---
+
+## 📋 Documentation Rules (user 2026-05-27)
+
+**Living docs (3 only)**: `agent/handoff.md` (this file) + `agent/progress.md` + `agent/README.md`. Write to these, not new mds.
+
+✅ **DO**:
+- Experiment results → new entry at top of `progress.md`
+- Visual evidence → `deliverables/<topic>/*.png` (PNGs OK, they're not bloat)
+- Formal handoff to humans → `deliverables/handoff_to_<name>_<date>.md`
+- Paper drafts → `paper/`
+
+❌ **DON'T**:
+- Don't create `deliverables/*_FINDING.md` / `*_SUMMARY.md` / `*_PIPELINE.md` (use `progress.md`)
+- Don't create per-experiment standalone .md in `deliverables/` (use `progress.md`)
+- Don't add files to `deliverables/archived/` or `notes/archived/` — those are read-only history
 
 ---
 
