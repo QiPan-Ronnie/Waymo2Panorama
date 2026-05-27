@@ -5,6 +5,30 @@
 
 ---
 
+## 🎯 LATEST FINDING (2026-05-27 ~22:30 UTC) — read this FIRST
+
+**4 layers of "no-depth" seam fixes all tested, all NEG. Empirically confirms that without explicit depth (NeRF/3DGS excluded by user), perfect panorama is impossible for AV ring cam.**
+
+| # | Method | Result |
+|---|---|---|
+| 1 | L0 — AV2 calibration BA refine | ❌ NEG. Bias ~1.3 px (negligible vs 46 ERP px parallax) |
+| 2 | L1 — Single fixed sphere R={∞,30,10,5,3} m | ❌ Trade-off, no R fits all depths (Δ = baseline/R - baseline/D) |
+| 3 | L1 — Multi-R per-pixel v1 (Y-diff argmin) | ❌ Frankenstein doubling at object boundaries (pedestrian) |
+| 4 | L1 — Multi-R per-pixel v2 (HDR + 9×9 NCC + 11px median R) | ❌ Marginally better than v1, still doubled, worse than L1 hard_select |
+
+**Fundamental diagnosis**: at object/background boundary, foreground (5m) wants R=5m, background (30m) wants R=30m. Per-pixel argmin switches rapidly even with smoothing → cam_A's R=5m slab + cam_B's R=30m slab composited = Frankenstein. **Criterion right, execution can't enforce object-level coherence.**
+
+**Current ship (production-ready)**: `code/waymo2panorama/blending/hard_hdr_of.py` — L1 hard_select + L2 joint HDR + L3 Farneback OF. Quantitative: **+25.3% NCC**, **-37.7% seam-gap ΔY mean** across 5 logs. 160 panoramas rendered to Drive `outputs/phase3/full_pipeline_v1/`.
+
+**3 paths user is deciding among**:
+- **(B') Substantial fix** (½–1 day) — MRF/graphcut on R label map, or SAM segmentation, or bilateral filter on R map. cv2 lacks multi-label graphcut, would need pymaxflow.
+- **(C) Paper pivot to "impossibility framing"** (2–3 hr) — 4 NEG layers as evidence; write paper around mathematical impossibility + artifact-minimization framework (hard_select + L2 HDR + smart seam routing + ghost-confidence map).
+- **(D) Ship as-is** (minutes) — current hard_hdr_of is the best basic-CV pipeline; deliver to Bosch.
+
+**Full details**: `agent/progress.md` top 3 entries (21:30 / 22:00 / 22:30 UTC) + §"Recent milestones" below.
+
+---
+
 ## 📋 Documentation Rules (user 2026-05-27)
 
 **Living docs (3 only)**: `agent/handoff.md` (this file) + `agent/progress.md` + `agent/README.md`. Write to these, not new mds.
