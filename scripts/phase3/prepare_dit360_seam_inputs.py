@@ -188,6 +188,22 @@ def main() -> int:
     if args.generate_invalid:
         base_preserve = valid.copy()
 
+    invalid_outpaint_preserve = valid.copy()
+    invalid_stem = f"{run_name}_mask_preserve_valid_outpaint_invalid"
+    invalid_mask = np.where(invalid_outpaint_preserve, 255, 0).astype(np.uint8)
+    _save_gray(out_dir / f"{invalid_stem}.png", invalid_mask)
+    _save_rgb(out_dir / f"{invalid_stem}_masked_input.png", _masked_input(hard_rgb, invalid_outpaint_preserve))
+    _save_rgb(out_dir / f"{invalid_stem}_preview.jpg", _mask_to_preview(hard_rgb, invalid_outpaint_preserve))
+    manifest["artifacts"].append(
+        {
+            "type": "invalid_outpaint",
+            "mask": f"{invalid_stem}.png",
+            "masked_input": f"{invalid_stem}_masked_input.png",
+            "preview": f"{invalid_stem}_preview.jpg",
+            "generate_fraction": float((~invalid_outpaint_preserve).mean()),
+        }
+    )
+
     for radius in _parse_radii(args.seam_radii):
         seam_zone = _dilate(boundary, radius)
         preserve = base_preserve & ~seam_zone
