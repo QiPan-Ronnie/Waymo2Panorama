@@ -151,7 +151,7 @@ artifacts on a 575-anchor test set across 5 diverse driving scenes.
 | 4-way comparison panel | ✅ `bmw_4way.png`, `porsche_4way.png` |
 | N1 NEG ablations (4 phases) | ✅ documented in `agent/progress.md` + `deliverables/N1_AUTONOMOUS_RUN_SUMMARY.md` |
 | Full-log preview grid (5 logs) | 🔄 rendering at stride=10 (~1.5 hr) |
-| Seam ΔY metric | ✅ 6 anchors of 02a00399: raw 24.4 → hdr 22.6 = 8.2% mean. Range: -7% to +38% per anchor. Best when anchor cam in shadow (250: -7%) or cam with sun glare (50: +38%). |
+| Seam ΔY metric | ✅ 6 anchors of 02a00399. **v1 anchored gains: 8.2% mean improvement, range [-7%, +38%]**. **v2 centered gains: 10.8% mean improvement, range [+0.8%, +37.5%]** — flipped worst cases from negative to positive |
 | YOLO ghost count | ❌ not yet measured on new pipeline; YOLO v2 scoring exists for old multiband |
 | User study | ❌ not yet |
 | Computational efficiency table | ✅ measured (40s/anchor at 2048×4096 T4) |
@@ -169,23 +169,20 @@ artifacts on a 575-anchor test set across 5 diverse driving scenes.
 
 ## Known improvements to consider before paper
 
-### Improvement A: Center HDR gains in log space
+### Improvement A: Center HDR gains in log space — SHIPPED (commit 438fff3)
 - Currently HDR anchors front_center to gain=1.0 → when front_center is in shadow,
   all other gains > 1.0, amplifying/clipping the rest of the panorama
 - Fix: after lstsq, subtract `log_g.mean()` so gains are centered (geometric mean = 1.0)
-- Empirical: anchor 250 had all gains in [1.0, 1.25] (front_center darkest), got -7% seam-gap
-  improvement (worse than baseline). Centered gains would put it in [0.89, 1.11] — no clipping.
-- 5 LOC change in `compute_hdr_gains`
-- Should improve worst-case anchors without changing best-case
-- Suggest: add as ablation in paper, show "centered vs anchored" comparison
+- Validated: 6 anchors of 02a00399, mean improvement 8.2% → 10.8%. Worst-case anchors
+  (200, 250) flipped from negative (-7.3%, -1.7%) to slight positive (+0.8%, +1.3%).
+- Default: `centered=True` in `compute_hdr_gains`
 
-### Improvement B: Add back-seam OF correction
-- Current OF chains end at rear cams; back seam (rear_left vs rear_right) has no
-  direct OF correction
-- Add one more OF pair: warp rear_right (already-warped) to align with rear_left
-  (already-warped) in their back-seam overlap
-- Closes the OF "loop"
-- 10 LOC change in `of_chain_warp`
+### Improvement B: Back-seam OF correction — SHIPPED (commit 438fff3)
+- Previously OF chains ended at rear cams; back seam had no direct OF correction
+- Fix: one more OF pair warps rear_right (CW-warped) to align with rear_left
+  (CCW-warped) in their back-seam overlap. Closes the OF loop.
+- Default: `close_back_seam=True` in `of_chain_warp`
+- Need to verify visually on v2 BMW render (pending)
 
 ### Improvement C: Per-channel chroma correction (without re-introducing cast)
 - Current HDR is Y-only. Some anchors have visible chroma drift (different cam
