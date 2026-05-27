@@ -1,5 +1,32 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~16:10 UTC - [DiT360 tau=5 soft bounded composition diagnosed: raw looks smoother because it edits the seam halo, but geometry remains weak.]
+> - **Purpose**: answer the visual observation that `seam_r008_tau5 raw` often looks better than hard `postcompose`, while strict composition is needed for evidence preservation.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/soft_compose_dit360_masks.py
+>   deliverables/dit360_seam_completion/runs_v6_bmw_softcompose_tau5/
+>     softcompose_overall_review.jpg
+>     softcompose_crop_review.jpg
+>     softcompose_summary.json
+>   deliverables/dit360_seam_completion/runs_v6_bmw_softcompose_tau5_focus/
+>     softcompose_focus_review.jpg
+>   ```
+> - **Method**: keep the DiT360 raw result in the black seam core, restore the original `hard_select` panorama outside the generated region, and add a small distance-transform halo (`h004/h008/h016/h024`) where raw is feathered into source.
+> - **Metrics**:
+>   ```text
+>   outside safe region: compose MAE/RMSE = 0.0 for all cases
+>   modified fraction:
+>     r008 h004/h008/h016/h024 = 2.23% / 3.04% / 4.75% / 6.57%
+>     r012 h004/h008/h016/h024 = 3.04% / 3.88% / 5.65% / 7.55%
+>     r020 h004/h008/h016/h024 = 4.73% / 5.64% / 7.54% / 9.57%
+>   ```
+> - **Visual finding**:
+>   - `raw` looks smoother than hard post-compose because DiT360 changes pixels just outside the black mask; those halo edits form the apparent transition.
+>   - hard post-compose restores those pixels exactly, which preserves evidence but re-exposes the binary seam boundary.
+>   - soft bounded composition is a better compromise than hard post-compose, but it still does not repair the underlying road/lane geometry; r008 remains close to `hard_select`, while r012/r020 still introduce visible vertical/block artifacts around the right SUV/building seam.
+> - **Conclusion**: [MIXED / still weak NEG] Soft composition fixes the *composition artifact* but not the *seam geometry artifact*. The route may be worth one more narrow A100 sweep around small masks and `tau=5`, but DiT360 is not yet a reliable Bosch-training seam solver.
+
 > ### 2026-05-27 ~15:20 UTC - [DiT360 outpaint + tiny seam-mask post-compose tested on BMW A100 run: MIXED / weak NEG. Evidence preservation can be forced, but seam geometry is not solved.]
 > - **Purpose**: follow the user's proposed generative route more fairly. Instead of only testing one wide seam mask, test (a) outpainting invalid black ERP regions from L1 `hard_select`, (b) small seam completion masks, and (c) hard post-compose so DiT360 is allowed to affect only the masked pixels.
 > - **Code added / changed**:
