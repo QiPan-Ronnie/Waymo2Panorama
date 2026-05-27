@@ -1,5 +1,39 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~10:30 UTC — [v2 pipeline shipped + 5-log seam-gap metric: 38% mean improvement, paper drafts done.]
+> - **v2 改进 shipped**:
+>   - **L2v3 centered gains**: HDR gains 在 log space 居中 (geometric mean = 1) 而不是 anchor front_center=1. 修复了 "front_center 在阴影里" 失败模式. seam-gap 在 6 anchors 上 8.2% → 10.8% mean improvement, 最差 case (200, 250) 从 -7%/-2% 翻正到 +1%.
+>   - **L3v2 back-seam OF closure**: 在 CCW+CW chains 之后再加一个 OF warp align rear_right to rear_left. 闭合了 OF loop.
+> - **Cross-log seam-gap measurement** (17 anchors, stride 30 across 5 logs):
+>   ```
+>   log         scene                  raw ΔY   v2 ΔY    improvement
+>   02a00399    quiet residential      23.80    20.45    -13.4% (easiest)
+>   0bae3b5e    busy urban             24.48    17.22    -29.7%
+>   2c652f9e    intersection           43.86    20.97    -52.2%
+>   9f871fb4    highway                32.94    20.96    -36.4%
+>   fbee355f    parking garage         34.76    15.09    -56.9% (hardest, biggest win)
+>   ─────────────────────────────────────────────────────────────────
+>   MEAN                               31.97    18.94    -37.7%
+>   ```
+> - **关键洞察**: 02a00399 之前测的 10.8% 误导 — 那是最简单 case (cams 已基本同曝光). 真正难的 logs (parking garage, intersection 阴影/灯光强烈) HDR 收益巨大 (50%+).
+> - **Paper drafts done** (Sections 1-6 in `agent/paper_*.md`):
+>   - Section 1 Introduction (3-para hook + 4 contributions)
+>   - Section 2 Related Work (classical stitching, depth methods, AV multi-cam, view synthesis, HDR, OF)
+>   - Section 3 Method (with equations, parallax magnitude derivation)
+>   - Section 4 Experiments (5-log seam-gap result, 4 N1 NEG ablations)
+>   - Section 5 Discussion (why depth fails, OF/HDR roles, limitations, broader applicability)
+>   - Section 6 Conclusion
+> - **Background renders still in flight** at 10:30 UTC:
+>   - multiband baseline 5-log render: ~120/160 done, ~5 min remaining
+>   - v1 hard_hdr_of 5-log render: ~40/160 done, ~80 min remaining
+>   - v2 hard_hdr_of 5-log render: ~15/160 done, ~95 min remaining
+> - **Deliverables**:
+>   - `deliverables/HARD_HDR_OF_PIPELINE.md` — handoff doc
+>   - `deliverables/WAKEUP_SUMMARY.md` — user-facing wakeup summary
+>   - `agent/paper_*.md` — 6 paper section drafts
+>   - `outputs/phase3/full_pipeline_v{1,2}/{log}/anchor_*.png` (on Drive, rendering)
+> - 总共 commits ~25 in this autonomous batch.
+
 > ### 2026-05-27 ~09:00 UTC — [L1+L2+L3 basic-CV pipeline shipped + 5-log run kicked off (stride=10, ~1.75 hr).]
 > - **怎么做**: 把 prototype 三层 (hard_select / joint global HDR / Farneback OF chain warp) 整合成 `code/waymo2panorama/blending/hard_hdr_of.py` 模块, 在 `stitch_one_frame` 加 `blend_mode` 参数 (`multiband` / `hard_hdr` / `hard_hdr_of`). 新 CLI `scripts/phase3/render_log_with_hard_hdr_of.py` 一键渲染 log 全部 anchor.
 > - **关键 design choices**:
