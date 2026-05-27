@@ -38,6 +38,9 @@ def main() -> int:
                     help="comma-list of specific anchor indices to render (overrides stride)")
     ap.add_argument("--no-of", action="store_true",
                     help="skip L3 OF (use hard_hdr instead of hard_hdr_of)")
+    ap.add_argument("--blend-mode", type=str, default=None,
+                    choices=["multiband", "hard_hdr", "hard_hdr_of"],
+                    help="explicit blend mode (overrides --no-of)")
     ap.add_argument("--w2p-code", type=Path,
                     default=Path(__file__).resolve().parent.parent.parent / "code")
     args = ap.parse_args()
@@ -48,7 +51,10 @@ def main() -> int:
     from waymo2panorama.data_io.av2_loader import AV2RingLoader
     from waymo2panorama.pipeline.stitch_frame import stitch_one_frame
 
-    blend_mode = "hard_hdr" if args.no_of else "hard_hdr_of"
+    if args.blend_mode is not None:
+        blend_mode = args.blend_mode
+    else:
+        blend_mode = "hard_hdr" if args.no_of else "hard_hdr_of"
     print(f"blend_mode={blend_mode}")
 
     loader = AV2RingLoader(args.log_dir)
