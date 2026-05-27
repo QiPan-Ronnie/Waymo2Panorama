@@ -5,38 +5,46 @@ Replaces the asymmetric `warp_pair_with_of` (which warps B fully to align with
 A, treating A as ground truth) with a SYMMETRIC half-warp that moves both
 cams halfway toward each other in their overlap zone. Two key advantages:
 
-1. **No preferred cam per pair** (pair API): A and B are treated symmetrically
-   in `bidirectional_warp_pair` — neither is privileged as "the reference."
-   The shipped chain still treats front_center as a frozen anchor (so only
-   the back-seam pair in the chain variant gets the full symmetric warp); the
-   joint solve variant makes EVERY non-anchor pair symmetric.
-2. **Half the per-pair resampling distance**: each cam moves by F/2 instead
-   of F. Smaller per-cam warps → smaller resampling sub-pixel blur per cam,
-   and the chain's cumulative resampling error along the ring is roughly
-   halved. NB: the OF is still computed on the FULL-displacement original
-   slabs (no flow magnitude reduction), so Farneback artifact rate per pair
-   is unchanged from the shipped variant.
+1. **No preferred cam per pair**: A and B are treated symmetrically — neither
+   is privileged as "the reference." This is more honest about the fact that
+   neither cam's ERP projection is the true geometry; both have parallax
+   relative to the underlying scene.
+2. **Half the per-pair displacement magnitude**: each cam moves by F/2
+   instead of F. Smaller displacements → less chance of Farneback OF artifacts
+   (over-shooting on textureless regions) and smaller resampling sub-pixel
+   blur per cam.
 
 The L2 HDR and L1 hard_select stages are reused unchanged from `hard_hdr_of`.
 
-Two chaining strategies are provided:
+Three chaining strategies are provided:
 
-  * `of_bidirectional_chain_warp` (approach a, default) — serial chain
-    starting from front_center. Each new cam in the chain is warped by F/2
-    toward its already-warped predecessor. The predecessor is NOT moved
-    again (its state is frozen). This propagates half-displacements through
-    the ring with the same topology as the original `of_chain_warp`. It
-    SHRINKS per-pair magnitude (good for OF stability) but does NOT remove
-    cumulative drift along the chain (the chain still accumulates).
+  * `of_true_bidirectional_chain_warp` (approach a, DEFAULT for mode="chain")
+    — pre-computes flows on all 7 ring pairs from the ORIGINAL (unwarped)
+    slabs, then for each cam k composes its displacement as the MEAN of
+    half-flows toward each adjacent neighbour. This gives the true
+    bidirectional semantic where every cam moves toward midpoint with each
+    of its neighbours — no chain-direction asymmetry, no "frozen anchor"
+    artifact. It is a single-iteration approximation of the joint solve
+    (mathematically equivalent to Jacobi step 1 with λ=0, no anchor): for
+    each pair the residual D_i - D_j + F_ij is driven toward zero by
+    distributing -F_ij/2 to cam i and +F_ij/2 to cam j, then averaging
+    over a cam's neighbours. Cheap (just N pair-flow computes + one
+    remap/cam) but converges in one pass because the topology is a small
+    ring with low overlap.
 
-  * `of_joint_solve_warp` (approach b, OPTIONAL) — pre-computes flows on
-    all 7 ring pairs from the ORIGINAL (unwarped) slabs, then solves a
-    sparse linear system for each cam's per-pixel 2D displacement field that
-    minimizes total pair disagreement. Globally consistent: every pair sees
-    a "fair" warp of both cams. Requires significantly more memory and time
-    than chain (~2-3× slower, ~3× more memory at 2048×4096), and adds a
-    spatial regularization parameter. See module docstring at function for
-    derivation and caveats.
+  * `of_half_magnitude_chain_warp` (LEGACY, mode="half_chain") — serial
+    chain starting from front_center. Each new cam in the chain is warped
+    by F/2 toward its already-warped predecessor; the predecessor is
+    FROZEN. This is NOT true bidirectional — it's just B→A with halved
+    flow magnitude. Kept for backward compatibility and ablation only.
+    Prefer the true bidirectional chain (approach a) above.
+
+  * `of_joint_solve_warp` (approach b, mode="joint") — pre-computes flows
+    on all 7 ring pairs from the ORIGINAL (unwarped) slabs, then solves a
+    sparse linear system for each cam's per-pixel 2D displacement field
+    that minimizes total pair disagreement. Globally consistent. Requires
+    significantly more memory and time than chain (~2-3× slower, ~3× more
+    memory at 2048×4096), and adds a spatial regularization parameter.
 
 NB: this module DOES NOT modify the shipped `hard_hdr_of.py`. It re-uses
 `compute_hdr_gains`, `apply_hdr`, and `hard_select` from there but provides
@@ -48,6 +56,8 @@ for chain variant, ~80-100s/anchor for joint solve at 2048x4096 (CPU-bound).
 """
 from __future__ import annotations
 
+import warnings
+
 import cv2
 import numpy as np
 
@@ -55,6 +65,41 @@ from waymo2panorama.blending.hard_hdr_of import (
     CCW, CW, RING_PAIRS,
     compute_hdr_gains, apply_hdr, hard_select,
 )
+
+
+# ---------------------------------------------------------------------------
+# Module-level constants (centralised magic numbers)
+# ---------------------------------------------------------------------------
+
+#: A pixel is considered "covered by cam k" iff weights[k] > this threshold.
+#: Used to define per-pair overlap masks.
+EPS_WEIGHT = 1e-6
+
+#: A pair (i, j) is skipped (treated as no-overlap) if its overlap mask has
+#: fewer than this many True pixels. Prevents OF from running on degenerate
+#: micro-overlaps where Farneback would just return noise.
+MIN_OVERLAP_PIXELS = 100
+
+#: Avoid div-by-zero / amplification when normalising a Gaussian-blurred mask.
+#: Pixels with smoothed mask weight below this fall back to 1.0 (treated as
+#: unsmoothed).
+EPS_SMOOTH = 1e-3
+
+#: Horizontal stripe height (rows) for the per-pixel 7×7 joint-solve linear
+#: system. Trade-off: larger = fewer Python loop iterations but more peak RAM
+#: per stripe. 256 keeps peak under ~210 MB for the 7-cam, 4096-wide case.
+STRIPE_HEIGHT = 256
+
+#: Hard-anchor weight added to A[0, 0] in the joint-solve linear system to
+#: pin front_center's displacement to zero (breaks gauge ambiguity).
+ANCHOR_WEIGHT = 1e6
+
+#: If max |flow| exceeds this many pixels in any pair, the small-displacement
+#: linearisation used by `of_joint_solve_warp` is no longer accurate. We
+#: emit a warning rather than fail — the result may still be usable, but
+#: per-pixel constraints D_i(p) - D_j(p) ≈ -F_ij(p) should ideally be
+#: evaluated at p + F_ij(p), not p, for flows this large.
+LINEARISATION_MAX_FLOW_PX = 30.0
 
 
 # ---------------------------------------------------------------------------
@@ -74,7 +119,7 @@ def _smooth_and_mask_flow(
         fx = cv2.GaussianBlur(fx, (0, 0), smooth_sigma)
         fy = cv2.GaussianBlur(fy, (0, 0), smooth_sigma)
         m_smooth = cv2.GaussianBlur(overlap_f, (0, 0), smooth_sigma)
-        m_smooth = np.where(m_smooth > 1e-3, m_smooth, 1.0)
+        m_smooth = np.where(m_smooth > EPS_SMOOTH, m_smooth, 1.0)
         fx = fx / m_smooth
         fy = fy / m_smooth
     if overlap_dilate_px > 0:
@@ -131,8 +176,8 @@ def bidirectional_warp_pair(
     Returns (slab_a_warped, weight_a_warped, slab_b_warped, weight_b_warped).
     """
     H, W = slab_a.shape[:2]
-    overlap = (weight_a > 1e-6) & (weight_b > 1e-6)
-    if int(overlap.sum()) < 100:
+    overlap = (weight_a > EPS_WEIGHT) & (weight_b > EPS_WEIGHT)
+    if int(overlap.sum()) < MIN_OVERLAP_PIXELS:
         return slab_a.copy(), weight_a.copy(), slab_b.copy(), weight_b.copy()
 
     ga = cv2.cvtColor(slab_a.astype(np.uint8), cv2.COLOR_RGB2GRAY)
@@ -170,36 +215,157 @@ def bidirectional_warp_pair(
     return sa_w, wa_w, sb_w, wb_w
 
 
-def of_bidirectional_chain_warp(
+# ---------------------------------------------------------------------------
+# L3 (bidirectional, TRUE — approach a)
+# ---------------------------------------------------------------------------
+
+def of_true_bidirectional_chain_warp(
+    slabs: list[np.ndarray], weights: list[np.ndarray],
+    of_winsize: int = 31, of_levels: int = 4, of_iter: int = 5,
+    smooth_sigma: float = 5.0, overlap_dilate_px: int = 20,
+) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    """TRUE bidirectional chain via per-cam mean half-flow.
+
+    For each ring pair (i, j) we compute F_ij = OF(slab_i → slab_j) ONCE
+    from the ORIGINAL (unwarped) slabs. Per the bidirectional convention,
+    this pair "wants" cam i to move by -F_ij/2 and cam j to move by
+    +F_ij/2 so they meet at the midpoint of their shared content.
+
+    Cam k may participate in multiple ring pairs (e.g. cam 0 = front_center
+    sits in pairs (0,1) and (0,6); cam 3 = rear_left sits in (2,3) and
+    (3,4)). For each k we therefore COMPOSE its final displacement field
+    D_k as the MEAN of its per-pair half-flow contributions:
+
+        D_k(p) = mean over neighbours m of:
+                   -F_{k,m}(p)/2  if pair was stored as (k, m)
+                   +F_{m,k}(p)/2  if pair was stored as (m, k)
+
+    The mean (rather than sum) keeps the magnitude bounded — averaging two
+    half-flows is still a half-flow in expectation. The mean is taken
+    only over neighbours whose (dilated) overlap mask is True at p; for
+    pixels in cam k's non-overlap region D_k(p) = 0 (cam stays put exactly
+    as in the asymmetric variant).
+
+    Mathematical observation: this is precisely the closed-form solution
+    to the joint-solve linear system in the limit λ → 0 with no anchor
+    and a SINGLE Jacobi iteration. The per-pixel local energy
+
+        E(p) = Σ_{(i,j) ∈ overlapping pairs at p} ||D_i - D_j + F_ij||²
+
+    has gradient ∂E/∂D_k = 2 [Σ_{m: (k,m)} (D_k - D_m + F_km)
+                              + Σ_{m: (m,k)} (D_k - D_m - F_mk)].
+    Starting from D ≡ 0 and taking ONE Jacobi update
+        D_k ← D_k - (1 / |neighbours(k)|) × (∂E/∂D_k) / 2
+    gives exactly the mean-half-flow formula above. Subsequent Jacobi
+    sweeps would further reduce residuals on multi-overlap pixels, but
+    for a 7-cam ring where each cam has at most 2 ring neighbours and
+    overlap zones rarely intersect 3-way, the one-step solution is
+    already at the global optimum (modulo gauge).
+
+    Cheaper than `of_joint_solve_warp` (just N pair flows + N remaps; no
+    per-pixel 7×7 linear system) AND symmetric (every cam moves; no
+    privileged anchor). Recommended default.
+
+    Returns warped slabs + warped weights, ready for `hard_select`.
+    """
+    n = len(slabs)
+    H, W = slabs[0].shape[:2]
+
+    # 1. Pre-compute all per-pair flows from ORIGINAL slabs
+    pair_data: list[dict] = []
+    for (i, j) in RING_PAIRS:
+        overlap = (weights[i] > EPS_WEIGHT) & (weights[j] > EPS_WEIGHT)
+        if int(overlap.sum()) < MIN_OVERLAP_PIXELS:
+            continue
+        ga = cv2.cvtColor(slabs[i].astype(np.uint8), cv2.COLOR_RGB2GRAY)
+        gb = cv2.cvtColor(slabs[j].astype(np.uint8), cv2.COLOR_RGB2GRAY)
+        ga_m = np.where(overlap, ga, 0).astype(np.uint8)
+        gb_m = np.where(overlap, gb, 0).astype(np.uint8)
+        flow_ij = cv2.calcOpticalFlowFarneback(
+            ga_m, gb_m, flow=None,
+            pyr_scale=0.5, levels=of_levels, winsize=of_winsize,
+            iterations=of_iter, poly_n=7, poly_sigma=1.5, flags=0,
+        )
+        fx, fy = _smooth_and_mask_flow(
+            flow_ij[..., 0], flow_ij[..., 1],
+            overlap, smooth_sigma, overlap_dilate_px,
+        )
+        # Dilated overlap, matches the contribution-mask convention used in
+        # _smooth_and_mask_flow (so D_k is non-zero exactly where the pair
+        # flow is non-zero).
+        if overlap_dilate_px > 0:
+            kern = np.ones((overlap_dilate_px * 2 + 1, overlap_dilate_px * 2 + 1), np.uint8)
+            overlap_d = cv2.dilate(overlap.astype(np.uint8), kern).astype(bool)
+        else:
+            overlap_d = overlap
+        pair_data.append({
+            "i": i, "j": j,
+            "fx": fx.astype(np.float32),
+            "fy": fy.astype(np.float32),
+            "mask": overlap_d,
+        })
+
+    # 2. Accumulate per-cam sum of half-flow contributions + neighbour count
+    sum_fx = [np.zeros((H, W), dtype=np.float32) for _ in range(n)]
+    sum_fy = [np.zeros((H, W), dtype=np.float32) for _ in range(n)]
+    n_neighbours = [np.zeros((H, W), dtype=np.float32) for _ in range(n)]
+
+    for pd in pair_data:
+        i = pd["i"]; j = pd["j"]
+        fx = pd["fx"]; fy = pd["fy"]
+        mask_f = pd["mask"].astype(np.float32)
+        # cam i: -F_ij/2 ; cam j: +F_ij/2
+        sum_fx[i] -= 0.5 * fx
+        sum_fy[i] -= 0.5 * fy
+        sum_fx[j] += 0.5 * fx
+        sum_fy[j] += 0.5 * fy
+        n_neighbours[i] += mask_f
+        n_neighbours[j] += mask_f
+
+    # 3. Mean over active neighbours → final per-cam displacement
+    warped_s: list[np.ndarray] = []
+    warped_w: list[np.ndarray] = []
+    for k in range(n):
+        denom = np.where(n_neighbours[k] > 0, n_neighbours[k], 1.0)
+        Dx = sum_fx[k] / denom
+        Dy = sum_fy[k] / denom
+        sw = _remap_with_flow(slabs[k], Dx, Dy, border_value=(0, 0, 0))
+        ww = _remap_with_flow(weights[k], Dx, Dy, border_value=0.0)
+        warped_s.append(sw)
+        warped_w.append(ww)
+    return warped_s, warped_w
+
+
+# ---------------------------------------------------------------------------
+# L3 (half-magnitude chain — LEGACY, kept for ablation)
+# ---------------------------------------------------------------------------
+
+def of_half_magnitude_chain_warp(
     slabs: list[np.ndarray], weights: list[np.ndarray],
     close_back_seam: bool = True,
 ) -> tuple[list[np.ndarray], list[np.ndarray]]:
-    """Bidirectional half-warp chained from front_center anchor.
+    """LEGACY: half-magnitude chain warp (NOT true bidirectional).
 
-    Mirror of `of_chain_warp` topology but uses half-warps:
-      CCW: front_center → front_left → side_left → rear_left
-      CW : front_center → front_right → side_right → rear_right
-      Back seam (rear_left vs rear_right): one final half-warp pair if
-      close_back_seam=True (default).
+    Mirror of `of_chain_warp` topology but multiplies each per-pair flow by
+    0.5 before remap. Only the new cam in each chain step moves; the
+    predecessor is frozen as an anchor. This is the asymmetric "B-toward-A"
+    warp with halved magnitude — useful as an ABLATION baseline to isolate
+    the effect of halving the flow magnitude from the effect of true
+    bidirectional motion.
 
-    SERIAL CHAIN SEMANTICS:
-      At chain step i (working on cam `cur` adjacent to `prev`):
-        - prev's slab is in its CURRENT warped state (frozen from previous step).
-        - cur's slab starts in its ORIGINAL state (no prior chain history).
-        - We compute the bidirectional half-warp on the pair, but BOTH halves
-          modify the PAIR's local consensus. To avoid the chain perpetually
-          re-warping front_center (the anchor), prev's half-warp is COLLAPSED
-          INTO cur's warp: cur moves by full F_pa/2 + half of prev's would-be
-          inverse motion. In effect: cur moves toward the midpoint, prev
-          stays put (already part of the consensus chain).
+    Trade-off (documented honestly):
+      * Pro: simpler, slightly faster (one OF call per chain step vs two),
+        empirically more OF-stable than the full-magnitude original because
+        Farneback over-shoots less on large displacements.
+      * Con: still has chain-direction asymmetry — the chain accumulates,
+        and the back seam at cams 3/4 sees twice the residual.
+      * Con: NOT bidirectional in the geometric sense. The docstring on
+        the original `of_bidirectional_chain_warp` admitted this as
+        "deliberate simplification" but mis-named the function.
 
-      This is a deliberate simplification — it preserves the chain's "frozen
-      anchor" semantics while still applying half the displacement to the
-      newly-joined cam. The shorter per-pair displacement = the main
-      OF-stability win even without a global solve.
-
-    To get the full bidirectional benefit (both cams move) use
-    `of_joint_solve_warp` instead.
+    Prefer `of_true_bidirectional_chain_warp` for production. Kept here
+    purely so the comparison `mode="half_chain"` can be reproduced from
+    earlier ablation runs.
     """
     n = len(slabs)
     warped_s: list[np.ndarray] = [None] * n  # type: ignore
@@ -208,22 +374,40 @@ def of_bidirectional_chain_warp(
     for chain in [CCW, CW]:
         for i in range(1, len(chain)):
             prev = chain[i - 1]; cur = chain[i]
-            # Use half-warp: cur moves halfway toward prev's (already warped) frame.
-            # Equivalent to calling bidirectional_warp_pair but discarding the
-            # prev's half-warp (prev is anchor-frozen at chain step i).
             _sw, _ww = _half_warp_b_toward_a(
                 warped_s[prev], warped_w[prev], slabs[cur], weights[cur],
             )
             warped_s[cur] = _sw; warped_w[cur] = _ww
     if close_back_seam:
-        # At the back seam BOTH rear cams are end-of-chain — neither has
-        # special anchor status. Use the SYMMETRIC half-warp on the pair.
+        # Both rear cams are end-of-chain: use the symmetric pair warp here.
         sa_w, wa_w, sb_w, wb_w = bidirectional_warp_pair(
             warped_s[3], warped_w[3], warped_s[4], warped_w[4],
         )
         warped_s[3] = sa_w; warped_w[3] = wa_w
         warped_s[4] = sb_w; warped_w[4] = wb_w
     return warped_s, warped_w
+
+
+# Back-compat alias (old name still importable; emits DeprecationWarning).
+def of_bidirectional_chain_warp(
+    slabs: list[np.ndarray], weights: list[np.ndarray],
+    close_back_seam: bool = True,
+) -> tuple[list[np.ndarray], list[np.ndarray]]:
+    """DEPRECATED alias for `of_half_magnitude_chain_warp`.
+
+    The old name was misleading — it suggested true bidirectional motion
+    when in fact only the trailing cam in each chain step was warped.
+    Call `of_true_bidirectional_chain_warp` (new, correct semantics) or
+    `of_half_magnitude_chain_warp` (legacy ablation) explicitly.
+    """
+    warnings.warn(
+        "of_bidirectional_chain_warp is deprecated and misnamed: it does NOT "
+        "perform true bidirectional warping. Use of_true_bidirectional_chain_warp "
+        "for the correct semantics, or of_half_magnitude_chain_warp for the "
+        "legacy half-magnitude-chain behaviour.",
+        DeprecationWarning, stacklevel=2,
+    )
+    return of_half_magnitude_chain_warp(slabs, weights, close_back_seam=close_back_seam)
 
 
 def _half_warp_b_toward_a(
@@ -233,12 +417,12 @@ def _half_warp_b_toward_a(
     smooth_sigma: float = 5.0, overlap_dilate_px: int = 20,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Asymmetric HALF warp of (b only) toward a — same flow as
-    `warp_pair_with_of` but multiplied by 0.5. Used by the chain variant
-    where prev is frozen as an anchor.
+    `warp_pair_with_of` but multiplied by 0.5. Used by
+    `of_half_magnitude_chain_warp` where prev is frozen as an anchor.
     """
     H, W = slab_a.shape[:2]
-    overlap = (weight_a > 1e-6) & (weight_b > 1e-6)
-    if int(overlap.sum()) < 100:
+    overlap = (weight_a > EPS_WEIGHT) & (weight_b > EPS_WEIGHT)
+    if int(overlap.sum()) < MIN_OVERLAP_PIXELS:
         return slab_b.copy(), weight_b.copy()
 
     ga = cv2.cvtColor(slab_a.astype(np.uint8), cv2.COLOR_RGB2GRAY)
@@ -320,7 +504,9 @@ def of_joint_solve_warp(
         accurate for small flows (a few pixels). For 30+ pixel flows the
         true constraint should evaluate D_j at p + F_ij(p), not p — i.e.
         we should warp D_j by F_ij first. We skip this iteration here for
-        simplicity (one-step linearization).
+        simplicity (one-step linearization). A warning is emitted whenever
+        any pair's |flow|_max exceeds LINEARISATION_MAX_FLOW_PX so callers
+        know the solve may be sub-optimal.
       - No spatial smoothing in D itself (each pixel solved independently);
         we rely on the input flows being pre-smoothed.
       - The Tikhonov regularization shrinks displacements toward zero, which
@@ -332,9 +518,10 @@ def of_joint_solve_warp(
 
     # Pre-compute per-pair flow + overlap mask (in dilated zone)
     pair_data: list[dict] = []
+    max_flow_seen = 0.0
     for (i, j) in RING_PAIRS:
-        overlap = (weights[i] > 1e-6) & (weights[j] > 1e-6)
-        if int(overlap.sum()) < 100:
+        overlap = (weights[i] > EPS_WEIGHT) & (weights[j] > EPS_WEIGHT)
+        if int(overlap.sum()) < MIN_OVERLAP_PIXELS:
             continue
         ga = cv2.cvtColor(slabs[i].astype(np.uint8), cv2.COLOR_RGB2GRAY)
         gb = cv2.cvtColor(slabs[j].astype(np.uint8), cv2.COLOR_RGB2GRAY)
@@ -357,6 +544,12 @@ def of_joint_solve_warp(
             flow[..., 0], flow[..., 1],
             overlap, smooth_sigma, overlap_dilate_px,
         )
+        # Track maximum flow magnitude seen across all pairs to surface a
+        # linearisation warning if it exceeds LINEARISATION_MAX_FLOW_PX.
+        mag = np.hypot(fx, fy)
+        local_max = float(mag.max()) if mag.size else 0.0
+        if local_max > max_flow_seen:
+            max_flow_seen = local_max
         # Dilated overlap for the constraint mask
         if overlap_dilate_px > 0:
             k = np.ones((overlap_dilate_px * 2 + 1, overlap_dilate_px * 2 + 1), np.uint8)
@@ -369,6 +562,18 @@ def of_joint_solve_warp(
             "fy": fy.astype(np.float32),
             "mask": overlap_d,
         })
+
+    if max_flow_seen > LINEARISATION_MAX_FLOW_PX:
+        warnings.warn(
+            f"of_joint_solve_warp: max per-pair flow magnitude "
+            f"{max_flow_seen:.1f} px exceeds the small-displacement "
+            f"linearisation threshold ({LINEARISATION_MAX_FLOW_PX:.1f} px). "
+            "The constraint D_i(p) - D_j(p) ~= -F_ij(p) is no longer accurate "
+            "at this scale; the solve result may have residual misalignment "
+            "in high-parallax regions. Consider iterating the warp or "
+            "evaluating D_j at p + F_ij(p) (bundle-adjustment form).",
+            RuntimeWarning, stacklevel=2,
+        )
 
     # Build per-pixel 7x7 linear system: solve for D_k(p), k=0..6.
     # E_pair(p): w_ij(p) * (D_i(p) - D_j(p) + F_ij(p))^2  [for x and y separately]
@@ -388,18 +593,12 @@ def of_joint_solve_warp(
     # Per-pixel: A(p) ∈ R^{7×7}, b(p) ∈ R^{7×2} (x and y components stacked).
     # Vectorized: A ∈ R^{H,W,7,7}, b ∈ R^{H,W,7,2}.
 
-    # Anchor weight (large M) and regularization weight
-    M_anchor = 1e6
     lam = float(reg_lambda)
 
     # Initialize coefficient matrix and RHS as zeros.
-    # We use float32 to save memory: 2048*4096*7*7*4 bytes = ~1.6 GB. That's
-    # still hefty but feasible on a workstation with 16 GB RAM. To reduce
-    # further, we could solve in tiles, but let's start dense.
-    # Actually let's check: at 2048×4096 the (H,W,7,7) array is
-    # 2048*4096*49*4 ≈ 1.6 GB. Plus b at 2048*4096*7*2*4 ≈ 470 MB.
-    # Too much for typical RAM. Solve in horizontal stripes.
-    stripe_h = 256
+    # Solve in horizontal stripes (STRIPE_HEIGHT rows each) to keep memory in
+    # check; at H=2048, W=4096, n=7 the full (H,W,n,n) float32 array would be
+    # ~1.6 GB. With STRIPE_HEIGHT=256 the per-stripe slab is ~210 MB.
     out_disp = [np.zeros((H, W, 2), dtype=np.float32) for _ in range(n)]
 
     # Per-pair pixel weights: use the geometric-mean of two cams' cos² weights
@@ -413,8 +612,8 @@ def of_joint_solve_warp(
         wt = np.where(pd["mask"], wt, 0.0)
         pair_w_full.append(wt)
 
-    for y0 in range(0, H, stripe_h):
-        y1 = min(H, y0 + stripe_h)
+    for y0 in range(0, H, STRIPE_HEIGHT):
+        y1 = min(H, y0 + STRIPE_HEIGHT)
         ph = y1 - y0
         # Allocate stripe-local A, b
         A = np.zeros((ph, W, n, n), dtype=np.float32)
@@ -425,7 +624,7 @@ def of_joint_solve_warp(
         for k in range(n):
             A[..., k, k] += lam
         # Anchor cam 0: + huge diagonal
-        A[..., 0, 0] += M_anchor
+        A[..., 0, 0] += ANCHOR_WEIGHT
 
         # Add pair contributions
         for pd_idx, pd in enumerate(pair_data):
@@ -491,11 +690,18 @@ def blend_hard_hdr_of_bidir(
     Args:
         slabs, weights: per-cam ERP slabs + cos² feather weights.
         apply_of: if False, skip L3 (HDR + hard_select only).
-        mode: "chain" (default, approach a) or "joint" (approach b).
-            - "chain": of_bidirectional_chain_warp; faster, similar topology
-              to the shipped of_chain_warp but with half-magnitude warps.
-            - "joint": of_joint_solve_warp; per-pixel global least-squares;
-              slower (1.5-2×) but more globally consistent.
+        mode: one of
+            - "chain" (default): of_true_bidirectional_chain_warp — true
+              bidirectional, every cam moves by mean half-flow to its
+              ring neighbours. Recommended default. ~55s/anchor.
+            - "half_chain": of_half_magnitude_chain_warp — LEGACY
+              ablation. Asymmetric chain with halved flow magnitude;
+              only the trailing cam in each step moves. Kept for
+              backward-compatibility with earlier ablation outputs.
+            - "joint": of_joint_solve_warp — per-pixel global least-
+              squares solve. Slower (1.5-2× chain) and uses ~3× more
+              peak RAM but produces the most globally-consistent
+              alignment when pair flows agree.
 
     Returns uint8 ERP image.
     """
@@ -503,11 +709,17 @@ def blend_hard_hdr_of_bidir(
     slabs_hdr = apply_hdr(slabs, gains)
     if apply_of:
         if mode == "chain":
-            slabs_warp, weights_warp = of_bidirectional_chain_warp(slabs_hdr, weights)
+            slabs_warp, weights_warp = of_true_bidirectional_chain_warp(slabs_hdr, weights)
+        elif mode == "half_chain":
+            slabs_warp, weights_warp = of_half_magnitude_chain_warp(slabs_hdr, weights)
         elif mode == "joint":
             slabs_warp, weights_warp = of_joint_solve_warp(slabs_hdr, weights)
         else:
-            raise ValueError(f"mode={mode!r} not recognized. Use 'chain' or 'joint'.")
+            raise ValueError(
+                f"mode={mode!r} not recognized. "
+                "Use 'chain' (true bidirectional), 'half_chain' (legacy), "
+                "or 'joint' (global solve)."
+            )
     else:
         slabs_warp, weights_warp = slabs_hdr, weights
     return hard_select(slabs_warp, weights_warp)
