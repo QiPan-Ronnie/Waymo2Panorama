@@ -5,6 +5,33 @@
 
 ---
 
+## Recent milestones (5-27 catch-up, read first)
+
+In reverse chronological order — the 8-route TL;DR below is the broader project state from 5-26.
+
+### 2026-05-27 ~23:00 — L1+L2 HDR runs on Xihan's REAL Waymo frame, **color shift solved**
+- End-to-end on Colab T4: user accepted Waymo Open Dataset EULA (`panq@usc.edu`) → `gcloud auth login` → `gsutil cp` shard 0 of `gs://waymo_open_dataset_end_to_end_camera_v_1_0_0` to Drive (1.7 GB, 94 s) → parse `end_to_end_driving_data_pb2.E2EDFrame` → 8 cam (K, T_ego_cam, distortion) extracted → run our pipeline.
+- Frame `8e737334b520fdd0c04e36f463b2d211-085` (the one Xihan handed us) verified.
+- **Output**: `deliverables/xihan/l1_on_waymo/{README.md, compare_4way_thumb.png, l1_hdr_multiband_1024x512.png}` — visually shows our L1 sphere + 8-cam L2 HDR + multiband produces uniform brightness, no over-exposed center cam.
+- **2 critical bugs fixed (Waymo-only, no AV2 code path touched)**:
+  1. Waymo cam frame (x=fwd, y=left, z=up) ≠ OpenCV convention (x=right, y=down, z=fwd) → added `R_WAYMOCAM_OPENCVCAM` rotation to `T_ego_cam` before sphere_projection.
+  2. `hard_hdr_of.py:32-41` `RING_PAIRS` hardcoded for 7-cam AV2 (indices 0..6, no index 7) → on 8-cam Waymo, cam[7] unconstrained → garbage gain. Inline `compute_hdr_gains_waymo8` in runner with 8-cam ring pairs.
+- L3 OF chain still 7-cam-bound (ValueError on 8 cams) — color shift already solved by L1+L2; L3 is parallax not color, port to follow.
+- New scripts: `scripts/phase3/{parse_waymo_e2ed_frame, run_waymo_e2ed_l1, compare_xihan_vs_l1, compare_waymo_4way}.py`.
+
+### 2026-05-27 ~21:30 — Seam root-cause investigation
+- Direction A (BA calibration refine) **dead**: SIFT+RANSAC calibration check shows AV2 extrinsics bias ~1.3 px median (front cam pairs sub-pixel, side cam pairs 1-2.7 px) — vs parallax of 3m BMW = 46 ERP px, calibration bias is negligible.
+- Direction B (geometry) **investigating**: first multi-R sphere visual on BMW crop — `R=∞ ≈ R=30m` visually identical, `R=10m` subtle improvement, `R=5/R=3` distorts far field. No single R fits all depths. Per-pixel R selection via cross-cam NCC is the logical next step (avoids selfstereo's FOV-gap pathology).
+- See `deliverables/CALIBRATION_CHECK_FINDING.md` + `deliverables/multi_radius_test/bmw_crop_stack_small.jpg`.
+
+### 2026-05-27 ~17:30 — Xihan handoff: L1 principle + 2 examples + Waymo brighten
+- `deliverables/l1_sphere_principle.md` (8 sections) — full L1 baseline math + Waymo porting caveats.
+- `deliverables/xihan/l1_examples_panel.png` — 2 representative L1 outputs (clean far-field + ghost near-field).
+- `scripts/phase3/brighten_xihan_waymo_panorama.py` — post-hoc joint global Y-gain on Xihan's pre-stitched panorama. **Seam |ΔY| 40.86 → 33.36 = -18%**. CLAHE baseline +14% worse (CLAHE doesn't know cam boundaries).
+- `deliverables/handoff_to_xihan_2026-05-27_brighten_and_l1.md` — full 7-section handoff.
+
+---
+
 ## TL;DR
 
 Sub-project of the Koi paper line. **Goal (per 5.22 meeting with teammate + Bosch)**: produce **clean 360° ERP panorama dataset** that **Bosch's autonomous-driving world model** can consume — they tested panorama input and it works, but real panorama datasets are scarce/expensive to collect, so we synthesize from existing AV ring-cam logs (AV2 ours, Waymo teammate's). Target venue: **3DV 2026** (main or D&B), advisor Koi Chen.

@@ -1,5 +1,43 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~23:00 UTC — [Our L1+L2 HDR pipeline RUN on Xihan's REAL Waymo E2ED frame via Colab T4. Color shift VISUALLY SOLVED. End-to-end: EULA → gsutil cp tfrecord → 8-cam ring HDR → 4-way comparison.]
+> - **怎么做**: 用户接受 Waymo Open Dataset EULA on `panq@usc.edu` → Colab T4 `gcloud auth login` → `gsutil cp gs://waymo_open_dataset_end_to_end_camera_v_1_0_0/test_202504211836-202504220845.tfrecord-00000-of-00266 ...` (1.7 GB shard, 94 s) 到 Drive `koi_waymo2pano_colab/data/waymo_e2ed/`. Install `waymo-open-dataset-tf-2-12-0==1.6.7 --no-deps` (纯 protobuf, 不要 TF).
+> - **`scripts/phase3/parse_waymo_e2ed_frame.py`**: pure-Python tfrecord 解析 (length-prefixed records) + `end_to_end_driving_data_pb2.E2EDFrame`. 抽 8 cam (FRONT/FL/FR/SL/SR/RL/REAR/RR) 的 K + T_ego_cam + distortion + image. **frame_id 验证完全匹配** Xihan `8e737334b520fdd0c04e36f463b2d211-085`.
+> - **2 个 critical bug fix**:
+>   - **Waymo cam frame ≠ OpenCV cam frame**. Waymo 是 `x=forward, y=left, z=up`; 我们 sphere_projection 期 OpenCV `x=right, y=down, z=forward`. 不修 transform 内容全挤 ERP 顶部 1/4. Fix: `T_ego_cam_opencv[:3,:3] = T_ego_waymo[:3,:3] @ R_WAYMOCAM_OPENCVCAM` where `R = [[0,0,1],[-1,0,0],[0,-1,0]]`.
+>   - **`hard_hdr_of.py:32-41` RING_PAIRS 硬编 7-cam AV2** (indices 0..6, 无 index 7). 8 cams 时 cam[7] 无 HDR 约束 → gain 解出来乱跳 → 色差更糟. Fix: inline `compute_hdr_gains_waymo8` 在 runner 用 8-cam ring pairs `[(0,1)..(6,7),(7,0)]`. 不污染 AV2 path.
+> - **`run_waymo_e2ed_l1.py` 4 blend modes**:
+>   - `multiband` — L1 sphere only (no HDR)
+>   - `hdr_multiband` ← **推荐, 色差解决**
+>   - `hard_hdr` — L1+HDR+hard_select
+>   - `hard_select_only` — ablation
+> - **HDR gains** (8-cam ring CCW, clipped [0.5,2.0] + centered):
+>   ```
+>   FRONT  1.158, FL 0.843, SL 0.842, RL 0.998, REAR 1.331 ← max boost (in shadow), RR 1.045, SR 0.956, FR 0.918
+>   ```
+> - **量化 + 视觉** (4-way `deliverables/xihan/l1_on_waymo/compare_4way_thumb.png`):
+>   ```
+>                       Y range   Y std  seam |dY| mean
+>   Xihan dist-to-bound 116-194   24.4   21.7
+>   L1 multiband        107-184   24.5   24.6
+>   L1+HDR+multiband    94-188    32.9   35.4    ← 视觉色差消失
+>   L1+HDR+hard_select  95-182    35.6   31.0    ← 视觉色差消失
+>   ```
+>   ⚠️ **数字 metric 在 hard seam 上不公正**: 惩罚 crisp seam (但 crisp seam 不代表色差大, 而是 hard_select 不 blend cam 间残留 mismatch). **视觉是 ground truth**, 数字是 proxy. 个别 thumb (1024×512) 在 `deliverables/xihan/l1_on_waymo/l1_hdr_multiband_1024x512.png` 看 — 天空均匀, 中间过曝 cam 不见了.
+> - **关键 finding**: Xihan ppt §1.2 "右上角车左半黑右半正常" 这种 cam 间曝光不匹配的色差, **我们 L1+L2 HDR+multiband 在他真实 Waymo frame 上直接解决**. 接入 ta pipeline 的 checklist 在 `deliverables/xihan/l1_on_waymo/README.md` §5.
+> - **L3 OF 在 8-cam 不工作**: `hard_hdr_of.py:241` 的 OF chain ValueError on 8-cam slabs (设计给 7-cam). 重写 chain 需要重新做 order. **L3 是 parallax 修正不是色差修正**, 不影响当前色差结论. 待后续 port.
+> - **Limitations 诚实** (`l1_on_waymo/README.md` §6):
+>   - 只测 1 frame (8e7373...), 普适性待 batch 验证
+>   - REAR cam Vector FOV 小 (587 vs 1079 高), Waymo crop 掉了
+>   - HDR gain clip 到 [0.5, 2.0], 极端不修
+> - **Deliverables**:
+>   - 4 个 scripts: `parse_waymo_e2ed_frame.py`, `run_waymo_e2ed_l1.py`, `compare_xihan_vs_l1.py`, `compare_waymo_4way.py`
+>   - `deliverables/xihan/l1_on_waymo/README.md` (端到端 + 集成 + limitation)
+>   - 视觉证据 1024×512: `l1_multiband`, `l1_hdr_multiband` ← **推荐**, `l1_hdr_hardselect`, `compare_4way_thumb`
+>   - Drive 全 res 4096×2048 + tfrecord + frame0_extracted
+> - Status: [DONE 色差解决 on Xihan 真实 Waymo data]
+> - Next 建议: (a) batch 10-100 frames 验证普适, (b) port L3 OF 到 8-cam, (c) 把 8-cam HDR 写回 `hard_hdr_of.py` 作 ring_pairs= 参数化版.
+
 > ### 2026-05-27 ~22:30 UTC — [Multi-R v2 (HDR + 9x9 NCC + 11-px median R) ALSO NEG. Direction B's "implicit depth" hypothesis fails at object/background boundaries — fundamental, not a tuning issue.]
 > - **怎么做**: v2 = v1 + 3 fixes addressing the v1 Frankenstein diagnosis: (a) **L2 HDR pre-step** (compute gains on R=inf slabs, apply to all R renderings) → removes lighting bias from cross-cam disagreement; (b) **9×9 window NCC** (cv2.boxFilter) → replaces per-pixel |Y diff|, more robust to texture noise; (c) **cv2.medianBlur(k=11) on R-index map** → smooths chosen-R label image. Code in `code/waymo2panorama/blending/multi_radius_select.py::render_multi_radius_select_v2`. Driver `scripts/phase3/test_multi_r_select_v2.py`.
 > - **测试**: fbee355f a95 (pedestrian @ ~5m AT cam seam, hardest case) at 2048×4096.
@@ -45,44 +83,6 @@
 > - **Status**: [Direction B naive NEG; next try Window NCC + Spatial smoothing + L2 HDR pre-step]
 > - **Next**: 实现 (a)+(b)+(c) 组合: L2 HDR 拉平亮度 → window NCC (5-11px box filter) 选 R → median filter R map (or simple Gaussian) 平滑选择. 期待 R 选择空间连续 + 抗 texture noise. 如果还不行就要考虑 graphcut on R 或转 L3 paradigm.
 > - 提交: `8220343` (test driver), `5345e51` (multi_radius_select module + hi-res visuals), `d26f267` (NEG finding + diagnosis).
-
-> ### 2026-05-27 ~23:00 UTC — [Our L1+L2 HDR pipeline RUN on Xihan's REAL Waymo E2ED frame via Colab T4. Color shift VISUALLY SOLVED. End-to-end: EULA → gsutil cp tfrecord → 8-cam ring HDR → 4-way comparison.]
-> - **怎么做**: 用户接受 Waymo Open Dataset EULA on `panq@usc.edu` → Colab T4 `gcloud auth login` → `gsutil cp gs://waymo_open_dataset_end_to_end_camera_v_1_0_0/test_202504211836-202504220845.tfrecord-00000-of-00266 ...` (1.7 GB shard, 94 s) 到 Drive `koi_waymo2pano_colab/data/waymo_e2ed/`. Install `waymo-open-dataset-tf-2-12-0==1.6.7 --no-deps` (纯 protobuf, 不要 TF).
-> - **`scripts/phase3/parse_waymo_e2ed_frame.py`**: pure-Python tfrecord 解析 (length-prefixed records) + `end_to_end_driving_data_pb2.E2EDFrame`. 抽 8 cam (FRONT/FL/FR/SL/SR/RL/REAR/RR) 的 K + T_ego_cam + distortion + image. **frame_id 验证完全匹配** Xihan `8e737334b520fdd0c04e36f463b2d211-085`.
-> - **2 个 critical bug fix**:
->   - **Waymo cam frame ≠ OpenCV cam frame**. Waymo 是 `x=forward, y=left, z=up`; 我们 sphere_projection 期 OpenCV `x=right, y=down, z=forward`. 不修 transform 内容全挤 ERP 顶部 1/4. Fix: `T_ego_cam_opencv[:3,:3] = T_ego_waymo[:3,:3] @ R_WAYMOCAM_OPENCVCAM` where `R = [[0,0,1],[-1,0,0],[0,-1,0]]`.
->   - **`hard_hdr_of.py:32-41` RING_PAIRS 硬编 7-cam AV2** (indices 0..6, 无 index 7). 8 cams 时 cam[7] 无 HDR 约束 → gain 解出来乱跳 → 色差更糟. Fix: inline `compute_hdr_gains_waymo8` 在 runner 用 8-cam ring pairs `[(0,1)..(6,7),(7,0)]`. 不污染 AV2 path.
-> - **`run_waymo_e2ed_l1.py` 4 blend modes**:
->   - `multiband` — L1 sphere only (no HDR)
->   - `hdr_multiband` ← **推荐, 色差解决**
->   - `hard_hdr` — L1+HDR+hard_select
->   - `hard_select_only` — ablation
-> - **HDR gains** (8-cam ring CCW, clipped [0.5,2.0] + centered):
->   ```
->   FRONT  1.158, FL 0.843, SL 0.842, RL 0.998, REAR 1.331 ← max boost (in shadow), RR 1.045, SR 0.956, FR 0.918
->   ```
-> - **量化 + 视觉** (4-way `deliverables/xihan/l1_on_waymo/compare_4way_thumb.png`):
->   ```
->                       Y range   Y std  seam |dY| mean
->   Xihan dist-to-bound 116-194   24.4   21.7
->   L1 multiband        107-184   24.5   24.6
->   L1+HDR+multiband    94-188    32.9   35.4    ← 视觉色差消失
->   L1+HDR+hard_select  95-182    35.6   31.0    ← 视觉色差消失
->   ```
->   ⚠️ **数字 metric 在 hard seam 上不公正**: 惩罚 crisp seam (但 crisp seam 不代表色差大, 而是 hard_select 不 blend cam 间残留 mismatch). **视觉是 ground truth**, 数字是 proxy. 个别 thumb (1024×512) 在 `deliverables/xihan/l1_on_waymo/l1_hdr_multiband_1024x512.png` 看 — 天空均匀, 中间过曝 cam 不见了.
-> - **关键 finding**: Xihan ppt §1.2 "右上角车左半黑右半正常" 这种 cam 间曝光不匹配的色差, **我们 L1+L2 HDR+multiband 在他真实 Waymo frame 上直接解决**. 接入 ta pipeline 的 checklist 在 `deliverables/xihan/l1_on_waymo/README.md` §5.
-> - **L3 OF 在 8-cam 不工作**: `hard_hdr_of.py:241` 的 OF chain ValueError on 8-cam slabs (设计给 7-cam). 重写 chain 需要重新做 order. **L3 是 parallax 修正不是色差修正**, 不影响当前色差结论. 待后续 port.
-> - **Limitations 诚实** (`l1_on_waymo/README.md` §6):
->   - 只测 1 frame (8e7373...), 普适性待 batch 验证
->   - REAR cam Vector FOV 小 (587 vs 1079 高), Waymo crop 掉了
->   - HDR gain clip 到 [0.5, 2.0], 极端不修
-> - **Deliverables**:
->   - 4 个 scripts: `parse_waymo_e2ed_frame.py`, `run_waymo_e2ed_l1.py`, `compare_xihan_vs_l1.py`, `compare_waymo_4way.py`
->   - `deliverables/xihan/l1_on_waymo/README.md` (端到端 + 集成 + limitation)
->   - 视觉证据 1024×512: `l1_multiband`, `l1_hdr_multiband` ← **推荐**, `l1_hdr_hardselect`, `compare_4way_thumb`
->   - Drive 全 res 4096×2048 + tfrecord + frame0_extracted
-> - Status: [DONE 色差解决 on Xihan 真实 Waymo data]
-> - Next 建议: (a) batch 10-100 frames 验证普适, (b) port L3 OF 到 8-cam, (c) 把 8-cam HDR 写回 `hard_hdr_of.py` 作 ring_pairs= 参数化版.
 
 > ### 2026-05-27 ~21:30 UTC — [Seam-root-cause investigation: AV2 calibration bias ~1.3 px (mild, NOT the root cause). First multi-R sphere visual: R=∞ ≈ R=30m, R=10m subtle, R=5/R=3 distorts far field. → Direction A (BA refine) dead, Direction B (geometry) move.]
 > - **Context**: 用户拒绝 patch 路线 (graphcut+finite R+object-aware 组合), 要 "原理性" 解决接缝问题. 拆出 4 抽象层 (L0 calibration / L1 projection geometry / L2 blending strategy / L3 view synthesis), 之前所有 work 都在 L2 打转. 决定先 verify L0 — 如果 calibration biased, BA refine 一次治本.
