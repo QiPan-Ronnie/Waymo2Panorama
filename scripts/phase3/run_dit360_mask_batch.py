@@ -15,6 +15,7 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
+from diffusers.models.attention_processor import FluxAttnProcessor2_0
 from PIL import Image
 
 
@@ -85,6 +86,15 @@ def _preserve_metrics(init: Image.Image, mask_path: Path, output: Image.Image) -
     }
 
 
+def _reset_flux_attn_processors(transformer: object) -> None:
+    """Restore vanilla Flux attention processors before DiT360 inversion."""
+    attn_procs = {}
+    for name in transformer.attn_processors.keys():
+        if name.endswith("attn.processor"):
+            attn_procs[name] = FluxAttnProcessor2_0()
+    transformer.set_attn_processor(attn_procs)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dit360-root", required=True)
@@ -141,6 +151,7 @@ def main() -> int:
         tau = float(case["tau"])
         print(f"[case {idx + 1}/{len(cases)}] {name} tau={tau} mask={mask_path}", flush=True)
 
+        _reset_flux_attn_processors(pipe.transformer)
         mask = create_mask(str(mask_path), latent_w, latent_h).float()
         mask = torch.cat([mask[:, 0:1], mask, mask[:, -1:]], dim=-1).view(-1, 1)
 
