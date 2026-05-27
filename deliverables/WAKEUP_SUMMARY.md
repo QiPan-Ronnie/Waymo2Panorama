@@ -46,18 +46,41 @@ Here's where we are now.
 | Bosch v2 panoramas | `outputs/phase3/full_pipeline_v2/` (on Drive, rendering) |
 | All N1 NEG history | `deliverables/N1_AUTONOMOUS_RUN_SUMMARY.md` |
 
-## What's running NOW (user is out, T4 stays open)
+## All algorithm work DONE (user was out, T4 was utilized)
 
-- ✅ **v1 5-log render DONE** (160 panoramas in `outputs/phase3/full_pipeline_v1/`)
-- ✅ **Final preview grid** (`deliverables/bosch_preview_final.png` — 15 side-by-side rows, 5 logs × 3 anchors)
-- ✅ **YOLO scoring** (`deliverables/yolo_scores.json`)
-- ✅ **Chroma correction Improvement A shipped** (`hard_hdr_of_chroma.py`)
-- 🔄 **4 algorithm subagents in flight** (Opus max effort, divergent thinking):
-  - **B Graphcut smart seam** (cv2.detail.SeamFinder for content-aware seam routing)
-  - **F Self-stereo from 2-cam pair** (derive depth from cam-pair disparity, no external depth needed)
-  - **G Frequency-band hybrid** (low-freq blend + high-freq hard select — multiband's smoothness + hard_select's sharpness)
-  - **H Bidirectional half-warp OF** (both cams meet at midpoint instead of B→A)
-- 🔄 More divergent ideas queued if time permits
+**5 algorithm variants implemented + reviewed + tested + shipped to main:**
+
+| # | Variant | Module | Status | Insight |
+|---|---|---|---|---|
+| A | Chroma correction | `hard_hdr_of_chroma.py` | ✅ Reviewed+Fixed | Tikhonov + outlier reject, +1.0s |
+| B | Graphcut smart seam | `hard_hdr_of_graphcut.py` | ✅ Approved | cv2.detail.GraphCutSeamFinder on ±30px band, +1.4s |
+| F | Self-stereo from 2-cam | `hard_hdr_of_selfstereo.py` | ✅ NEG (valuable) | Math works, but N1 FOV-gap pathology → BMW coverage 98.7%→62.1% → black holes |
+| G | Freq-band hybrid | `hard_hdr_of_freqhybrid.py` | ✅ Approved | Low-freq blend + high-freq hard select, ~37s |
+| H | Bidir true chain + joint | `hard_hdr_of_bidir.py` | ✅ Reviewed+Fixed | True bidir via mean half-flow (single Jacobi iter of joint solve) |
+
+**+2 new metrics + 1 wrap-up artifact**:
+- Doubled-pair YOLO metric (NEG: scales with detection count, doesn't isolate ghosts)
+- All-variants A/B panel: `deliverables/all_variants_bmw.png` — 7 pipelines stacked
+- `deliverables/ALGORITHM_VARIANTS_SUMMARY.md` — comprehensive catalog
+
+**Cross-log seam-gap result (definitive)**:
+| log | scene | raw ΔY | v2 ΔY | improvement |
+|---|---|---|---|---|
+| 02a00399 | quiet residential | 23.8 | 20.5 | -13.4% (easiest) |
+| 0bae3b5e | busy urban | 24.5 | 17.2 | -29.7% |
+| 2c652f9e | intersection | 43.9 | 21.0 | -52.2% |
+| 9f871fb4 | highway | 32.9 | 21.0 | -36.4% |
+| fbee355f | parking garage | 34.8 | 15.1 | -56.9% (hardest, biggest win) |
+| **mean** | | **31.97** | **18.94** | **-37.7%** |
+
+**Per-variant runtimes @ 2048x4096 (T4)**:
+- Multiband baseline: 3.6s
+- L1 hard_select only: 1.3s
+- L1+L2+L3 SHIPPED: 36.0s
+- +A chroma: 37.0s (+1.0s)
+- +B graphcut: 35.9s (basically free)
+- +G freqhybrid: 37.1s
+- +H bidir: 36.7s
 
 ## YOLO panorama finding (160 panoramas)
 
@@ -88,12 +111,12 @@ Here's where we are now.
 
 ## Suggested next-steps (in order)
 
-1. **Eyeball v1 vs v2 5-log panoramas** when both finish — confirm v2 is the keeper
-2. **Run YOLO ghost scoring** on the new pipeline outputs (we have YOLO v2 scorer from before)
-3. **Pick best 7-20 panoramas across logs** for Bosch deliverable
-4. **Improvement C** (per-channel chroma in YCrCb) — last 10% of polish, see paper outline
-5. **Write paper sections 1, 2, 5, 6** (intro, related work, discussion, conclusion)
-6. **Brown-Lowe SIFT alternative** for L3 as a robustness ablation
+1. **Visual inspect `deliverables/all_variants_bmw.png`** to pick the keeper variant. At thumbnail they look near-identical; pixel zoom on specific seams (BMW front-right edge, lane line continuity around the front-center seam) will show real differences.
+2. **If a variant clearly wins**: re-run 5-log render with that variant as default (~2 hr)
+3. **If happy with L1+L2+L3**: ship the existing 160 panoramas as final Bosch deliverable
+4. **Build a better ghost metric**: per-pixel cross-correlation in overlap zones (current YOLO metrics are unsuitable — documented in `deliverables/doubled_metric_negative_finding.md`)
+5. **Paper figure prep**: pixel-level zooms of BMW + Porsche regions for the 7-way comparison panel
+6. **Write paper sections 1, 2, 5, 6** (intro, related work, discussion, conclusion) — drafts in `agent/paper_*.md`
 
 ## Things I considered but didn't do
 
