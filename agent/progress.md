@@ -1,5 +1,30 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~22:30 UTC — [Multi-R v2 (HDR + 9x9 NCC + 11-px median R) ALSO NEG. Direction B's "implicit depth" hypothesis fails at object/background boundaries — fundamental, not a tuning issue.]
+> - **怎么做**: v2 = v1 + 3 fixes addressing the v1 Frankenstein diagnosis: (a) **L2 HDR pre-step** (compute gains on R=inf slabs, apply to all R renderings) → removes lighting bias from cross-cam disagreement; (b) **9×9 window NCC** (cv2.boxFilter) → replaces per-pixel |Y diff|, more robust to texture noise; (c) **cv2.medianBlur(k=11) on R-index map** → smooths chosen-R label image. Code in `code/waymo2panorama/blending/multi_radius_select.py::render_multi_radius_select_v2`. Driver `scripts/phase3/test_multi_r_select_v2.py`.
+> - **测试**: fbee355f a95 (pedestrian @ ~5m AT cam seam, hardest case) at 2048×4096.
+> - **结果 (`deliverables/multi_r_select_v2/fbee355f_a095_v2_bmw_crop_q85.jpg`)**:
+>   - v2 R-index 比 v1 spatial 更连贯 (median filter 起作用了)
+>   - 但 v2 pedestrian 仍然 visibly **doubled** — 比 v1 略好但**仍然 worse than L1 hard_select (R=inf)**
+>   - **NEG 没修, fundamental issue 不是 noise/smoothing 问题**
+> - **Fundamental diagnosis** (深 insight):
+>   - 在 object boundary, **foreground (pedestrian @ 5m) wants R=5m, background just behind (@ 30m) wants R=30m**
+>   - Per-pixel argmin (即使加 smoothing) 在 boundary 上快速切换两个 R
+>   - 复合时: cam_A 的 R=5m slab 拼 cam_B 的 R=30m slab → boundary 像素来自不同 R → Frankenstein
+>   - **criterion (minimize cross-cam disagreement) 在原理上对**; 但 **execution (per-pixel selection without object-level coherence)** 不行
+> - **真正 fix 需要** (4 个路径, 都 substantial):
+>   - **(MRF graphcut)** on R label map with smoothness penalty weighted by image edges — proper energy minimization, 但 cv2 没 multi-label graphcut, 需要 pymaxflow/maxflow lib + 自己 design energy
+>   - **(Object-aware)** segmentation (SAM/YOLO) + per-segment R — 需要 segmentation 模型 + 大物体内 R 一致
+>   - **(Bilateral filter)** on R map (edge-aware smoothing) — cv2.bilateralFilter 应该能用, 比 graphcut 简单很多 (~半小时实现)
+>   - **(Stereo matching proper)** — disparity per pixel via SGBM/RAFT-Stereo with smoothness, 等价于回 L3 用 explicit depth
+> - **综合 verdict (重要)**: Direction B "implicit depth via per-pixel argmin" = NEG. 要让它 work 需要 MRF 或 segmentation, 都不 trivial. **Direction A 之前 dead (calibration 1.3px), Direction B naive 也 dead**. 剩下:
+>   - (B') 试 bilateral / MRF / segmentation 三个 substantial fix 之一 (半天到 1 天)
+>   - (C) "Impossibility framing" paper angle: 数学上证明无 depth 不可能完美 panorama → 转去做 "minimize visible artifact" framework (graphcut routing + L2 HDR + L3 OF tail) + ghost confidence map. **honest paper angle**, 不需要 hero method.
+>   - (D) 接受 L1+L2+L3 hard_hdr_of 作 production, refine A+B combined, ship to Bosch. **pragmatic exit**.
+> - **Status**: [Direction B naive NEG; deciding among (B') deep fix vs (C) paper-pivot vs (D) ship]
+> - **Next**: 跟用户 sync 这个 finding 后再决定方向. v2 比 v1 marginal 提升 (HDR pre+medR 起作用), 但 fundamental boundary-coherence issue 没法用 per-pixel + smoothing 解决.
+> - 提交: `eb0edef` (v2 implementation), `7ff7ab1` (v2 NEG finding).
+
 > ### 2026-05-27 ~22:00 UTC — [Multi-R per-pixel selection: NEG on objects in seams. Spatial incoherence kills it. Direction B needs window-NCC + smoothness regularization.]
 > - **怎么做**: 上一 entry 拒绝 patch 路线, 决定走"原理性". 已确认 L0 calibration 不是 root cause (~1.3 px bias, 详上 entry). 转 L1 geometry — 实现 per-pixel R selection (implicit depth via cross-cam disagreement). `code/waymo2panorama/blending/multi_radius_select.py` + `scripts/phase3/test_multi_r_select.py`. 渲 5 R 值 (inf/30/10/5/3) × 7 cams 到 ERP, per-pixel argmin(|Y_topA - Y_topB|) 选 R, 然后 hard_select or weighted blend top2 cams at chosen R. Fallback inf on non-overlap + both-cam-invalid pixels.
 > - **测试 anchor**: 02a00399 a0 (BMW @ ~4m, BMW 在 front_center cam 内部) + fbee355f a95 (column @ ~2.5m + pedestrian @ ~5m at cam seam). 2048×4096 ERP.
