@@ -172,9 +172,10 @@ def _dijkstra_seam_fallback(
         v_end = int(valid_rows[-1])
         u_end = int(np.argmin(dp[v_end]))
         seam_col[v_end] = u_end
-        # back trace upward
+        # back trace upward; par[v, u] = column offset (-1, 0, +1) leading to
+        # the parent on row v-1
         for v in range(v_end, 0, -1):
-            u_end = u_end + int(par[v])
+            u_end = u_end + int(par[v, u_end])
             u_end = max(0, min(w - 1, u_end))
             seam_col[v - 1] = u_end
         # forward fill for rows after v_end (no overlap there) using last seam col
