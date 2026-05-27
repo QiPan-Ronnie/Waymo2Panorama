@@ -1,13 +1,13 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-27 (Doc consolidation: 10 finding mds archived to `deliverables/archived/`, 37 research notes archived to `notes/archived/`, paper drafts moved to `paper/`. Only `agent/{handoff,progress,README}.md` are living docs. Prior: seam-root-cause investigation (calibration 1.3 px not root cause, multi-R per-pixel v1+v2 NEG due to object-boundary incoherence) + Xihan Waymo E2ED L1+L2 HDR (color shift visually solved on `8e737334b...`) + hard_hdr_of NCC +25.3%.)
+**Updated**: 2026-05-27 (Latest: seam-first local ECC alignment implemented and tested on 3 AV2 anchors; MIXED / weak NEG. Safer than full-image OF but not better than L1 hard_select. Prior: doc consolidation; seam-root-cause investigation; Xihan Waymo E2ED L1+L2 HDR color shift solved; hard_hdr_of NCC +25.3% but visually risky on near-field large objects.)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
 
 ---
 
-## 🎯 LATEST FINDING (2026-05-27 ~22:30 UTC) — read this FIRST
+## 🎯 LATEST FINDING (2026-05-27) — read this FIRST
 
-**4 layers of "no-depth" seam fixes all tested, all NEG. Empirically confirms that without explicit depth (NeRF/3DGS excluded by user), perfect panorama is impossible for AV ring cam.**
+**5 layers of "no-depth / no-DL" seam fixes tested. Seam-local alignment is safer than full OF, but still does not beat L1 hard_select. This reinforces the current framing: without explicit depth or object/label coherence, perfect AV ring-camera panorama is impossible.**
 
 | # | Method | Result |
 |---|---|---|
@@ -15,17 +15,18 @@
 | 2 | L1 — Single fixed sphere R={∞,30,10,5,3} m | ❌ Trade-off, no R fits all depths (Δ = baseline/R - baseline/D) |
 | 3 | L1 — Multi-R per-pixel v1 (Y-diff argmin) | ❌ Frankenstein doubling at object boundaries (pedestrian) |
 | 4 | L1 — Multi-R per-pixel v2 (HDR + 9×9 NCC + 11px median R) | ❌ Marginally better than v1, still doubled, worse than L1 hard_select |
+| 5 | L2 — Seam-first local ECC alignment on hard_select | ⚠️ MIXED / weak NEG. No BMW fragmentation, but no clear visual improvement over hard_select |
 
 **Fundamental diagnosis**: at object/background boundary, foreground (5m) wants R=5m, background (30m) wants R=30m. Per-pixel argmin switches rapidly even with smoothing → cam_A's R=5m slab + cam_B's R=30m slab composited = Frankenstein. **Criterion right, execution can't enforce object-level coherence.**
 
-**Current ship (production-ready)**: `code/waymo2panorama/blending/hard_hdr_of.py` — L1 hard_select + L2 joint HDR + L3 Farneback OF. Quantitative: **+25.3% NCC**, **-37.7% seam-gap ΔY mean** across 5 logs. 160 panoramas rendered to Drive `outputs/phase3/full_pipeline_v1/`.
+**Current safest visual baseline**: L1 `hard_select` on AV2 raw. It removes multiband ghost/halo and avoids near-field OF fragmentation. `hard_hdr_of.py` remains an important ablation (+25.3% NCC, -37.7% seam-gap ΔY mean across 5 logs), but do **not** call it unconditional production default after the user visually rejected OF on the BMW near-field case. HDR and OF/local-align should be optional ablations.
 
-**3 paths user is deciding among**:
-- **(B') Substantial fix** (½–1 day) — MRF/graphcut on R label map, or SAM segmentation, or bilateral filter on R map. cv2 lacks multi-label graphcut, would need pymaxflow.
-- **(C) Paper pivot to "impossibility framing"** (2–3 hr) — 4 NEG layers as evidence; write paper around mathematical impossibility + artifact-minimization framework (hard_select + L2 HDR + smart seam routing + ghost-confidence map).
-- **(D) Ship as-is** (minutes) — current hard_hdr_of is the best basic-CV pipeline; deliver to Bosch.
+**3 paths from here**:
+- **Seam routing / label coherence** — keep hard selection, but optimize where the seam passes; this is the most promising no-DL 2D path.
+- **Paper pivot to "impossibility framing"** — use calibration / fixed-R / multi-R / local-align NEG evidence to argue no-depth panorama has a ceiling, then propose artifact minimization and confidence maps.
+- **Ship hard_select-first baseline** — deliver AV2 raw L1 hard_select (+ optional Y-only HDR where color shift matters) as the conservative Bosch-facing baseline.
 
-**Full details**: `agent/progress.md` top 3 entries (21:30 / 22:00 / 22:30 UTC) + §"Recent milestones" below.
+**Full details**: `agent/progress.md` top entries + `deliverables/seam_local_align/three_anchor_v1/`.
 
 ---
 

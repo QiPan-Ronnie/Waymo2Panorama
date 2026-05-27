@@ -1,0 +1,364 @@
+{
+  "log_short": "fbee355f",
+  "anchor_idx": 95,
+  "erp_hw": [
+    2048,
+    4096
+  ],
+  "params": {
+    "band_half_width": 48,
+    "tile_hw": [
+      128,
+      96
+    ],
+    "stride_hw": [
+      64,
+      48
+    ],
+    "max_dx": 24,
+    "max_dy": 8,
+    "min_ncc_gain": 0.03,
+    "ncc_win": 9,
+    "save_full": false
+  },
+  "runtime_s": {
+    "multiband": 3.343,
+    "hard_select": 1.261,
+    "hard_hdr": 2.582,
+    "hard_localalign": 12.673,
+    "hard_hdr_localalign": 13.838,
+    "hard_hdr_of": 33.922
+  },
+  "hard_localalign": {
+    "pairs": [
+      {
+        "total_tiles": 8,
+        "accepted_tiles": 7,
+        "rejected_tiles": 1,
+        "rejection_reasons": {
+          "accepted": 7,
+          "low_ncc_gain": 1
+        },
+        "median_dx": -3.0,
+        "median_dy": -1.0,
+        "mean_ncc_before": 0.35669848357792944,
+        "mean_ncc_after": 0.6254904177039862,
+        "band_pixels": 31706,
+        "wraps": false,
+        "pair": [
+          0,
+          1
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 5,
+        "rejected_tiles": 9,
+        "rejection_reasons": {
+          "accepted": 5,
+          "low_ncc_gain": 9
+        },
+        "median_dx": 1.0,
+        "median_dy": -1.0,
+        "mean_ncc_before": 0.7979222195489066,
+        "mean_ncc_after": 0.8544221903596606,
+        "band_pixels": 46874,
+        "wraps": false,
+        "pair": [
+          1,
+          2
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 11,
+        "rejected_tiles": 3,
+        "rejection_reasons": {
+          "accepted": 11,
+          "low_ncc_gain": 3
+        },
+        "median_dx": -3.0,
+        "median_dy": 2.0,
+        "mean_ncc_before": 0.45840361607926233,
+        "mean_ncc_after": 0.5641290630613055,
+        "band_pixels": 44151,
+        "wraps": false,
+        "pair": [
+          2,
+          3
+        ]
+      },
+      {
+        "total_tiles": 8,
+        "accepted_tiles": 5,
+        "rejected_tiles": 3,
+        "rejection_reasons": {
+          "accepted": 5,
+          "low_ncc_gain": 3
+        },
+        "median_dx": 5.0,
+        "median_dy": -1.0,
+        "mean_ncc_before": 0.4101178520359099,
+        "mean_ncc_after": 0.546848641242832,
+        "band_pixels": 31048,
+        "wraps": false,
+        "pair": [
+          0,
+          6
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 10,
+        "rejected_tiles": 4,
+        "rejection_reasons": {
+          "accepted": 10,
+          "low_ncc_gain": 4
+        },
+        "median_dx": 3.0,
+        "median_dy": -0.5,
+        "mean_ncc_before": 0.4628060848585197,
+        "mean_ncc_after": 0.5227464277829442,
+        "band_pixels": 47191,
+        "wraps": false,
+        "pair": [
+          6,
+          5
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 14,
+        "rejected_tiles": 0,
+        "rejection_reasons": {
+          "accepted": 14
+        },
+        "median_dx": 0.5,
+        "median_dy": -1.0,
+        "mean_ncc_before": 0.7329599410295486,
+        "mean_ncc_after": 0.7892322753156934,
+        "band_pixels": 43591,
+        "wraps": false,
+        "pair": [
+          5,
+          4
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 8,
+        "rejected_tiles": 6,
+        "rejection_reasons": {
+          "low_ncc_gain": 6,
+          "accepted": 8
+        },
+        "median_dx": -1.0,
+        "median_dy": 1.0,
+        "mean_ncc_before": 0.7775306637798037,
+        "mean_ncc_after": 0.8448260383946555,
+        "band_pixels": 48144,
+        "wraps": true,
+        "pair": [
+          3,
+          4
+        ]
+      }
+    ],
+    "accepted_tiles": 60,
+    "total_tiles": 86,
+    "hdr_gains": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "hard_hdr_localalign": {
+    "pairs": [
+      {
+        "total_tiles": 8,
+        "accepted_tiles": 7,
+        "rejected_tiles": 1,
+        "rejection_reasons": {
+          "accepted": 7,
+          "low_ncc_gain": 1
+        },
+        "median_dx": -3.0,
+        "median_dy": -1.0,
+        "mean_ncc_before": 0.3561718243872747,
+        "mean_ncc_after": 0.6253075208514929,
+        "band_pixels": 31706,
+        "wraps": false,
+        "pair": [
+          0,
+          1
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 5,
+        "rejected_tiles": 9,
+        "rejection_reasons": {
+          "accepted": 5,
+          "low_ncc_gain": 9
+        },
+        "median_dx": 1.0,
+        "median_dy": -1.0,
+        "mean_ncc_before": 0.7977123856544495,
+        "mean_ncc_after": 0.8544979989528656,
+        "band_pixels": 46874,
+        "wraps": false,
+        "pair": [
+          1,
+          2
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 11,
+        "rejected_tiles": 3,
+        "rejection_reasons": {
+          "accepted": 11,
+          "low_ncc_gain": 3
+        },
+        "median_dx": -3.0,
+        "median_dy": 2.0,
+        "mean_ncc_before": 0.45793130674532484,
+        "mean_ncc_after": 0.5635857049907956,
+        "band_pixels": 44151,
+        "wraps": false,
+        "pair": [
+          2,
+          3
+        ]
+      },
+      {
+        "total_tiles": 8,
+        "accepted_tiles": 5,
+        "rejected_tiles": 3,
+        "rejection_reasons": {
+          "accepted": 5,
+          "low_ncc_gain": 3
+        },
+        "median_dx": 5.0,
+        "median_dy": -1.0,
+        "mean_ncc_before": 0.40830261167138815,
+        "mean_ncc_after": 0.5420428207144141,
+        "band_pixels": 31048,
+        "wraps": false,
+        "pair": [
+          0,
+          6
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 9,
+        "rejected_tiles": 5,
+        "rejection_reasons": {
+          "accepted": 9,
+          "low_ncc_gain": 5
+        },
+        "median_dx": 3.0,
+        "median_dy": -1.0,
+        "mean_ncc_before": 0.4671025520988873,
+        "mean_ncc_after": 0.5216936687273639,
+        "band_pixels": 47191,
+        "wraps": false,
+        "pair": [
+          6,
+          5
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 14,
+        "rejected_tiles": 0,
+        "rejection_reasons": {
+          "accepted": 14
+        },
+        "median_dx": 0.5,
+        "median_dy": -1.0,
+        "mean_ncc_before": 0.732344354901995,
+        "mean_ncc_after": 0.7890330489192691,
+        "band_pixels": 43591,
+        "wraps": false,
+        "pair": [
+          5,
+          4
+        ]
+      },
+      {
+        "total_tiles": 14,
+        "accepted_tiles": 8,
+        "rejected_tiles": 6,
+        "rejection_reasons": {
+          "low_ncc_gain": 6,
+          "accepted": 8
+        },
+        "median_dx": -1.0,
+        "median_dy": 1.0,
+        "mean_ncc_before": 0.7788844364030021,
+        "mean_ncc_after": 0.8464660623243877,
+        "band_pixels": 48144,
+        "wraps": true,
+        "pair": [
+          3,
+          4
+        ]
+      }
+    ],
+    "accepted_tiles": 59,
+    "total_tiles": 86,
+    "hdr_gains": [
+      1.408373753170726,
+      0.6703213451238853,
+      0.6134904781846824,
+      1.0031167533541514,
+      1.1467536798041391,
+      1.094219381072947,
+      1.3717190584478098
+    ]
+  },
+  "overlap_ncc": {
+    "multiband": {
+      "total_overlap_px": 351034,
+      "mean_ncc_pano_vs_winner": 0.6646099208795883,
+      "mean_ncc_winner_vs_loser": 0.13690932549692986,
+      "mean_ssd_pano_vs_winner": 447.1966145203335
+    },
+    "hard_select": {
+      "total_overlap_px": 351034,
+      "mean_ncc_pano_vs_winner": 0.9819510615600342,
+      "mean_ncc_winner_vs_loser": 0.13690932549692986,
+      "mean_ssd_pano_vs_winner": 0.0
+    },
+    "hard_hdr": {
+      "total_overlap_px": 351034,
+      "mean_ncc_pano_vs_winner": 0.9431957107183353,
+      "mean_ncc_winner_vs_loser": 0.13690932549692986,
+      "mean_ssd_pano_vs_winner": 667.5157408818102
+    },
+    "hard_localalign": {
+      "total_overlap_px": 351034,
+      "mean_ncc_pano_vs_winner": 0.9134322081054498,
+      "mean_ncc_winner_vs_loser": 0.13690932549692986,
+      "mean_ssd_pano_vs_winner": 83.79931476354481
+    },
+    "hard_hdr_localalign": {
+      "total_overlap_px": 351034,
+      "mean_ncc_pano_vs_winner": 0.8753708079964553,
+      "mean_ncc_winner_vs_loser": 0.13690932549692986,
+      "mean_ssd_pano_vs_winner": 748.9573575149279
+    },
+    "hard_hdr_of": {
+      "total_overlap_px": 351034,
+      "mean_ncc_pano_vs_winner": 0.7932483581337552,
+      "mean_ncc_winner_vs_loser": 0.13690932549692986,
+      "mean_ssd_pano_vs_winner": 854.1037858267208
+    }
+  }
+}

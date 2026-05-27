@@ -1,5 +1,44 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~12:20 UTC — [Seam-first local alignment implemented + Colab 3-anchor validation: MIXED / weak NEG. Safer than full-image OF, but does not beat L1 hard_select visually or by current NCC proxy.]
+> - **目的**: 继续榨干 no-DL / basic-CV seam 修复，在 `L1 hard_select` 上只对接缝附近的小 patch 做局部平移对齐，避免 full-image Farneback OF 把近场 BMW/地面扭碎。
+> - **方法**: 新增 `code/waymo2panorama/blending/seam_local_align.py`。流程是: L1 ERP slabs + weights → 找 adjacent camera pair 的 hard-select boundary → seam band 内按 tile 做 OpenCV ECC translation → `max_dx/max_dy + min_ncc_gain` gate reject unstable tile → seam 附近 tapered local displacement → final 仍然 hard-select 单 camera 像素。新增 blend modes:
+>   - `hard_localalign`: hard_select + seam-local alignment, no HDR
+>   - `hard_hdr_localalign`: centered Y-only HDR + seam-local alignment + hard_select
+> - **driver**: `scripts/phase3/test_seam_local_align.py` compares `multiband`, `hard_select`, `hard_hdr`, `hard_localalign`, `hard_hdr_localalign`, `hard_hdr_of`; default 不保存 full ERP，只保存 review thumbnails/crops + diagnostics JSON，避免 GitHub bloat。`--save-full` 才保存完整 ERP。
+> - **本地验证**: `python -m pytest code/waymo2panorama/blending/__test_seam_local_align.py -q` → 3 passed。Colab 同步到 `80ea7cf` 后同一测试也 3 passed。
+> - **Colab validation**: current `agent-colab-direct` T4 via raw HTTP `/exec`，full-res `2048×4096`，3 anchors:
+>   ```text
+>   02a00399 anchor 0   BMW case
+>   fbee355f anchor 95  pedestrian/object seam case
+>   0bae3b5e anchor 30  clean far-field anchor
+>   params: band_half_width=48, tile=128x96, stride=64x48, max_dx=24, max_dy=8, min_ncc_gain=0.03, ncc_win=9
+>   ```
+> - **tile diagnostics**:
+>   ```text
+>   02a00399 a000: hard_localalign accepted 54/86 tiles; hard_hdr_localalign 54/86
+>   fbee355f a095: hard_localalign accepted 60/86 tiles; hard_hdr_localalign 59/86
+>   0bae3b5e a030: hard_localalign accepted 64/86 tiles; hard_hdr_localalign 64/86
+>   ```
+> - **overlap NCC vs hard-select winning slab** (higher is closer to winner; this metric favors hard_select by construction, so use as artifact penalty, not final truth):
+>   ```text
+>                  02a00399 a000   fbee355f a095   0bae3b5e a030
+>   multiband          0.6189          0.6646          0.6613
+>   hard_select        0.9892          0.9820          0.9831
+>   hard_hdr           0.9591          0.9432          0.9621
+>   hard_localalign    0.9008          0.9134          0.8894
+>   hdr_localalign     0.8741          0.8754          0.8674
+>   hard_hdr_of        0.7926          0.7932          0.7874
+>   ```
+> - **视觉 verdict**:
+>   - BMW crop: `hard_localalign` 没有 full OF 那种 BMW fragmentation，也没有明显新增 ghost；但它没有清楚修掉 `hard_select` 剩下的几何接缝，视觉上不优于 hard_select。
+>   - fbee 行人/物体 crop: 没有把行人/路面切坏，但接缝错位也基本没被消掉。
+>   - clean far-field thumb: 未见大范围扭曲；HDR variants 仍有明显 tone 改变，符合用户担心“改变原图色差”的问题。
+> - **artifact evidence committed**: `deliverables/seam_local_align/three_anchor_v1/` contains 3 diagnostics JSON + 4 review JPGs (`02a00399` thumb/BMW crop, `fbee355f` ped crop, `0bae3b5e` clean thumb). Drive review folder: `seam_local_align_review_v1`.
+> - **结论**: [MIXED / weak NEG] Seam-local ECC alignment is a safer ablation than dense OF, but it is not a new default. It confirms a useful ceiling: small 2D translation around seam can improve local NCC inside tiles, but cannot fundamentally resolve different-depth geometry at the seam. Current safest no-DL visual baseline remains **L1 hard_select**; HDR and OF/local-align should be optional ablations, not forced defaults.
+> - **Next**: if we keep no-DL, the next 2D direction should be seam selection/routing or coherence constraints, not more local warping. In other words: pick a less visible seam, or explicitly model label coherence; do not expect local ECC to “correct” multi-depth parallax.
+> - 提交: `d37463c` (blend mode + tests + driver), `48225ed` (NCC diagnostics), `80ea7cf` (artifact-size gate).
+
 > ### 2026-05-27 ~23:30 UTC — [Waymo L1+HDR pipeline GENERALIZATION verified: 5/5 frames (5 different driving segments incl 2 nighttime) all color-shift-fixed. Plus input-vs-output panel for visual inspection.]
 > - **目的**: 用户要求验证 (a) 看原图 vs 拼接的对比, (b) 多跑几帧看 pipeline 是否普适, 不是 frame 0 偶然.
 > - **做了什么**:
