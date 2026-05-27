@@ -47,6 +47,7 @@ RING_PAIRS = [
 
 def compute_hdr_gains(
     slabs: list[np.ndarray], weights: list[np.ndarray],
+    centered: bool = True,
 ) -> list[float]:
     """Joint global least-squares solve for per-cam luminance gain.
 
@@ -55,7 +56,13 @@ def compute_hdr_gains(
     i.e. matched brightness in overlap zone. Anchor: log(g_0) = 0.
     Solve over all 7 ring pairs (incl back seam) via lstsq — no chain drift.
 
-    Returns 7 scalar gains. gains[0] = 1.0 (anchor=front_center).
+    `centered`: if True (default), shift log-gains so their mean = 0 (geometric
+    mean of gains = 1.0). This avoids over-amplification when the natural
+    anchor (front_center) happens to be in shadow — without centering, all
+    other cams would get gain > 1 and risk clipping. With centering, gains
+    spread symmetrically around 1.0 regardless of anchor brightness.
+
+    Returns 7 scalar gains.
     """
     n = len(slabs)
     A_rows: list[np.ndarray] = []
@@ -77,6 +84,8 @@ def compute_hdr_gains(
 
     A = np.array(A_rows); b = np.array(b_rows)
     log_g, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
+    if centered:
+        log_g = log_g - log_g.mean()
     gains = np.exp(log_g)
     gains = np.clip(gains, 0.5, 2.0)
     return list(gains)
@@ -157,13 +166,16 @@ def warp_pair_with_of(
 
 def of_chain_warp(
     slabs: list[np.ndarray], weights: list[np.ndarray],
+    close_back_seam: bool = True,
 ) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """Chain Farneback OF warps two ways from front_center anchor.
 
     CCW: front_center → front_left → side_left → rear_left
     CW : front_center → front_right → side_right → rear_right
-    Back seam (rear_left vs rear_right) is left to whatever residual drift
-    the two chains produce (typically a few pixels — small after HDR norm).
+    Back seam (rear_left vs rear_right): if close_back_seam=True (default),
+    one more OF warp aligns rear_right (CW-warped) to rear_left (CCW-warped)
+    in their back-seam overlap. This closes the OF loop and prevents residual
+    drift at the back of the panorama.
     """
     n = len(slabs)
     warped_s: list[np.ndarray] = [None] * n  # type: ignore
@@ -176,6 +188,11 @@ def of_chain_warp(
                 warped_s[prev], warped_w[prev], slabs[cur], weights[cur]
             )
             warped_s[cur] = sw; warped_w[cur] = ww
+    if close_back_seam:
+        sw, ww = warp_pair_with_of(
+            warped_s[3], warped_w[3], warped_s[4], warped_w[4]
+        )
+        warped_s[4] = sw; warped_w[4] = ww
     return warped_s, warped_w
 
 
