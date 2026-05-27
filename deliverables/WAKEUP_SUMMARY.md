@@ -18,10 +18,10 @@ Here's where we are now.
   (rear_right → rear_left). Eliminates residual drift at the panorama back.
 
 **Running in background** (will finish before you wake or soon after):
-1. v1 5-log render (stride 10, hard_hdr_of as you approved) — ~40 min remaining
-2. Multiband baseline render (same anchors, for preview grid comparison)
-3. Seam-gap metric across all 5 logs (paper number)
-4. v2 5-log render (with centered + back-seam improvements) — ~95 min remaining
+1. v1 5-log render (stride 10, hard_hdr_of as you approved) — ~60 min remaining (sped up after v2 cancelled)
+2. ✅ Multiband baseline render finished (160 panoramas) — ready for preview grid
+3. ✅ Seam-gap metric across all 5 logs (paper number) — **38% mean improvement**
+4. ❌ v2 5-log render cancelled at ~10% done — was slowing v1 down; v2 deltas are subtle (1.45/255 mean) so not worth the parallel cost. v2 code is shipped and you can re-run when you want.
 
 **Paper drafts** written (in `agent/`):
 - `paper_outline_3dv2026.md` — 6 sections + TODO list
