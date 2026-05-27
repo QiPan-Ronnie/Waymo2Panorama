@@ -10,12 +10,13 @@ geometrically principled step:
                      OF in the overlap, then invert the math to recover the
                      per-ERP-pixel 3D depth via two-view triangulation in
                      ego frame. Combine all 7 pair-depth maps into a single
-                     global ERP depth map (fallback ``inf`` outside overlap).
+                     global ERP depth map (fallback ``FAR_DEPTH_M = 1000m``
+                     outside overlap — see note below on why NOT +inf).
                      Then re-project all cams via ``render_camera_to_erp(
                      convergence_distance_m=depth_map)`` (N1 mode). Both cams
                      in each overlap now sample the SAME 3D point, so their
-                     ERP slabs naturally agree -> no spatial parallax seam,
-                     and crucially no 2D warp artifacts.
+                     ERP slabs naturally agree in overlap -> no doubled-feature
+                     ghost AT THE OVERLAP CENTERS.
 
 Order of operations: project legacy -> L2 HDR -> derive depth -> re-project
 N1 -> hard select. Note we re-render after the depth solve; we do NOT also
@@ -54,10 +55,36 @@ ASSUMPTIONS / CAVEATS:
     placement is slightly off.
 
   * Degenerate triangulation: rays parallel (depth -> infinity) or flow
-    too small to be reliable. Falls back to ``inf`` -> legacy projection
-    at that pixel.
+    too small to be reliable. Falls back to ``FAR_DEPTH_M`` (1000 m)
+    -> ~legacy projection at that pixel.
 
   * No sub-pixel disparity refinement; OF resolution sets depth precision.
+
+EMPIRICAL FINDING (2026-05-26, BMW anchor 02a00399 / pi3_cache anchor_000):
+
+  Self-stereo IS recovering plausible depth: median 2.59 m in the
+  front_center+front_right overlap (matches the BMW at ~3 m), 43 m at the
+  back seam (matches the receding buildings).
+
+  HOWEVER, plugging that depth into N1 mode reproduces the FUNDAMENTAL
+  cam-FOV-gap failure documented in N1 Phase A: at near-field depths
+  (~3 m), each cam's projection cone covers only a small ERP region, and
+  adjacent ERP pixels with depth ~3 m vs ~1000 m project to wildly
+  different cam-image coords -> large black "missing data" blobs in the
+  re-projected BMW (~37% of the BMW area is lost vs legacy projection).
+
+  See ``deliverables/selfstereo/bmw_compare.png``: the BMW in pipeline
+  (b) has the right portion of its body cut to black, even though (a)
+  L3 OF shows the BMW intact (just with the doubled-wheel ghost).
+
+  Conclusion: self-stereo derivation is mathematically sound and
+  CONFIRMS the L3 OF approach (both achieve cam-pair convergence in
+  overlap). But applying it via N1 mode for FINAL rendering inherits
+  N1's cam-FOV-gap pathology — the same issue that killed N1 Phase
+  C (LiDAR) and Phase D (DA-V2) for near-field objects.
+
+  This is the "view-synthesis problem, not alignment problem" finding
+  re-confirmed via a completely different depth source.
 
 All ops are basic CV (cv2 + numpy). Runtime ~ same as ``hard_hdr_of``
 (dominated by the per-pair OF call, which we share).
