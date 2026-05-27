@@ -1,5 +1,34 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~17:30 UTC — [Xihan handoff shipped: L1 sphere 原理 doc + 2 新 AV2 范例 + Waymo brighten -18% seam |ΔY| on his pre-stitched panorama.]
+> - **回应**: `meeting/5.22_meeting with xihan/xihan/xihan task.md` (Xihan 自己写的 2 项 ask)
+> - **L1 sphere 原理 doc** `deliverables/l1_sphere_principle.md` (8 section): ERP 坐标系 / sphere ray-cast / multiband / 远近场视差数学 / Waymo 移植 5 坑 / Quick eval. 完全没动 source code, 纯文档化.
+> - **2 个新 AV2 L1 范例** `deliverables/xihan/l1_examples_panel.png`: Example A `0bae3b5e a030` (城市路口, far-field 干净) + Example B `fbee355f a030` (停车场近卡车, ghost 失败模式). 单独图也单独保存了.
+> - **Xihan Waymo panorama 诊断** (`scripts/phase3/diagnose_xihan_waymo_panorama.py`, 在他给的 c4b1d01f...jpg 4096×2048 上跑):
+>   - 检测到 7 个接缝 (8 个 cam 区域), Y range **116-194, ratio 1.67×, gap 4.44 dB**.
+>   - 最大单 seam 跳变 **+50 Y** (region 3→4, 阴影 → 过曝 cam, 跟 ppt §1.2 "左半黑右半正常" sedan 直接对应).
+> - **Brighten 方法** (`scripts/phase3/brighten_xihan_waymo_panorama.py`):
+>   - 镜像 AV2 L2 HDR `compute_hdr_gains` 数学到 post-hoc panorama: 接缝两侧 24px 窄条 → log-space lstsq + Tikhonov reg=0.15 + mean(G)=0 centered + clip [0.75, 1.35].
+>   - Per-column gain map 用 ±48 px taper 防止新硬边.
+>   - YCrCb 只动 Y, 保持 hue.
+> - **量化结果** (seam |ΔY| 8 个接缝平均):
+>   ```
+>   raw distance-to-boundary : 40.86  max 69
+>   CLAHE baseline           : 46.57  max 100   ← 反而恶化 (CLAHE 不知接缝)
+>   jointhdr (推荐)          : 33.36  max 65    ← -18% mean
+>   jointhdr + CLAHE         : 48.00  max 97    ← CLAHE 又搞坏
+>   ```
+> - **关键发现**: Xihan ppt §1.2 "右上角车左半黑右半正常" 是 cam 接缝刚好切过那辆银 sedan, 左 cam Y=144 / 右 cam Y=194, 50 单位跳变直接造成. 我们 brighten 把这个跳变压下来 (region 4 gain 0.78, 其他升降配合).
+> - **诚实 limitation**: 18% 不是 100%, 剩余 mismatch 来自 cam 内部 vignette + 接缝位置非 pixel-perfect + gain clip 限制极端修正幅度. 修不到色相差 (只 Y, 不 Cr/Cb).
+> - **ORB 路线**: handoff §5 明确告诉 Xihan 别走 — AV2 T5 v1/v2/v3 全 NEG, 结构性原因 (60° baseline + 不重叠区 ORB 找不到 match → chain warp 累积).
+> - **Deliverables**:
+>   - `deliverables/handoff_to_xihan_2026-05-27_brighten_and_l1.md` (7 section 完整 handoff)
+>   - `deliverables/l1_sphere_principle.md` (L1 原理)
+>   - `deliverables/xihan/{l1_examples_panel,diagnose_waymo_annotated,brighten_waymo_4way,brighten_waymo_jointhdr,brighten_waymo_clahe}.png` + JSON
+>   - 3 个 scripts/phase3/ 新脚本 (build_xihan_l1_examples, diagnose_xihan_waymo_panorama, brighten_xihan_waymo_panorama)
+> - Status: [DONE Xihan handoff — L1 原理 + 2 范例 + Waymo brighten 三件齐全, 量化证据 -18%]
+> - Next 建议: Xihan 把 brighten drop-in 到他 pipeline 跑其他 panorama 看 seam |ΔY| 改善是不是普遍; 或者上游集成 (AV2 `compute_hdr_gains` 接 8 cam slab 在 distance-blend **前** 做曝光对齐, 更彻底).
+
 > ### 2026-05-27 ~13:30 UTC — [NCC metric ran: +25.3% definitive ghost reduction. All variants tested on real BMW. Doc audit done.]
 > - **NCC metric COMPLETED** (script `scripts/phase3/measure_overlap_ncc.py`, 32 anchors of 02a00399):
 >   - multiband NCC: 0.6461 → hard_hdr_of NCC: 0.8094 = **+25.3%**

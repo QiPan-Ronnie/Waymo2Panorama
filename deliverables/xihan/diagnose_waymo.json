@@ -1,0 +1,146 @@
+{
+  "pano_path": "meeting\\5.22_meeting with xihan\\xihan\\assets\\xihan task\\c4b1d01f8f6616e59a2d203b879db1d3.jpg",
+  "pano_size_wh": [
+    4096,
+    2048
+  ],
+  "detected_seams_x": [
+    762,
+    962,
+    1151,
+    1441,
+    1786,
+    2296,
+    3327
+  ],
+  "regions": [
+    {
+      "x0": 0,
+      "x1": 762,
+      "valid_px": 202984,
+      "Y_med": 136.0,
+      "Cr_med": 128.0,
+      "Cb_med": 124.0,
+      "region_idx": 0
+    },
+    {
+      "x0": 762,
+      "x1": 962,
+      "valid_px": 90812,
+      "Y_med": 117.0,
+      "Cr_med": 126.0,
+      "Cb_med": 127.0,
+      "region_idx": 1
+    },
+    {
+      "x0": 962,
+      "x1": 1151,
+      "valid_px": 87510,
+      "Y_med": 116.0,
+      "Cr_med": 127.0,
+      "Cb_med": 126.0,
+      "region_idx": 2
+    },
+    {
+      "x0": 1151,
+      "x1": 1441,
+      "valid_px": 132218,
+      "Y_med": 144.0,
+      "Cr_med": 126.0,
+      "Cb_med": 128.0,
+      "region_idx": 3
+    },
+    {
+      "x0": 1441,
+      "x1": 1786,
+      "valid_px": 159955,
+      "Y_med": 194.0,
+      "Cr_med": 123.0,
+      "Cb_med": 129.0,
+      "region_idx": 4
+    },
+    {
+      "x0": 1786,
+      "x1": 2296,
+      "valid_px": 234320,
+      "Y_med": 163.0,
+      "Cr_med": 112.0,
+      "Cb_med": 150.0,
+      "region_idx": 5
+    },
+    {
+      "x0": 2296,
+      "x1": 3327,
+      "valid_px": 473965,
+      "Y_med": 164.0,
+      "Cr_med": 107.0,
+      "Cb_med": 151.0,
+      "region_idx": 6
+    },
+    {
+      "x0": 3327,
+      "x1": 4096,
+      "valid_px": 206888,
+      "Y_med": 142.0,
+      "Cr_med": 128.0,
+      "Cb_med": 123.0,
+      "region_idx": 7
+    }
+  ],
+  "Y_range": [
+    116.0,
+    194.0
+  ],
+  "Y_gap_db": 4.436974992327128,
+  "neighbor_pair_diffs": [
+    {
+      "left_region": 0,
+      "right_region": 1,
+      "left_Y": 136.0,
+      "right_Y": 117.0,
+      "delta_Y": -19.0
+    },
+    {
+      "left_region": 1,
+      "right_region": 2,
+      "left_Y": 117.0,
+      "right_Y": 116.0,
+      "delta_Y": -1.0
+    },
+    {
+      "left_region": 2,
+      "right_region": 3,
+      "left_Y": 116.0,
+      "right_Y": 144.0,
+      "delta_Y": 28.0
+    },
+    {
+      "left_region": 3,
+      "right_region": 4,
+      "left_Y": 144.0,
+      "right_Y": 194.0,
+      "delta_Y": 50.0
+    },
+    {
+      "left_region": 4,
+      "right_region": 5,
+      "left_Y": 194.0,
+      "right_Y": 163.0,
+      "delta_Y": -31.0
+    },
+    {
+      "left_region": 5,
+      "right_region": 6,
+      "left_Y": 163.0,
+      "right_Y": 164.0,
+      "delta_Y": 1.0
+    },
+    {
+      "left_region": 6,
+      "right_region": 7,
+      "left_Y": 164.0,
+      "right_Y": 142.0,
+      "delta_Y": -22.0
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Waymo2Panorama — Agent Handoff
 
-**Updated**: 2026-05-26 evening (WS4-Diag2 ROOT CAUSE locked: 7 prior NEG attempts were misdiagnosed — halo was pi3-cache input degradation, not pipeline bug. AV2 raw + L1 sphere is and always was clean.)
+**Updated**: 2026-05-27 (Xihan handoff shipped — L1 sphere 原理 doc + 2 新 AV2 范例 + Waymo brighten -18% seam |ΔY| post-hoc on his pre-stitched panorama. See `deliverables/handoff_to_xihan_2026-05-27_brighten_and_l1.md`. Prior milestone: WS4-Diag2 ROOT CAUSE locked + 5.27 hard_hdr_of NCC +25.3%.)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
 
 ---
