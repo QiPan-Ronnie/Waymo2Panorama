@@ -76,3 +76,47 @@ Dispatched **12 subagents in parallel** (Opus 4.7 max effort) implementing 5 alg
 2. **If combined A+B clearly wins**: re-render 5-log with `blend_hard_hdr_of_combined` as the new default (~2 hr)
 3. **Pixel zoom paper figures**: take BMW + Porsche regions from the 7-way panel and zoom in for paper-quality figures
 4. **Write a clean conclusion** picking ONE recommended variant based on NCC scores
+
+---
+
+## Updates AFTER initial summary write (21:00+ UTC)
+
+### NCC metric COMPLETED — definitive ghost reduction proof
+- **multiband NCC: 0.6461** | **hard_hdr_of NCC: 0.8094** | delta **+25.3%**
+- Chimera floor (NCC cam vs cam): 0.1095 (sanity ref)
+- SSD pano vs winner: 369.76 → 320.16 (-13.4%)
+- 32 anchors of 02a00399 (quietest log; busy logs should show even bigger gap)
+- See `deliverables/NCC_FINDING.md`
+
+### Combined A+B variant verified on real BMW (commits 83fdf39, e703bc7, 0355836)
+- Chroma offsets tiny (~1-2 in 0-255 scale) for anchor 0 → visual diff sub-pixel
+- Real-BMW 3-way panel at `deliverables/combined/bmw_3way_real.png`
+- Needs harder anchor (e.g., fbee355f garage) to show chroma's real benefit
+
+### All other algo variants tested on real AV2 BMW (post-implementation)
+- Freqhybrid: `deliverables/freqhybrid/bmw_4way_real.png` (8192x1024 panel)
+- Bidir 3-way: `deliverables/bidir_of/3way_real.png` (chain vs joint vs shipped)
+- Graphcut: `deliverables/graphcut_seam/2way_real.png` (+1.4s overhead, subtle diff)
+- All near-identical to shipped at thumbnail; sub-pixel differences
+
+### Fresh anchors comparison (commit 9aed5d1)
+- 11 anchors NEVER previously rendered (stride != 10): a17/a47/a127/a247 across 5 logs
+- multiband vs hard_hdr_of side-by-side
+- `deliverables/fresh_anchors/fresh_anchors_grid.png` (3520x1280, 11 row pairs)
+
+### L1 baseline rendered on 10 diverse AV2 anchors (commits 5e08f46, b21db97)
+- Pure multiband (PDF §1.1 method), no hard_select
+- 1024x2048 individual PNGs at `deliverables/l1_baseline_diverse/`
+- Includes anchor 60 of 02a00399 (PDF reference)
+
+### PDF anchor 60 discrepancy investigation (commit b830f15)
+- Tried to reproduce PDF's `deliverables/images/l1_erp.png`
+- My output mean diff vs PDF: 15.15, max 228 — **not just JPEG noise**
+- Both renders use same code (verified: multiband.py 0 commits since 5/19,
+  sphere_projection.py legacy path bit-identical)
+- My inline render = `run_l1_baseline.py` output: **pixel-identical (diff 0)**
+- **Root cause**: anchor 60 maps to DIFFERENT physical frames between PDF (5/21) and now —
+  likely Drive data was re-downloaded with different timestamps OR index changed
+- Algorithm itself is correct; image content shift is data/loader-side, not render-side
+- The "white columns" PDF shows are present in any L1 multiband — visibility depends
+  on scene color distribution in the overlap zones

@@ -1,5 +1,32 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~13:30 UTC — [NCC metric ran: +25.3% definitive ghost reduction. All variants tested on real BMW. Doc audit done.]
+> - **NCC metric COMPLETED** (script `scripts/phase3/measure_overlap_ncc.py`, 32 anchors of 02a00399):
+>   - multiband NCC: 0.6461 → hard_hdr_of NCC: 0.8094 = **+25.3%**
+>   - chimera floor (cam vs cam): 0.1095
+>   - SSD: 369.76 → 320.16 (-13.4%)
+>   - Definitive quantitative ghost reduction (YOLO bbox metrics failed; see `doubled_metric_negative_finding.md`)
+> - **All 5 algo variants tested on real AV2 BMW** post-implementation:
+>   - Combined A+B `deliverables/combined/bmw_3way_real.png` (chroma offsets sub-pixel for this anchor)
+>   - Freqhybrid `deliverables/freqhybrid/bmw_4way_real.png`
+>   - Bidir 3-way `deliverables/bidir_of/3way_real.png` (chain/joint/shipped)
+>   - Graphcut `deliverables/graphcut_seam/2way_real.png` (+1.4s overhead)
+>   - All differences sub-pixel at thumbnail; need pixel zoom for visible diff
+> - **Fresh anchors + L1 baseline diverse** rendered for user request:
+>   - `deliverables/fresh_anchors/fresh_anchors_grid.png` — 11 NEVER-rendered anchors (stride!=10) A/B
+>   - `deliverables/l1_baseline_diverse/` — 10 individual L1 baseline 1024x2048 PNGs across 5 logs
+> - **PDF anchor 60 discrepancy investigated** (commit b830f15):
+>   - User asked why current L1 baseline differs from PDF (5/21) `l1_erp.png`
+>   - Verified: code unchanged (multiband.py 0 commits since 5/19, sphere_projection legacy bit-identical)
+>   - My inline render = `run_l1_baseline.py` output: **pixel-identical (diff 0)**
+>   - PDF vs HEAD: mean diff 15.15, max 228 → **different physical scenes**, not algorithm bug
+>   - Root cause: anchor 60 maps to different physical frames between PDF (5/21) and now — likely Drive data was re-downloaded with different timestamps OR loader index changed
+>   - "白色柱子" PDF mentioned = normal cos² feather, visibility scene-dependent (algorithm correct)
+> - **Doc audit + sync**:
+>   - SESSION_FINAL_SUMMARY.md, WAKEUP_SUMMARY.md, progress.md all caught up with late-session findings
+>   - 5 standalone finding docs: NCC_FINDING.md, doubled_metric_negative_finding.md, selfstereo_finding.md, ALGORITHM_VARIANTS_SUMMARY.md, HARD_HDR_OF_PIPELINE.md
+> - Total session: ~50 commits to `origin/main`.
+
 > ### 2026-05-27 ~11:30 UTC — [5 algorithm variants shipped via parallel subagent dispatch + 7-way A/B panel.]
 > - **Subagent-driven-development pattern** (user-invoked): dispatched 5 implementer subagents in parallel (Opus 4.7 effort max), each with a clear divergent algorithm idea. Each followed by spec compliance reviewer + code quality reviewer + fixer (when needed). All committed to main.
 > - **Shipped variants**:

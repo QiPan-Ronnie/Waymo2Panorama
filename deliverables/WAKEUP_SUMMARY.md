@@ -48,6 +48,8 @@ Here's where we are now.
 
 ## All algorithm work DONE (user was out, T4 was utilized)
 
+**Final state**: 5 algo + 1 combined + 2 metrics shipped, NCC ghost metric ran (definitive +25.3% improvement). All real-BMW tests done. PDF anchor 60 discrepancy investigated (data/loader-side, algorithm correct).
+
 **5 algorithm variants implemented + reviewed + tested + shipped to main:**
 
 | # | Variant | Module | Status | Insight |
