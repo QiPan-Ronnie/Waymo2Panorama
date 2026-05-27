@@ -1,5 +1,26 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~22:00 UTC — [Multi-R per-pixel selection: NEG on objects in seams. Spatial incoherence kills it. Direction B needs window-NCC + smoothness regularization.]
+> - **怎么做**: 上一 entry 拒绝 patch 路线, 决定走"原理性". 已确认 L0 calibration 不是 root cause (~1.3 px bias, 详上 entry). 转 L1 geometry — 实现 per-pixel R selection (implicit depth via cross-cam disagreement). `code/waymo2panorama/blending/multi_radius_select.py` + `scripts/phase3/test_multi_r_select.py`. 渲 5 R 值 (inf/30/10/5/3) × 7 cams 到 ERP, per-pixel argmin(|Y_topA - Y_topB|) 选 R, 然后 hard_select or weighted blend top2 cams at chosen R. Fallback inf on non-overlap + both-cam-invalid pixels.
+> - **测试 anchor**: 02a00399 a0 (BMW @ ~4m, BMW 在 front_center cam 内部) + fbee355f a95 (column @ ~2.5m + pedestrian @ ~5m at cam seam). 2048×4096 ERP.
+> - **结果**:
+>   - **02a00399 BMW**: subtle/no visible improvement vs L1 hard_select (R=∞). BMW 不在 cam-cam seam, multi-R 只在 BMW 左边的 seam 起作用 — BMW 本身不变.
+>   - **fbee355f 行人**: **VISIBLE WORSE** — pedestrian 在 cam seam 上, multi-R hard_select 输出**两个行人** (Frankenstein doubling). 比 R=∞ hard_select 还烂.
+> - **Root cause** (R-index colormap 确认): 在 overlap stripes 里, picked R **per pixel 跳变** (texture noise drives argmin). 相邻像素 (i,j) 选 R=10m, (i,j+1) 选 R=5m, 而这两个 R 的 slab 是不同 render 结果 → 像素拼接成 "Frankenstein" pattern. 视觉证据 `deliverables/multi_r_select/{anchor}_bmw_crop_q85.jpg` 第 5 panel "R index per pixel" 显示 narrow seam stripes 内 R 选择无空间结构.
+> - **诚实评估**: Per-pixel argmin **没有空间正则化**, 在有物体的 overlap 区直接崩. Direction B naive 形式 = NEG.
+> - **不放弃的理由 (4 个 fix 路径未试)**:
+>   - (a) **Window NCC** 代替 per-pixel Y diff (~5-11 px window) → 噪声平均, 抗 texture noise
+>   - (b) **Spatial smoothness regularization** (median filter R map, or graphcut on R label image) → R 选择空间连续, 不再 Frankenstein
+>   - (c) **L2 HDR first** (equalize exposure 后再算 cross-cam disagreement) → 排除 lighting bias 让 Y diff 更纯
+>   - (d) **粗 R 量化** (只 {inf, 10m}) → 减少选错空间
+> - **Deliverables**:
+>   - `code/waymo2panorama/blending/multi_radius_select.py` (~170 LOC module)
+>   - `scripts/phase3/test_multi_r_select.py` (5-way driver: mb / hard_inf / multi-R hard / multi-R weighted / R-index viz)
+>   - `deliverables/multi_r_select/{02a00399_a000,fbee355f_a095}_bmw_crop_q85.jpg` (视觉 NEG 证据)
+> - **Status**: [Direction B naive NEG; next try Window NCC + Spatial smoothing + L2 HDR pre-step]
+> - **Next**: 实现 (a)+(b)+(c) 组合: L2 HDR 拉平亮度 → window NCC (5-11px box filter) 选 R → median filter R map (or simple Gaussian) 平滑选择. 期待 R 选择空间连续 + 抗 texture noise. 如果还不行就要考虑 graphcut on R 或转 L3 paradigm.
+> - 提交: `8220343` (test driver), `5345e51` (multi_radius_select module + hi-res visuals), `d26f267` (NEG finding + diagnosis).
+
 > ### 2026-05-27 ~23:00 UTC — [Our L1+L2 HDR pipeline RUN on Xihan's REAL Waymo E2ED frame via Colab T4. Color shift VISUALLY SOLVED. End-to-end: EULA → gsutil cp tfrecord → 8-cam ring HDR → 4-way comparison.]
 > - **怎么做**: 用户接受 Waymo Open Dataset EULA on `panq@usc.edu` → Colab T4 `gcloud auth login` → `gsutil cp gs://waymo_open_dataset_end_to_end_camera_v_1_0_0/test_202504211836-202504220845.tfrecord-00000-of-00266 ...` (1.7 GB shard, 94 s) 到 Drive `koi_waymo2pano_colab/data/waymo_e2ed/`. Install `waymo-open-dataset-tf-2-12-0==1.6.7 --no-deps` (纯 protobuf, 不要 TF).
 > - **`scripts/phase3/parse_waymo_e2ed_frame.py`**: pure-Python tfrecord 解析 (length-prefixed records) + `end_to_end_driving_data_pb2.E2EDFrame`. 抽 8 cam (FRONT/FL/FR/SL/SR/RL/REAR/RR) 的 K + T_ego_cam + distortion + image. **frame_id 验证完全匹配** Xihan `8e737334b520fdd0c04e36f463b2d211-085`.
