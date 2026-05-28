@@ -1,5 +1,30 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~11:45 UTC - [DiT360 v17 FoV-cropped 360-band completion: visually plausible demo, not source-faithful.]
+> - **Purpose**: test the user's idea that we should not ask DiT360 to complete the entire black 1024x2048 ERP. Instead, crop a compact horizontal 360-degree band around the AV2 ring-camera field of view, then let DiT360 complete only the holes/boundaries inside that rectangle.
+> - **Setup**:
+>   ```text
+>   hard_select footprint: deliverables/dit360_seam_completion/runs_v17_fov_crop_completion/inputs/hard_select_fullres_1024x2048.png
+>   trimap init:           /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v14_trimap_clamp_bmw/trimap_r008_h016_w025_tau5/trimap_r008_h016_w025_tau5_raw.png
+>   crop:                  y=256:768, x=0:2048
+>   mask convention:        white/255 preserve hard-select camera footprint; black/0 generate holes/boundaries
+>   tested modes:           native crop 2048x512 and ERP-resized crop 2048x1024
+>   inputs:                 hard_select and trimap_raw
+>   config:                 A100, 50 steps, seed 0, guidance 2.8, tau 50, halo 16 px, VAE tiling
+>   ```
+> - **Artifacts**:
+>   ```text
+>   scripts/phase3/run_dit360_fov_crop_completion.py
+>   deliverables/dit360_seam_completion/runs_v17_fov_crop_completion/v17_fov_crop_completion_raw_grid_w1400.jpg
+>   deliverables/dit360_seam_completion/runs_v17_fov_crop_completion/hard_select_native_y256_768/
+>   deliverables/dit360_seam_completion/runs_v17_fov_crop_completion/hard_select_erp_resized_y256_768/
+>   deliverables/dit360_seam_completion/runs_v17_fov_crop_completion/trimap_raw_native_y256_768/
+>   deliverables/dit360_seam_completion/runs_v17_fov_crop_completion/trimap_raw_erp_resized_y256_768/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v17_fov_crop_completion/
+>   ```
+> - **Visual finding**: [MIXED / qualitative only] native 2048x512 completion gives a cleaner compact 360 band and avoids the huge full-ERP black-hole problem, but it is not a standard 2:1 ERP and still hallucinates boundary content. ERP-resized 2048x1024 completion produces a more "complete 360" visual, but it invents large sky/roof/tree/road/vehicle-shadow content and changes scene semantics. `trimap_raw` remains better than pure `hard_select` as an init for this generative path. This is useful as a paper qualitative / design-space demo, not as Bosch source-faithful training data.
+> - **Implementation note**: the first v17 run completed `hard_select_native`, then failed entering case 2 because the DiT360 attention processor from the previous case leaked into `invert()` (`timestep None > tau`). Fixed by resetting Flux attention processors before every inversion and adding `--skip-existing`; rerun completed all 4 cases.
+
 > ### 2026-05-28 ~10:55 UTC - [DiT360 v16 boundary-collar completion: hard_select and tri-map raw both tested.]
 > - **Purpose**: avoid the v15 failure mode where DiT360 hallucinates the whole black invalid ERP. Preserve almost everything and only let DiT360 repaint a thin collar around the valid panorama footprint, testing whether local boundary completion is a more controlled use of the model.
 > - **Inputs / mask**:
