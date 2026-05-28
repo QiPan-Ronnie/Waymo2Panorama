@@ -1,5 +1,28 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~12:10 UTC - [DiT360 v18 reference-canvas seam-stage proxy: NEG as cooperative stitcher.]
+> - **Purpose**: test the new "use DiT360 during stitching, not only after final panorama" route. Since vanilla DiT360 only accepts one RGB panorama + one mask + prompt, we encoded L1 camera evidence into masked reference canvases: preserve real camera regions and ask DiT360 to generate only seams or alternating missing camera regions.
+> - **Input / masks**:
+>   ```text
+>   anchor: 02a00399 anchor 0 BMW, 1024x2048
+>   base:   L1 hard_select from AV2 raw
+>   masks:  preserve_nonseam_r040, preserve_cam_1_3_5_7, preserve_cam_2_4_6
+>   mask convention: white/255 preserve; black/0 generate
+>   generate fraction: seam_r040 8.71%, cam_1_3_5_7 11.65%, cam_2_4_6 15.77%
+>   valid hard_select footprint: 27.42% of full ERP
+>   ```
+> - **Run config**: A100, DiT360 image edit/inpaint path, 1024x2048, 50 steps, seed 0, guidance 2.8, tau 5, masked-input init images.
+> - **Artifacts**:
+>   ```text
+>   deliverables/dit360_seam_completion/inputs_v18_reference_canvas/02a00399_a000/
+>   deliverables/dit360_seam_completion/runs_v18_reference_canvas/v18_reference_canvas_review_w1400.jpg
+>   deliverables/dit360_seam_completion/runs_v18_reference_canvas/seam_r040_masked/
+>   deliverables/dit360_seam_completion/runs_v18_reference_canvas/alt_1357_masked/
+>   deliverables/dit360_seam_completion/runs_v18_reference_canvas/alt_246_masked/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v18_reference_canvas/
+>   ```
+> - **Visual finding**: [NEG as a cooperative stitcher] `seam_r040_masked` keeps global layout but DiT360 paints unrelated trees/cars/walls into seam strips, so it is not a source-faithful repair. The alternating preserve-camera tests are stronger negatives: DiT360 fills missing camera chunks with plausible but nonexistent streets/buildings/doors instead of reconstructing AV2 evidence. This validates the limitation: prompt+mask DiT360 is panorama inpainting, not multi-reference stitching. To pursue this route seriously, we need a reference-driven / multi-view diffusion stitching model or fine-tuning, not vanilla DiT360 masking.
+
 > ### 2026-05-28 ~11:45 UTC - [DiT360 v17 FoV-cropped 360-band completion: visually plausible demo, not source-faithful.]
 > - **Purpose**: test the user's idea that we should not ask DiT360 to complete the entire black 1024x2048 ERP. Instead, crop a compact horizontal 360-degree band around the AV2 ring-camera field of view, then let DiT360 complete only the holes/boundaries inside that rectangle.
 > - **Setup**:

@@ -1,0 +1,58 @@
+{
+  "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+  "log_short": "02a00399",
+  "anchor_idx": 0,
+  "erp_hw": [
+    1024,
+    2048
+  ],
+  "prompt": "This is a 360-degree street panorama captured by an autonomous vehicle in an urban driving scene, with roads, lane markings, sidewalks, cars, buildings, signs, and sky.",
+  "mask_convention": "white/255 = preserve source; black/0 = generate/fill",
+  "preserve_invalid_black_regions": true,
+  "valid_fraction": 0.27415895462036133,
+  "boundary_pixel_count": 3744,
+  "artifacts": [
+    {
+      "type": "invalid_outpaint",
+      "mask": "02a00399_a000_mask_preserve_valid_outpaint_invalid.png",
+      "masked_input": "02a00399_a000_mask_preserve_valid_outpaint_invalid_masked_input.png",
+      "preview": "02a00399_a000_mask_preserve_valid_outpaint_invalid_preview.jpg",
+      "generate_fraction": 0.7258410453796387
+    },
+    {
+      "type": "seam_strip",
+      "radius_px": 40,
+      "mask": "02a00399_a000_mask_preserve_nonseam_r040.png",
+      "masked_input": "02a00399_a000_mask_preserve_nonseam_r040_masked_input.png",
+      "preview": "02a00399_a000_mask_preserve_nonseam_r040_preview.jpg",
+      "generate_fraction": 0.08713006973266602
+    },
+    {
+      "type": "alternating_camera_preserve",
+      "name": "preserve_cam_1_3_5_7",
+      "zero_indexed_cameras": [
+        0,
+        2,
+        4,
+        6
+      ],
+      "mask": "02a00399_a000_mask_preserve_cam_1_3_5_7.png",
+      "masked_input": "02a00399_a000_mask_preserve_cam_1_3_5_7_masked_input.png",
+      "preview": "02a00399_a000_mask_preserve_cam_1_3_5_7_preview.jpg",
+      "generate_fraction": 0.1164703369140625
+    },
+    {
+      "type": "alternating_camera_preserve",
+      "name": "preserve_cam_2_4_6",
+      "zero_indexed_cameras": [
+        1,
+        3,
+        5
+      ],
+      "mask": "02a00399_a000_mask_preserve_cam_2_4_6.png",
+      "masked_input": "02a00399_a000_mask_preserve_cam_2_4_6_masked_input.png",
+      "preview": "02a00399_a000_mask_preserve_cam_2_4_6_preview.jpg",
+      "generate_fraction": 0.15768861770629883
+    }
+  ]
+}
