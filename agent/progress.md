@@ -1,5 +1,52 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~05:45 UTC - [DiT360 v14 tri-map latent clamp: no breakthrough; hard_select input verified unchanged.]
+> - **Purpose**: test whether DiT360 can keep source fidelity while filling only the seam by constraining denoising with a 3-zone mask:
+>   ```text
+>   core seam: free generation
+>   halo: soft latent pull toward source
+>   far region: latent clamp to source
+>   ```
+>   This directly targets the user's observation that raw DiT360 sometimes looks better than hard post-compose, but post-compose reintroduces hard boundaries.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/run_dit360_trimap_clamp.py
+>   deliverables/dit360_seam_completion/runs_v14_trimap_clamp_bmw/
+>   deliverables/dit360_seam_completion/runs_v14_trimap_clamp_generalize/
+>   ```
+> - **A100 / Drive jobs**:
+>   ```text
+>   BMW run: abe93ca91ada4aedadcb7d013e1668f5
+>   fbee/0bae generalization: 80b3eb25998f489ab6ba9e5f178a8bd5
+>   transfer zip: 9adff68716cc4895b4cb6b3b5bcc46b5
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v14_trimap_clamp_bmw/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v14_trimap_clamp_generalize/
+>   ```
+> - **Representative metrics**:
+>   ```text
+>   BMW 02a00399_a000:
+>     r008/h016/w025/tau5 raw core/halo/far MAE vs init = 30.28 / 17.44 / 3.51
+>     softcompose core/halo/far MAE vs init          = 30.28 / 8.15 / 0.012
+>     r008/h032/w050 raw core/halo/far               = 30.71 / 13.73 / 3.41
+>     r016/h024/w025 raw core/halo/far               = 40.83 / 16.52 / 3.43
+>   fbee355f_a095 r008/h016/w025/tau5:
+>     raw core/halo/far MAE = 43.05 / 27.48 / 4.10; soft far MAE = 0.011
+>   0bae3b5e_a030 r008/h016/w025/tau5:
+>     raw core/halo/far MAE = 33.62 / 21.53 / 4.37; soft far MAE = 0.012
+>   ```
+> - **Visual finding**:
+>   - BMW: raw is smoother than hard_select at some seams, but it rewrites scene evidence around the car/storefront/road/SUV region. Soft/core compose preserves non-seam pixels but either reverts toward hard_select or leaves visible vertical/core strips.
+>   - fbee/0bae: raw again softens seams but changes pedestrians/poles/road/building context. Soft/core compose is faithful but does not solve the geometry seam.
+>   - Wider halo or wider core does not rescue the trade-off; it only increases either source drift or visible composed strips.
+> - **Hard_select sanity check**:
+>   ```text
+>   v14 DiT input: inputs_v14_trimap/02a00399_a000/02a00399_a000_hard_select_1024x2048.png
+>   old reference: deliverables/hard_select/full_compare.png bottom hard_select row
+>   MAE excluding text labels: 1.05 / 255
+>   ```
+>   The v14 input is effectively the same hard_select image as the older accepted reference. The "left2 -> 3" road/building misalignment was already present; the new crop review simply magnifies a different seam than the earlier BMW/SUV ghost crop. This confirms hard_select fixes view-mixing ghost but not different-optical-center parallax.
+> - **Conclusion**: [NEG as main solver / MIXED only as qualitative baseline] Tri-map latent clamp reduces the hard post-compose boundary problem but does not escape the raw-vs-fidelity trade-off. Raw DiT360 is visually smoother because it changes evidence; source-faithful compose preserves evidence but falls back to hard_select geometry. Treat DiT360 as a paper qualitative/comparison path, not the Bosch training-data seam solver.
+
 > ### 2026-05-28 ~04:25 UTC - [Region-coherent seam v3 + DiT-as-oracle source selection: both fail to beat hard_select; seam source-selection route is near exhausted.]
 > - **Purpose**: push two source-faithful alternatives after DP seam-routing and DiT360 post-compose:
 >   ```text
