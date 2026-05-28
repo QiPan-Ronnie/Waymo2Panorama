@@ -1,5 +1,36 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~09:20 UTC - [RGB+DA-V2 superpixel source coherence: NEG; larger coherent blocks still source-swap.]
+> - **Purpose**: test a more layer-like abstraction after pixel/row DP seam routing failed. Segment the L1 `hard_select` panorama into SLIC superpixels using RGB plus DA-V2 relative depth as features; only consider superpixels in seam bands that are split by two adjacent camera sources; assign the whole superpixel to one camera by boundary/source/change cost. Final pixels are still copied from real L1 slabs.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/test_superpixel_depth_coherent.py
+>   deliverables/superpixel_depth_coherent/batch_summary.json
+>   deliverables/superpixel_depth_coherent/superpixel_depth_three_anchor_compact_review.jpg
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/superpixel_depth_coherent_v1/
+>   ```
+> - **A100 / Drive job**:
+>   ```text
+>   job id: 78a0b3828e96433ca117e8f53959525f
+>   model: depth-anything/Depth-Anything-V2-Small-hf
+>   SLIC: n_segments=1800, compactness=14, segment_depth_weight=0.75
+>   cases: 02a00399:0, fbee355f:95, 0bae3b5e:30
+>   ```
+> - **Metrics**:
+>   ```text
+>   Aggregate over 3 anchors:
+>     changed pixels = 0.328%
+>     mean NCC pano-vs-winner: hard_select 0.9925 -> superpixel 0.9131
+>     mean seam dY: hard_select 22.63 -> superpixel 13.25
+> 
+>   Per anchor:
+>     BMW:   changed 0.349%, NCC 0.9970 -> 0.9224, dY 15.40 ->  8.42
+>     fbee:  changed 0.357%, NCC 0.9873 -> 0.8908, dY 28.07 -> 14.79
+>     0bae:  changed 0.276%, NCC 0.9934 -> 0.9260, dY 24.41 -> 16.54
+>   ```
+> - **Visual finding**: superpixels remove the jagged 1-pixel DP path, but replace it with larger rectangular/coherent source-swap blocks. This is visibly cleaner than row-wise DP in some seams, but still creates pasted strips around road, facades, and the SUV/BMW regions. The NCC drop confirms the same failure mode: smoother seam-gap numbers are bought by moving away from the winning real source view.
+> - **Conclusion**: [NEG] Region units are the right abstraction direction, but SLIC RGB+relative-depth regions are still not true scene layers. Without actual visibility/source synthesis, region-level source selection remains a patch over hard_select and does not beat the conservative baseline.
+
 > ### 2026-05-28 ~09:00 UTC - [Dense-depth-aware DP seam routing: NEG; lower dY hides worse source fidelity.]
 > - **Purpose**: test whether dense depth can do more than veto Y polish. Reuse DP seam routing, add Depth Anything V2 dense depth-edge risk as an external seam path penalty, and compare `hard_select`, RGB-only `seam_routing`, and `depth_route`. Final pixels are still copied from real L1 camera slabs; no blending, generation, or warp.
 > - **Code / artifacts**:

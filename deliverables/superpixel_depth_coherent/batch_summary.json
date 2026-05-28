@@ -1,0 +1,3861 @@
+{
+  "run": "superpixel_depth_coherent_v1",
+  "cases": [
+    {
+      "case": "02a00399_a000_bmw",
+      "params": {
+        "model_id": "depth-anything/Depth-Anything-V2-Small-hf",
+        "n_segments": 1800,
+        "compactness": 14.0,
+        "segment_depth_weight": 0.75,
+        "min_depth_risk": 0.12
+      },
+      "dense_depth_global": {
+        "band_pixels": 88288,
+        "core_pixels": 12027,
+        "dense_depth_risk": {
+          "name": "global_dense_depth",
+          "n": 88288,
+          "mean": 0.1753736436367035,
+          "median": 0.1343497484922409,
+          "p90": 0.35112178325653076,
+          "p95": 0.5435467958450317,
+          "p99": 0.9530683755874634,
+          "high_frac_065": 0.044388818412468285,
+          "high_frac_080": 0.024510692279811525
+        },
+        "high_dense_depth_pixels": 3919,
+        "high_dense_depth_frac_of_band": 0.044388818412468285
+      },
+      "overlap_ncc": {
+        "hard_select": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 0.9969531537842744,
+          "mean_ncc_winner_vs_loser": 0.20651912282970566,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "superpixel_depth": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 0.9223509884117715,
+          "mean_ncc_winner_vs_loser": 0.20651912282970566,
+          "mean_ssd_pano_vs_winner": 65.3110954248201
+        }
+      },
+      "seam_gap_y": {
+        "hard_select": {
+          "n": 1682,
+          "mean_delta_y": 15.395956993103027,
+          "median_delta_y": 8.0,
+          "p90_delta_y": 38.0,
+          "p95_delta_y": 69.0
+        },
+        "superpixel_depth": {
+          "n": 1682,
+          "mean_delta_y": 8.42389965057373,
+          "median_delta_y": 3.0,
+          "p90_delta_y": 17.0,
+          "p95_delta_y": 35.0
+        }
+      },
+      "superpixel": {
+        "segments": {
+          "n_segments_requested": 1800,
+          "n_segments_actual": 1800,
+          "compactness": 14.0,
+          "segment_depth_weight": 0.75
+        },
+        "pairs": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "status": "ok",
+            "candidate_segments": 9,
+            "accepted_segments": 6,
+            "rejected_segments": 3,
+            "protected_pixels": 5377,
+            "accepted": [
+              {
+                "segment": 807,
+                "owner": 0,
+                "area": 986,
+                "bbox": [
+                  443,
+                  477,
+                  890,
+                  919
+                ],
+                "mean_depth_risk": 0.20980340242385864,
+                "score_i": 10.777476396812144,
+                "score_j": 14.015782747017202,
+                "detail_i": {
+                  "boundary": 7.023809432983398,
+                  "boundary_n": 126,
+                  "mean_weight": 0.850044846534729,
+                  "changed_frac": 0.1257606490872211,
+                  "score": 10.777476396812144
+                },
+                "detail_j": {
+                  "boundary": 4.873015880584717,
+                  "boundary_n": 126,
+                  "mean_weight": 0.8051334619522095,
+                  "changed_frac": 0.8742393509127789,
+                  "score": 14.015782747017202
+                }
+              },
+              {
+                "segment": 928,
+                "owner": 0,
+                "area": 1020,
+                "bbox": [
+                  511,
+                  545,
+                  889,
+                  919
+                ],
+                "mean_depth_risk": 0.16820022463798523,
+                "score_i": 18.78288279140697,
+                "score_j": 19.14116873180165,
+                "detail_i": {
+                  "boundary": 14.46875,
+                  "boundary_n": 128,
+                  "mean_weight": 0.8689992427825928,
+                  "changed_frac": 0.2823529411764706,
+                  "score": 18.78288279140697
+                },
+                "detail_j": {
+                  "boundary": 11.65625,
+                  "boundary_n": 128,
+                  "mean_weight": 0.8410481810569763,
+                  "changed_frac": 0.7176470588235294,
+                  "score": 19.14116873180165
+                }
+              },
+              {
+                "segment": 987,
+                "owner": 0,
+                "area": 1020,
+                "bbox": [
+                  545,
+                  579,
+                  889,
+                  919
+                ],
+                "mean_depth_risk": 0.21810628473758698,
+                "score_i": 11.803925876056446,
+                "score_j": 12.26362764414619,
+                "detail_i": {
+                  "boundary": 6.75,
+                  "boundary_n": 128,
+                  "mean_weight": 0.8508331179618835,
+                  "changed_frac": 0.34509803921568627,
+                  "score": 11.803925876056446
+                },
+                "detail_j": {
+                  "boundary": 4.9609375,
+                  "boundary_n": 128,
+                  "mean_weight": 0.8313360810279846,
+                  "changed_frac": 0.6549019607843137,
+                  "score": 12.26362764414619
+                }
+              },
+              {
+                "segment": 1047,
+                "owner": 0,
+                "area": 1020,
+                "bbox": [
+                  579,
+                  613,
+                  889,
+                  919
+                ],
+                "mean_depth_risk": 0.2595384418964386,
+                "score_i": 10.16340225724613,
+                "score_j": 11.91190201254452,
+                "detail_i": {
+                  "boundary": 3.9921875,
+                  "boundary_n": 128,
+                  "mean_weight": 0.8146745562553406,
+                  "changed_frac": 0.4107843137254902,
+                  "score": 10.16340225724613
+                },
+                "detail_j": {
+                  "boundary": 4.453125,
+                  "boundary_n": 128,
+                  "mean_weight": 0.803825855255127,
+                  "changed_frac": 0.5892156862745098,
+                  "score": 11.91190201254452
+                }
+              },
+              {
+                "segment": 1107,
+                "owner": 0,
+                "area": 1047,
+                "bbox": [
+                  613,
+                  647,
+                  888,
+                  919
+                ],
+                "mean_depth_risk": 0.35491064190864563,
+                "score_i": 14.419571621028606,
+                "score_j": 20.21116139212447,
+                "detail_i": {
+                  "boundary": 6.692307472229004,
+                  "boundary_n": 130,
+                  "mean_weight": 0.7612012624740601,
+                  "changed_frac": 0.4918815663801337,
+                  "score": 14.419571621028606
+                },
+                "detail_j": {
+                  "boundary": 12.369231224060059,
+                  "boundary_n": 130,
+                  "mean_weight": 0.7603390216827393,
+                  "changed_frac": 0.5081184336198663,
+                  "score": 20.21116139212447
+                }
+              },
+              {
+                "segment": 1167,
+                "owner": 0,
+                "area": 284,
+                "bbox": [
+                  647,
+                  658,
+                  888,
+                  919
+                ],
+                "mean_depth_risk": 0.6572965979576111,
+                "score_i": 16.454331575984686,
+                "score_j": 55.232695163135794,
+                "detail_i": {
+                  "boundary": 7.166666507720947,
+                  "boundary_n": 84,
+                  "mean_weight": 0.7183632254600525,
+                  "changed_frac": 0.6091549295774648,
+                  "score": 16.454331575984686
+                },
+                "detail_j": {
+                  "boundary": 47.44047546386719,
+                  "boundary_n": 84,
+                  "mean_weight": 0.7276425361633301,
+                  "changed_frac": 0.3908450704225352,
+                  "score": 55.232695163135794
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "status": "ok",
+            "candidate_segments": 18,
+            "accepted_segments": 7,
+            "rejected_segments": 11,
+            "protected_pixels": 5167,
+            "accepted": [
+              {
+                "segment": 679,
+                "owner": 1,
+                "area": 178,
+                "bbox": [
+                  399,
+                  409,
+                  613,
+                  635
+                ],
+                "mean_depth_risk": 0.1343497335910797,
+                "score_i": 8.895500343837096,
+                "score_j": 16.247205096684144,
+                "detail_i": {
+                  "boundary": 2.21875,
+                  "boundary_n": 64,
+                  "mean_weight": 0.6998703479766846,
+                  "changed_frac": 0.11235955056179775,
+                  "score": 8.895500343837096
+                },
+                "detail_j": {
+                  "boundary": 4.203125,
+                  "boundary_n": 64,
+                  "mean_weight": 0.6640881299972534,
+                  "changed_frac": 0.8876404494382022,
+                  "score": 16.247205096684144
+                }
+              },
+              {
+                "segment": 739,
+                "owner": 1,
+                "area": 748,
+                "bbox": [
+                  409,
+                  443,
+                  613,
+                  635
+                ],
+                "mean_depth_risk": 0.1343497484922409,
+                "score_i": 9.820126576857133,
+                "score_j": 15.412917093797162,
+                "detail_i": {
+                  "boundary": 3.9642856121063232,
+                  "boundary_n": 112,
+                  "mean_weight": 0.7344806790351868,
+                  "changed_frac": 0.09090909090909091,
+                  "score": 9.820126576857133
+                },
+                "detail_j": {
+                  "boundary": 3.8214285373687744,
+                  "boundary_n": 112,
+                  "mean_weight": 0.6931528449058533,
+                  "changed_frac": 0.9090909090909091,
+                  "score": 15.412917093797162
+                }
+              },
+              {
+                "segment": 799,
+                "owner": 1,
+                "area": 779,
+                "bbox": [
+                  443,
+                  477,
+                  613,
+                  636
+                ],
+                "mean_depth_risk": 0.1268465667963028,
+                "score_i": 9.20810150855313,
+                "score_j": 16.7967159772562,
+                "detail_i": {
+                  "boundary": 4.228070259094238,
+                  "boundary_n": 114,
+                  "mean_weight": 0.77718585729599,
+                  "changed_frac": 0.08729139922978177,
+                  "score": 9.20810150855313
+                },
+                "detail_j": {
+                  "boundary": 5.956140518188477,
+                  "boundary_n": 114,
+                  "mean_weight": 0.7317838072776794,
+                  "changed_frac": 0.9127086007702182,
+                  "score": 16.7967159772562
+                }
+              },
+              {
+                "segment": 920,
+                "owner": 1,
+                "area": 824,
+                "bbox": [
+                  511,
+                  545,
+                  613,
+                  638
+                ],
+                "mean_depth_risk": 0.12850138545036316,
+                "score_i": 15.210020613901824,
+                "score_j": 30.81563107944229,
+                "detail_i": {
+                  "boundary": 10.96610164642334,
+                  "boundary_n": 118,
+                  "mean_weight": 0.8125613331794739,
+                  "changed_frac": 0.0825242718446602,
+                  "score": 15.210020613901824
+                },
+                "detail_j": {
+                  "boundary": 20.56779670715332,
+                  "boundary_n": 118,
+                  "mean_weight": 0.7628509998321533,
+                  "changed_frac": 0.9174757281553398,
+                  "score": 30.81563107944229
+                }
+              },
+              {
+                "segment": 979,
+                "owner": 1,
+                "area": 850,
+                "bbox": [
+                  545,
+                  579,
+                  613,
+                  638
+                ],
+                "mean_depth_risk": 0.12039574235677719,
+                "score_i": 14.52334568977356,
+                "score_j": 26.616010208129882,
+                "detail_i": {
+                  "boundary": 10.127119064331055,
+                  "boundary_n": 118,
+                  "mean_weight": 0.8041886687278748,
+                  "changed_frac": 0.08,
+                  "score": 14.52334568977356
+                },
+                "detail_j": {
+                  "boundary": 16.169490814208984,
+                  "boundary_n": 118,
+                  "mean_weight": 0.7536740303039551,
+                  "changed_frac": 0.92,
+                  "score": 26.616010208129882
+                }
+              },
+              {
+                "segment": 1039,
+                "owner": 1,
+                "area": 881,
+                "bbox": [
+                  579,
+                  613,
+                  613,
+                  639
+                ],
+                "mean_depth_risk": 0.1676272749900818,
+                "score_i": 14.998273504714014,
+                "score_j": 19.040515767594336,
+                "detail_i": {
+                  "boundary": 10.108333587646484,
+                  "boundary_n": 120,
+                  "mean_weight": 0.7786585092544556,
+                  "changed_frac": 0.0771850170261067,
+                  "score": 14.998273504714014
+                },
+                "detail_j": {
+                  "boundary": 8.066666603088379,
+                  "boundary_n": 120,
+                  "mean_weight": 0.7281520366668701,
+                  "changed_frac": 0.9228149829738933,
+                  "score": 19.040515767594336
+                }
+              },
+              {
+                "segment": 1099,
+                "owner": 1,
+                "area": 907,
+                "bbox": [
+                  613,
+                  647,
+                  613,
+                  640
+                ],
+                "mean_depth_risk": 0.224982351064682,
+                "score_i": 14.708057437999772,
+                "score_j": 20.28692957295604,
+                "detail_i": {
+                  "boundary": 8.991803169250488,
+                  "boundary_n": 122,
+                  "mean_weight": 0.7366790175437927,
+                  "changed_frac": 0.07497243660418963,
+                  "score": 14.708057437999772
+                },
+                "detail_j": {
+                  "boundary": 8.491803169250488,
+                  "boundary_n": 122,
+                  "mean_weight": 0.6877519488334656,
+                  "changed_frac": 0.9250275633958104,
+                  "score": 20.28692957295604
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "status": "ok",
+            "candidate_segments": 12,
+            "accepted_segments": 6,
+            "rejected_segments": 6,
+            "protected_pixels": 4548,
+            "accepted": [
+              {
+                "segment": 670,
+                "owner": 2,
+                "area": 279,
+                "bbox": [
+                  395,
+                  409,
+                  307,
+                  330
+                ],
+                "mean_depth_risk": 0.2153846174478531,
+                "score_i": 13.469368932067708,
+                "score_j": 16.106909277618573,
+                "detail_i": {
+                  "boundary": 6.432432651519775,
+                  "boundary_n": 74,
+                  "mean_weight": 0.7105187773704529,
+                  "changed_frac": 0.2078853046594982,
+                  "score": 13.469368932067708
+                },
+                "detail_j": {
+                  "boundary": 4.986486434936523,
+                  "boundary_n": 74,
+                  "mean_weight": 0.6816132664680481,
+                  "changed_frac": 0.7921146953405018,
+                  "score": 16.106909277618573
+                }
+              },
+              {
+                "segment": 730,
+                "owner": 2,
+                "area": 782,
+                "bbox": [
+                  409,
+                  443,
+                  307,
+                  330
+                ],
+                "mean_depth_risk": 0.14163945615291595,
+                "score_i": 9.57930504940355,
+                "score_j": 16.31970036365187,
+                "detail_i": {
+                  "boundary": 3.4298245906829834,
+                  "boundary_n": 114,
+                  "mean_weight": 0.7462344169616699,
+                  "changed_frac": 0.17902813299232737,
+                  "score": 9.57930504940355
+                },
+                "detail_j": {
+                  "boundary": 5.640350818634033,
+                  "boundary_n": 114,
+                  "mean_weight": 0.7123240828514099,
+                  "changed_frac": 0.8209718670076727,
+                  "score": 16.31970036365187
+                }
+              },
+              {
+                "segment": 910,
+                "owner": 3,
+                "area": 884,
+                "bbox": [
+                  511,
+                  545,
+                  281,
+                  307
+                ],
+                "mean_depth_risk": 0.18861153721809387,
+                "score_i": 29.290601203883934,
+                "score_j": 24.259594013248634,
+                "detail_i": {
+                  "boundary": 18.883333206176758,
+                  "boundary_n": 120,
+                  "mean_weight": 0.763007640838623,
+                  "changed_frac": 0.9445701357466063,
+                  "score": 29.290601203883934
+                },
+                "detail_j": {
+                  "boundary": 20.33333396911621,
+                  "boundary_n": 120,
+                  "mean_weight": 0.820315957069397,
+                  "changed_frac": 0.05542986425339366,
+                  "score": 24.259594013248634
+                }
+              },
+              {
+                "segment": 969,
+                "owner": 3,
+                "area": 913,
+                "bbox": [
+                  545,
+                  579,
+                  280,
+                  307
+                ],
+                "mean_depth_risk": 0.2700902223587036,
+                "score_i": 20.915395234526834,
+                "score_j": 17.23476746231154,
+                "detail_i": {
+                  "boundary": 10.704917907714844,
+                  "boundary_n": 122,
+                  "mean_weight": 0.7536601424217224,
+                  "changed_frac": 0.8806133625410734,
+                  "score": 20.915395234526834
+                },
+                "detail_j": {
+                  "boundary": 12.5819673538208,
+                  "boundary_n": 122,
+                  "mean_weight": 0.8031759858131409,
+                  "changed_frac": 0.11938663745892661,
+                  "score": 17.23476746231154
+                }
+              },
+              {
+                "segment": 1029,
+                "owner": 3,
+                "area": 939,
+                "bbox": [
+                  579,
+                  613,
+                  279,
+                  307
+                ],
+                "mean_depth_risk": 0.2863955497741699,
+                "score_i": 19.44848959438336,
+                "score_j": 14.818790030555604,
+                "detail_i": {
+                  "boundary": 9.112903594970703,
+                  "boundary_n": 124,
+                  "mean_weight": 0.7282686233520508,
+                  "changed_frac": 0.8168264110756124,
+                  "score": 19.44848959438336
+                },
+                "detail_j": {
+                  "boundary": 9.096774101257324,
+                  "boundary_n": 124,
+                  "mean_weight": 0.7688512802124023,
+                  "changed_frac": 0.18317358892438765,
+                  "score": 14.818790030555604
+                }
+              },
+              {
+                "segment": 1089,
+                "owner": 3,
+                "area": 751,
+                "bbox": [
+                  613,
+                  642,
+                  278,
+                  307
+                ],
+                "mean_depth_risk": 0.28727594017982483,
+                "score_i": 17.569903759442063,
+                "score_j": 14.438011498965531,
+                "detail_i": {
+                  "boundary": 6.724137783050537,
+                  "boundary_n": 116,
+                  "mean_weight": 0.6921990513801575,
+                  "changed_frac": 0.7816245006657789,
+                  "score": 17.569903759442063
+                },
+                "detail_j": {
+                  "boundary": 7.655172348022461,
+                  "boundary_n": 116,
+                  "mean_weight": 0.7263706922531128,
+                  "changed_frac": 0.21837549933422104,
+                  "score": 14.438011498965531
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "status": "ok",
+            "candidate_segments": 13,
+            "accepted_segments": 7,
+            "rejected_segments": 6,
+            "protected_pixels": 7322,
+            "accepted": [
+              {
+                "segment": 814,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  443,
+                  477,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.1658555567264557,
+                "score_i": 10.982406005727379,
+                "score_j": 21.347082986963663,
+                "detail_i": {
+                  "boundary": 7.992647171020508,
+                  "boundary_n": 136,
+                  "mean_weight": 0.853107213973999,
+                  "changed_frac": 0.00865051903114187,
+                  "score": 10.982406005727379
+                },
+                "detail_j": {
+                  "boundary": 11.022058486938477,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7811536192893982,
+                  "changed_frac": 0.9913494809688581,
+                  "score": 21.347082986963663
+                }
+              },
+              {
+                "segment": 875,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  477,
+                  511,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.216804638504982,
+                "score_i": 14.93920957258416,
+                "score_j": 38.45259679147529,
+                "detail_i": {
+                  "boundary": 11.933823585510254,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8725680708885193,
+                  "changed_frac": 0.07612456747404844,
+                  "score": 14.93920957258416
+                },
+                "detail_j": {
+                  "boundary": 29.110294342041016,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8100475072860718,
+                  "changed_frac": 0.9238754325259516,
+                  "score": 38.45259679147529
+                }
+              },
+              {
+                "segment": 935,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  511,
+                  545,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.17555201053619385,
+                "score_i": 9.62540071068338,
+                "score_j": 22.83084781112143,
+                "detail_i": {
+                  "boundary": 6.191176414489746,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8731849789619446,
+                  "changed_frac": 0.14965397923875431,
+                  "score": 9.62540071068338
+                },
+                "detail_j": {
+                  "boundary": 14.161765098571777,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8216496706008911,
+                  "changed_frac": 0.8503460207612457,
+                  "score": 22.83084781112143
+                }
+              },
+              {
+                "segment": 994,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  545,
+                  579,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.22612860798835754,
+                "score_i": 10.499558544488927,
+                "score_j": 16.291207456258753,
+                "detail_i": {
+                  "boundary": 6.227941036224365,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8549312353134155,
+                  "changed_frac": 0.22837370242214533,
+                  "score": 10.499558544488927
+                },
+                "detail_j": {
+                  "boundary": 7.970588207244873,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8154569268226624,
+                  "changed_frac": 0.7716262975778547,
+                  "score": 16.291207456258753
+                }
+              },
+              {
+                "segment": 1054,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  579,
+                  613,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.17744678258895874,
+                "score_i": 17.94118144520426,
+                "score_j": 24.307975506700032,
+                "detail_i": {
+                  "boundary": 12.470588684082031,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8185983896255493,
+                  "changed_frac": 0.3070934256055363,
+                  "score": 17.94118144520426
+                },
+                "detail_j": {
+                  "boundary": 15.985294342041016,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7917379140853882,
+                  "changed_frac": 0.6929065743944637,
+                  "score": 24.307975506700032
+                }
+              },
+              {
+                "segment": 1114,
+                "owner": 0,
+                "area": 1149,
+                "bbox": [
+                  613,
+                  647,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.20674151182174683,
+                "score_i": 13.891683813797275,
+                "score_j": 19.169446471465786,
+                "detail_i": {
+                  "boundary": 6.889705657958984,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7660890817642212,
+                  "changed_frac": 0.3872932985204526,
+                  "score": 13.891683813797275
+                },
+                "detail_j": {
+                  "boundary": 10.522058486938477,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7514426112174988,
+                  "changed_frac": 0.6127067014795474,
+                  "score": 19.169446471465786
+                }
+              },
+              {
+                "segment": 1174,
+                "owner": 0,
+                "area": 393,
+                "bbox": [
+                  647,
+                  662,
+                  1123,
+                  1156
+                ],
+                "mean_depth_risk": 0.4355319142341614,
+                "score_i": 17.997439721158443,
+                "score_j": 75.8876928300348,
+                "detail_i": {
+                  "boundary": 9.416666984558105,
+                  "boundary_n": 96,
+                  "mean_weight": 0.7205796837806702,
+                  "changed_frac": 0.49872773536895676,
+                  "score": 17.997439721158443
+                },
+                "detail_j": {
+                  "boundary": 67.23958587646484,
+                  "boundary_n": 96,
+                  "mean_weight": 0.7179763317108154,
+                  "changed_frac": 0.5012722646310432,
+                  "score": 75.8876928300348
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "status": "ok",
+            "candidate_segments": 9,
+            "accepted_segments": 6,
+            "rejected_segments": 3,
+            "protected_pixels": 4692,
+            "accepted": [
+              {
+                "segment": 703,
+                "owner": 5,
+                "area": 79,
+                "bbox": [
+                  405,
+                  409,
+                  1429,
+                  1456
+                ],
+                "mean_depth_risk": 0.3107036352157593,
+                "score_i": 26.588398483735098,
+                "score_j": 13.997140857237804,
+                "detail_i": {
+                  "boundary": 15.754097938537598,
+                  "boundary_n": 61,
+                  "mean_weight": 0.6709432005882263,
+                  "changed_frac": 0.7088607594936709,
+                  "score": 26.588398483735098
+                },
+                "detail_j": {
+                  "boundary": 6.065573692321777,
+                  "boundary_n": 61,
+                  "mean_weight": 0.6907634139060974,
+                  "changed_frac": 0.2911392405063291,
+                  "score": 13.997140857237804
+                }
+              },
+              {
+                "segment": 944,
+                "owner": 5,
+                "area": 1032,
+                "bbox": [
+                  511,
+                  545,
+                  1429,
+                  1460
+                ],
+                "mean_depth_risk": 0.12963779270648956,
+                "score_i": 13.764331667922264,
+                "score_j": 7.7719632692115255,
+                "detail_i": {
+                  "boundary": 4.3692307472229,
+                  "boundary_n": 130,
+                  "mean_weight": 0.7709426283836365,
+                  "changed_frac": 0.8023255813953488,
+                  "score": 13.764331667922264
+                },
+                "detail_j": {
+                  "boundary": 2.930769205093384,
+                  "boundary_n": 130,
+                  "mean_weight": 0.8172426223754883,
+                  "changed_frac": 0.19767441860465115,
+                  "score": 7.7719632692115255
+                }
+              },
+              {
+                "segment": 1003,
+                "owner": 5,
+                "area": 1062,
+                "bbox": [
+                  545,
+                  579,
+                  1429,
+                  1461
+                ],
+                "mean_depth_risk": 0.14789018034934998,
+                "score_i": 13.895134667218741,
+                "score_j": 6.736812730966989,
+                "detail_i": {
+                  "boundary": 4.333333492279053,
+                  "boundary_n": 132,
+                  "mean_weight": 0.7642828226089478,
+                  "changed_frac": 0.807909604519774,
+                  "score": 13.895134667218741
+                },
+                "detail_j": {
+                  "boundary": 1.8409091234207153,
+                  "boundary_n": 132,
+                  "mean_weight": 0.8128319382667542,
+                  "changed_frac": 0.192090395480226,
+                  "score": 6.736812730966989
+                }
+              },
+              {
+                "segment": 1063,
+                "owner": 5,
+                "area": 1093,
+                "bbox": [
+                  579,
+                  613,
+                  1429,
+                  1462
+                ],
+                "mean_depth_risk": 0.17832528054714203,
+                "score_i": 13.571223399667486,
+                "score_j": 6.628223993749872,
+                "detail_i": {
+                  "boundary": 3.3731343746185303,
+                  "boundary_n": 134,
+                  "mean_weight": 0.7412391901016235,
+                  "changed_frac": 0.8371454711802379,
+                  "score": 13.571223399667486
+                },
+                "detail_j": {
+                  "boundary": 1.470149278640747,
+                  "boundary_n": 134,
+                  "mean_weight": 0.7909526228904724,
+                  "changed_frac": 0.16285452881976212,
+                  "score": 6.628223993749872
+                }
+              },
+              {
+                "segment": 1123,
+                "owner": 5,
+                "area": 1126,
+                "bbox": [
+                  613,
+                  647,
+                  1429,
+                  1463
+                ],
+                "mean_depth_risk": 0.2684263586997986,
+                "score_i": 25.773923318297147,
+                "score_j": 15.634651739686252,
+                "detail_i": {
+                  "boundary": 14.735294342041016,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7027754783630371,
+                  "changed_frac": 0.8490230905861457,
+                  "score": 25.773923318297147
+                },
+                "detail_j": {
+                  "boundary": 9.779411315917969,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7525310516357422,
+                  "changed_frac": 0.15097690941385436,
+                  "score": 15.634651739686252
+                }
+              },
+              {
+                "segment": 1183,
+                "owner": 5,
+                "area": 300,
+                "bbox": [
+                  647,
+                  658,
+                  1429,
+                  1463
+                ],
+                "mean_depth_risk": 0.18564455211162567,
+                "score_i": 33.794946355819704,
+                "score_j": 19.08109553337097,
+                "detail_i": {
+                  "boundary": 22.38888931274414,
+                  "boundary_n": 90,
+                  "mean_weight": 0.6756971478462219,
+                  "changed_frac": 0.82,
+                  "score": 33.794946355819704
+                },
+                "detail_j": {
+                  "boundary": 12.344444274902344,
+                  "boundary_n": 90,
+                  "mean_weight": 0.7171674370765686,
+                  "changed_frac": 0.18,
+                  "score": 19.08109553337097
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "status": "ok",
+            "candidate_segments": 12,
+            "accepted_segments": 6,
+            "rejected_segments": 6,
+            "protected_pixels": 4882,
+            "accepted": [
+              {
+                "segment": 711,
+                "owner": 5,
+                "area": 129,
+                "bbox": [
+                  401,
+                  409,
+                  1715,
+                  1735
+                ],
+                "mean_depth_risk": 0.14742036163806915,
+                "score_i": 11.808619515840398,
+                "score_j": 16.659641964491023,
+                "detail_i": {
+                  "boundary": 5.5714287757873535,
+                  "boundary_n": 56,
+                  "mean_weight": 0.7113962769508362,
+                  "changed_frac": 0.07751937984496124,
+                  "score": 11.808619515840398
+                },
+                "detail_j": {
+                  "boundary": 4.607142925262451,
+                  "boundary_n": 56,
+                  "mean_weight": 0.674119234085083,
+                  "changed_frac": 0.9224806201550387,
+                  "score": 16.659641964491023
+                }
+              },
+              {
+                "segment": 771,
+                "owner": 5,
+                "area": 680,
+                "bbox": [
+                  409,
+                  443,
+                  1715,
+                  1735
+                ],
+                "mean_depth_risk": 0.19978709518909454,
+                "score_i": 13.296172304714426,
+                "score_j": 20.292502955829395,
+                "detail_i": {
+                  "boundary": 7.94444465637207,
+                  "boundary_n": 108,
+                  "mean_weight": 0.7438842058181763,
+                  "changed_frac": 0.03823529411764706,
+                  "score": 13.296172304714426
+                },
+                "detail_j": {
+                  "boundary": 8.55555534362793,
+                  "boundary_n": 108,
+                  "mean_weight": 0.7016820311546326,
+                  "changed_frac": 0.961764705882353,
+                  "score": 20.292502955829395
+                }
+              },
+              {
+                "segment": 832,
+                "owner": 4,
+                "area": 960,
+                "bbox": [
+                  443,
+                  477,
+                  1735,
+                  1764
+                ],
+                "mean_depth_risk": 0.1837940812110901,
+                "score_i": 23.103207635879517,
+                "score_j": 10.838828754425048,
+                "detail_i": {
+                  "boundary": 12.134921073913574,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7337731719017029,
+                  "changed_frac": 0.940625,
+                  "score": 23.103207635879517
+                },
+                "detail_j": {
+                  "boundary": 6.349206447601318,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7933313846588135,
+                  "changed_frac": 0.059375,
+                  "score": 10.838828754425048
+                }
+              },
+              {
+                "segment": 893,
+                "owner": 5,
+                "area": 997,
+                "bbox": [
+                  477,
+                  511,
+                  1735,
+                  1765
+                ],
+                "mean_depth_risk": 0.23450922966003418,
+                "score_i": 22.82418180229432,
+                "score_j": 26.42652916190856,
+                "detail_i": {
+                  "boundary": 12.8359375,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7605677247047424,
+                  "changed_frac": 0.8665997993981945,
+                  "score": 22.82418180229432
+                },
+                "detail_j": {
+                  "boundary": 21.890625,
+                  "boundary_n": 128,
+                  "mean_weight": 0.8132248520851135,
+                  "changed_frac": 0.1334002006018054,
+                  "score": 26.42652916190856
+                }
+              },
+              {
+                "segment": 1072,
+                "owner": 4,
+                "area": 1109,
+                "bbox": [
+                  579,
+                  613,
+                  1735,
+                  1768
+                ],
+                "mean_depth_risk": 0.1477363109588623,
+                "score_i": 37.0287519920184,
+                "score_j": 30.251257992951693,
+                "detail_i": {
+                  "boundary": 27.865671157836914,
+                  "boundary_n": 134,
+                  "mean_weight": 0.7422968149185181,
+                  "changed_frac": 0.6681695220919748,
+                  "score": 37.0287519920184
+                },
+                "detail_j": {
+                  "boundary": 23.619403839111328,
+                  "boundary_n": 134,
+                  "mean_weight": 0.7679564356803894,
+                  "changed_frac": 0.3318304779080252,
+                  "score": 30.251257992951693
+                }
+              },
+              {
+                "segment": 1132,
+                "owner": 5,
+                "area": 1007,
+                "bbox": [
+                  613,
+                  645,
+                  1735,
+                  1769
+                ],
+                "mean_depth_risk": 0.15507978200912476,
+                "score_i": 22.704304765447485,
+                "score_j": 25.92886488558401,
+                "detail_i": {
+                  "boundary": 13.015151977539062,
+                  "boundary_n": 132,
+                  "mean_weight": 0.705909788608551,
+                  "changed_frac": 0.634558093346574,
+                  "score": 22.704304765447485
+                },
+                "detail_j": {
+                  "boundary": 18.227272033691406,
+                  "boundary_n": 132,
+                  "mean_weight": 0.7245529294013977,
+                  "changed_frac": 0.365441906653426,
+                  "score": 25.92886488558401
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "status": "ok",
+            "candidate_segments": 9,
+            "accepted_segments": 0,
+            "rejected_segments": 9,
+            "protected_pixels": 0,
+            "accepted": []
+          }
+        ],
+        "changed_pixels": 7319,
+        "changed_fraction": 0.003489971160888672,
+        "protected_pixels": 31988
+      },
+      "depth_model": {
+        "model_id": "depth-anything/Depth-Anything-V2-Small-hf",
+        "device": 0,
+        "load_s": 1.024,
+        "infer_s": 2.108,
+        "project_depth_s": 1.859,
+        "per_cam": {
+          "ring_front_center": {
+            "depth_min": -0.46923828125,
+            "depth_max": 14.15625,
+            "depth_median": 1.4619140625,
+            "valid_erp_frac": 0.04257822036743164
+          },
+          "ring_front_left": {
+            "depth_min": -0.358154296875,
+            "depth_max": 11.296875,
+            "depth_median": 2.23828125,
+            "valid_erp_frac": 0.04560041427612305
+          },
+          "ring_side_left": {
+            "depth_min": -0.337158203125,
+            "depth_max": 11.25,
+            "depth_median": 2.091796875,
+            "valid_erp_frac": 0.04561662673950195
+          },
+          "ring_rear_left": {
+            "depth_min": -0.22314453125,
+            "depth_max": 17.125,
+            "depth_median": 1.0849609375,
+            "valid_erp_frac": 0.04552173614501953
+          },
+          "ring_rear_right": {
+            "depth_min": -0.2310791015625,
+            "depth_max": 17.03125,
+            "depth_median": 1.2939453125,
+            "valid_erp_frac": 0.04557085037231445
+          },
+          "ring_side_right": {
+            "depth_min": -0.3603515625,
+            "depth_max": 7.26171875,
+            "depth_median": 4.359375,
+            "valid_erp_frac": 0.04568910598754883
+          },
+          "ring_front_right": {
+            "depth_min": -0.380859375,
+            "depth_max": 8.0234375,
+            "depth_median": 4.32421875,
+            "valid_erp_frac": 0.045680999755859375
+          }
+        }
+      },
+      "runtime_s": {
+        "project_rgb": 1.899
+      },
+      "outputs": {
+        "review": "02a00399_a000_bmw_superpixel_depth_review_1024.jpg",
+        "crop_review": "02a00399_a000_bmw_superpixel_depth_crop_review.jpg"
+      }
+    },
+    {
+      "case": "fbee355f_a095_ped_obj",
+      "params": {
+        "model_id": "depth-anything/Depth-Anything-V2-Small-hf",
+        "n_segments": 1800,
+        "compactness": 14.0,
+        "segment_depth_weight": 0.75,
+        "min_depth_risk": 0.12
+      },
+      "dense_depth_global": {
+        "band_pixels": 87802,
+        "core_pixels": 11879,
+        "dense_depth_risk": {
+          "name": "global_dense_depth",
+          "n": 87802,
+          "mean": 0.16755592823028564,
+          "median": 0.11857734620571136,
+          "p90": 0.3626190721988678,
+          "p95": 0.642365574836731,
+          "p99": 0.8921897411346436,
+          "high_frac_065": 0.04950912279902508,
+          "high_frac_080": 0.017846973873032506
+        },
+        "high_dense_depth_pixels": 4347,
+        "high_dense_depth_frac_of_band": 0.04950912279902508
+      },
+      "overlap_ncc": {
+        "hard_select": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.987300975039343,
+          "mean_ncc_winner_vs_loser": 0.18908082585313318,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "superpixel_depth": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.890820416173333,
+          "mean_ncc_winner_vs_loser": 0.18908082585313318,
+          "mean_ssd_pano_vs_winner": 220.19323418252884
+        }
+      },
+      "seam_gap_y": {
+        "hard_select": {
+          "n": 1747,
+          "mean_delta_y": 28.068689346313477,
+          "median_delta_y": 17.0,
+          "p90_delta_y": 69.0,
+          "p95_delta_y": 85.0
+        },
+        "superpixel_depth": {
+          "n": 1747,
+          "mean_delta_y": 14.793359756469727,
+          "median_delta_y": 4.0,
+          "p90_delta_y": 40.0,
+          "p95_delta_y": 61.39990234375
+        }
+      },
+      "superpixel": {
+        "segments": {
+          "n_segments_requested": 1800,
+          "n_segments_actual": 1800,
+          "compactness": 14.0,
+          "segment_depth_weight": 0.75
+        },
+        "pairs": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "status": "ok",
+            "candidate_segments": 9,
+            "accepted_segments": 5,
+            "rejected_segments": 4,
+            "protected_pixels": 4578,
+            "accepted": [
+              {
+                "segment": 927,
+                "owner": 0,
+                "area": 1054,
+                "bbox": [
+                  511,
+                  545,
+                  888,
+                  919
+                ],
+                "mean_depth_risk": 0.19943885505199432,
+                "score_i": 22.602215663305497,
+                "score_j": 53.74703274596575,
+                "detail_i": {
+                  "boundary": 18.769229888916016,
+                  "boundary_n": 130,
+                  "mean_weight": 0.8698307871818542,
+                  "changed_frac": 0.2049335863377609,
+                  "score": 22.602215663305497
+                },
+                "detail_j": {
+                  "boundary": 45.58461380004883,
+                  "boundary_n": 130,
+                  "mean_weight": 0.8303989768028259,
+                  "changed_frac": 0.7950664136622391,
+                  "score": 53.74703274596575
+                }
+              },
+              {
+                "segment": 987,
+                "owner": 0,
+                "area": 1054,
+                "bbox": [
+                  545,
+                  579,
+                  888,
+                  919
+                ],
+                "mean_depth_risk": 0.212097629904747,
+                "score_i": 35.400960447213684,
+                "score_j": 59.74005293665167,
+                "detail_i": {
+                  "boundary": 30.730770111083984,
+                  "boundary_n": 130,
+                  "mean_weight": 0.8518794775009155,
+                  "changed_frac": 0.2846299810246679,
+                  "score": 35.400960447213684
+                },
+                "detail_j": {
+                  "boundary": 51.91538619995117,
+                  "boundary_n": 130,
+                  "mean_weight": 0.8233776688575745,
+                  "changed_frac": 0.715370018975332,
+                  "score": 59.74005293665167
+                }
+              },
+              {
+                "segment": 1047,
+                "owner": 0,
+                "area": 1054,
+                "bbox": [
+                  579,
+                  613,
+                  888,
+                  919
+                ],
+                "mean_depth_risk": 0.1887902170419693,
+                "score_i": 37.97183286261513,
+                "score_j": 62.082710155725934,
+                "detail_i": {
+                  "boundary": 32.11538314819336,
+                  "boundary_n": 130,
+                  "mean_weight": 0.8159061670303345,
+                  "changed_frac": 0.36242884250474383,
+                  "score": 37.97183286261513
+                },
+                "detail_j": {
+                  "boundary": 54.230770111083984,
+                  "boundary_n": 130,
+                  "mean_weight": 0.7986743450164795,
+                  "changed_frac": 0.6375711574952562,
+                  "score": 62.082710155725934
+                }
+              },
+              {
+                "segment": 1107,
+                "owner": 0,
+                "area": 1054,
+                "bbox": [
+                  613,
+                  647,
+                  888,
+                  919
+                ],
+                "mean_depth_risk": 0.2368810772895813,
+                "score_i": 35.621187651632404,
+                "score_j": 52.81604055118742,
+                "detail_i": {
+                  "boundary": 28.19230842590332,
+                  "boundary_n": 130,
+                  "mean_weight": 0.7634706497192383,
+                  "changed_frac": 0.4497153700189753,
+                  "score": 35.621187651632404
+                },
+                "detail_j": {
+                  "boundary": 44.661537170410156,
+                  "boundary_n": 130,
+                  "mean_weight": 0.7573602199554443,
+                  "changed_frac": 0.5502846299810247,
+                  "score": 52.81604055118742
+                }
+              },
+              {
+                "segment": 1167,
+                "owner": 0,
+                "area": 362,
+                "bbox": [
+                  647,
+                  661,
+                  888,
+                  919
+                ],
+                "mean_depth_risk": 0.5453601479530334,
+                "score_i": 17.7805958439632,
+                "score_j": 53.16634410125775,
+                "detail_i": {
+                  "boundary": 8.733333587646484,
+                  "boundary_n": 90,
+                  "mean_weight": 0.718355119228363,
+                  "changed_frac": 0.569060773480663,
+                  "score": 17.7805958439632
+                },
+                "detail_j": {
+                  "boundary": 45.05555725097656,
+                  "boundary_n": 90,
+                  "mean_weight": 0.7237424254417419,
+                  "changed_frac": 0.430939226519337,
+                  "score": 53.16634410125775
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "status": "ok",
+            "candidate_segments": 18,
+            "accepted_segments": 8,
+            "rejected_segments": 10,
+            "protected_pixels": 6324,
+            "accepted": [
+              {
+                "segment": 738,
+                "owner": 2,
+                "area": 769,
+                "bbox": [
+                  409,
+                  443,
+                  590,
+                  613
+                ],
+                "mean_depth_risk": 0.16031086444854736,
+                "score_i": 30.46505851274349,
+                "score_j": 20.05587368482731,
+                "detail_i": {
+                  "boundary": 18.508771896362305,
+                  "boundary_n": 114,
+                  "mean_weight": 0.6889216899871826,
+                  "changed_frac": 0.9557867360208062,
+                  "score": 30.46505851274349
+                },
+                "detail_j": {
+                  "boundary": 14.543859481811523,
+                  "boundary_n": 114,
+                  "mean_weight": 0.7376632690429688,
+                  "changed_frac": 0.044213263979193757,
+                  "score": 20.05587368482731
+                }
+              },
+              {
+                "segment": 798,
+                "owner": 2,
+                "area": 807,
+                "bbox": [
+                  443,
+                  477,
+                  589,
+                  613
+                ],
+                "mean_depth_risk": 0.16524749994277954,
+                "score_i": 23.880593262640517,
+                "score_j": 15.899866379769762,
+                "detail_i": {
+                  "boundary": 12.715517044067383,
+                  "boundary_n": 116,
+                  "mean_weight": 0.7291067838668823,
+                  "changed_frac": 0.9578686493184635,
+                  "score": 23.880593262640517
+                },
+                "detail_j": {
+                  "boundary": 11.301724433898926,
+                  "boundary_n": 116,
+                  "mean_weight": 0.7827323079109192,
+                  "changed_frac": 0.042131350681536554,
+                  "score": 15.899866379769762
+                }
+              },
+              {
+                "segment": 858,
+                "owner": 2,
+                "area": 844,
+                "bbox": [
+                  477,
+                  511,
+                  588,
+                  613
+                ],
+                "mean_depth_risk": 0.1406380981206894,
+                "score_i": 24.783346624735973,
+                "score_j": 14.133394984837391,
+                "detail_i": {
+                  "boundary": 14.110169410705566,
+                  "boundary_n": 118,
+                  "mean_weight": 0.7542558312416077,
+                  "changed_frac": 0.9597156398104265,
+                  "score": 24.783346624735973
+                },
+                "detail_j": {
+                  "boundary": 10.127119064331055,
+                  "boundary_n": 118,
+                  "mean_weight": 0.8117715120315552,
+                  "changed_frac": 0.04028436018957346,
+                  "score": 14.133394984837391
+                }
+              },
+              {
+                "segment": 918,
+                "owner": 2,
+                "area": 880,
+                "bbox": [
+                  511,
+                  545,
+                  587,
+                  613
+                ],
+                "mean_depth_risk": 0.19021013379096985,
+                "score_i": 22.310217159444633,
+                "score_j": 9.836783868616278,
+                "detail_i": {
+                  "boundary": 11.808333396911621,
+                  "boundary_n": 120,
+                  "mean_weight": 0.7633149027824402,
+                  "changed_frac": 0.9613636363636363,
+                  "score": 22.310217159444633
+                },
+                "detail_j": {
+                  "boundary": 6.074999809265137,
+                  "boundary_n": 120,
+                  "mean_weight": 0.823501706123352,
+                  "changed_frac": 0.038636363636363635,
+                  "score": 9.836783868616278
+                }
+              },
+              {
+                "segment": 978,
+                "owner": 2,
+                "area": 917,
+                "bbox": [
+                  545,
+                  579,
+                  585,
+                  613
+                ],
+                "mean_depth_risk": 0.14761964976787567,
+                "score_i": 28.314176085731066,
+                "score_j": 13.99469494507643,
+                "detail_i": {
+                  "boundary": 17.65322494506836,
+                  "boundary_n": 124,
+                  "mean_weight": 0.7558292150497437,
+                  "changed_frac": 0.9629225736095965,
+                  "score": 28.314176085731066
+                },
+                "detail_j": {
+                  "boundary": 10.120967864990234,
+                  "boundary_n": 124,
+                  "mean_weight": 0.8174368739128113,
+                  "changed_frac": 0.03707742639040349,
+                  "score": 13.99469494507643
+                }
+              },
+              {
+                "segment": 1038,
+                "owner": 2,
+                "area": 957,
+                "bbox": [
+                  579,
+                  613,
+                  584,
+                  613
+                ],
+                "mean_depth_risk": 0.21144230663776398,
+                "score_i": 23.511127326182063,
+                "score_j": 11.614397909947698,
+                "detail_i": {
+                  "boundary": 12.365078926086426,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7320392727851868,
+                  "changed_frac": 0.9644723092998955,
+                  "score": 23.511127326182063
+                },
+                "detail_j": {
+                  "boundary": 7.277777671813965,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7938272953033447,
+                  "changed_frac": 0.035527690700104496,
+                  "score": 11.614397909947698
+                }
+              },
+              {
+                "segment": 1098,
+                "owner": 2,
+                "area": 997,
+                "bbox": [
+                  613,
+                  647,
+                  583,
+                  613
+                ],
+                "mean_depth_risk": 0.3419075608253479,
+                "score_i": 24.800677858838586,
+                "score_j": 11.969792283525916,
+                "detail_i": {
+                  "boundary": 12.8671875,
+                  "boundary_n": 128,
+                  "mean_weight": 0.693094789981842,
+                  "changed_frac": 0.9658976930792377,
+                  "score": 24.800677858838586
+                },
+                "detail_j": {
+                  "boundary": 6.8359375,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7535379528999329,
+                  "changed_frac": 0.034102306920762285,
+                  "score": 11.969792283525916
+                }
+              },
+              {
+                "segment": 1158,
+                "owner": 2,
+                "area": 153,
+                "bbox": [
+                  647,
+                  655,
+                  583,
+                  613
+                ],
+                "mean_depth_risk": 0.4641765058040619,
+                "score_i": 26.652123194114836,
+                "score_j": 10.369228858573765,
+                "detail_i": {
+                  "boundary": 14.402777671813965,
+                  "boundary_n": 72,
+                  "mean_weight": 0.6718464493751526,
+                  "changed_frac": 0.9477124183006536,
+                  "score": 26.652123194114836
+                },
+                "detail_j": {
+                  "boundary": 4.402777671813965,
+                  "boundary_n": 72,
+                  "mean_weight": 0.717363715171814,
+                  "changed_frac": 0.05228758169934641,
+                  "score": 10.369228858573765
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "status": "ok",
+            "candidate_segments": 13,
+            "accepted_segments": 5,
+            "rejected_segments": 8,
+            "protected_pixels": 3681,
+            "accepted": [
+              {
+                "segment": 670,
+                "owner": 3,
+                "area": 194,
+                "bbox": [
+                  399,
+                  409,
+                  307,
+                  329
+                ],
+                "mean_depth_risk": 0.3688954710960388,
+                "score_i": 53.07304148821487,
+                "score_j": 41.72453899236069,
+                "detail_i": {
+                  "boundary": 46.046875,
+                  "boundary_n": 64,
+                  "mean_weight": 0.7074545621871948,
+                  "changed_frac": 0.1958762886597938,
+                  "score": 53.07304148821487
+                },
+                "detail_j": {
+                  "boundary": 30.46875,
+                  "boundary_n": 64,
+                  "mean_weight": 0.6784476637840271,
+                  "changed_frac": 0.8041237113402062,
+                  "score": 41.72453899236069
+                }
+              },
+              {
+                "segment": 730,
+                "owner": 3,
+                "area": 748,
+                "bbox": [
+                  409,
+                  443,
+                  307,
+                  329
+                ],
+                "mean_depth_risk": 0.22121363878250122,
+                "score_i": 46.18900497329426,
+                "score_j": 31.759725733874316,
+                "detail_i": {
+                  "boundary": 39.97321319580078,
+                  "boundary_n": 112,
+                  "mean_weight": 0.7409483790397644,
+                  "changed_frac": 0.17245989304812834,
+                  "score": 46.18900497329426
+                },
+                "detail_j": {
+                  "boundary": 20.95535659790039,
+                  "boundary_n": 112,
+                  "mean_weight": 0.7080435752868652,
+                  "changed_frac": 0.8275401069518716,
+                  "score": 31.759725733874316
+                }
+              },
+              {
+                "segment": 969,
+                "owner": 3,
+                "area": 925,
+                "bbox": [
+                  545,
+                  579,
+                  279,
+                  307
+                ],
+                "mean_depth_risk": 0.17767322063446045,
+                "score_i": 40.94728576041557,
+                "score_j": 22.344952475058065,
+                "detail_i": {
+                  "boundary": 30.854839324951172,
+                  "boundary_n": 124,
+                  "mean_weight": 0.7564587593078613,
+                  "changed_frac": 0.8702702702702703,
+                  "score": 40.94728576041557
+                },
+                "detail_j": {
+                  "boundary": 17.669355392456055,
+                  "boundary_n": 124,
+                  "mean_weight": 0.8051390647888184,
+                  "changed_frac": 0.12972972972972974,
+                  "score": 22.344952475058065
+                }
+              },
+              {
+                "segment": 1029,
+                "owner": 3,
+                "area": 956,
+                "bbox": [
+                  579,
+                  613,
+                  278,
+                  307
+                ],
+                "mean_depth_risk": 0.1533464640378952,
+                "score_i": 45.31340680960332,
+                "score_j": 23.528146163190257,
+                "detail_i": {
+                  "boundary": 35.13492202758789,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7327075600624084,
+                  "changed_frac": 0.805439330543933,
+                  "score": 45.31340680960332
+                },
+                "detail_j": {
+                  "boundary": 17.817461013793945,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7728339433670044,
+                  "changed_frac": 0.19456066945606695,
+                  "score": 23.528146163190257
+                }
+              },
+              {
+                "segment": 1089,
+                "owner": 3,
+                "area": 858,
+                "bbox": [
+                  613,
+                  645,
+                  278,
+                  307
+                ],
+                "mean_depth_risk": 0.1957424432039261,
+                "score_i": 36.63622740932278,
+                "score_j": 29.66911359600254,
+                "detail_i": {
+                  "boundary": 25.97541046142578,
+                  "boundary_n": 122,
+                  "mean_weight": 0.6959801316261292,
+                  "changed_frac": 0.7634032634032634,
+                  "score": 36.63622740932278
+                },
+                "detail_j": {
+                  "boundary": 22.8360652923584,
+                  "boundary_n": 122,
+                  "mean_weight": 0.729326605796814,
+                  "changed_frac": 0.2365967365967366,
+                  "score": 29.66911359600254
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "status": "ok",
+            "candidate_segments": 9,
+            "accepted_segments": 6,
+            "rejected_segments": 3,
+            "protected_pixels": 5960,
+            "accepted": [
+              {
+                "segment": 874,
+                "owner": 0,
+                "area": 1122,
+                "bbox": [
+                  477,
+                  511,
+                  1123,
+                  1156
+                ],
+                "mean_depth_risk": 0.1263587921857834,
+                "score_i": 10.488046236854187,
+                "score_j": 18.801730565208803,
+                "detail_i": {
+                  "boundary": 7.425373077392578,
+                  "boundary_n": 134,
+                  "mean_weight": 0.8717326521873474,
+                  "changed_frac": 0.08288770053475936,
+                  "score": 10.488046236854187
+                },
+                "detail_j": {
+                  "boundary": 9.537313461303711,
+                  "boundary_n": 134,
+                  "mean_weight": 0.8119128346443176,
+                  "changed_frac": 0.9171122994652406,
+                  "score": 18.801730565208803
+                }
+              },
+              {
+                "segment": 934,
+                "owner": 0,
+                "area": 1122,
+                "bbox": [
+                  511,
+                  545,
+                  1123,
+                  1156
+                ],
+                "mean_depth_risk": 0.1359519511461258,
+                "score_i": 9.856161237400483,
+                "score_j": 17.64298593934207,
+                "detail_i": {
+                  "boundary": 6.388059616088867,
+                  "boundary_n": 134,
+                  "mean_weight": 0.8725842237472534,
+                  "changed_frac": 0.1532976827094474,
+                  "score": 9.856161237400483
+                },
+                "detail_j": {
+                  "boundary": 9.022388458251953,
+                  "boundary_n": 134,
+                  "mean_weight": 0.8229808211326599,
+                  "changed_frac": 0.8467023172905526,
+                  "score": 17.64298593934207
+                }
+              },
+              {
+                "segment": 994,
+                "owner": 0,
+                "area": 1122,
+                "bbox": [
+                  545,
+                  579,
+                  1123,
+                  1156
+                ],
+                "mean_depth_risk": 0.13739550113677979,
+                "score_i": 8.928840030323375,
+                "score_j": 13.199955593455922,
+                "detail_i": {
+                  "boundary": 4.656716346740723,
+                  "boundary_n": 134,
+                  "mean_weight": 0.8545756340026855,
+                  "changed_frac": 0.22727272727272727,
+                  "score": 8.928840030323375
+                },
+                "detail_j": {
+                  "boundary": 4.888059616088867,
+                  "boundary_n": 134,
+                  "mean_weight": 0.8162233829498291,
+                  "changed_frac": 0.7727272727272727,
+                  "score": 13.199955593455922
+                }
+              },
+              {
+                "segment": 1054,
+                "owner": 0,
+                "area": 1122,
+                "bbox": [
+                  579,
+                  613,
+                  1123,
+                  1156
+                ],
+                "mean_depth_risk": 0.13007375597953796,
+                "score_i": 9.782127548666562,
+                "score_j": 12.50943930008832,
+                "detail_i": {
+                  "boundary": 4.328358173370361,
+                  "boundary_n": 134,
+                  "mean_weight": 0.8184880018234253,
+                  "changed_frac": 0.30392156862745096,
+                  "score": 9.782127548666562
+                },
+                "detail_j": {
+                  "boundary": 4.171641826629639,
+                  "boundary_n": 134,
+                  "mean_weight": 0.7919336557388306,
+                  "changed_frac": 0.696078431372549,
+                  "score": 12.50943930008832
+                }
+              },
+              {
+                "segment": 1114,
+                "owner": 0,
+                "area": 1122,
+                "bbox": [
+                  613,
+                  647,
+                  1123,
+                  1156
+                ],
+                "mean_depth_risk": 0.1829819232225418,
+                "score_i": 11.320796042202629,
+                "score_j": 12.65907856869825,
+                "detail_i": {
+                  "boundary": 4.328358173370361,
+                  "boundary_n": 134,
+                  "mean_weight": 0.765886127948761,
+                  "changed_frac": 0.3850267379679144,
+                  "score": 11.320796042202629
+                },
+                "detail_j": {
+                  "boundary": 3.992537260055542,
+                  "boundary_n": 134,
+                  "mean_weight": 0.7511649131774902,
+                  "changed_frac": 0.6149732620320856,
+                  "score": 12.65907856869825
+                }
+              },
+              {
+                "segment": 1174,
+                "owner": 0,
+                "area": 350,
+                "bbox": [
+                  647,
+                  660,
+                  1123,
+                  1156
+                ],
+                "mean_depth_risk": 0.5354111790657043,
+                "score_i": 14.758159414018904,
+                "score_j": 31.37388227871486,
+                "detail_i": {
+                  "boundary": 6.130434989929199,
+                  "boundary_n": 92,
+                  "mean_weight": 0.7211852073669434,
+                  "changed_frac": 0.5085714285714286,
+                  "score": 14.758159414018904
+                },
+                "detail_j": {
+                  "boundary": 22.815217971801758,
+                  "boundary_n": 92,
+                  "mean_weight": 0.7194953560829163,
+                  "changed_frac": 0.49142857142857144,
+                  "score": 31.37388227871486
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "status": "ok",
+            "candidate_segments": 9,
+            "accepted_segments": 8,
+            "rejected_segments": 1,
+            "protected_pixels": 6174,
+            "accepted": [
+              {
+                "segment": 703,
+                "owner": 5,
+                "area": 138,
+                "bbox": [
+                  402,
+                  409,
+                  1429,
+                  1455
+                ],
+                "mean_depth_risk": 0.24719183146953583,
+                "score_i": 37.46244735303132,
+                "score_j": 32.34673433718474,
+                "detail_i": {
+                  "boundary": 26.032258987426758,
+                  "boundary_n": 62,
+                  "mean_weight": 0.6676210165023804,
+                  "changed_frac": 0.7971014492753623,
+                  "score": 37.46244735303132
+                },
+                "detail_j": {
+                  "boundary": 25.080644607543945,
+                  "boundary_n": 62,
+                  "mean_weight": 0.6975650787353516,
+                  "changed_frac": 0.2028985507246377,
+                  "score": 32.34673433718474
+                }
+              },
+              {
+                "segment": 763,
+                "owner": 5,
+                "area": 891,
+                "bbox": [
+                  409,
+                  443,
+                  1429,
+                  1456
+                ],
+                "mean_depth_risk": 0.166667178273201,
+                "score_i": 61.573876832069374,
+                "score_j": 52.40305140203097,
+                "detail_i": {
+                  "boundary": 50.36885070800781,
+                  "boundary_n": 122,
+                  "mean_weight": 0.6939574480056763,
+                  "changed_frac": 0.8473625140291807,
+                  "score": 61.573876832069374
+                },
+                "detail_j": {
+                  "boundary": 46.155738830566406,
+                  "boundary_n": 122,
+                  "mean_weight": 0.7334256172180176,
+                  "changed_frac": 0.1526374859708193,
+                  "score": 52.40305140203097
+                }
+              },
+              {
+                "segment": 823,
+                "owner": 5,
+                "area": 924,
+                "bbox": [
+                  443,
+                  477,
+                  1429,
+                  1457
+                ],
+                "mean_depth_risk": 0.32696330547332764,
+                "score_i": 66.49326904408343,
+                "score_j": 47.430412691909,
+                "detail_i": {
+                  "boundary": 56.07258224487305,
+                  "boundary_n": 124,
+                  "mean_weight": 0.7348098158836365,
+                  "changed_frac": 0.8528138528138528,
+                  "score": 66.49326904408343
+                },
+                "detail_j": {
+                  "boundary": 42.120967864990234,
+                  "boundary_n": 124,
+                  "mean_weight": 0.778683602809906,
+                  "changed_frac": 0.1471861471861472,
+                  "score": 47.430412691909
+                }
+              },
+              {
+                "segment": 883,
+                "owner": 5,
+                "area": 957,
+                "bbox": [
+                  477,
+                  511,
+                  1429,
+                  1458
+                ],
+                "mean_depth_risk": 0.3419070541858673,
+                "score_i": 56.32670487281297,
+                "score_j": 47.803283559117574,
+                "detail_i": {
+                  "boundary": 46.38888931274414,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7604759931564331,
+                  "changed_frac": 0.857889237199582,
+                  "score": 56.32670487281297
+                },
+                "detail_j": {
+                  "boundary": 43.11111068725586,
+                  "boundary_n": 126,
+                  "mean_weight": 0.8080245852470398,
+                  "changed_frac": 0.14211076280041798,
+                  "score": 47.803283559117574
+                }
+              },
+              {
+                "segment": 943,
+                "owner": 5,
+                "area": 989,
+                "bbox": [
+                  511,
+                  545,
+                  1429,
+                  1459
+                ],
+                "mean_depth_risk": 0.34889867901802063,
+                "score_i": 45.07364490709604,
+                "score_j": 34.492980449578155,
+                "detail_i": {
+                  "boundary": 35.296875,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7699077129364014,
+                  "changed_frac": 0.8624873609706775,
+                  "score": 45.07364490709604
+                },
+                "detail_j": {
+                  "boundary": 30.0703125,
+                  "boundary_n": 128,
+                  "mean_weight": 0.8201203942298889,
+                  "changed_frac": 0.13751263902932254,
+                  "score": 34.492980449578155
+                }
+              },
+              {
+                "segment": 1003,
+                "owner": 5,
+                "area": 1022,
+                "bbox": [
+                  545,
+                  579,
+                  1429,
+                  1460
+                ],
+                "mean_depth_risk": 0.22150637209415436,
+                "score_i": 20.179276043188317,
+                "score_j": 11.61613792775895,
+                "detail_i": {
+                  "boundary": 10.230769157409668,
+                  "boundary_n": 130,
+                  "mean_weight": 0.7626529335975647,
+                  "changed_frac": 0.8669275929549902,
+                  "score": 20.179276043188317
+                },
+                "detail_j": {
+                  "boundary": 7.107692241668701,
+                  "boundary_n": 130,
+                  "mean_weight": 0.8144994378089905,
+                  "changed_frac": 0.13307240704500978,
+                  "score": 11.61613792775895
+                }
+              },
+              {
+                "segment": 1063,
+                "owner": 5,
+                "area": 1056,
+                "bbox": [
+                  579,
+                  613,
+                  1429,
+                  1461
+                ],
+                "mean_depth_risk": 0.13075129687786102,
+                "score_i": 22.817803599617697,
+                "score_j": 12.869830153205179,
+                "detail_i": {
+                  "boundary": 12.371212005615234,
+                  "boundary_n": 132,
+                  "mean_weight": 0.7390340566635132,
+                  "changed_frac": 0.8712121212121212,
+                  "score": 22.817803599617697
+                },
+                "detail_j": {
+                  "boundary": 7.9242424964904785,
+                  "boundary_n": 132,
+                  "mean_weight": 0.7913569808006287,
+                  "changed_frac": 0.12878787878787878,
+                  "score": 12.869830153205179
+                }
+              },
+              {
+                "segment": 1183,
+                "owner": 5,
+                "area": 197,
+                "bbox": [
+                  647,
+                  655,
+                  1429,
+                  1462
+                ],
+                "mean_depth_risk": 0.21629920601844788,
+                "score_i": 25.76800234668751,
+                "score_j": 12.510297700233266,
+                "detail_i": {
+                  "boundary": 14.175000190734863,
+                  "boundary_n": 80,
+                  "mean_weight": 0.6761874556541443,
+                  "changed_frac": 0.8527918781725888,
+                  "score": 25.76800234668751
+                },
+                "detail_j": {
+                  "boundary": 5.962500095367432,
+                  "boundary_n": 80,
+                  "mean_weight": 0.7167725563049316,
+                  "changed_frac": 0.14720812182741116,
+                  "score": 12.510297700233266
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "status": "ok",
+            "candidate_segments": 12,
+            "accepted_segments": 6,
+            "rejected_segments": 6,
+            "protected_pixels": 5015,
+            "accepted": [
+              {
+                "segment": 711,
+                "owner": 5,
+                "area": 149,
+                "bbox": [
+                  400,
+                  409,
+                  1716,
+                  1735
+                ],
+                "mean_depth_risk": 0.1518273949623108,
+                "score_i": 10.889211865879545,
+                "score_j": 17.605429676555147,
+                "detail_i": {
+                  "boundary": 4.839285850524902,
+                  "boundary_n": 56,
+                  "mean_weight": 0.7095842361450195,
+                  "changed_frac": 0.040268456375838924,
+                  "score": 10.889211865879545
+                },
+                "detail_j": {
+                  "boundary": 5.267857074737549,
+                  "boundary_n": 56,
+                  "mean_weight": 0.6710408329963684,
+                  "changed_frac": 0.959731543624161,
+                  "score": 17.605429676555147
+                }
+              },
+              {
+                "segment": 892,
+                "owner": 4,
+                "area": 940,
+                "bbox": [
+                  477,
+                  511,
+                  1735,
+                  1763
+                ],
+                "mean_depth_risk": 0.14439378678798676,
+                "score_i": 26.208363110968406,
+                "score_j": 18.668895428231423,
+                "detail_i": {
+                  "boundary": 16.137096405029297,
+                  "boundary_n": 124,
+                  "mean_weight": 0.7594153881072998,
+                  "changed_frac": 0.8765957446808511,
+                  "score": 26.208363110968406
+                },
+                "detail_j": {
+                  "boundary": 14.145161628723145,
+                  "boundary_n": 124,
+                  "mean_weight": 0.8108345866203308,
+                  "changed_frac": 0.12340425531914893,
+                  "score": 18.668895428231423
+                }
+              },
+              {
+                "segment": 952,
+                "owner": 4,
+                "area": 965,
+                "bbox": [
+                  511,
+                  545,
+                  1735,
+                  1764
+                ],
+                "mean_depth_risk": 0.1506257951259613,
+                "score_i": 27.75507551573719,
+                "score_j": 15.707072912226069,
+                "detail_i": {
+                  "boundary": 18.206348419189453,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7690921425819397,
+                  "changed_frac": 0.8217616580310881,
+                  "score": 27.75507551573719
+                },
+                "detail_j": {
+                  "boundary": 10.920635223388672,
+                  "boundary_n": 126,
+                  "mean_weight": 0.8141496181488037,
+                  "changed_frac": 0.17823834196891192,
+                  "score": 15.707072912226069
+                }
+              },
+              {
+                "segment": 1012,
+                "owner": 4,
+                "area": 991,
+                "bbox": [
+                  545,
+                  579,
+                  1735,
+                  1765
+                ],
+                "mean_depth_risk": 0.14517679810523987,
+                "score_i": 14.880796939645839,
+                "score_j": 9.003540724004674,
+                "detail_i": {
+                  "boundary": 5.515625,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7621147632598877,
+                  "changed_frac": 0.7679112008072654,
+                  "score": 14.880796939645839
+                },
+                "detail_j": {
+                  "boundary": 3.609375,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7999183535575867,
+                  "changed_frac": 0.23208879919273462,
+                  "score": 9.003540724004674
+                }
+              },
+              {
+                "segment": 1072,
+                "owner": 4,
+                "area": 1020,
+                "bbox": [
+                  579,
+                  613,
+                  1735,
+                  1765
+                ],
+                "mean_depth_risk": 0.13038092851638794,
+                "score_i": 13.917144256479599,
+                "score_j": 11.297953647725722,
+                "detail_i": {
+                  "boundary": 4.3984375,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7387705445289612,
+                  "changed_frac": 0.7156862745098039,
+                  "score": 13.917144256479599
+                },
+                "detail_j": {
+                  "boundary": 4.96875,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7688339352607727,
+                  "changed_frac": 0.28431372549019607,
+                  "score": 11.297953647725722
+                }
+              },
+              {
+                "segment": 1132,
+                "owner": 4,
+                "area": 950,
+                "bbox": [
+                  613,
+                  646,
+                  1735,
+                  1766
+                ],
+                "mean_depth_risk": 0.18751487135887146,
+                "score_i": 13.81811460093448,
+                "score_j": 11.599893488131071,
+                "detail_i": {
+                  "boundary": 3.7421875,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7011510133743286,
+                  "changed_frac": 0.6831578947368421,
+                  "score": 13.81811460093448
+                },
+                "detail_j": {
+                  "boundary": 4.2109375,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7256048321723938,
+                  "changed_frac": 0.31684210526315787,
+                  "score": 11.599893488131071
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "status": "ok",
+            "candidate_segments": 8,
+            "accepted_segments": 3,
+            "rejected_segments": 5,
+            "protected_pixels": 2260,
+            "accepted": [
+              {
+                "segment": 720,
+                "owner": 4,
+                "area": 492,
+                "bbox": [
+                  388,
+                  409,
+                  2022,
+                  2048
+                ],
+                "mean_depth_risk": 0.21534322202205658,
+                "score_i": 29.703106653399583,
+                "score_j": 10.924461829953078,
+                "detail_i": {
+                  "boundary": 17.676055908203125,
+                  "boundary_n": 71,
+                  "mean_weight": 0.674257218837738,
+                  "changed_frac": 0.9186991869918699,
+                  "score": 29.703106653399583
+                },
+                "detail_j": {
+                  "boundary": 4.85915470123291,
+                  "boundary_n": 71,
+                  "mean_weight": 0.7211248874664307,
+                  "changed_frac": 0.08130081300813008,
+                  "score": 10.924461829953078
+                }
+              },
+              {
+                "segment": 1020,
+                "owner": 4,
+                "area": 884,
+                "bbox": [
+                  545,
+                  579,
+                  2022,
+                  2048
+                ],
+                "mean_depth_risk": 0.14170028269290924,
+                "score_i": 28.997872279240536,
+                "score_j": 6.6740504044752855,
+                "detail_i": {
+                  "boundary": 18.162790298461914,
+                  "boundary_n": 86,
+                  "mean_weight": 0.7467074394226074,
+                  "changed_frac": 0.9615384615384616,
+                  "score": 28.997872279240536
+                },
+                "detail_j": {
+                  "boundary": 2.5581395626068115,
+                  "boundary_n": 86,
+                  "mean_weight": 0.8057429194450378,
+                  "changed_frac": 0.038461538461538464,
+                  "score": 6.6740504044752855
+                }
+              },
+              {
+                "segment": 1080,
+                "owner": 3,
+                "area": 884,
+                "bbox": [
+                  579,
+                  613,
+                  2022,
+                  2048
+                ],
+                "mean_depth_risk": 0.2733333110809326,
+                "score_i": 34.80419425942779,
+                "score_j": 43.60681171438813,
+                "detail_i": {
+                  "boundary": 23.325580596923828,
+                  "boundary_n": 86,
+                  "mean_weight": 0.7158883213996887,
+                  "changed_frac": 0.9660633484162896,
+                  "score": 34.80419425942779
+                },
+                "detail_j": {
+                  "boundary": 38.872093200683594,
+                  "boundary_n": 86,
+                  "mean_weight": 0.7734450697898865,
+                  "changed_frac": 0.033936651583710405,
+                  "score": 43.60681171438813
+                }
+              }
+            ]
+          }
+        ],
+        "changed_pixels": 7495,
+        "changed_fraction": 0.003573894500732422,
+        "protected_pixels": 33992
+      },
+      "depth_model": {
+        "model_id": "depth-anything/Depth-Anything-V2-Small-hf",
+        "device": 0,
+        "load_s": 0.683,
+        "infer_s": 1.503,
+        "project_depth_s": 1.739,
+        "per_cam": {
+          "ring_front_center": {
+            "depth_min": -0.30322265625,
+            "depth_max": 14.4765625,
+            "depth_median": 1.3623046875,
+            "valid_erp_frac": 0.04246187210083008
+          },
+          "ring_front_left": {
+            "depth_min": -0.061798095703125,
+            "depth_max": 9.1875,
+            "depth_median": 2.3203125,
+            "valid_erp_frac": 0.045475006103515625
+          },
+          "ring_side_left": {
+            "depth_min": 0.2132568359375,
+            "depth_max": 10.609375,
+            "depth_median": 2.31640625,
+            "valid_erp_frac": 0.045581817626953125
+          },
+          "ring_rear_left": {
+            "depth_min": -0.2327880859375,
+            "depth_max": 15.71875,
+            "depth_median": 1.783203125,
+            "valid_erp_frac": 0.045484066009521484
+          },
+          "ring_rear_right": {
+            "depth_min": -0.341796875,
+            "depth_max": 16.40625,
+            "depth_median": 1.6083984375,
+            "valid_erp_frac": 0.04559755325317383
+          },
+          "ring_side_right": {
+            "depth_min": -0.53125,
+            "depth_max": 7.21484375,
+            "depth_median": 2.798828125,
+            "valid_erp_frac": 0.04548072814941406
+          },
+          "ring_front_right": {
+            "depth_min": -0.4169921875,
+            "depth_max": 9.375,
+            "depth_median": 2.416015625,
+            "valid_erp_frac": 0.045557498931884766
+          }
+        }
+      },
+      "runtime_s": {
+        "project_rgb": 1.754
+      },
+      "outputs": {
+        "review": "fbee355f_a095_ped_obj_superpixel_depth_review_1024.jpg",
+        "crop_review": "fbee355f_a095_ped_obj_superpixel_depth_crop_review.jpg"
+      }
+    },
+    {
+      "case": "0bae3b5e_a030_clean_far",
+      "params": {
+        "model_id": "depth-anything/Depth-Anything-V2-Small-hf",
+        "n_segments": 1800,
+        "compactness": 14.0,
+        "segment_depth_weight": 0.75,
+        "min_depth_risk": 0.12
+      },
+      "dense_depth_global": {
+        "band_pixels": 88415,
+        "core_pixels": 11938,
+        "dense_depth_risk": {
+          "name": "global_dense_depth",
+          "n": 88415,
+          "mean": 0.18045750260353088,
+          "median": 0.10502476990222931,
+          "p90": 0.4177294075489044,
+          "p95": 0.6571059823036194,
+          "p99": 0.9023454785346985,
+          "high_frac_065": 0.05242323135214613,
+          "high_frac_080": 0.019623367075722445
+        },
+        "high_dense_depth_pixels": 4635,
+        "high_dense_depth_frac_of_band": 0.05242323135214613
+      },
+      "overlap_ncc": {
+        "hard_select": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.9933947902428769,
+          "mean_ncc_winner_vs_loser": 0.13999955199129244,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "superpixel_depth": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.9259820473043787,
+          "mean_ncc_winner_vs_loser": 0.13999955199129244,
+          "mean_ssd_pano_vs_winner": 50.21877524931358
+        }
+      },
+      "seam_gap_y": {
+        "hard_select": {
+          "n": 1778,
+          "mean_delta_y": 24.411699295043945,
+          "median_delta_y": 17.0,
+          "p90_delta_y": 47.0,
+          "p95_delta_y": 68.0
+        },
+        "superpixel_depth": {
+          "n": 1778,
+          "mean_delta_y": 16.538806915283203,
+          "median_delta_y": 6.0,
+          "p90_delta_y": 43.0,
+          "p95_delta_y": 57.0
+        }
+      },
+      "superpixel": {
+        "segments": {
+          "n_segments_requested": 1800,
+          "n_segments_actual": 1800,
+          "compactness": 14.0,
+          "segment_depth_weight": 0.75
+        },
+        "pairs": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "status": "ok",
+            "candidate_segments": 9,
+            "accepted_segments": 5,
+            "rejected_segments": 4,
+            "protected_pixels": 4282,
+            "accepted": [
+              {
+                "segment": 927,
+                "owner": 0,
+                "area": 986,
+                "bbox": [
+                  511,
+                  545,
+                  890,
+                  919
+                ],
+                "mean_depth_risk": 0.20883013308048248,
+                "score_i": 22.70301562438872,
+                "score_j": 43.55630129684541,
+                "detail_i": {
+                  "boundary": 18.984127044677734,
+                  "boundary_n": 126,
+                  "mean_weight": 0.8700393438339233,
+                  "changed_frac": 0.18661257606490872,
+                  "score": 22.70301562438872
+                },
+                "detail_j": {
+                  "boundary": 35.29365158081055,
+                  "boundary_n": 126,
+                  "mean_weight": 0.8308837413787842,
+                  "changed_frac": 0.8133874239350912,
+                  "score": 43.55630129684541
+                }
+              },
+              {
+                "segment": 987,
+                "owner": 0,
+                "area": 986,
+                "bbox": [
+                  545,
+                  579,
+                  890,
+                  919
+                ],
+                "mean_depth_risk": 0.22255384922027588,
+                "score_i": 18.74969540212991,
+                "score_j": 25.941561836258153,
+                "detail_i": {
+                  "boundary": 14.11111068725586,
+                  "boundary_n": 126,
+                  "mean_weight": 0.8511336445808411,
+                  "changed_frac": 0.2768762677484787,
+                  "score": 18.74969540212991
+                },
+                "detail_j": {
+                  "boundary": 18.079364776611328,
+                  "boundary_n": 126,
+                  "mean_weight": 0.8238272666931152,
+                  "changed_frac": 0.7231237322515213,
+                  "score": 25.941561836258153
+                }
+              },
+              {
+                "segment": 1047,
+                "owner": 0,
+                "area": 986,
+                "bbox": [
+                  579,
+                  613,
+                  890,
+                  919
+                ],
+                "mean_depth_risk": 0.1476292610168457,
+                "score_i": 12.559318624210164,
+                "score_j": 12.610534586239055,
+                "detail_i": {
+                  "boundary": 6.611111164093018,
+                  "boundary_n": 126,
+                  "mean_weight": 0.8142529129981995,
+                  "changed_frac": 0.372210953346856,
+                  "score": 12.559318624210164
+                },
+                "detail_j": {
+                  "boundary": 4.82539701461792,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7990798354148865,
+                  "changed_frac": 0.6277890466531441,
+                  "score": 12.610534586239055
+                }
+              },
+              {
+                "segment": 1107,
+                "owner": 1,
+                "area": 986,
+                "bbox": [
+                  613,
+                  647,
+                  890,
+                  919
+                ],
+                "mean_depth_risk": 0.21635383367538452,
+                "score_i": 11.627413202734555,
+                "score_j": 11.093611310510074,
+                "detail_i": {
+                  "boundary": 4.023809432983398,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7609962821006775,
+                  "changed_frac": 0.47058823529411764,
+                  "score": 11.627413202734555
+                },
+                "detail_j": {
+                  "boundary": 3.0714285373687744,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7577143907546997,
+                  "changed_frac": 0.5294117647058824,
+                  "score": 11.093611310510074
+                }
+              },
+              {
+                "segment": 1167,
+                "owner": 0,
+                "area": 338,
+                "bbox": [
+                  647,
+                  661,
+                  890,
+                  919
+                ],
+                "mean_depth_risk": 0.575268030166626,
+                "score_i": 17.12270863521734,
+                "score_j": 40.761939926260325,
+                "detail_i": {
+                  "boundary": 7.848837375640869,
+                  "boundary_n": 86,
+                  "mean_weight": 0.7155963778495789,
+                  "changed_frac": 0.5976331360946746,
+                  "score": 17.12270863521734
+                },
+                "detail_j": {
+                  "boundary": 32.82558059692383,
+                  "boundary_n": 86,
+                  "mean_weight": 0.723892092704773,
+                  "changed_frac": 0.40236686390532544,
+                  "score": 40.761939926260325
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "status": "ok",
+            "candidate_segments": 18,
+            "accepted_segments": 6,
+            "rejected_segments": 12,
+            "protected_pixels": 4595,
+            "accepted": [
+              {
+                "segment": 858,
+                "owner": 2,
+                "area": 819,
+                "bbox": [
+                  477,
+                  511,
+                  588,
+                  613
+                ],
+                "mean_depth_risk": 0.1578073650598526,
+                "score_i": 48.47881053393577,
+                "score_j": 32.479158177917256,
+                "detail_i": {
+                  "boundary": 37.77118682861328,
+                  "boundary_n": 118,
+                  "mean_weight": 0.7521646022796631,
+                  "changed_frac": 0.9584859584859585,
+                  "score": 48.47881053393577
+                },
+                "detail_j": {
+                  "boundary": 28.398305892944336,
+                  "boundary_n": 118,
+                  "mean_weight": 0.8084115982055664,
+                  "changed_frac": 0.04151404151404151,
+                  "score": 32.479158177917256
+                }
+              },
+              {
+                "segment": 918,
+                "owner": 2,
+                "area": 850,
+                "bbox": [
+                  511,
+                  545,
+                  588,
+                  613
+                ],
+                "mean_depth_risk": 0.1743963211774826,
+                "score_i": 35.97273159980774,
+                "score_j": 26.350403060913084,
+                "detail_i": {
+                  "boundary": 25.440677642822266,
+                  "boundary_n": 118,
+                  "mean_weight": 0.7613973021507263,
+                  "changed_frac": 0.96,
+                  "score": 35.97273159980774
+                },
+                "detail_j": {
+                  "boundary": 22.516948699951172,
+                  "boundary_n": 118,
+                  "mean_weight": 0.8203272819519043,
+                  "changed_frac": 0.04,
+                  "score": 26.350403060913084
+                }
+              },
+              {
+                "segment": 978,
+                "owner": 2,
+                "area": 882,
+                "bbox": [
+                  545,
+                  579,
+                  587,
+                  613
+                ],
+                "mean_depth_risk": 0.22850178182125092,
+                "score_i": 35.861423700034216,
+                "score_j": 16.340948135674406,
+                "detail_i": {
+                  "boundary": 25.174999237060547,
+                  "boundary_n": 120,
+                  "mean_weight": 0.7541141510009766,
+                  "changed_frac": 0.9614512471655329,
+                  "score": 35.861423700034216
+                },
+                "detail_j": {
+                  "boundary": 12.399999618530273,
+                  "boundary_n": 120,
+                  "mean_weight": 0.8145171999931335,
+                  "changed_frac": 0.03854875283446712,
+                  "score": 16.340948135674406
+                }
+              },
+              {
+                "segment": 1038,
+                "owner": 2,
+                "area": 913,
+                "bbox": [
+                  579,
+                  613,
+                  586,
+                  613
+                ],
+                "mean_depth_risk": 0.24228523671627045,
+                "score_i": 35.70382619426389,
+                "score_j": 16.02482199146609,
+                "detail_i": {
+                  "boundary": 24.540983200073242,
+                  "boundary_n": 122,
+                  "mean_weight": 0.7306858897209167,
+                  "changed_frac": 0.9627601314348302,
+                  "score": 35.70382619426389
+                },
+                "detail_j": {
+                  "boundary": 11.622950553894043,
+                  "boundary_n": 122,
+                  "mean_weight": 0.7910783886909485,
+                  "changed_frac": 0.03723986856516977,
+                  "score": 16.02482199146609
+                }
+              },
+              {
+                "segment": 1098,
+                "owner": 2,
+                "area": 945,
+                "bbox": [
+                  613,
+                  647,
+                  585,
+                  613
+                ],
+                "mean_depth_risk": 0.27113673090934753,
+                "score_i": 34.35323356295389,
+                "score_j": 15.314754975788176,
+                "detail_i": {
+                  "boundary": 22.411291122436523,
+                  "boundary_n": 124,
+                  "mean_weight": 0.692109227180481,
+                  "changed_frac": 0.964021164021164,
+                  "score": 34.35323356295389
+                },
+                "detail_j": {
+                  "boundary": 10.120967864990234,
+                  "boundary_n": 124,
+                  "mean_weight": 0.7511042952537537,
+                  "changed_frac": 0.03597883597883598,
+                  "score": 15.314754975788176
+                }
+              },
+              {
+                "segment": 1158,
+                "owner": 2,
+                "area": 186,
+                "bbox": [
+                  647,
+                  656,
+                  585,
+                  613
+                ],
+                "mean_depth_risk": 0.3436671495437622,
+                "score_i": 38.9447636219763,
+                "score_j": 12.763744631121236,
+                "detail_i": {
+                  "boundary": 26.589040756225586,
+                  "boundary_n": 73,
+                  "mean_weight": 0.6676977276802063,
+                  "changed_frac": 0.9516129032258065,
+                  "score": 38.9447636219763
+                },
+                "detail_j": {
+                  "boundary": 6.794520378112793,
+                  "boundary_n": 73,
+                  "mean_weight": 0.7160549163818359,
+                  "changed_frac": 0.04838709677419355,
+                  "score": 12.763744631121236
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "status": "ok",
+            "candidate_segments": 12,
+            "accepted_segments": 6,
+            "rejected_segments": 6,
+            "protected_pixels": 4647,
+            "accepted": [
+              {
+                "segment": 670,
+                "owner": 2,
+                "area": 199,
+                "bbox": [
+                  399,
+                  409,
+                  307,
+                  329
+                ],
+                "mean_depth_risk": 0.14098209142684937,
+                "score_i": 16.910260459286484,
+                "score_j": 22.47261212219545,
+                "detail_i": {
+                  "boundary": 9.859375,
+                  "boundary_n": 64,
+                  "mean_weight": 0.7077572345733643,
+                  "changed_frac": 0.20100502512562815,
+                  "score": 16.910260459286484
+                },
+                "detail_j": {
+                  "boundary": 11.25,
+                  "boundary_n": 64,
+                  "mean_weight": 0.6785678863525391,
+                  "changed_frac": 0.7989949748743719,
+                  "score": 22.47261212219545
+                }
+              },
+              {
+                "segment": 790,
+                "owner": 2,
+                "area": 714,
+                "bbox": [
+                  443,
+                  477,
+                  307,
+                  328
+                ],
+                "mean_depth_risk": 0.2947053611278534,
+                "score_i": 20.819888551696007,
+                "score_j": 44.42548422052079,
+                "detail_i": {
+                  "boundary": 16.200000762939453,
+                  "boundary_n": 110,
+                  "mean_weight": 0.785392165184021,
+                  "changed_frac": 0.0546218487394958,
+                  "score": 20.819888551696007
+                },
+                "detail_j": {
+                  "boundary": 33.563636779785156,
+                  "boundary_n": 110,
+                  "mean_weight": 0.7405210733413696,
+                  "changed_frac": 0.9453781512605042,
+                  "score": 44.42548422052079
+                }
+              },
+              {
+                "segment": 849,
+                "owner": 3,
+                "area": 903,
+                "bbox": [
+                  477,
+                  511,
+                  280,
+                  307
+                ],
+                "mean_depth_risk": 0.3383655846118927,
+                "score_i": 28.078911684676264,
+                "score_j": 21.119035579041388,
+                "detail_i": {
+                  "boundary": 17.418033599853516,
+                  "boundary_n": 122,
+                  "mean_weight": 0.7556604146957397,
+                  "changed_frac": 0.9623477297895903,
+                  "score": 28.078911684676264
+                },
+                "detail_j": {
+                  "boundary": 17.213115692138672,
+                  "boundary_n": 122,
+                  "mean_weight": 0.8159996867179871,
+                  "changed_frac": 0.03765227021040975,
+                  "score": 21.119035579041388
+                }
+              },
+              {
+                "segment": 909,
+                "owner": 3,
+                "area": 942,
+                "bbox": [
+                  511,
+                  545,
+                  279,
+                  307
+                ],
+                "mean_depth_risk": 0.25285762548446655,
+                "score_i": 26.381209756158718,
+                "score_j": 21.010898684240452,
+                "detail_i": {
+                  "boundary": 16.354839324951172,
+                  "boundary_n": 124,
+                  "mean_weight": 0.7646050453186035,
+                  "changed_frac": 0.886411889596603,
+                  "score": 26.381209756158718
+                },
+                "detail_j": {
+                  "boundary": 16.677419662475586,
+                  "boundary_n": 124,
+                  "mean_weight": 0.8174024820327759,
+                  "changed_frac": 0.11358811040339703,
+                  "score": 21.010898684240452
+                }
+              },
+              {
+                "segment": 969,
+                "owner": 3,
+                "area": 980,
+                "bbox": [
+                  545,
+                  579,
+                  278,
+                  307
+                ],
+                "mean_depth_risk": 0.1981240063905716,
+                "score_i": 43.33601088426551,
+                "score_j": 23.865406323452387,
+                "detail_i": {
+                  "boundary": 33.57936477661133,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7570656538009644,
+                  "changed_frac": 0.8163265306122449,
+                  "score": 43.33601088426551
+                },
+                "detail_j": {
+                  "boundary": 18.785715103149414,
+                  "boundary_n": 126,
+                  "mean_weight": 0.801117479801178,
+                  "changed_frac": 0.1836734693877551,
+                  "score": 23.865406323452387
+                }
+              },
+              {
+                "segment": 1089,
+                "owner": 3,
+                "area": 909,
+                "bbox": [
+                  613,
+                  644,
+                  275,
+                  307
+                ],
+                "mean_depth_risk": 0.1392676830291748,
+                "score_i": 15.949916236864851,
+                "score_j": 14.097048408520891,
+                "detail_i": {
+                  "boundary": 5.634920597076416,
+                  "boundary_n": 126,
+                  "mean_weight": 0.6964614391326904,
+                  "changed_frac": 0.7073707370737073,
+                  "score": 15.949916236864851
+                },
+                "detail_j": {
+                  "boundary": 6.82539701461792,
+                  "boundary_n": 126,
+                  "mean_weight": 0.7242062091827393,
+                  "changed_frac": 0.29262926292629265,
+                  "score": 14.097048408520891
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "status": "ok",
+            "candidate_segments": 12,
+            "accepted_segments": 6,
+            "rejected_segments": 6,
+            "protected_pixels": 6123,
+            "accepted": [
+              {
+                "segment": 814,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  443,
+                  477,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.13866528868675232,
+                "score_i": 19.22680226246791,
+                "score_j": 34.81018933375402,
+                "detail_i": {
+                  "boundary": 15.992647171020508,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8538631796836853,
+                  "changed_frac": 0.05190311418685121,
+                  "score": 19.22680226246791
+                },
+                "detail_j": {
+                  "boundary": 24.919116973876953,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7898754477500916,
+                  "changed_frac": 0.9480968858131488,
+                  "score": 34.81018933375402
+                }
+              },
+              {
+                "segment": 934,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  511,
+                  545,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.19114312529563904,
+                "score_i": 21.746875666417054,
+                "score_j": 33.2118924629317,
+                "detail_i": {
+                  "boundary": 17.992647171020508,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8724961876869202,
+                  "changed_frac": 0.20069204152249134,
+                  "score": 21.746875666417054
+                },
+                "detail_j": {
+                  "boundary": 24.985294342041016,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8284624814987183,
+                  "changed_frac": 0.7993079584775087,
+                  "score": 33.2118924629317
+                }
+              },
+              {
+                "segment": 994,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  545,
+                  579,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.2690578103065491,
+                "score_i": 19.677507121670203,
+                "score_j": 35.33039740790133,
+                "detail_i": {
+                  "boundary": 15.102941513061523,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8535381555557251,
+                  "changed_frac": 0.2742214532871972,
+                  "score": 19.677507121670203
+                },
+                "detail_j": {
+                  "boundary": 27.397058486938477,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8210666179656982,
+                  "changed_frac": 0.7257785467128027,
+                  "score": 35.33039740790133
+                }
+              },
+              {
+                "segment": 1054,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  579,
+                  613,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.3160592317581177,
+                "score_i": 18.428432651869567,
+                "score_j": 29.701916030533997,
+                "detail_i": {
+                  "boundary": 12.647058486938477,
+                  "boundary_n": 136,
+                  "mean_weight": 0.8165541291236877,
+                  "changed_frac": 0.35207612456747406,
+                  "score": 18.428432651869567
+                },
+                "detail_j": {
+                  "boundary": 21.735294342041016,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7960460782051086,
+                  "changed_frac": 0.6479238754325259,
+                  "score": 29.701916030533997
+                }
+              },
+              {
+                "segment": 1114,
+                "owner": 0,
+                "area": 1156,
+                "bbox": [
+                  613,
+                  647,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.41788166761398315,
+                "score_i": 19.291106572200682,
+                "score_j": 24.378279337833497,
+                "detail_i": {
+                  "boundary": 11.948529243469238,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7631479501724243,
+                  "changed_frac": 0.4342560553633218,
+                  "score": 19.291106572200682
+                },
+                "detail_j": {
+                  "boundary": 16.073530197143555,
+                  "boundary_n": 136,
+                  "mean_weight": 0.7544857263565063,
+                  "changed_frac": 0.5657439446366782,
+                  "score": 24.378279337833497
+                }
+              },
+              {
+                "segment": 1174,
+                "owner": 0,
+                "area": 343,
+                "bbox": [
+                  647,
+                  660,
+                  1123,
+                  1157
+                ],
+                "mean_depth_risk": 0.6485246419906616,
+                "score_i": 15.773800160377435,
+                "score_j": 38.82843587210853,
+                "detail_i": {
+                  "boundary": 6.723404407501221,
+                  "boundary_n": 94,
+                  "mean_weight": 0.7180341482162476,
+                  "changed_frac": 0.5685131195335277,
+                  "score": 15.773800160377435
+                },
+                "detail_j": {
+                  "boundary": 30.70212745666504,
+                  "boundary_n": 94,
+                  "mean_weight": 0.7231306433677673,
+                  "changed_frac": 0.4314868804664723,
+                  "score": 38.82843587210853
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "status": "ok",
+            "candidate_segments": 11,
+            "accepted_segments": 6,
+            "rejected_segments": 5,
+            "protected_pixels": 4858,
+            "accepted": [
+              {
+                "segment": 763,
+                "owner": 5,
+                "area": 873,
+                "bbox": [
+                  409,
+                  443,
+                  1429,
+                  1455
+                ],
+                "mean_depth_risk": 0.17657499015331268,
+                "score_i": 43.41369810710658,
+                "score_j": 36.550200790064444,
+                "detail_i": {
+                  "boundary": 32.41666793823242,
+                  "boundary_n": 120,
+                  "mean_weight": 0.6917292475700378,
+                  "changed_frac": 0.8052691867124857,
+                  "score": 43.41369810710658
+                },
+                "detail_j": {
+                  "boundary": 29.91666603088379,
+                  "boundary_n": 120,
+                  "mean_weight": 0.7267425060272217,
+                  "changed_frac": 0.19473081328751432,
+                  "score": 36.550200790064444
+                }
+              },
+              {
+                "segment": 823,
+                "owner": 5,
+                "area": 892,
+                "bbox": [
+                  443,
+                  477,
+                  1429,
+                  1456
+                ],
+                "mean_depth_risk": 0.23125755786895752,
+                "score_i": 26.626700348918213,
+                "score_j": 26.45305328839563,
+                "detail_i": {
+                  "boundary": 16.418033599853516,
+                  "boundary_n": 122,
+                  "mean_weight": 0.7323917746543884,
+                  "changed_frac": 0.8094170403587444,
+                  "score": 26.626700348918213
+                },
+                "detail_j": {
+                  "boundary": 20.754098892211914,
+                  "boundary_n": 122,
+                  "mean_weight": 0.7722271680831909,
+                  "changed_frac": 0.1905829596412556,
+                  "score": 26.45305328839563
+                }
+              },
+              {
+                "segment": 883,
+                "owner": 5,
+                "area": 918,
+                "bbox": [
+                  477,
+                  511,
+                  1429,
+                  1456
+                ],
+                "mean_depth_risk": 0.12670384347438812,
+                "score_i": 34.65831774667977,
+                "score_j": 26.52272420926811,
+                "detail_i": {
+                  "boundary": 24.778688430786133,
+                  "boundary_n": 122,
+                  "mean_weight": 0.7576525211334229,
+                  "changed_frac": 0.8387799564270153,
+                  "score": 34.65831774667977
+                },
+                "detail_j": {
+                  "boundary": 21.598360061645508,
+                  "boundary_n": 122,
+                  "mean_weight": 0.8021478056907654,
+                  "changed_frac": 0.16122004357298475,
+                  "score": 26.52272420926811
+                }
+              },
+              {
+                "segment": 943,
+                "owner": 5,
+                "area": 943,
+                "bbox": [
+                  511,
+                  545,
+                  1429,
+                  1457
+                ],
+                "mean_depth_risk": 0.12512332201004028,
+                "score_i": 35.90301905912155,
+                "score_j": 24.45010722833878,
+                "detail_i": {
+                  "boundary": 26.104839324951172,
+                  "boundary_n": 124,
+                  "mean_weight": 0.7668248414993286,
+                  "changed_frac": 0.855779427359491,
+                  "score": 35.90301905912155
+                },
+                "detail_j": {
+                  "boundary": 19.887096405029297,
+                  "boundary_n": 124,
+                  "mean_weight": 0.8151156306266785,
+                  "changed_frac": 0.14422057264050903,
+                  "score": 24.45010722833878
+                }
+              },
+              {
+                "segment": 1123,
+                "owner": 5,
+                "area": 1014,
+                "bbox": [
+                  613,
+                  647,
+                  1429,
+                  1459
+                ],
+                "mean_depth_risk": 0.12764546275138855,
+                "score_i": 18.131949324579633,
+                "score_j": 11.501407008199298,
+                "detail_i": {
+                  "boundary": 6.671875,
+                  "boundary_n": 128,
+                  "mean_weight": 0.6968187689781189,
+                  "changed_frac": 0.8994082840236687,
+                  "score": 18.131949324579633
+                },
+                "detail_j": {
+                  "boundary": 5.8828125,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7492477893829346,
+                  "changed_frac": 0.10059171597633136,
+                  "score": 11.501407008199298
+                }
+              },
+              {
+                "segment": 1183,
+                "owner": 5,
+                "area": 218,
+                "bbox": [
+                  647,
+                  657,
+                  1429,
+                  1459
+                ],
+                "mean_depth_risk": 0.24038557708263397,
+                "score_i": 18.530213406326574,
+                "score_j": 12.266349503753382,
+                "detail_i": {
+                  "boundary": 6.789473533630371,
+                  "boundary_n": 76,
+                  "mean_weight": 0.6716786026954651,
+                  "changed_frac": 0.8623853211009175,
+                  "score": 18.530213406326574
+                },
+                "detail_j": {
+                  "boundary": 5.723684310913086,
+                  "boundary_n": 76,
+                  "mean_weight": 0.71415114402771,
+                  "changed_frac": 0.13761467889908258,
+                  "score": 12.266349503753382
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "status": "ok",
+            "candidate_segments": 12,
+            "accepted_segments": 4,
+            "rejected_segments": 8,
+            "protected_pixels": 3190,
+            "accepted": [
+              {
+                "segment": 711,
+                "owner": 5,
+                "area": 114,
+                "bbox": [
+                  402,
+                  409,
+                  1716,
+                  1735
+                ],
+                "mean_depth_risk": 0.15474826097488403,
+                "score_i": 26.233150582564505,
+                "score_j": 26.3150602767342,
+                "detail_i": {
+                  "boundary": 19.923076629638672,
+                  "boundary_n": 52,
+                  "mean_weight": 0.7108120918273926,
+                  "changed_frac": 0.08771929824561403,
+                  "score": 26.233150582564505
+                },
+                "detail_j": {
+                  "boundary": 14.326923370361328,
+                  "boundary_n": 52,
+                  "mean_weight": 0.6742773652076721,
+                  "changed_frac": 0.9122807017543859,
+                  "score": 26.3150602767342
+                }
+              },
+              {
+                "segment": 892,
+                "owner": 4,
+                "area": 995,
+                "bbox": [
+                  477,
+                  511,
+                  1735,
+                  1765
+                ],
+                "mean_depth_risk": 0.15120376646518707,
+                "score_i": 28.771847223396875,
+                "score_j": 26.10162260616245,
+                "detail_i": {
+                  "boundary": 18.796875,
+                  "boundary_n": 128,
+                  "mean_weight": 0.7599448561668396,
+                  "changed_frac": 0.8623115577889447,
+                  "score": 28.771847223396875
+                },
+                "detail_j": {
+                  "boundary": 21.515625,
+                  "boundary_n": 128,
+                  "mean_weight": 0.8120066523551941,
+                  "changed_frac": 0.13768844221105528,
+                  "score": 26.10162260616245
+                }
+              },
+              {
+                "segment": 1072,
+                "owner": 4,
+                "area": 1094,
+                "bbox": [
+                  579,
+                  613,
+                  1735,
+                  1768
+                ],
+                "mean_depth_risk": 0.23033663630485535,
+                "score_i": 17.426309982209144,
+                "score_j": 13.226153692336144,
+                "detail_i": {
+                  "boundary": 8.253731727600098,
+                  "boundary_n": 134,
+                  "mean_weight": 0.7415539026260376,
+                  "changed_frac": 0.6672760511882998,
+                  "score": 17.426309982209144
+                },
+                "detail_j": {
+                  "boundary": 6.567163944244385,
+                  "boundary_n": 134,
+                  "mean_weight": 0.7668676972389221,
+                  "changed_frac": 0.3327239488117002,
+                  "score": 13.226153692336144
+                }
+              },
+              {
+                "segment": 1132,
+                "owner": 4,
+                "area": 987,
+                "bbox": [
+                  613,
+                  645,
+                  1735,
+                  1769
+                ],
+                "mean_depth_risk": 0.3781425654888153,
+                "score_i": 18.633634510011298,
+                "score_j": 17.75290995600738,
+                "detail_i": {
+                  "boundary": 8.931818008422852,
+                  "boundary_n": 132,
+                  "mean_weight": 0.7051827311515808,
+                  "changed_frac": 0.6342451874366768,
+                  "score": 18.633634510011298
+                },
+                "detail_j": {
+                  "boundary": 10.030303001403809,
+                  "boundary_n": 132,
+                  "mean_weight": 0.7235960960388184,
+                  "changed_frac": 0.3657548125633232,
+                  "score": 17.75290995600738
+                }
+              }
+            ]
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "status": "ok",
+            "candidate_segments": 8,
+            "accepted_segments": 2,
+            "rejected_segments": 6,
+            "protected_pixels": 1650,
+            "accepted": [
+              {
+                "segment": 1080,
+                "owner": 4,
+                "area": 986,
+                "bbox": [
+                  579,
+                  613,
+                  2019,
+                  2048
+                ],
+                "mean_depth_risk": 0.22662894427776337,
+                "score_i": 41.71473001611644,
+                "score_j": 15.130194910641375,
+                "detail_i": {
+                  "boundary": 30.184782028198242,
+                  "boundary_n": 92,
+                  "mean_weight": 0.7131577730178833,
+                  "changed_frac": 0.9655172413793104,
+                  "score": 41.71473001611644
+                },
+                "detail_j": {
+                  "boundary": 10.42391300201416,
+                  "boundary_n": 92,
+                  "mean_weight": 0.7750307321548462,
+                  "changed_frac": 0.034482758620689655,
+                  "score": 15.130194910641375
+                }
+              },
+              {
+                "segment": 1140,
+                "owner": 4,
+                "area": 664,
+                "bbox": [
+                  613,
+                  639,
+                  2019,
+                  2048
+                ],
+                "mean_depth_risk": 0.35533371567726135,
+                "score_i": 38.68188577387706,
+                "score_j": 8.917004292269787,
+                "detail_i": {
+                  "boundary": 26.452381134033203,
+                  "boundary_n": 84,
+                  "mean_weight": 0.6767777800559998,
+                  "changed_frac": 0.9608433734939759,
+                  "score": 38.68188577387706
+                },
+                "detail_j": {
+                  "boundary": 3.357142925262451,
+                  "boundary_n": 84,
+                  "mean_weight": 0.7337539196014404,
+                  "changed_frac": 0.0391566265060241,
+                  "score": 8.917004292269787
+                }
+              }
+            ]
+          }
+        ],
+        "changed_pixels": 5794,
+        "changed_fraction": 0.0027627944946289062,
+        "protected_pixels": 29345
+      },
+      "depth_model": {
+        "model_id": "depth-anything/Depth-Anything-V2-Small-hf",
+        "device": 0,
+        "load_s": 0.639,
+        "infer_s": 1.526,
+        "project_depth_s": 1.747,
+        "per_cam": {
+          "ring_front_center": {
+            "depth_min": -0.1883544921875,
+            "depth_max": 15.4921875,
+            "depth_median": 1.1748046875,
+            "valid_erp_frac": 0.0425262451171875
+          },
+          "ring_front_left": {
+            "depth_min": -0.38623046875,
+            "depth_max": 11.015625,
+            "depth_median": 2.1171875,
+            "valid_erp_frac": 0.04567861557006836
+          },
+          "ring_side_left": {
+            "depth_min": -0.051666259765625,
+            "depth_max": 10.4296875,
+            "depth_median": 2.689453125,
+            "valid_erp_frac": 0.045565128326416016
+          },
+          "ring_rear_left": {
+            "depth_min": -0.248291015625,
+            "depth_max": 15.046875,
+            "depth_median": 1.865234375,
+            "valid_erp_frac": 0.04563188552856445
+          },
+          "ring_rear_right": {
+            "depth_min": -0.131591796875,
+            "depth_max": 17.359375,
+            "depth_median": 1.75390625,
+            "valid_erp_frac": 0.045599937438964844
+          },
+          "ring_side_right": {
+            "depth_min": -0.31591796875,
+            "depth_max": 10.8671875,
+            "depth_median": 2.279296875,
+            "valid_erp_frac": 0.04569053649902344
+          },
+          "ring_front_right": {
+            "depth_min": -0.58740234375,
+            "depth_max": 11.203125,
+            "depth_median": 2.173828125,
+            "valid_erp_frac": 0.04571676254272461
+          }
+        }
+      },
+      "runtime_s": {
+        "project_rgb": 1.709
+      },
+      "outputs": {
+        "review": "0bae3b5e_a030_clean_far_superpixel_depth_review_1024.jpg",
+        "crop_review": "0bae3b5e_a030_clean_far_superpixel_depth_crop_review.jpg"
+      }
+    }
+  ],
+  "aggregate": {
+    "n_cases": 3,
+    "mean_changed_fraction": 0.0032755533854166665,
+    "mean_hard_ncc": 0.9925496396888315,
+    "mean_sp_ncc": 0.9130511506298277,
+    "mean_hard_dY": 22.62544854482015,
+    "mean_sp_dY": 13.25202210744222
+  }
+}
