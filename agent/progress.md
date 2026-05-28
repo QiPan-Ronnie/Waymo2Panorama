@@ -1,5 +1,49 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~08:35 UTC - [Dense Depth Anything V2 edge seam probe: metadata overlap, weak NEG as repair.]
+> - **Purpose**: test whether a modern dense monocular-depth prior gives better seam metadata than sparse LiDAR. Run Depth Anything V2 Small on each raw AV2 camera, project relative depth maps into ERP slabs with the same L1 geometry, build dense depth-edge / normalized depth-disagreement seam risk, and use it only as a veto for Y-only seam color repair. No depth rendering, warping, or source rewriting.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/dense_depth_edge_seam_probe.py
+>   deliverables/dense_depth_edge_seam_probe/batch_summary.json
+>   deliverables/dense_depth_edge_seam_probe/dense_depth_edge_three_anchor_compact_review.jpg
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dense_depth_edge_seam_probe_v1/
+>   ```
+> - **A100 / Drive job**:
+>   ```text
+>   job id: 06e40e45921544278eca4cb279de6439
+>   model: depth-anything/Depth-Anything-V2-Small-hf
+>   cases: 02a00399:0, fbee355f:95, 0bae3b5e:30
+>   per-anchor DA-V2 infer time for 7 cams: 1.44-2.20s; depth slab projection: 1.77-1.84s
+>   ```
+> - **Diagnostics**:
+>   ```text
+>   Aggregate over 3 anchors:
+>     high dense-depth-risk fraction of seam band = 4.81%
+>     source-risk Y repair mean dY reduction = 15.94%
+>     dense-depth-veto Y repair mean dY reduction = 10.07%
+> 
+>   02a00399_a000_bmw:
+>     high dense-depth-risk = 4.42% seam band
+>     hard mean dY 15.40 -> source-gate 13.83 (-10.17%)
+>     hard mean dY 15.40 -> dense-depth-gate 14.11 (-8.37%)
+>     corr(dense depth risk, source/structure/color risk) = 0.422 / 0.513 / 0.087
+> 
+>   fbee355f_a095_ped_obj:
+>     high dense-depth-risk = 4.93% seam band
+>     hard mean dY 28.07 -> source-gate 22.81 (-18.73%)
+>     hard mean dY 28.07 -> dense-depth-gate 24.51 (-12.68%)
+>     corr(dense depth risk, source/structure/color risk) = 0.387 / 0.467 / 0.117
+> 
+>   0bae3b5e_a030_clean_far:
+>     high dense-depth-risk = 5.07% seam band
+>     hard mean dY 24.41 -> source-gate 19.79 (-18.93%)
+>     hard mean dY 24.41 -> dense-depth-gate 22.18 (-9.16%)
+>     corr(dense depth risk, source/structure/color risk) = 0.397 / 0.417 / 0.138
+>   ```
+> - **Visual finding**: DA-V2 depth layouts are dense and plausible, and the depth-risk rows highlight object/facade/ground depth boundaries. But the risk mostly overlaps existing RGB structure risk rather than creating a new alignment cue. It blocks some Y repair near geometry, making the output safer/conservative, but it does not move the seam to a correct source or fix the lane/road/building discontinuity.
+> - **Conclusion**: [weak NEG as repair / POS as diagnostic baseline] Dense monocular depth is better coverage than LiDAR, but in this formulation it is still a veto map, not a seam solver. This further supports the current recommendation: depth can annotate unsafe seams; to actually repair geometry we would need a layer/visibility/source-synthesis method, not another edge-gated 2D polish.
+
 > ### 2026-05-28 ~08:10 UTC - [LiDAR depth-visibility seam probe: POS as risk metadata / weak NEG as repair.]
 > - **Purpose**: revisit depth without repeating the failed N1 depth-renderer path. Use AV2 LiDAR only as seam-band visibility metadata: adjacent-camera baseline / LiDAR depth estimates near-parallax risk, local depth span estimates occlusion/discontinuity risk, and missing LiDAR support is marked as unknown. Final panorama remains L1 `hard_select`; the only repair tested is the existing Y-only local seam polish with an additional depth-risk veto.
 > - **Code / artifacts**:
