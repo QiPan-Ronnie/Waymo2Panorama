@@ -1,5 +1,41 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~07:35 UTC - [Sparse stereo v5 external validation on YOLO-selected ghosty anchor: NEG.]
+> - **Purpose**: avoid retesting the same BMW/fbee95 cases. First run YOLO ghost scoring on fbee stride-5 anchors, then test the most ghost-likely anchor with existing source-faithful sparse-stereo displacement v5.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/score_ghost_yolo_v2.py
+>   scripts/phase3/run_wide_baseline_stereo.py
+>   scripts/phase3/run_l1_sparse_disp.py
+>   scripts/phase3/eval_parallax_ghost_alignment.py
+>   deliverables/sparse_stereo_v5_fbee_a085_review.jpg
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/sparse_stereo_v5_anchor_search/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/sparse_stereo_v5_fbee_a085/
+>   ```
+> - **A100 / Drive jobs**:
+>   ```text
+>   YOLO scan job: 6bfbff4813ea4537b5a2a503abcc8762
+>   sparse stereo job: 2862c0f124794e108800745e1aa722c4
+>   selected anchor: fbee355f anchor 85, YOLO edge-object score=17 (highest among 64 stride-5 anchors)
+>   ```
+> - **Diagnostics**:
+>   ```text
+>   Wide-baseline stereo:
+>     final 3D pts total = 201 across 7 adjacent pairs
+>     pts/pair mean/min/max = 28.7 / 0 / 195
+>     overall depth range = 4.24-24.47m
+>   Sparse displacement v5:
+>     target=midpoint, kernel=gaussian, width=10px, min_parallax=10px
+>     effective anchors:
+>       side_left=1, rear_left=1, side_right=3, front_right=3
+>       front_center/front_left/rear_right=0
+>   Overlap alignment:
+>     plain mean L1 / Pearson = 31.80 / 0.812
+>     A2v5  mean L1 / Pearson = 31.72 / 0.813
+>   ```
+> - **Visual finding**: A2v5 is nearly identical to plain multiband; the diff panel contains only tiny isolated blobs. It does not improve hard_select seam geometry, and it cannot affect most seam regions because the stereo anchors are too sparse.
+> - **Conclusion**: [NEG] The old sparse-displacement family does not generalize into a useful seam solver even when choosing a YOLO-ghosty anchor. It remains a diagnostic / tiny local perturbation, not a path worth scaling.
+
 > ### 2026-05-28 ~07:15 UTC - [Semantic object-coherent hard_select probe: weak MIXED / mostly NEG.]
 > - **Purpose**: test the object/layer hypothesis directly after same-frame and temporal one-plane routes failed. Use YOLOv8x-seg on raw AV2 ring cameras, project COCO vehicle/person masks into ERP, and force only near-seam object pixels to remain source-coherent. Final pixels are still copied from original L1 slabs; no generation, OF, blending, or geometric warp.
 > - **Code / artifacts**:
