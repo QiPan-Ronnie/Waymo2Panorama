@@ -5,6 +5,7 @@ import numpy as np
 
 from waymo2panorama.blending.region_coherent_seam import (
     RegionCoherentConfig,
+    blend_region_coherent_hard,
     blend_region_coherent_seam,
     protect_pair_regions,
 )
@@ -41,6 +42,28 @@ def test_region_coherent_blend_remains_hard_selected() -> None:
     from_b = np.all(out == b_u8, axis=2)
     assert np.all(from_a | from_b)
     assert diag["seam_mask_pixels"] > 0
+
+
+def test_region_coherent_hard_changes_no_more_than_protected_pixels() -> None:
+    slab_a, slab_b, wa, wb = _lane_pair()
+    out, diag = blend_region_coherent_hard(
+        [slab_a, slab_b],
+        [wa, wb],
+        ring_pairs=[(0, 1)],
+        return_diagnostics=True,
+        band_half_width=12,
+        seam_dilate=9,
+        min_component_area=8,
+        max_component_area=5000,
+        max_component_width_frac=0.95,
+    )
+    a_u8 = np.clip(slab_a, 0, 255).astype(np.uint8)
+    b_u8 = np.clip(slab_b, 0, 255).astype(np.uint8)
+    from_a = np.all(out == a_u8, axis=2)
+    from_b = np.all(out == b_u8, axis=2)
+    assert np.all(from_a | from_b)
+    assert diag["protected_pixels"] >= 0
+    assert diag["routed_pixels_changed"] <= diag["protected_pixels"]
 
 
 def test_protect_pair_regions_makes_cut_structure_coherent() -> None:

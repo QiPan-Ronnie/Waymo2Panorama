@@ -24,6 +24,7 @@ sys.path.insert(0, str(REPO / "code"))
 from waymo2panorama.blending.hard_hdr_of import RING_PAIRS, hard_select  # noqa: E402
 from waymo2panorama.blending.multiband import multiband_blend  # noqa: E402
 from waymo2panorama.blending.region_coherent_seam import (  # noqa: E402
+    blend_region_coherent_hard,
     blend_region_coherent_seam,
     seam_and_region_to_rgb,
 )
@@ -165,9 +166,11 @@ def run_case(log_dir: Path, anchor_idx: int, run_name: str, args) -> dict:
         "multiband": "L1 multiband",
         "hard_select": "L1 hard_select",
         "seam_routing": "DP seam routing v2",
-        "region_coherent": "region-coherent seam v3",
+        "region_coherent": "DP + region-coherent seam v3a",
+        "component_coherent": "hard_select + component repair v3b",
         "seam_routing_overlay": "v2 seam path",
-        "region_overlay": "v3 seam + protected regions",
+        "region_overlay": "v3a seam + protected regions",
+        "component_overlay": "v3b original seam + protected regions",
     }
     methods: dict[str, np.ndarray] = {}
     runtime_s: dict[str, float] = {"project": round(project_s, 3)}
@@ -213,6 +216,24 @@ def run_case(log_dir: Path, anchor_idx: int, run_name: str, args) -> dict:
     methods["region_coherent"] = rc_out
     methods["region_overlay"] = seam_and_region_to_rgb(rc_diag["seam_mask"], rc_diag["protected_mask"], rc_out)
 
+    cc_out, cc_diag = timed(
+        "component_coherent",
+        lambda: blend_region_coherent_hard(
+            slabs,
+            weights,
+            return_diagnostics=True,
+            band_half_width=args.band_half_width,
+            core_half_width=args.core_half_width,
+            seam_dilate=args.seam_dilate,
+            min_component_area=args.min_component_area,
+            max_component_area=args.max_component_area,
+            source_weight=args.source_weight,
+            change_weight=args.change_weight,
+        ),
+    )
+    methods["component_coherent"] = cc_out
+    methods["component_overlay"] = seam_and_region_to_rgb(cc_diag["seam_mask"], cc_diag["protected_mask"], cc_out)
+
     scores = _score_methods(methods, slabs, weights, args)
     for name, agg in scores.items():
         if agg:
@@ -231,7 +252,7 @@ def run_case(log_dir: Path, anchor_idx: int, run_name: str, args) -> dict:
         _save_rgb(out_dir / f"{run_name}_{crop_name}_crop_stack.png", _stack_named(methods, labels, crop=crop))
 
     if args.save_full:
-        for name in ["hard_select", "seam_routing", "region_coherent"]:
+        for name in ["hard_select", "seam_routing", "region_coherent", "component_coherent"]:
             _save_rgb(out_dir / f"{run_name}_{name}.png", methods[name])
 
     diag = {
@@ -244,6 +265,7 @@ def run_case(log_dir: Path, anchor_idx: int, run_name: str, args) -> dict:
         "overlap_ncc": scores,
         "seam_routing": _jsonable_diag(seam_diag),
         "region_coherent": _jsonable_diag(rc_diag),
+        "component_coherent": _jsonable_diag(cc_diag),
     }
     with open(out_dir / f"{run_name}_diagnostics.json", "w", encoding="utf-8") as f:
         json.dump(diag, f, indent=2, ensure_ascii=False)
@@ -261,6 +283,7 @@ def main() -> int:
     ap.add_argument("--erp-w", type=int, default=4096)
     ap.add_argument("--out-dir", required=True)
     ap.add_argument("--band-half-width", type=int, default=72)
+    ap.add_argument("--core-half-width", type=int, default=2)
     ap.add_argument("--max-step", type=int, default=3)
     ap.add_argument("--seam-dilate", type=int, default=9)
     ap.add_argument("--min-component-area", type=int, default=36)
@@ -295,6 +318,8 @@ def main() -> int:
                 "overlap_ncc": d["overlap_ncc"],
                 "region_protected_pixels": d["region_coherent"]["protected_pixels"],
                 "region_changed_pixels": d["region_coherent"]["routed_pixels_changed"],
+                "component_protected_pixels": d["component_coherent"]["protected_pixels"],
+                "component_changed_pixels": d["component_coherent"]["routed_pixels_changed"],
             }
             for d in all_diags
         ]

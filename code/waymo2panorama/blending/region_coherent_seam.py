@@ -17,6 +17,7 @@ import cv2
 import numpy as np
 
 from waymo2panorama.blending.hard_hdr_of import RING_PAIRS
+from waymo2panorama.blending.seam_local_align import build_voronoi_seam_band
 from waymo2panorama.blending.seam_routing import (
     SeamRouteConfig,
     route_pair_seam,
@@ -29,6 +30,7 @@ class RegionCoherentConfig:
     """Parameters for source-faithful region-coherent seam cleanup."""
 
     band_half_width: int = 72
+    core_half_width: int = 2
     max_step: int = 3
     threshold: float = 1e-6
     canny_low: int = 55
@@ -357,6 +359,95 @@ def blend_region_coherent_seam(
         "protected_pixels": int(protected_all.sum()),
         "seam_mask_pixels": int(seam_mask_all.sum()),
         "label_map": routed_label,
+        "seam_mask": seam_mask_all,
+        "protected_mask": protected_all,
+    }
+    if return_diagnostics:
+        return out, diagnostics
+    return out
+
+
+def blend_region_coherent_hard(
+    slabs: Sequence[np.ndarray],
+    weights: Sequence[np.ndarray],
+    ring_pairs: Sequence[tuple[int, int]] = RING_PAIRS,
+    return_diagnostics: bool = False,
+    **kwargs,
+) -> np.ndarray | tuple[np.ndarray, dict]:
+    """Hard_select with component-only coherence repair at original seams.
+
+    Unlike ``blend_region_coherent_seam``, this function does not run DP seam
+    routing and does not move a full seam path. It starts from the argmax
+    hard_select label map and only changes pixels inside high-structure
+    components that are visibly split by the original weight-equality seam.
+    """
+    if len(slabs) != len(weights):
+        raise ValueError(f"slabs/weights length mismatch: {len(slabs)} vs {len(weights)}")
+    if not slabs:
+        raise ValueError("empty slabs")
+    cfg = RegionCoherentConfig(**kwargs)
+    work_slabs = [np.clip(s, 0, 255).astype(np.float32) for s in slabs]
+    work_weights = [w.astype(np.float32) for w in weights]
+    base_label = np.argmax(np.stack(work_weights, axis=0), axis=0).astype(np.int16)
+    coherent_label = base_label.copy()
+    seam_mask_all = np.zeros_like(base_label, dtype=bool)
+    protected_all = np.zeros_like(base_label, dtype=bool)
+    pair_diags: list[dict[str, object]] = []
+
+    for i, j in ring_pairs:
+        if i >= len(work_slabs) or j >= len(work_slabs):
+            continue
+        band, signed = build_voronoi_seam_band(
+            work_weights[i],
+            work_weights[j],
+            band_half_width=cfg.band_half_width,
+            threshold=cfg.threshold,
+        )
+        overlap = (work_weights[i] > cfg.threshold) & (work_weights[j] > cfg.threshold)
+        band &= overlap
+        seam_core = band & np.isfinite(signed) & (np.abs(signed) <= float(cfg.core_half_width))
+        if not band.any() or not seam_core.any():
+            pair_diags.append(
+                {
+                    "pair": [int(i), int(j)],
+                    "band_pixels": int(band.sum()),
+                    "seam_pixels": int(seam_core.sum()),
+                    "status": "no_original_seam",
+                }
+            )
+            continue
+        coherent_label, protected, protect_diag = protect_pair_regions(
+            coherent_label,
+            work_slabs,
+            work_weights,
+            (i, j),
+            band,
+            seam_core,
+            cfg,
+        )
+        seam_mask_all |= seam_core
+        protected_all |= protected
+        pair_diags.append(
+            {
+                "pair": [int(i), int(j)],
+                "band_pixels": int(band.sum()),
+                "seam_pixels": int(seam_core.sum()),
+                "region_coherence": protect_diag,
+                "status": "ok",
+            }
+        )
+
+    out = np.zeros_like(work_slabs[0], dtype=np.uint8)
+    for idx, slab in enumerate(work_slabs):
+        m = coherent_label == idx
+        out[m] = np.clip(slab[m], 0, 255).astype(np.uint8)
+
+    diagnostics = {
+        "pairs": pair_diags,
+        "routed_pixels_changed": int((coherent_label != base_label).sum()),
+        "protected_pixels": int(protected_all.sum()),
+        "seam_mask_pixels": int(seam_mask_all.sum()),
+        "label_map": coherent_label,
         "seam_mask": seam_mask_all,
         "protected_mask": protected_all,
     }
