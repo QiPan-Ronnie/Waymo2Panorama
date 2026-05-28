@@ -1,5 +1,107 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~02:05 UTC - [DiT360 v10 adaptive masks + fidelity-budget / low-frequency compose: stronger diagnosis, still not a main solver.]
+> - **Purpose**: push the DiT360 seam-completion route beyond fixed r008/tau5. The hypothesis was that raw DiT360 looks better because it is allowed to slightly modify context outside the mask; test whether that advantage can be kept under a measurable fidelity budget, and whether using only DiT360 low-frequency residual avoids hallucinated structure.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/prepare_dit360_adaptive_masks.py
+>   scripts/phase3/fidelity_budget_dit360_masks.py
+>   scripts/phase3/dit360_lowfreq_harmonize.py
+>   deliverables/dit360_seam_completion/inputs_v10_adaptive/02a00399_a000/
+>     02a00399_a000_adaptive_manifest.json
+>     02a00399_a000_adaptive_mask_review_w900.jpg
+>   deliverables/dit360_seam_completion/runs_v10_adaptive_tau5/
+>     batch_summary.json
+>   deliverables/dit360_seam_completion/runs_v10_adaptive_fidelity_budget/
+>     fidelity_budget_summary.json
+>     fidelity_budget_overall_review_q60_w900.jpg
+>     fidelity_budget_crop_review_q50_w1300.jpg
+>   deliverables/dit360_seam_completion/runs_v10_adaptive_fidelity_loose_raw/
+>   deliverables/dit360_seam_completion/runs_v10_adaptive_fidelity_loose_edge/
+>   deliverables/dit360_seam_completion/runs_v10_dit_lowfreq_harmonize/
+>   ```
+> - **Drive outputs**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v10_adaptive/02a00399_a000/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v10_adaptive_tau5/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v10_adaptive_fidelity_budget/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v10_adaptive_fidelity_loose_raw/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v10_adaptive_fidelity_loose_edge/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v10_dit_lowfreq_harmonize/
+>   ```
+> - **Adaptive masks on BMW 02a00399 anchor 0**:
+>   ```text
+>   adaptive_lowstruct_r006:          generate 1.49% of ERP / 5.45% of valid pixels
+>   adaptive_color_r008_guardstruct: generate 3.63% of ERP / 13.24% of valid pixels
+>   adaptive_expand_histruct_r024:   generate 3.13% of ERP / 11.41% of valid pixels
+>   seam-risk global: high color 7.64% of seam band, high structure 0.80%
+>   ```
+> - **Raw DiT360 tau5 metrics**:
+>   ```text
+>   adapt_low_r006_tau5:    preserve MAE 3.982, PSNR 29.96 dB
+>   adapt_color_r008_tau5:  preserve MAE 3.969, PSNR 29.99 dB
+>   adapt_expand_r024_tau5: preserve MAE 4.001, PSNR 29.80 dB
+>   ```
+> - **Fidelity-budget finding**:
+>   - Conservative residual cap 0.35 gives preserve MAE only 0.82-0.85, so budget=2 and budget=4 are identical in practice; visually this mostly reverts toward hard_select/postcompose and does not recover raw's smoothness.
+>   - Loose residual cap 1.0 confirms the trade-off:
+>     ```text
+>     loose_raw budget2: preserve MAE about 2.00, alpha_safe about 0.52
+>     loose_raw budget4: preserve MAE about 3.84-3.90, alpha_safe 1.00, nearly raw
+>     loose_edge budget4: preserve MAE about 3.24, edge artifacts reduced but not removed
+>     ```
+> - **Low-frequency harmonization finding**:
+>   ```text
+>   It copies no high-frequency DiT360 detail. It applies only blur(raw)-blur(source)
+>   near the mask with a source-edge gate.
+>   preserve MAE: 0.042-0.178
+>   core output-vs-source MAE: 3.49-18.57, while raw core MAE was 20.16-39.02
+>   edge-region output MAE: 0.13-1.41, while raw edge-region MAE was 16.99-21.48
+>   ```
+> - **Visual finding**:
+>   - Raw/adaptive masks can look smoother globally, but the same freedom brings back visible hallucination/ghost-like changes around lane markings, the black wall, car/curb regions, and vertical seam columns.
+>   - Expanding high-structure masks does not solve geometry; it gives DiT360 more freedom and can invent or smear structure.
+>   - Fidelity-budget composition provides a continuous knob between source and raw, but the good-looking end of the knob is not source-faithful enough for Bosch training data.
+>   - Low-frequency harmonization is the safest DiT-derived variant: it suppresses high-frequency hallucination and may be useful as a qualitative color/harmony ablation, but it still does not repair lane or object geometry.
+> - **Conclusion**: [MIXED diagnostic / NEG as main solver] DiT360 is now tested in fixed-mask, adaptive-mask, postcompose, soft/evidence gate, multi-seed, fidelity-budget, and low-frequency-only forms. The route is not suitable as the main Bosch data-generation solver because the only visually smoother variants rely on nontrivial evidence rewriting. The useful paper angle is narrower: DiT360 can be a learned qualitative baseline and a low-frequency harmonization prior, while L1 hard_select + source-confidence maps remain the defensible main output.
+
+> ### 2026-05-28 ~01:35 UTC - [Risk-gated local Y seam repair fresh11: POS / stable color-seam reduction.]
+> - **Purpose**: expand the three-anchor risk-gated local Y repair to the 11-anchor fresh grid. This tests whether the conservative no-DL color polish is stable beyond the BMW/pedestrian/clean anchors.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/seam_risk_gated_color_repair.py
+>   deliverables/seam_risk_gated_color_repair/fresh11_v1/
+>     fresh11_repair_summary.json
+>     fresh11_repair_compact_crop_review_q45_w620.jpg
+>   ```
+> - **Drive outputs**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/seam_risk_gated_color_repair/fresh11_v1/
+>   ```
+> - **Anchors**:
+>   ```text
+>   02a00399 a042/a127/a222
+>   0bae3b5e a017/a082
+>   2c652f9e a017/a047
+>   9f871fb4 a017/a047
+>   fbee355f a017/a047
+>   ```
+> - **Aggregate metrics**:
+>   ```text
+>   n = 11
+>   mean seam dY improvement: mean 18.19%, median 18.98%
+>   min/max mean dY improvement: 7.13% / 23.63%
+>   p95 seam dY improvement: mean 5.20%, median 6.08%
+>   changed pixel fraction: 3.47% mean
+>   max abs applied dY: 9.10
+>   11/11 anchors improved mean seam dY
+>   ```
+> - **Visual finding**:
+>   - The compact review shows the output remains very close to hard_select; changes are concentrated in seam columns/correction maps.
+>   - No obvious new ghosting, warping, or hallucinated geometry in the fresh11 review.
+>   - As expected, it does not fix lane/vehicle geometric discontinuity.
+> - **Conclusion**: [POS as optional L2 color polish] Across 14 total anchors now checked (3 primary + fresh11), risk-gated local Y repair is the most stable post-hard_select improvement: simple, no DL, no warp, no depth, and no structure hallucination. It should be described as seam luminance polish, not as geometry repair.
+
 > ### 2026-05-28 ~01:05 UTC - [Risk-gated local Y seam repair: POS as conservative color polish, not geometry repair.]
 > - **Purpose**: use the new source-evidence seam confidence map to test a safe traditional-CV repair: only adjust Y-channel luminance near seams where structure-risk is low. High-structure-risk regions stay untouched, so the method cannot warp vehicles/lanes or hallucinate content.
 > - **Code / artifacts**:
