@@ -1,5 +1,37 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~07:15 UTC - [Semantic object-coherent hard_select probe: weak MIXED / mostly NEG.]
+> - **Purpose**: test the object/layer hypothesis directly after same-frame and temporal one-plane routes failed. Use YOLOv8x-seg on raw AV2 ring cameras, project COCO vehicle/person masks into ERP, and force only near-seam object pixels to remain source-coherent. Final pixels are still copied from original L1 slabs; no generation, OF, blending, or geometric warp.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/test_semantic_object_coherent.py
+>   deliverables/semantic_object_coherent_compact_review.jpg
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/semantic_object_coherent_v1/
+>   ```
+> - **A100 / Drive job**:
+>   ```text
+>   job id: eb0d54edd1db4da4b5804aa7e5f34ebe
+>   model: yolov8x-seg.pt, imgsz=1280, conf=0.20
+>   cases: 02a00399:0:bmw, fbee355f:95:ped_obj, 0bae3b5e:30:clean_far
+>   ```
+> - **Representative diagnostics**:
+>   ```text
+>   02a00399_a000_bmw:
+>     near-seam proposals=7, changed_pixels=4324 (0.206%)
+>     seam dY mean/p95: hard 15.40/69.0 -> semantic 16.80/71.0
+>   fbee355f_a095_ped_obj:
+>     proposals=20, changed_pixels=3155 (0.150%)
+>     seam dY mean/p95: hard 28.07/85.0 -> semantic 26.74/83.0
+>   0bae3b5e_a030_clean_far:
+>     proposals=8, changed_pixels=1096 (0.052%)
+>     seam dY mean/p95: hard 24.41/68.0 -> semantic 24.58/69.55
+>   ```
+> - **Visual finding**:
+>   - BMW/SUV: projected instance masks find the vehicles, but the semantic output is almost identical to hard_select and can add small mask-boundary source switches. It does not fix the dominant road/building seam mismatch.
+>   - fbee: small numeric improvement in seam dY, but no strong visual improvement.
+>   - clean far-field: neutral/slightly worse, confirming the object mask is not addressing most seam energy.
+> - **Conclusion**: [MIXED / weak NEG] Object-instance coherence is safer than full OF or DiT raw generation, but it is not enough as a solver. The remaining seam is not just "a car/person got cut"; it is mixed-depth road, facade, pole, lane, and occlusion geometry. If using semantics, keep it as risk metadata or seam veto, not as a source-switch repair by itself.
+
 > ### 2026-05-28 ~06:55 UTC - [Same-frame raw ground-plane seam layer: NEG; road-plane geometry creates block artifacts.]
 > - **Purpose**: test a source-faithful, no-DL geometry route for the exact hard_select left2 -> 3 road/lane mismatch the user flagged. Unlike the temporal probe, this uses only the current AV2 frame: intersect ERP rays with a local ground plane, project those 3D ground points into the real ring cameras, then replace only lower-half seam-band pixels where adjacent ground-plane samples agree.
 > - **Code / artifacts**:
