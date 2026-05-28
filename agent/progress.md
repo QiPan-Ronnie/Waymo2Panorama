@@ -1,5 +1,50 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~09:00 UTC - [Dense-depth-aware DP seam routing: NEG; lower dY hides worse source fidelity.]
+> - **Purpose**: test whether dense depth can do more than veto Y polish. Reuse DP seam routing, add Depth Anything V2 dense depth-edge risk as an external seam path penalty, and compare `hard_select`, RGB-only `seam_routing`, and `depth_route`. Final pixels are still copied from real L1 camera slabs; no blending, generation, or warp.
+> - **Code / artifacts**:
+>   ```text
+>   code/waymo2panorama/blending/seam_routing.py        # optional external_cost support
+>   code/waymo2panorama/blending/__test_seam_routing.py # external-cost unit test
+>   scripts/phase3/test_depth_aware_seam_routing.py
+>   deliverables/depth_aware_seam_routing/batch_summary.json
+>   deliverables/depth_aware_seam_routing/depth_aware_route_three_anchor_compact_review.jpg
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/depth_aware_seam_routing_v1/
+>   ```
+> - **Validation**:
+>   ```text
+>   local: python -m py_compile seam_routing.py test_depth_aware_seam_routing.py
+>   local: python -m pytest code/waymo2panorama/blending/__test_seam_routing.py -q
+>          4 passed (only pytest cache permission warning)
+>   A100 job: b2f8533946414ce0a5d2cfe6c7f4c4fb
+>   model: depth-anything/Depth-Anything-V2-Small-hf, external_weight=4.0
+>   cases: 02a00399:0, fbee355f:95, 0bae3b5e:30
+>   ```
+> - **Metrics**:
+>   ```text
+>   Aggregate over 3 anchors:
+>     changed depth_route vs hard_select = 0.728% pixels
+>     changed depth_route vs RGB route = 0.415% pixels
+>     mean NCC pano-vs-winner:
+>       hard_select  = 0.9925
+>       RGB route    = 0.8779
+>       depth_route  = 0.8233
+>     mean seam dY:
+>       hard_select  = 22.63
+>       depth_route  =  8.70
+> 
+>   Per anchor NCC hard_select -> RGB route -> depth_route:
+>     BMW:   0.9970 -> 0.9057 -> 0.8524
+>     fbee:  0.9873 -> 0.8599 -> 0.8153
+>     0bae:  0.9934 -> 0.8682 -> 0.8024
+>   Per anchor seam dY hard_select -> depth_route:
+>     BMW:   15.40 ->  5.34
+>     fbee:  28.07 -> 10.12
+>     0bae:  24.41 -> 10.63
+>   ```
+> - **Visual finding**: depth-aware routes produce jagged red seam paths and local source swaps. They reduce immediate luminance jumps because the seam is moved to color-smoother pixels, but the output is less source-faithful and does not solve road/lane/building geometry. The NCC collapse is the decisive metric: depth-route makes the seam numerically smoother while pulling the panorama away from the winning real camera slab.
+> - **Conclusion**: [NEG] Dense depth as a DP seam cost does not rescue seam routing. This closes the obvious "add depth edge to seam path" variant: it optimizes the wrong local objective. Depth should remain metadata / gating unless we move to a genuinely layered visibility/source-synthesis formulation.
+
 > ### 2026-05-28 ~08:35 UTC - [Dense Depth Anything V2 edge seam probe: metadata overlap, weak NEG as repair.]
 > - **Purpose**: test whether a modern dense monocular-depth prior gives better seam metadata than sparse LiDAR. Run Depth Anything V2 Small on each raw AV2 camera, project relative depth maps into ERP slabs with the same L1 geometry, build dense depth-edge / normalized depth-disagreement seam risk, and use it only as a veto for Y-only seam color repair. No depth rendering, warping, or source rewriting.
 > - **Code / artifacts**:
