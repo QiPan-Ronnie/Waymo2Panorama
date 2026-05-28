@@ -1,5 +1,25 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~10:55 UTC - [DiT360 v16 boundary-collar completion: hard_select and tri-map raw both tested.]
+> - **Purpose**: avoid the v15 failure mode where DiT360 hallucinates the whole black invalid ERP. Preserve almost everything and only let DiT360 repaint a thin collar around the valid panorama footprint, testing whether local boundary completion is a more controlled use of the model.
+> - **Inputs / mask**:
+>   ```text
+>   hard_select: L1 hard-select BMW anchor render
+>   trimap_raw:  deliverables/dit360_seam_completion/runs_v14_trimap_clamp_bmw/trimap_r008_h016_w025_tau5/trimap_r008_h016_w025_tau5_raw.png
+>   mask base:   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v14_trimap/02a00399_a000/02a00399_a000_mask_preserve_valid_outpaint_invalid.png
+>   convention:  white/255 preserve source, black/0 generate
+>   collar:      8 px inside valid footprint + 32 px outside footprint; far black invalid region preserved black
+>   ```
+> - **Output artifacts**:
+>   ```text
+>   deliverables/dit360_seam_completion/runs_v16_boundary_collar/hard_select_collar_i008_o032_tau50/hard_select_collar_i008_o032_tau50.png
+>   deliverables/dit360_seam_completion/runs_v16_boundary_collar/trimap_raw_collar_i008_o032_tau50/trimap_raw_collar_i008_o032_tau50.png
+>   deliverables/dit360_seam_completion/runs_v16_boundary_collar/v16_boundary_collar_compact_review_w1100.jpg
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v16_boundary_collar/
+>   ```
+> - **Run config**: A100, 1024x2048, 50 steps, seed 0, guidance 2.8, tau 50, VAE tiling on. Both hard_select and tri-map raw cases completed successfully.
+> - **Visual finding**: [MIXED] boundary-collar masking is much more controlled than full invalid-region outpainting: it keeps the real driving content largely stable and only softens/fills the footprint boundary. It does **not** solve the original inter-camera seam/parallax mismatch and does not create a complete 360 ERP because the far black invalid region is intentionally preserved. The tri-map raw input looks more coherent than hard_select for this local-completion use, but this remains a generative polishing direction, not a source-faithful stitching fix.
+
 > ### 2026-05-28 ~10:05 UTC - [DiT360 v15 invalid-region outpaint from tri-map seam raw: generated raw 360 fill.]
 > - **Purpose**: test whether the best-looking v14 tri-map seam-completion raw can be used as the DiT360 init image, then mask the black/uncovered invalid panorama regions and ask DiT360 to complete a more paper-like full ERP. This is a generative completion test, not a source-faithful stitching claim.
 > - **Input / mask**:
