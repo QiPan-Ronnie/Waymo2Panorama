@@ -1,5 +1,22 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~10:05 UTC - [DiT360 v15 invalid-region outpaint from tri-map seam raw: generated raw 360 fill.]
+> - **Purpose**: test whether the best-looking v14 tri-map seam-completion raw can be used as the DiT360 init image, then mask the black/uncovered invalid panorama regions and ask DiT360 to complete a more paper-like full ERP. This is a generative completion test, not a source-faithful stitching claim.
+> - **Input / mask**:
+>   ```text
+>   init: /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v14_trimap_clamp_bmw/trimap_r008_h016_w025_tau5/trimap_r008_h016_w025_tau5_raw.png
+>   mask: /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v14_trimap/02a00399_a000/02a00399_a000_mask_preserve_valid_outpaint_invalid.png
+>   convention: white/255 preserve source, black/0 generate
+>   ```
+> - **Output artifacts**:
+>   ```text
+>   deliverables/dit360_seam_completion/runs_v15_trimap_raw_invalid_outpaint/trimap_r008_h016_w025_tau5_raw_invalid_outpaint_tau5.png
+>   deliverables/dit360_seam_completion/runs_v15_trimap_raw_invalid_outpaint/trimap_r008_h016_w025_tau5_raw_invalid_outpaint_tau5_diagnostics.json
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v15_trimap_raw_invalid_outpaint/
+>   ```
+> - **Run config**: A100, 1024x2048, 50 steps, seed 0, guidance 2.8, tau 5.0, VAE tiling on, runtime 210.4s.
+> - **Visual finding**: [MIXED / not source-faithful] the invalid black regions are filled into a visually complete 360-style ERP, but the generated bottom/sky regions are hallucinated and some boundaries remain visible. This is promising as a qualitative generative completion demo, not currently suitable as Bosch training data without stronger fidelity controls.
+
 > ### 2026-05-28 ~09:45 UTC - [Metric parallax-budget map: POS as impossibility / Bosch risk evidence.]
 > - **Purpose**: quantify the physical seam limit instead of trying another local seam polish. Project AV2 LiDAR into ERP, use actual adjacent camera centers, and compute the expected ERP displacement of the same 3D point when seen from camera A vs camera B. This gives a metric parallax budget in pixels for hard-select seam bands.
 > - **Code / artifacts**:
