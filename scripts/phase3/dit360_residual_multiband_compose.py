@@ -308,7 +308,7 @@ def _save_overall_review(path: Path, init: Image.Image, rows: list[tuple[str, Im
     Image.fromarray(np.vstack(panels)).save(path, quality=quality)
 
 
-def _find_auto_crops(mask: np.ndarray, n: int = 4, half_w: int = 110) -> list[tuple[int, int, int, int]]:
+def _find_auto_crops(mask: np.ndarray, n: int = 3, half_w: int = 260) -> list[tuple[int, int, int, int]]:
     h, w = mask.shape
     core = mask < 128
     r0 = int(h * 0.22)
@@ -353,7 +353,13 @@ def _save_crop_review(
         for label, crop in crop_rows:
             panel_rows.append(_label_band(width, f"crop{idx} x{x0}-{x1} {label}"))
             panel_rows.append(_fit_width(crop, width))
-    Image.fromarray(np.vstack(panel_rows)).save(path, quality=quality)
+    stacked = np.vstack(panel_rows)
+    max_jpeg_dim = 64000
+    if stacked.shape[0] > max_jpeg_dim:
+        scale = max_jpeg_dim / float(stacked.shape[0])
+        new_size = (max(1, int(round(stacked.shape[1] * scale))), max_jpeg_dim)
+        stacked = np.asarray(Image.fromarray(stacked).resize(new_size, Image.Resampling.BICUBIC))
+    Image.fromarray(stacked).save(path, quality=quality)
 
 
 def _load_cases(summary_paths: Iterable[Path]) -> list[dict]:
