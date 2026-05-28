@@ -1,5 +1,51 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~00:50 UTC - [Source-evidence seam confidence map v1: promising diagnostic, not a stitcher.]
+> - **Purpose**: after DiT360 v9 multi-seed closed the generative seam-completion route as a main solver, pivot to a more fundamental artifact: explicitly mark which hard-select seam regions are low-risk color/texture seams vs high-risk geometry/structure conflicts. This supports Bosch filtering/confidence maps and gives a principled paper angle without pretending 2D can create a perfect panorama.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/seam_confidence_map.py
+>   deliverables/seam_confidence_map/three_anchor_v1/
+>     three_anchor_compact_crop_review_q55_w900.jpg
+>     three_anchor_summary.json
+>   ```
+> - **Drive outputs**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/seam_confidence_map/three_anchor_v1/
+>   ```
+> - **Method**:
+>   - Render AV2 raw L1 ERP slabs + cos² weights at 1024×2048.
+>   - Keep the L1 `hard_select` output unchanged.
+>   - For every adjacent camera pair, build a narrow band around the hard-select Voronoi seam.
+>   - Compute three source-only risk terms:
+>     - `color_risk`: Y-channel disagreement between adjacent source cameras.
+>     - `structure_risk`: strong source edges with poor local cross-camera NCC / gradient mismatch.
+>     - `reliability_risk`: weak pair overlap support near FoV boundaries.
+>   - Compose visual diagnostics: hard_select, risk overlay, structure-risk heatmap, color-risk heatmap.
+> - **Three-anchor validation**:
+>   ```text
+>   02a00399 anchor 0   BMW near-field seam
+>   fbee355f anchor 95  pedestrian/object seam
+>   0bae3b5e anchor 30  cleaner far-field anchor
+>   ```
+> - **Metrics**:
+>   ```text
+>   02a00399_a000:
+>     global risk mean/p95/p99 = 0.159 / 0.439 / 0.535
+>     high color-risk frac = 7.64%, high structure-risk frac = 0.80%
+>   fbee355f_a095:
+>     global risk mean/p95/p99 = 0.198 / 0.444 / 0.567
+>     high color-risk frac = 8.53%, high structure-risk frac = 0.64%
+>   0bae3b5e_a030:
+>     global risk mean/p95/p99 = 0.196 / 0.445 / 0.550
+>     high color-risk frac = 9.64%, high structure-risk frac = 0.88%
+>   ```
+> - **Visual finding**:
+>   - The map cleanly localizes seam bands and highlights edge/line/car/building conflicts as structure-risk spikes.
+>   - High structure-risk is sparse (<1% of seam band in these three anchors), while high color-risk is much more common (~8-10%).
+>   - This matches the qualitative behavior seen in previous runs: color/HDR issues are broadly visible but relatively tractable; true geometry conflicts are narrow, object/edge-specific, and are exactly where DiT360/OF/local-align either hallucinate or revert to hard_select.
+> - **Conclusion**: [POS as diagnostic / not a visual solver] Seam confidence maps are more defensible than another seam hallucination method. They do not repair the image, but they turn the "impossible perfect panorama" claim into a usable artifact: L1 hard_select panorama + per-pixel seam risk/confidence for filtering, loss weighting, or future object/region-coherent seam decisions. Next practical route should use this risk map to gate optional low-risk color repair while leaving high-structure regions untouched or flagged.
+
 > ### 2026-05-27 ~23:58 UTC - [DiT360 v9 multi-seed check: seed variation does not rescue seam completion.]
 > - **Purpose**: close the obvious remaining loophole in the DiT360 route: v7/v8 used seed 0, so a better random seed might produce a faithful seam repair. This run tests the most plausible settings only, instead of another broad sweep.
 > - **A100 run**:
