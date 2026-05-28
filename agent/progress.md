@@ -1,5 +1,41 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~09:45 UTC - [Metric parallax-budget map: POS as impossibility / Bosch risk evidence.]
+> - **Purpose**: quantify the physical seam limit instead of trying another local seam polish. Project AV2 LiDAR into ERP, use actual adjacent camera centers, and compute the expected ERP displacement of the same 3D point when seen from camera A vs camera B. This gives a metric parallax budget in pixels for hard-select seam bands.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/parallax_budget_map.py
+>   deliverables/parallax_budget_map/batch_summary.json
+>   deliverables/parallax_budget_map/parallax_budget_three_anchor_compact_review.jpg
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/parallax_budget_map_v1/
+>   ```
+> - **A100 / Drive job**:
+>   ```text
+>   job id: e8996907c157462aaf9d142141b841fd
+>   cases: 02a00399:0, fbee355f:95, 0bae3b5e:30
+>   inputs: L1 hard_select seam bands + AV2 nearest LiDAR sweep
+>   ```
+> - **Metrics**:
+>   ```text
+>   Aggregate over 3 anchors:
+>     LiDAR-supported seam-band fraction = 50.23%
+>     p90 parallax budget = 17.65 px
+>     fraction of supported seam >= 10 px = 23.92%
+>     fraction of supported seam >= 20 px =  7.14%
+> 
+>   Per anchor:
+>     BMW:   support 46.04%, median 4.78 px, p90 20.04 px, >=10 px 30.99%, >=20 px 10.51%
+>     fbee:  support 52.74%, median 4.46 px, p90 16.23 px, >=10 px 23.46%, >=20 px  5.53%
+>     0bae:  support 51.90%, median 3.54 px, p90 16.67 px, >=10 px 17.31%, >=20 px  5.39%
+> 
+>   Correlation with 2D source/structure/color risk is low:
+>     BMW:   0.0099 / -0.0636 / 0.1441
+>     fbee: -0.0523 / -0.0217 / 0.0925
+>     0bae: -0.1164 / -0.0775 / 0.0233
+>   ```
+> - **Visual finding**: the parallax heat map marks sparse but real high-budget seam regions. Magenta areas are unknown/no LiDAR support, not safe. The low correlation with pure 2D risk maps is the main finding: many physically hard seam pixels are not obvious from RGB-only color/gradient costs.
+> - **Conclusion**: [POS as evidence, not repair] This strengthens the top-level claim that AV ring-camera panorama stitching is bounded by multi-center parallax. On supported seam pixels, roughly one quarter already require >=10 px cross-camera displacement, and some near-field regions require >=20 px. These are not plausibly solved by local 2D seam routing, blending, OF, or monocular depth-edge costs. Best use: Bosch-facing seam confidence/risk metadata and paper framing for why `hard_select` plus risk maps is the conservative baseline.
+
 > ### 2026-05-28 ~09:20 UTC - [RGB+DA-V2 superpixel source coherence: NEG; larger coherent blocks still source-swap.]
 > - **Purpose**: test a more layer-like abstraction after pixel/row DP seam routing failed. Segment the L1 `hard_select` panorama into SLIC superpixels using RGB plus DA-V2 relative depth as features; only consider superpixels in seam bands that are split by two adjacent camera sources; assign the whole superpixel to one camera by boundary/source/change cost. Final pixels are still copied from real L1 slabs.
 > - **Code / artifacts**:
