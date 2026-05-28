@@ -20,6 +20,7 @@ from waymo2panorama.blending.multiband import multiband_blend
 from waymo2panorama.blending.hard_hdr_of import blend_hard_hdr_of
 from waymo2panorama.blending.seam_local_align import blend_seam_local_align
 from waymo2panorama.blending.seam_routing import blend_seam_routing
+from waymo2panorama.blending.region_coherent_seam import blend_region_coherent_seam
 from waymo2panorama.data_io.av2_loader import RING_CAMS_7, FrameSample
 from waymo2panorama.projection.sphere_projection import render_camera_to_erp
 
@@ -83,11 +84,14 @@ def stitch_one_frame(
         return blend_seam_local_align(slabs, weights, apply_hdr_pre=True)
     elif blend_mode == "hard_seamroute":
         return blend_seam_routing(slabs, weights)
+    elif blend_mode == "hard_regioncoherent":
+        return blend_region_coherent_seam(slabs, weights)
     else:
         raise ValueError(
             f"blend_mode={blend_mode!r} not recognized. "
             "Use 'multiband', 'hard_hdr', 'hard_hdr_of', "
-            "'hard_localalign', 'hard_hdr_localalign', or 'hard_seamroute'."
+            "'hard_localalign', 'hard_hdr_localalign', 'hard_seamroute', "
+            "or 'hard_regioncoherent'."
         )
 
 
