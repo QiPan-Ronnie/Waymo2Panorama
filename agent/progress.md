@@ -1,5 +1,66 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~02:45 UTC - [DiT360 v11 generalization on fbee/0bae: confirms NEG as main solver; lowfreq remains safe but cosmetic.]
+> - **Purpose**: verify whether the BMW-only DiT360 v10 diagnosis generalizes to two different seam regimes:
+>   ```text
+>   fbee355f anchor 95   pedestrian/object seam, low-light urban scene
+>   0bae3b5e anchor 30   cleaner/far-field urban intersection
+>   ```
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/prepare_dit360_adaptive_masks.py
+>   scripts/phase3/run_dit360_mask_batch.py
+>   scripts/phase3/dit360_lowfreq_harmonize.py
+>   deliverables/dit360_seam_completion/inputs_v11_adaptive_generalize/{fbee355f_a095,0bae3b5e_a030}/
+>     *_adaptive_manifest.json
+>     *_adaptive_mask_review_w900.jpg
+>   deliverables/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/{fbee355f_a095,0bae3b5e_a030}/
+>     batch_summary.json
+>   deliverables/dit360_seam_completion/runs_v11_dit_lowfreq_generalize/{fbee355f_a095,0bae3b5e_a030}/
+>     lowfreq_harmonize_summary.json
+>     lowfreq_harmonize_overall_review_q60_w900.jpg
+>     lowfreq_harmonize_crop_review_q50_w1300.jpg
+>   ```
+> - **Drive outputs**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v11_adaptive_generalize/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_dit_lowfreq_generalize/
+>   ```
+> - **Adaptive mask stats**:
+>   ```text
+>   fbee355f_a095:
+>     high color-risk 8.53% of seam band; high structure-risk 0.64%
+>     adaptive_color_r008_guardstruct generate 4.26% ERP / 15.58% valid
+>     adaptive_expand_histruct_r024   generate 2.74% ERP / 9.99% valid
+>   0bae3b5e_a030:
+>     high color-risk 9.64% of seam band; high structure-risk 0.88%
+>     adaptive_color_r008_guardstruct generate 4.28% ERP / 15.62% valid
+>     adaptive_expand_histruct_r024   generate 3.14% ERP / 11.44% valid
+>   ```
+> - **Raw DiT360 tau5 metrics**:
+>   ```text
+>   fbee355f_a095 color_r008:  preserve MAE 4.460, PSNR 27.86 dB
+>   fbee355f_a095 expand_r024: preserve MAE 4.612, PSNR 27.32 dB
+>   0bae3b5e_a030 color_r008:  preserve MAE 4.747, PSNR 28.36 dB
+>   0bae3b5e_a030 expand_r024: preserve MAE 4.878, PSNR 28.00 dB
+>   ```
+> - **Low-frequency-only metrics**:
+>   ```text
+>   fbee355f_a095:
+>     preserve MAE 0.119-0.176
+>     core output-vs-source 11.26-16.88 vs raw core 45.95-47.40
+>     edge-region output 0.73-1.82 vs raw edge 26.29-28.87
+>   0bae3b5e_a030:
+>     preserve MAE 0.062-0.102
+>     core output-vs-source 5.24-8.64 vs raw core 26.93-32.22
+>     edge-region output 0.26-0.61 vs raw edge 21.03-23.21
+>   ```
+> - **Visual finding**:
+>   - `fbee355f_a095`: raw DiT creates vertical smears/ghost-like columns around sidewalk pillars, pedestrian/object boundaries, and road-center seams. Lowfreq suppresses the high-frequency smears, but the remaining output is essentially hard_select with subtle low-frequency tone changes.
+>   - `0bae3b5e_a030`: raw DiT can smooth vertical seam columns but also rewrites lane/road/building structure. Lowfreq again removes most structure rewriting, but does not repair lane discontinuity or object geometry.
+> - **Conclusion**: [CONFIRMED NEG as main solver] The DiT360 trade-off is not BMW-specific. Across BMW + pedestrian/object + cleaner far-field anchors, visually smoother raw DiT outputs require preserve MAE about 4-5 and introduce evidence rewriting; low-frequency-only DiT is safe but cosmetic. Keep DiT360 as a learned qualitative baseline / low-frequency color prior, not as the Bosch panorama generator.
+
 > ### 2026-05-28 ~02:05 UTC - [DiT360 v10 adaptive masks + fidelity-budget / low-frequency compose: stronger diagnosis, still not a main solver.]
 > - **Purpose**: push the DiT360 seam-completion route beyond fixed r008/tau5. The hypothesis was that raw DiT360 looks better because it is allowed to slightly modify context outside the mask; test whether that advantage can be kept under a measurable fidelity budget, and whether using only DiT360 low-frequency residual avoids hallucinated structure.
 > - **Code / artifacts**:

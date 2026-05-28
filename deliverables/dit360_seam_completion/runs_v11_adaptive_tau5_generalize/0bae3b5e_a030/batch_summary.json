@@ -1,0 +1,50 @@
+{
+  "runs": [
+    {
+      "name": "0bae3b5e_a030_adapt_color_r008_tau5",
+      "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v11_adaptive_generalize/0bae3b5e_a030/0bae3b5e_a030_hard_select_1024x2048.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v11_adaptive_generalize/0bae3b5e_a030/0bae3b5e_a030_mask_adaptive_color_r008_guardstruct.png",
+      "output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/0bae3b5e_a030/0bae3b5e_a030_adapt_color_r008_tau5/0bae3b5e_a030_adapt_color_r008_tau5.png",
+      "panel": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/0bae3b5e_a030/0bae3b5e_a030_adapt_color_r008_tau5/0bae3b5e_a030_adapt_color_r008_tau5_panel.jpg",
+      "mask_convention": "white/255 preserves source; black/0 generates",
+      "height": 1024,
+      "width": 2048,
+      "steps": 50,
+      "seed": 0,
+      "guidance": 2.8,
+      "tau": 5.0,
+      "vae_tiling": true,
+      "model_load_runtime_s": 18.423,
+      "case_runtime_s": 191.601,
+      "prompt": "This is a 360-degree street panorama captured by an autonomous vehicle in an urban driving scene, with roads, lane markings, sidewalks, cars, buildings, signs, and sky.",
+      "preserve_fraction": 0.957160472869873,
+      "generate_fraction": 0.04283952713012695,
+      "preserve_mae": 4.7472004890441895,
+      "preserve_rmse": 9.741077423095703,
+      "preserve_psnr": 28.358663705137943
+    },
+    {
+      "name": "0bae3b5e_a030_adapt_expand_r024_tau5",
+      "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v11_adaptive_generalize/0bae3b5e_a030/0bae3b5e_a030_hard_select_1024x2048.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v11_adaptive_generalize/0bae3b5e_a030/0bae3b5e_a030_mask_adaptive_expand_histruct_r024.png",
+      "output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/0bae3b5e_a030/0bae3b5e_a030_adapt_expand_r024_tau5/0bae3b5e_a030_adapt_expand_r024_tau5.png",
+      "panel": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/0bae3b5e_a030/0bae3b5e_a030_adapt_expand_r024_tau5/0bae3b5e_a030_adapt_expand_r024_tau5_panel.jpg",
+      "mask_convention": "white/255 preserves source; black/0 generates",
+      "height": 1024,
+      "width": 2048,
+      "steps": 50,
+      "seed": 0,
+      "guidance": 2.8,
+      "tau": 5.0,
+      "vae_tiling": true,
+      "model_load_runtime_s": 18.423,
+      "case_runtime_s": 191.241,
+      "prompt": "This is a 360-degree street panorama captured by an autonomous vehicle in an urban driving scene, with roads, lane markings, sidewalks, cars, buildings, signs, and sky.",
+      "preserve_fraction": 0.9686141014099121,
+      "generate_fraction": 0.03138589859008789,
+      "preserve_mae": 4.877767562866211,
+      "preserve_rmse": 10.14790153503418,
+      "preserve_psnr": 28.003278716358437
+    }
+  ]
+}

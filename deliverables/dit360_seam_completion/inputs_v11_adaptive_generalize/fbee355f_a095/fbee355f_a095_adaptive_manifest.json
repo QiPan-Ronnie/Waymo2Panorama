@@ -1,0 +1,105 @@
+{
+  "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/fbee355f-8878-31fa-8ac8-b9a45a3f130a",
+  "log_short": "fbee355f",
+  "anchor_idx": 95,
+  "erp_hw": [
+    1024,
+    2048
+  ],
+  "prompt": "This is a 360-degree street panorama captured by an autonomous vehicle in an urban driving scene, with roads, lane markings, sidewalks, cars, buildings, signs, and sky.",
+  "mask_convention": "white/255 = preserve source; black/0 = generate/fill",
+  "preserve_invalid_black_regions": true,
+  "params": {
+    "band_half_width": 48,
+    "core_half_width": 2,
+    "ncc_win": 21,
+    "low_radius": 6,
+    "base_radius": 8,
+    "high_radius": 24,
+    "structure_thresh": 0.62,
+    "risk_thresh": 0.72
+  },
+  "risk_global": {
+    "band_pixels": 87354,
+    "core_pixels": 8536,
+    "risk": {
+      "name": "global_risk",
+      "n": 87354,
+      "mean": 0.19752071797847748,
+      "median": 0.1715659648180008,
+      "p90": 0.36845606565475464,
+      "p95": 0.444424569606781,
+      "p99": 0.5665954351425171,
+      "high_frac_065": 0.0013851683952652426,
+      "high_frac_080": 0.0
+    },
+    "color_risk": {
+      "name": "global_color",
+      "n": 87354,
+      "mean": 0.26864248514175415,
+      "median": 0.19552652537822723,
+      "p90": 0.627855658531189,
+      "p95": 0.7484371662139893,
+      "p99": 0.9307865500450134,
+      "high_frac_065": 0.09034503285482061,
+      "high_frac_080": 0.037548366417107404
+    },
+    "structure_risk": {
+      "name": "global_structure",
+      "n": 87354,
+      "mean": 0.06770166754722595,
+      "median": 0.009329951368272305,
+      "p90": 0.23425285518169403,
+      "p95": 0.38920244574546814,
+      "p99": 0.6146758198738098,
+      "high_frac_065": 0.0063878013599835155,
+      "high_frac_080": 3.4343018064427503e-05
+    },
+    "reliability_risk": {
+      "name": "global_reliability",
+      "n": 87354,
+      "mean": 0.46429988741874695,
+      "median": 0.4407415986061096,
+      "p90": 0.8953972458839417,
+      "p95": 1.0,
+      "p99": 1.0,
+      "high_frac_065": 0.2848753348444261,
+      "high_frac_080": 0.16183574879227053
+    },
+    "high_structure_pixels": 558,
+    "high_color_pixels": 7449,
+    "high_structure_frac_of_band": 0.0063878013599835155,
+    "high_color_frac_of_band": 0.08527371385397349
+  },
+  "artifacts": [
+    {
+      "name": "adaptive_lowstruct_r006",
+      "mask": "fbee355f_a095_mask_adaptive_lowstruct_r006.png",
+      "masked_input": "fbee355f_a095_mask_adaptive_lowstruct_r006_masked_input.png",
+      "preview": "fbee355f_a095_mask_adaptive_lowstruct_r006_preview.jpg",
+      "generate_fraction": 0.014862537384033203,
+      "valid_generate_fraction": 0.05428815271536559
+    },
+    {
+      "name": "adaptive_color_r008_guardstruct",
+      "mask": "fbee355f_a095_mask_adaptive_color_r008_guardstruct.png",
+      "masked_input": "fbee355f_a095_mask_adaptive_color_r008_guardstruct_masked_input.png",
+      "preview": "fbee355f_a095_mask_adaptive_color_r008_guardstruct_preview.jpg",
+      "generate_fraction": 0.04264068603515625,
+      "valid_generate_fraction": 0.15575295224161353
+    },
+    {
+      "name": "adaptive_expand_histruct_r024",
+      "mask": "fbee355f_a095_mask_adaptive_expand_histruct_r024.png",
+      "masked_input": "fbee355f_a095_mask_adaptive_expand_histruct_r024_masked_input.png",
+      "preview": "fbee355f_a095_mask_adaptive_expand_histruct_r024_preview.jpg",
+      "generate_fraction": 0.02735614776611328,
+      "valid_generate_fraction": 0.09992336363953043
+    }
+  ],
+  "outputs": {
+    "hard_select": "fbee355f_a095_hard_select_1024x2048.png",
+    "risk_overlay": "fbee355f_a095_risk_overlay.jpg",
+    "mask_review": "fbee355f_a095_adaptive_mask_review_w900.jpg"
+  }
+}
