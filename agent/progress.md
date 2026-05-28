@@ -1,5 +1,45 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~01:05 UTC - [Risk-gated local Y seam repair: POS as conservative color polish, not geometry repair.]
+> - **Purpose**: use the new source-evidence seam confidence map to test a safe traditional-CV repair: only adjust Y-channel luminance near seams where structure-risk is low. High-structure-risk regions stay untouched, so the method cannot warp vehicles/lanes or hallucinate content.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/seam_risk_gated_color_repair.py
+>   deliverables/seam_risk_gated_color_repair/three_anchor_v1/
+>     three_anchor_repair_compact_crop_review_q55_w900.jpg
+>     three_anchor_repair_summary.json
+>   ```
+> - **Drive outputs**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/seam_risk_gated_color_repair/three_anchor_v1/
+>   ```
+> - **Method**:
+>   - Keep L1 `hard_select` camera assignment exactly; no blending, no warp, no depth, no DL.
+>   - Reuse seam confidence maps from source slabs/weights.
+>   - For each adjacent pair, estimate a robust median Y offset in low-structure seam-core pixels.
+>   - Apply half-offset corrections to the two hard-selected sides with distance falloff from the seam and a structure-risk gate.
+>   - Chroma is untouched; high-structure-risk pixels get zero correction.
+> - **Three-anchor seam ΔY metrics**:
+>   ```text
+>   02a00399_a000 BMW:
+>     mean ΔY 15.40 -> 13.83  (-10.17%)
+>     p95  ΔY 69.00 -> 66.00  (-4.35%)
+>     changed pixels 3.12%, max |ΔY applied| 3.25
+>   fbee355f_a095 pedestrian/object:
+>     mean ΔY 28.07 -> 22.81  (-18.73%)
+>     p95  ΔY 85.00 -> 78.00  (-8.24%)
+>     changed pixels 3.63%, max |ΔY applied| 9.10
+>   0bae3b5e_a030 clean/far-field:
+>     mean ΔY 24.41 -> 19.79  (-18.93%)
+>     p95  ΔY 68.00 -> 64.15  (-5.66%)
+>     changed pixels 3.25%, max |ΔY applied| 9.10
+>   ```
+> - **Visual finding**:
+>   - No new ghosting, object warping, or DiT-style hallucination in the three-anchor crop review.
+>   - The correction is local and subtle; diff/correction maps show changes concentrated in seam columns.
+>   - It does not fix lane/vehicle geometry discontinuity, but it reduces color/luminance seam harshness without touching high-risk structure.
+> - **Conclusion**: [POS as conservative optional L2] This is the first post-DiT direction that is both simple and defensible: L1 `hard_select` remains the geometry baseline, and risk-gated local Y repair can be an optional seam-color polish. It should be expanded to the 11-anchor fresh grid before becoming a recommended default.
+
 > ### 2026-05-28 ~00:50 UTC - [Source-evidence seam confidence map v1: promising diagnostic, not a stitcher.]
 > - **Purpose**: after DiT360 v9 multi-seed closed the generative seam-completion route as a main solver, pivot to a more fundamental artifact: explicitly mark which hard-select seam regions are low-risk color/texture seams vs high-risk geometry/structure conflicts. This supports Bosch filtering/confidence maps and gives a principled paper angle without pretending 2D can create a perfect panorama.
 > - **Code / artifacts**:
