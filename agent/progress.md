@@ -1,5 +1,62 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~04:25 UTC - [Region-coherent seam v3 + DiT-as-oracle source selection: both fail to beat hard_select; seam source-selection route is near exhausted.]
+> - **Purpose**: push two source-faithful alternatives after DP seam-routing and DiT360 post-compose:
+>   ```text
+>   v3a region-coherent seam: DP seam routing + protect high-structure connected regions from being cut.
+>   v3b component-only repair: keep the original hard_select seam, only flip connected high-structure components cut by that seam.
+>   DiT-oracle source selection: use DiT360 r008/tau5 raw output only as an appearance target; final pixels still come from original camera ERP slabs.
+>   ```
+> - **Code / artifacts**:
+>   ```text
+>   code/waymo2panorama/blending/region_coherent_seam.py
+>   code/waymo2panorama/blending/dit_oracle_source.py
+>   scripts/phase3/test_region_coherent_seam.py
+>   scripts/phase3/test_dit_oracle_source_select.py
+>   deliverables/region_coherent_seam/{three_anchor_v1,three_anchor_v2_component}/
+>   deliverables/dit360_oracle_source/three_anchor_v1/
+>   ```
+> - **Colab / Drive**:
+>   ```text
+>   A100 verified: NVIDIA A100-SXM4-40GB, 40442 MiB free
+>   region v3a job: 70c7c1a079b040dca84d30f8b54f1d43
+>   region v3b job: c007ef6ba08c4eb9a6f7247396d6cd72
+>   DiT-oracle job: c320db17f38b48eab95f09512d9df33b
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/region_coherent_seam/three_anchor_v1
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/region_coherent_seam/three_anchor_v2_component
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_oracle_source/three_anchor_v1
+>   ```
+> - **Region v3 quantitative summary**:
+>   ```text
+>   02a00399_a000 BMW:
+>     hard_select NCC 0.9892 / SSD 0.00
+>     DP seam v2  NCC 0.9142 / SSD 86.79
+>     v3a region  NCC 0.9064 / SSD 97.82
+>     v3b comp    NCC 0.9687 / SSD 32.25
+>   fbee355f_a095:
+>     hard_select 0.9820 / 0.00; v2 0.8791 / 198.87; v3a 0.8794 / 190.41; v3b 0.9533 / 71.47
+>   0bae3b5e_a030:
+>     hard_select 0.9831 / 0.00; v2 0.8750 / 138.41; v3a 0.8751 / 126.53; v3b 0.9518 / 29.75
+>   ```
+> - **DiT-oracle quantitative summary**:
+>   ```text
+>   02a00399_a000 BMW:
+>     hard_select NCC 0.9999 / SSD 0.00
+>     DiT raw     NCC 0.2451 / SSD 2393.81
+>     oracle_safe NCC 0.9488 / SSD 99.14, selected 2490 px, target core MAE 40.24 -> 38.52
+>     oracle_bal  NCC 0.8997 / SSD 179.39, selected 5573 px, target core MAE 40.24 -> 37.15
+>     oracle_loose NCC 0.8518 / SSD 258.07, selected 10249 px, target core MAE 40.24 -> 36.04
+>   fbee355f_a095:
+>     hard_select 0.9938 / 0.00; oracle_safe 0.9154 / 377.57; oracle_bal 0.8429 / 529.54; oracle_loose 0.7637 / 653.58
+>   0bae3b5e_a030:
+>     hard_select 0.9990 / 0.00; oracle_safe 0.9337 / 103.77; oracle_bal 0.8560 / 207.81; oracle_loose 0.7808 / 305.20
+>   ```
+> - **Visual finding**:
+>   - v3a inherits DP seam-routing's failure mode: it moves a full vertical seam into jagged paths and creates visible source swaps on roads, buildings, cars, and sidewalk structures.
+>   - v3b is much safer because it keeps the hard_select seam, but it mostly reverts to hard_select and still introduces small source-swap blocks on fbee/0bae. It is safer than v2/v3a, but not visibly better than hard_select.
+>   - DiT-oracle confirms that DiT360's "nice" raw target is not a reliable source-selection guide. Safe changes are too small to repair geometry; balanced/loose variants select source patches around cars, pedestrians, trees, and lane lines, causing blocky artifacts while moving farther away from the winning source slab.
+> - **Conclusion**: [NEG / route exhausted] Source-faithful seam-source selection has now been tested with hard_select, DP seam routing, region coherence, component-only repair, and DiT-guided oracle selection. None beats L1 hard_select visually or on source-fidelity metrics. Do not keep tuning this local optimum. Useful remaining routes should change the problem formulation: confidence/risk metadata, risk-gated color-only polish, temporal evidence, or explicit/depth/object-level modeling.
+
 > ### 2026-05-28 ~03:35 UTC - [DiT360 v12/v13 composition pushed to the limit: safer, but still cosmetic; geometry seam remains unsolved.]
 > - **Purpose**: answer the user's observation that `r008/tau5 raw` looks smoother than strict post-compose. Two final composition tests were run without regenerating DiT samples:
 >   ```text

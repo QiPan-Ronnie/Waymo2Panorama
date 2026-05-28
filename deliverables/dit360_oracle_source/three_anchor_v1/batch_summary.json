@@ -1,0 +1,469 @@
+{
+  "cases": [
+    {
+      "run": {
+        "name": "adapt_color_r008_tau5",
+        "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v10_adaptive/02a00399_a000/02a00399_a000_hard_select_1024x2048.png",
+        "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v10_adaptive/02a00399_a000/02a00399_a000_mask_adaptive_color_r008_guardstruct.png",
+        "output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v10_adaptive_tau5/adapt_color_r008_tau5/adapt_color_r008_tau5.png",
+        "panel": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v10_adaptive_tau5/adapt_color_r008_tau5/adapt_color_r008_tau5_panel.jpg",
+        "mask_convention": "white/255 preserves source; black/0 generates",
+        "height": 1024,
+        "width": 2048,
+        "steps": 50,
+        "seed": 0,
+        "guidance": 2.8,
+        "tau": 5.0,
+        "vae_tiling": true,
+        "model_load_runtime_s": 19.085,
+        "case_runtime_s": 190.571,
+        "prompt": "This is a 360-degree street panorama captured by an autonomous vehicle in an urban driving scene, with roads, lane markings, sidewalks, cars, buildings, signs, and sky.",
+        "preserve_fraction": 0.9637069702148438,
+        "generate_fraction": 0.03629302978515625,
+        "preserve_mae": 3.9692234992980957,
+        "preserve_rmse": 8.068544387817383,
+        "preserve_psnr": 29.994899757752762
+      },
+      "runtime_s": {
+        "project": 2.278,
+        "oracle_safe": 1.839,
+        "oracle_balanced": 1.95,
+        "oracle_loose": 2.126
+      },
+      "oracle_safe": {
+        "config": {
+          "mask_dilate_px": 6,
+          "min_weight": 0.0001,
+          "color_weight": 1.0,
+          "grad_weight": 0.18,
+          "weight_penalty": 30.0,
+          "stay_penalty": 4.0,
+          "switch_margin": 10.0,
+          "min_component_area": 160,
+          "min_component_gain": 12.0,
+          "max_changed_frac": 0.035
+        },
+        "overlap_pixels": 88288,
+        "interest_pixels": 77618,
+        "core_overlap_pixels": 62960,
+        "raw_change_pixels": 8885,
+        "selected_change_pixels": 2490,
+        "selected_change_frac_of_overlap": 0.028203153316418993,
+        "mean_gain_selected": 47.49949264526367,
+        "mean_gain_raw_change": 40.00086975097656,
+        "target_mae_hard_interest": 35.06478500366211,
+        "target_mae_oracle_interest": 33.6707649230957,
+        "target_mae_hard_core": 40.24106979370117,
+        "target_mae_oracle_core": 38.52250671386719
+      },
+      "oracle_balanced": {
+        "config": {
+          "mask_dilate_px": 10,
+          "min_weight": 0.0001,
+          "color_weight": 1.0,
+          "grad_weight": 0.18,
+          "weight_penalty": 22.0,
+          "stay_penalty": 3.0,
+          "switch_margin": 7.0,
+          "min_component_area": 96,
+          "min_component_gain": 8.5,
+          "max_changed_frac": 0.08
+        },
+        "overlap_pixels": 88288,
+        "interest_pixels": 83146,
+        "core_overlap_pixels": 62960,
+        "raw_change_pixels": 11292,
+        "selected_change_pixels": 5573,
+        "selected_change_frac_of_overlap": 0.06312296121783255,
+        "mean_gain_selected": 40.020179748535156,
+        "mean_gain_raw_change": 34.58671951293945,
+        "target_mae_hard_interest": 33.17897033691406,
+        "target_mae_oracle_interest": 30.838245391845703,
+        "target_mae_hard_core": 40.24106979370117,
+        "target_mae_oracle_core": 37.15043640136719
+      },
+      "oracle_loose": {
+        "config": {
+          "mask_dilate_px": 14,
+          "min_weight": 0.0001,
+          "color_weight": 1.0,
+          "grad_weight": 0.18,
+          "weight_penalty": 14.0,
+          "stay_penalty": 2.0,
+          "switch_margin": 4.5,
+          "min_component_area": 48,
+          "min_component_gain": 5.5,
+          "max_changed_frac": 0.14
+        },
+        "overlap_pixels": 88288,
+        "interest_pixels": 86180,
+        "core_overlap_pixels": 62960,
+        "raw_change_pixels": 15220,
+        "selected_change_pixels": 10249,
+        "selected_change_frac_of_overlap": 0.11608599130119608,
+        "mean_gain_selected": 32.9395751953125,
+        "mean_gain_raw_change": 28.36875343322754,
+        "target_mae_hard_interest": 32.20404815673828,
+        "target_mae_oracle_interest": 29.10123062133789,
+        "target_mae_hard_core": 40.24106979370117,
+        "target_mae_oracle_core": 36.0423583984375
+      },
+      "overlap_ncc": {
+        "multiband": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 0.6564237813979398,
+          "mean_ncc_winner_vs_loser": 0.22796391103260222,
+          "mean_ssd_pano_vs_winner": 395.7938952057117
+        },
+        "hard_select": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 0.9998980641787674,
+          "mean_ncc_winner_vs_loser": 0.22796391103260222,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "dit_raw": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 0.24510565442402737,
+          "mean_ncc_winner_vs_loser": 0.22796391103260222,
+          "mean_ssd_pano_vs_winner": 2393.8087009002697
+        },
+        "oracle_safe": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 0.9487648427036792,
+          "mean_ncc_winner_vs_loser": 0.22796391103260222,
+          "mean_ssd_pano_vs_winner": 99.1392168339805
+        },
+        "oracle_balanced": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 0.8997020518509168,
+          "mean_ncc_winner_vs_loser": 0.22796391103260222,
+          "mean_ssd_pano_vs_winner": 179.3936236261587
+        },
+        "oracle_loose": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 0.8517541772307542,
+          "mean_ncc_winner_vs_loser": 0.22796391103260222,
+          "mean_ssd_pano_vs_winner": 258.074508278471
+        }
+      },
+      "case_name": "02a00399_a000_bmw",
+      "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor_idx": 0,
+      "erp_hw": [
+        1024,
+        2048
+      ],
+      "mask_convention": "white/255 preserves source; black/0 generates"
+    },
+    {
+      "run": {
+        "name": "fbee355f_a095_adapt_color_r008_tau5",
+        "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v11_adaptive_generalize/fbee355f_a095/fbee355f_a095_hard_select_1024x2048.png",
+        "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v11_adaptive_generalize/fbee355f_a095/fbee355f_a095_mask_adaptive_color_r008_guardstruct.png",
+        "output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/fbee355f_a095/fbee355f_a095_adapt_color_r008_tau5/fbee355f_a095_adapt_color_r008_tau5.png",
+        "panel": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/fbee355f_a095/fbee355f_a095_adapt_color_r008_tau5/fbee355f_a095_adapt_color_r008_tau5_panel.jpg",
+        "mask_convention": "white/255 preserves source; black/0 generates",
+        "height": 1024,
+        "width": 2048,
+        "steps": 50,
+        "seed": 0,
+        "guidance": 2.8,
+        "tau": 5.0,
+        "vae_tiling": true,
+        "model_load_runtime_s": 18.232,
+        "case_runtime_s": 191.457,
+        "prompt": "This is a 360-degree street panorama captured by an autonomous vehicle in an urban driving scene, with roads, lane markings, sidewalks, cars, buildings, signs, and sky.",
+        "preserve_fraction": 0.9573593139648438,
+        "generate_fraction": 0.04264068603515625,
+        "preserve_mae": 4.460221767425537,
+        "preserve_rmse": 10.31569766998291,
+        "preserve_psnr": 27.860831499621238
+      },
+      "runtime_s": {
+        "project": 2.161,
+        "oracle_safe": 1.949,
+        "oracle_balanced": 1.999,
+        "oracle_loose": 2.079
+      },
+      "oracle_safe": {
+        "config": {
+          "mask_dilate_px": 6,
+          "min_weight": 0.0001,
+          "color_weight": 1.0,
+          "grad_weight": 0.18,
+          "weight_penalty": 30.0,
+          "stay_penalty": 4.0,
+          "switch_margin": 10.0,
+          "min_component_area": 160,
+          "min_component_gain": 12.0,
+          "max_changed_frac": 0.035
+        },
+        "overlap_pixels": 87802,
+        "interest_pixels": 80313,
+        "core_overlap_pixels": 71828,
+        "raw_change_pixels": 17718,
+        "selected_change_pixels": 3073,
+        "selected_change_frac_of_overlap": 0.034999202751645746,
+        "mean_gain_selected": 103.30406188964844,
+        "mean_gain_raw_change": 40.689857482910156,
+        "target_mae_hard_interest": 46.53889083862305,
+        "target_mae_oracle_interest": 43.171634674072266,
+        "target_mae_hard_core": 49.326454162597656,
+        "target_mae_oracle_core": 45.57131576538086
+      },
+      "oracle_balanced": {
+        "config": {
+          "mask_dilate_px": 10,
+          "min_weight": 0.0001,
+          "color_weight": 1.0,
+          "grad_weight": 0.18,
+          "weight_penalty": 22.0,
+          "stay_penalty": 3.0,
+          "switch_margin": 7.0,
+          "min_component_area": 96,
+          "min_component_gain": 8.5,
+          "max_changed_frac": 0.08
+        },
+        "overlap_pixels": 87802,
+        "interest_pixels": 83830,
+        "core_overlap_pixels": 71828,
+        "raw_change_pixels": 21569,
+        "selected_change_pixels": 7024,
+        "selected_change_frac_of_overlap": 0.07999817771804743,
+        "mean_gain_selected": 69.83686828613281,
+        "mean_gain_raw_change": 36.341773986816406,
+        "target_mae_hard_interest": 44.92732238769531,
+        "target_mae_oracle_interest": 39.7821044921875,
+        "target_mae_hard_core": 49.326454162597656,
+        "target_mae_oracle_core": 43.41244888305664
+      },
+      "oracle_loose": {
+        "config": {
+          "mask_dilate_px": 14,
+          "min_weight": 0.0001,
+          "color_weight": 1.0,
+          "grad_weight": 0.18,
+          "weight_penalty": 14.0,
+          "stay_penalty": 2.0,
+          "switch_margin": 4.5,
+          "min_component_area": 48,
+          "min_component_gain": 5.5,
+          "max_changed_frac": 0.14
+        },
+        "overlap_pixels": 87802,
+        "interest_pixels": 86020,
+        "core_overlap_pixels": 71828,
+        "raw_change_pixels": 25839,
+        "selected_change_pixels": 12292,
+        "selected_change_frac_of_overlap": 0.13999681100658298,
+        "mean_gain_selected": 52.89875411987305,
+        "mean_gain_raw_change": 32.65101623535156,
+        "target_mae_hard_interest": 43.94888687133789,
+        "target_mae_oracle_interest": 37.32802963256836,
+        "target_mae_hard_core": 49.326454162597656,
+        "target_mae_oracle_core": 41.613525390625
+      },
+      "overlap_ncc": {
+        "multiband": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.7154716911000876,
+          "mean_ncc_winner_vs_loser": 0.20952860223834677,
+          "mean_ssd_pano_vs_winner": 529.0318531349105
+        },
+        "hard_select": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.9938042451947271,
+          "mean_ncc_winner_vs_loser": 0.20952860223834677,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "dit_raw": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.12336276122328035,
+          "mean_ncc_winner_vs_loser": 0.20952860223834677,
+          "mean_ssd_pano_vs_winner": 4481.240334998687
+        },
+        "oracle_safe": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.9154060135100638,
+          "mean_ncc_winner_vs_loser": 0.20952860223834677,
+          "mean_ssd_pano_vs_winner": 377.56650583772455
+        },
+        "oracle_balanced": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.8429118534858312,
+          "mean_ncc_winner_vs_loser": 0.20952860223834677,
+          "mean_ssd_pano_vs_winner": 529.5363431212892
+        },
+        "oracle_loose": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.7637379779386313,
+          "mean_ncc_winner_vs_loser": 0.20952860223834677,
+          "mean_ssd_pano_vs_winner": 653.5816496326854
+        }
+      },
+      "case_name": "fbee355f_a095_ped_obj",
+      "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/fbee355f-8878-31fa-8ac8-b9a45a3f130a",
+      "anchor_idx": 95,
+      "erp_hw": [
+        1024,
+        2048
+      ],
+      "mask_convention": "white/255 preserves source; black/0 generates"
+    },
+    {
+      "run": {
+        "name": "0bae3b5e_a030_adapt_color_r008_tau5",
+        "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v11_adaptive_generalize/0bae3b5e_a030/0bae3b5e_a030_hard_select_1024x2048.png",
+        "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v11_adaptive_generalize/0bae3b5e_a030/0bae3b5e_a030_mask_adaptive_color_r008_guardstruct.png",
+        "output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/0bae3b5e_a030/0bae3b5e_a030_adapt_color_r008_tau5/0bae3b5e_a030_adapt_color_r008_tau5.png",
+        "panel": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v11_adaptive_tau5_generalize/0bae3b5e_a030/0bae3b5e_a030_adapt_color_r008_tau5/0bae3b5e_a030_adapt_color_r008_tau5_panel.jpg",
+        "mask_convention": "white/255 preserves source; black/0 generates",
+        "height": 1024,
+        "width": 2048,
+        "steps": 50,
+        "seed": 0,
+        "guidance": 2.8,
+        "tau": 5.0,
+        "vae_tiling": true,
+        "model_load_runtime_s": 18.423,
+        "case_runtime_s": 191.601,
+        "prompt": "This is a 360-degree street panorama captured by an autonomous vehicle in an urban driving scene, with roads, lane markings, sidewalks, cars, buildings, signs, and sky.",
+        "preserve_fraction": 0.957160472869873,
+        "generate_fraction": 0.04283952713012695,
+        "preserve_mae": 4.7472004890441895,
+        "preserve_rmse": 9.741077423095703,
+        "preserve_psnr": 28.358663705137943
+      },
+      "runtime_s": {
+        "project": 2.071,
+        "oracle_safe": 2.129,
+        "oracle_balanced": 2.109,
+        "oracle_loose": 2.1
+      },
+      "oracle_safe": {
+        "config": {
+          "mask_dilate_px": 6,
+          "min_weight": 0.0001,
+          "color_weight": 1.0,
+          "grad_weight": 0.18,
+          "weight_penalty": 30.0,
+          "stay_penalty": 4.0,
+          "switch_margin": 10.0,
+          "min_component_area": 160,
+          "min_component_gain": 12.0,
+          "max_changed_frac": 0.035
+        },
+        "overlap_pixels": 88415,
+        "interest_pixels": 82641,
+        "core_overlap_pixels": 73377,
+        "raw_change_pixels": 17831,
+        "selected_change_pixels": 3095,
+        "selected_change_frac_of_overlap": 0.03500537239156252,
+        "mean_gain_selected": 47.61946105957031,
+        "mean_gain_raw_change": 30.317350387573242,
+        "target_mae_hard_interest": 30.40048599243164,
+        "target_mae_oracle_interest": 28.892776489257812,
+        "target_mae_hard_core": 32.73711013793945,
+        "target_mae_oracle_core": 31.039344787597656
+      },
+      "oracle_balanced": {
+        "config": {
+          "mask_dilate_px": 10,
+          "min_weight": 0.0001,
+          "color_weight": 1.0,
+          "grad_weight": 0.18,
+          "weight_penalty": 22.0,
+          "stay_penalty": 3.0,
+          "switch_margin": 7.0,
+          "min_component_area": 96,
+          "min_component_gain": 8.5,
+          "max_changed_frac": 0.08
+        },
+        "overlap_pixels": 88415,
+        "interest_pixels": 85297,
+        "core_overlap_pixels": 73377,
+        "raw_change_pixels": 22111,
+        "selected_change_pixels": 7073,
+        "selected_change_frac_of_overlap": 0.07999773794039473,
+        "mean_gain_selected": 42.08726501464844,
+        "mean_gain_raw_change": 27.438016891479492,
+        "target_mae_hard_interest": 29.65851593017578,
+        "target_mae_oracle_interest": 26.747695922851562,
+        "target_mae_hard_core": 32.73711013793945,
+        "target_mae_oracle_core": 29.36153793334961
+      },
+      "oracle_loose": {
+        "config": {
+          "mask_dilate_px": 14,
+          "min_weight": 0.0001,
+          "color_weight": 1.0,
+          "grad_weight": 0.18,
+          "weight_penalty": 14.0,
+          "stay_penalty": 2.0,
+          "switch_margin": 4.5,
+          "min_component_area": 48,
+          "min_component_gain": 5.5,
+          "max_changed_frac": 0.14
+        },
+        "overlap_pixels": 88415,
+        "interest_pixels": 86670,
+        "core_overlap_pixels": 73377,
+        "raw_change_pixels": 26624,
+        "selected_change_pixels": 12378,
+        "selected_change_frac_of_overlap": 0.13999886897019737,
+        "mean_gain_selected": 37.18021774291992,
+        "mean_gain_raw_change": 25.13200569152832,
+        "target_mae_hard_interest": 29.276453018188477,
+        "target_mae_oracle_interest": 24.918357849121094,
+        "target_mae_hard_core": 32.73711013793945,
+        "target_mae_oracle_core": 27.647260665893555
+      },
+      "overlap_ncc": {
+        "multiband": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.7036148954245433,
+          "mean_ncc_winner_vs_loser": 0.1636288142632199,
+          "mean_ssd_pano_vs_winner": 431.86266498752275
+        },
+        "hard_select": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.9989707704057711,
+          "mean_ncc_winner_vs_loser": 0.1636288142632199,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "dit_raw": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.1536271536865298,
+          "mean_ncc_winner_vs_loser": 0.1636288142632199,
+          "mean_ssd_pano_vs_winner": 1759.6425985199855
+        },
+        "oracle_safe": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.9336892214814024,
+          "mean_ncc_winner_vs_loser": 0.1636288142632199,
+          "mean_ssd_pano_vs_winner": 103.77005102201493
+        },
+        "oracle_balanced": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.8560494465174829,
+          "mean_ncc_winner_vs_loser": 0.1636288142632199,
+          "mean_ssd_pano_vs_winner": 207.80730410127532
+        },
+        "oracle_loose": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.7807922256718945,
+          "mean_ncc_winner_vs_loser": 0.1636288142632199,
+          "mean_ssd_pano_vs_winner": 305.19558496055095
+        }
+      },
+      "case_name": "0bae3b5e_a030_clean_far",
+      "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8",
+      "anchor_idx": 30,
+      "erp_hw": [
+        1024,
+        2048
+      ],
+      "mask_convention": "white/255 preserves source; black/0 generates"
+    }
+  ]
+}

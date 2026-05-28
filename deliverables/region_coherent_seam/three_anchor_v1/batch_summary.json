@@ -1,0 +1,121 @@
+{
+  "cases": [
+    {
+      "run_name": "02a00399_a000_bmw",
+      "anchor_idx": 0,
+      "runtime_s": {
+        "project": 9.052,
+        "multiband": 3.504,
+        "hard_select": 1.269,
+        "seam_routing": 11.125,
+        "region_coherent": 27.412
+      },
+      "overlap_ncc": {
+        "multiband": {
+          "total_overlap_px": 353148,
+          "mean_ncc_pano_vs_winner": 0.6189143355252544,
+          "mean_ncc_winner_vs_loser": 0.16391251768006862,
+          "mean_ssd_pano_vs_winner": 265.2369359734847
+        },
+        "hard_select": {
+          "total_overlap_px": 353148,
+          "mean_ncc_pano_vs_winner": 0.9891993838951979,
+          "mean_ncc_winner_vs_loser": 0.16391251768006862,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "seam_routing": {
+          "total_overlap_px": 353148,
+          "mean_ncc_pano_vs_winner": 0.9142243363261013,
+          "mean_ncc_winner_vs_loser": 0.16391251768006862,
+          "mean_ssd_pano_vs_winner": 86.78566025653332
+        },
+        "region_coherent": {
+          "total_overlap_px": 353148,
+          "mean_ncc_pano_vs_winner": 0.9063987931609863,
+          "mean_ncc_winner_vs_loser": 0.16391251768006862,
+          "mean_ssd_pano_vs_winner": 97.82321200235278
+        }
+      },
+      "region_protected_pixels": 15097,
+      "region_changed_pixels": 29405
+    },
+    {
+      "run_name": "fbee355f_a095_ped_obj",
+      "anchor_idx": 95,
+      "runtime_s": {
+        "project": 9.064,
+        "multiband": 3.499,
+        "hard_select": 1.264,
+        "seam_routing": 11.04,
+        "region_coherent": 27.589
+      },
+      "overlap_ncc": {
+        "multiband": {
+          "total_overlap_px": 351034,
+          "mean_ncc_pano_vs_winner": 0.6646099208795883,
+          "mean_ncc_winner_vs_loser": 0.13690932549692986,
+          "mean_ssd_pano_vs_winner": 447.1966145203335
+        },
+        "hard_select": {
+          "total_overlap_px": 351034,
+          "mean_ncc_pano_vs_winner": 0.9819510615600342,
+          "mean_ncc_winner_vs_loser": 0.13690932549692986,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "seam_routing": {
+          "total_overlap_px": 351034,
+          "mean_ncc_pano_vs_winner": 0.8791469772736676,
+          "mean_ncc_winner_vs_loser": 0.13690932549692986,
+          "mean_ssd_pano_vs_winner": 198.86836476152305
+        },
+        "region_coherent": {
+          "total_overlap_px": 351034,
+          "mean_ncc_pano_vs_winner": 0.8793924752959105,
+          "mean_ncc_winner_vs_loser": 0.13690932549692986,
+          "mean_ssd_pano_vs_winner": 190.41447097805792
+        }
+      },
+      "region_protected_pixels": 20074,
+      "region_changed_pixels": 32107
+    },
+    {
+      "run_name": "0bae3b5e_a030_clean_far",
+      "anchor_idx": 30,
+      "runtime_s": {
+        "project": 9.068,
+        "multiband": 3.527,
+        "hard_select": 1.275,
+        "seam_routing": 11.114,
+        "region_coherent": 25.105
+      },
+      "overlap_ncc": {
+        "multiband": {
+          "total_overlap_px": 353870,
+          "mean_ncc_pano_vs_winner": 0.6613420890478967,
+          "mean_ncc_winner_vs_loser": 0.10322983846013561,
+          "mean_ssd_pano_vs_winner": 324.3721127014652
+        },
+        "hard_select": {
+          "total_overlap_px": 353870,
+          "mean_ncc_pano_vs_winner": 0.9830759683944413,
+          "mean_ncc_winner_vs_loser": 0.10322983846013561,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "seam_routing": {
+          "total_overlap_px": 353870,
+          "mean_ncc_pano_vs_winner": 0.8749557422379545,
+          "mean_ncc_winner_vs_loser": 0.10322983846013561,
+          "mean_ssd_pano_vs_winner": 138.41234206606777
+        },
+        "region_coherent": {
+          "total_overlap_px": 353870,
+          "mean_ncc_pano_vs_winner": 0.8751273995771464,
+          "mean_ncc_winner_vs_loser": 0.10322983846013561,
+          "mean_ssd_pano_vs_winner": 126.52855028440344
+        }
+      },
+      "region_protected_pixels": 24934,
+      "region_changed_pixels": 36584
+    }
+  ]
+}
