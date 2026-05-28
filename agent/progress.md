@@ -1,5 +1,114 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-27 ~23:58 UTC - [DiT360 v9 multi-seed check: seed variation does not rescue seam completion.]
+> - **Purpose**: close the obvious remaining loophole in the DiT360 route: v7/v8 used seed 0, so a better random seed might produce a faithful seam repair. This run tests the most plausible settings only, instead of another broad sweep.
+> - **A100 run**:
+>   ```text
+>   input: 02a00399 anchor 0 BMW, L1 hard_select, 1024x2048
+>   cases:
+>     r008_tau5 seed 1
+>     r010_tau5 seed 1
+>     r008_tau5 seed 2
+>     r010_tau5 seed 2
+>   steps=50, guidance=2.8, VAE tiling on
+>   ```
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/run_dit360_mask_batch.py
+>   scripts/phase3/evidence_gate_dit360_masks.py
+>   deliverables/dit360_seam_completion/runs_v9_bmw_multiseed_tau5_evidence_gate/
+>     v9_multiseed_compact_focus_q70.jpg
+>     evidence_gate_summary.json
+>   ```
+> - **Drive outputs**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v9_bmw_multiseed_tau5_seed1/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v9_bmw_multiseed_tau5_seed2/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v9_bmw_multiseed_tau5_evidence_gate/
+>   ```
+> - **Raw DiT360 metrics**:
+>   ```text
+>   r008_tau5 seed1: generate 1.631%, preserve_mae 3.991, preserve_psnr 29.97 dB
+>   r010_tau5 seed1: generate 2.019%, preserve_mae 3.983, preserve_psnr 30.06 dB
+>   r008_tau5 seed2: generate 1.631%, preserve_mae 3.976, preserve_psnr 29.92 dB
+>   r010_tau5 seed2: generate 2.019%, preserve_mae 3.972, preserve_psnr 30.03 dB
+>   ```
+> - **Evidence-gate metrics (`mid_h8`)**:
+>   ```text
+>   r008 seed1: alpha_ret 0.653, core_comp_mae 6.45, core_raw_mae 23.07, white_mae 0.036
+>   r010 seed1: alpha_ret 0.641, core_comp_mae 6.40, core_raw_mae 23.46, white_mae 0.036
+>   r008 seed2: alpha_ret 0.659, core_comp_mae 6.31, core_raw_mae 22.31, white_mae 0.037
+>   r010 seed2: alpha_ret 0.649, core_comp_mae 6.35, core_raw_mae 21.55, white_mae 0.036
+>   ```
+> - **Visual finding**:
+>   - Seed 1/2 raw outputs do not produce a qualitatively better BMW seam repair than seed 0.
+>   - Raw outputs still make the seam look softer by rewriting local context, not by solving the camera-geometry disagreement.
+>   - Evidence-gated outputs are stable and safer, but visually remain close to `hard_select`; lane/road geometry is still not repaired.
+> - **Conclusion**: [NEG for main method] DiT360 is now fairly tested for this seam-completion use case: wide/free masks hallucinate; narrow masks do little; soft/evidence composition protects source pixels but removes the apparent benefit; multi-seed does not change the verdict. Keep DiT360 as a qualitative baseline / discussion point, not as the Bosch training-data solver. Next work should pivot away from more DiT tau/seed sweeps and toward explicit source-confidence maps, region/object coherence, or L0/L1 geometry audits.
+
+> ### 2026-05-27 ~23:45 UTC - [DiT360 v7/v8 small-mask + evidence-gated composition: safer, but still does not beat hard_select geometry.]
+> - **Purpose**: push the DiT360 seam-completion route past the raw/postcompose ambiguity. The user observed that `r008/tau5 raw` looks smoother than strict composition; this run tests whether a bounded, evidence-aware composition can keep that smoothness while protecting driving evidence.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/evidence_gate_dit360_masks.py
+>   deliverables/dit360_seam_completion/runs_v7_bmw_rsmall_tau_sweep_focus/
+>     v7_focus_review.jpg
+>   deliverables/dit360_seam_completion/runs_v7_bmw_rsmall_tau_sweep_softcompose/
+>     softcompose_overall_review.jpg
+>     softcompose_crop_review.jpg
+>     softcompose_summary.json
+>   deliverables/dit360_seam_completion/runs_v8_bmw_evidence_gate/
+>     v8_compact_focus_review_q70.jpg
+>     evidence_gate_summary.json
+>   ```
+> - **A100 / Drive outputs**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v7/02a00399_a000/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v7_bmw_rsmall_tau_sweep/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v7_bmw_rsmall_tau_sweep_softcompose/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v8_bmw_evidence_gate/
+>   ```
+> - **v7 mask/tau sweep**:
+>   ```text
+>   input: 02a00399 anchor 0 BMW, L1 hard_select, 1024x2048
+>   masks: r006/r008/r010/r012/r014 seam strips
+>   generate fractions:
+>     r006 1.26%, r008 1.63%, r010 2.02%, r012 2.41%, r014 2.80%
+>   tau sweep:
+>     r006 tau3/tau5
+>     r008 tau3/tau5
+>     r010 tau3/tau5/tau8
+>     r012 tau3/tau5
+>     r014 tau5
+>   ```
+> - **v8 evidence-gated composition method**:
+>   - Start from DiT360 raw output and the original hard_select panorama.
+>   - Candidate region = black seam core plus a small distance-transform halo.
+>   - Downweight DiT360 edits near strong source edges and where raw differs too much from the source.
+>   - Outside the halo, restore the source exactly (`safe_compose_mae = 0.0`).
+> - **Representative v8 metrics**:
+>   ```text
+>   r006_tau5 gentle/mid/strict:
+>     alpha_retention 0.805 / 0.680 / 0.575
+>     core_comp_vs_init_mae 9.94 / 5.92 / 3.74
+>     white_mask_compose_mae 0.053 / 0.036 / 0.026
+>   r008_tau5 gentle/mid/strict:
+>     alpha_retention 0.798 / 0.674 / 0.568
+>     core_comp_vs_init_mae 11.40 / 6.76 / 4.26
+>     white_mask_compose_mae 0.055 / 0.037 / 0.027
+>   r010_tau5 gentle/mid/strict:
+>     alpha_retention 0.763 / 0.625 / 0.521
+>     core_comp_vs_init_mae 13.34 / 6.91 / 3.86
+>     white_mask_compose_mae 0.056 / 0.036 / 0.026
+>   ```
+> - **Visual finding**:
+>   - `raw` remains visually smoother because it is allowed to alter a contextual halo outside the black seam mask.
+>   - strict/soft composition preserves evidence better but exposes or reintroduces local seam boundaries.
+>   - evidence-gated composition successfully suppresses the most suspicious DiT360 changes near lane/building/car edges, but the resulting image becomes very close to the original `hard_select`.
+>   - On BMW road/lane crops, no v7/v8 candidate clearly fixes the geometric lane/road misalignment.
+>   - On the right SUV/building seam, larger or freer DiT edits still risk soft vertical blocks / shadow-like hallucinations; the gate hides some of this by reverting to source, not by solving geometry.
+> - **Conclusion**: [MIXED -> weak NEG for Bosch training data] The best constrained DiT360 variant is safer than raw and less harsh than hard post-compose, but it does not visibly beat L1 `hard_select` on the underlying seam geometry. DiT360 should remain a qualitative/paper baseline or low-risk texture repair experiment, not the production seam solver. The next useful direction should be either an explicit source-confidence / hallucination-risk map, or a return to fundamental L0/L1 geometry/region-coherence rather than more tau/mask sweeps.
+
 > ### 2026-05-27 ~16:10 UTC - [DiT360 tau=5 soft bounded composition diagnosed: raw looks smoother because it edits the seam halo, but geometry remains weak.]
 > - **Purpose**: answer the visual observation that `seam_r008_tau5 raw` often looks better than hard `postcompose`, while strict composition is needed for evidence preservation.
 > - **Code / artifacts**:
