@@ -1,0 +1,3089 @@
+{
+  "run": "depth_visibility_seam_probe_v1",
+  "cases": [
+    {
+      "case": "02a00399_a000_bmw",
+      "log_short": "02a00399",
+      "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor_idx": 0,
+      "anchor_ts_ns": 315966070549927210,
+      "lidar_sweep_ts_ns": 315966070559696000,
+      "lidar_delta_ms": 9.76879,
+      "erp_hw": [
+        1024,
+        2048
+      ],
+      "params": {
+        "band_half_width": 48,
+        "repair_band_half_width": 48,
+        "core_half_width": 2,
+        "ncc_win": 21,
+        "densify_radius_px": 10,
+        "depth_support_max_m": 120.0,
+        "parallax_low_px": 2.0,
+        "parallax_high_px": 12.0,
+        "discontinuity_win": 11,
+        "depth_veto_strength": 1.0
+      },
+      "lidar_depth_summary": {
+        "n_input_pts": 98981,
+        "n_after_range_filter": 95669,
+        "n_hit_pixels": 71344,
+        "n_densified_pixels": 200310,
+        "n_far_fill_pixels": 1825498,
+        "hit_pct": 3.402,
+        "densified_pct": 9.552,
+        "far_fill_pct": 87.047,
+        "erp_hw": [
+          1024,
+          2048
+        ],
+        "min_range_m": 0.5,
+        "max_range_m": 80.0,
+        "densify_radius_px": 10,
+        "fill_far_m": 1000.0
+      },
+      "source_risk_global": {
+        "band_pixels": 87349,
+        "core_pixels": 8644,
+        "risk": {
+          "name": "global_risk",
+          "n": 87349,
+          "mean": 0.15936414897441864,
+          "median": 0.1216433048248291,
+          "p90": 0.36186590790748596,
+          "p95": 0.4390394985675812,
+          "p99": 0.5353841781616211,
+          "high_frac_065": 0.0023812522181135445,
+          "high_frac_080": 6.86899678301984e-05
+        },
+        "color_risk": {
+          "name": "global_color",
+          "n": 87349,
+          "mean": 0.176801860332489,
+          "median": 0.07829001545906067,
+          "p90": 0.5554080605506897,
+          "p95": 0.7818578481674194,
+          "p99": 0.9607815146446228,
+          "high_frac_065": 0.08026422740958683,
+          "high_frac_080": 0.04580476021477063
+        },
+        "structure_risk": {
+          "name": "global_structure",
+          "n": 87349,
+          "mean": 0.05591021105647087,
+          "median": 0.0045171016827225685,
+          "p90": 0.18255172669887543,
+          "p95": 0.36570972204208374,
+          "p99": 0.6354753375053406,
+          "high_frac_065": 0.007968036268303015,
+          "high_frac_080": 0.00018317324754719573
+        },
+        "reliability_risk": {
+          "name": "global_reliability",
+          "n": 87349,
+          "mean": 0.46352267265319824,
+          "median": 0.4401378035545349,
+          "p90": 0.8952571153640747,
+          "p95": 1.0,
+          "p99": 1.0,
+          "high_frac_065": 0.28501757318343657,
+          "high_frac_080": 0.16211977240723993
+        },
+        "high_structure_pixels": 696,
+        "high_color_pixels": 6675,
+        "high_structure_frac_of_band": 0.007968036268303015,
+        "high_color_frac_of_band": 0.07641758921109572
+      },
+      "depth_visibility_global": {
+        "band_pixels": 87349,
+        "core_pixels": 8644,
+        "lidar_supported_pixels": 39278,
+        "lidar_supported_frac_of_band": 0.4496674260724221,
+        "unknown_frac_of_band": 0.5503325739275778,
+        "depth_risk": {
+          "name": "global_depth_visibility",
+          "n": 39278,
+          "mean": 0.4317121207714081,
+          "median": 0.3796900808811188,
+          "p90": 0.8305913209915161,
+          "p95": 1.0,
+          "p99": 1.0,
+          "high_frac_065": 0.3316614898925607,
+          "high_frac_080": 0.10036152553592342
+        },
+        "high_depth_risk_pixels": 13027,
+        "high_depth_risk_frac_supported": 0.3316614898925607,
+        "parallax_px": {
+          "name": "parallax_px",
+          "n": 39278,
+          "mean": 8.265392303466797,
+          "median": 4.49169921875,
+          "p90": 18.162599563598633,
+          "p95": 25.04464340209961,
+          "p99": 33.553741455078125,
+          "high_frac_065": 0.9729874229848771,
+          "high_frac_080": 0.9729874229848771
+        }
+      },
+      "depth_source_correlations_on_supported_seam": {
+        "depth_vs_source_risk": 0.04762617498636246,
+        "depth_vs_structure_risk": 0.02733500674366951,
+        "depth_vs_color_risk": 0.19136488437652588
+      },
+      "seam_gap_y": {
+        "hard_select": {
+          "n": 1682,
+          "mean_delta_y": 15.395956993103027,
+          "median_delta_y": 8.0,
+          "p90_delta_y": 38.0,
+          "p95_delta_y": 69.0,
+          "p99_delta_y": 108.1900634765625
+        },
+        "source_gate_repair": {
+          "n": 1682,
+          "mean_delta_y": 13.829964637756348,
+          "median_delta_y": 5.0,
+          "p90_delta_y": 36.89990234375,
+          "p95_delta_y": 66.0,
+          "p99_delta_y": 106.0
+        },
+        "depth_gate_repair": {
+          "n": 1682,
+          "mean_delta_y": 14.62247371673584,
+          "median_delta_y": 7.0,
+          "p90_delta_y": 37.0,
+          "p95_delta_y": 69.0,
+          "p99_delta_y": 108.0
+        },
+        "source_gate_mean_reduction": 0.10171451869138125,
+        "depth_gate_mean_reduction": 0.050239376267008744
+      },
+      "repair_diagnostics": {
+        "source_gate": {
+          "pair_diagnostics": [
+            {
+              "pair": [
+                0,
+                1
+              ],
+              "status": "near_zero_delta",
+              "median_delta_y_j_minus_i": 0.0,
+              "core_pixels": 1259,
+              "low_structure_core_pixels": 1170
+            },
+            {
+              "pair": [
+                1,
+                2
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 4.0,
+              "core_pixels": 1258,
+              "low_structure_core_pixels": 1240,
+              "alpha_pixels": 10675,
+              "alpha_mean_nonzero": 0.4625769257545471
+            },
+            {
+              "pair": [
+                2,
+                3
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 3.0,
+              "core_pixels": 1219,
+              "low_structure_core_pixels": 1201,
+              "alpha_pixels": 11109,
+              "alpha_mean_nonzero": 0.44944027066230774
+            },
+            {
+              "pair": [
+                0,
+                6
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 4.0,
+              "core_pixels": 1171,
+              "low_structure_core_pixels": 1014,
+              "alpha_pixels": 12219,
+              "alpha_mean_nonzero": 0.3227173388004303
+            },
+            {
+              "pair": [
+                6,
+                5
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -10.0,
+              "core_pixels": 1265,
+              "low_structure_core_pixels": 1253,
+              "alpha_pixels": 11944,
+              "alpha_mean_nonzero": 0.46327146887779236
+            },
+            {
+              "pair": [
+                5,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -8.0,
+              "core_pixels": 1207,
+              "low_structure_core_pixels": 1181,
+              "alpha_pixels": 11319,
+              "alpha_mean_nonzero": 0.43849673867225647
+            },
+            {
+              "pair": [
+                3,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -6.0,
+              "core_pixels": 1265,
+              "low_structure_core_pixels": 1261,
+              "alpha_pixels": 11619,
+              "alpha_mean_nonzero": 0.4585537016391754
+            }
+          ],
+          "changed_fraction": 0.031233787536621094,
+          "mean_abs_delta_y_applied": 0.04232197254896164,
+          "p95_abs_delta_y_applied": 0.0,
+          "max_abs_delta_y_applied": 3.25
+        },
+        "depth_gate": {
+          "pair_diagnostics": [
+            {
+              "pair": [
+                0,
+                1
+              ],
+              "status": "near_zero_delta",
+              "median_delta_y_j_minus_i": 0.0,
+              "core_pixels": 1259,
+              "low_structure_core_pixels": 1055
+            },
+            {
+              "pair": [
+                1,
+                2
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 5.0,
+              "core_pixels": 1258,
+              "low_structure_core_pixels": 988,
+              "alpha_pixels": 8416,
+              "alpha_mean_nonzero": 0.37945395708084106
+            },
+            {
+              "pair": [
+                2,
+                3
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 3.0,
+              "core_pixels": 1219,
+              "low_structure_core_pixels": 867,
+              "alpha_pixels": 8208,
+              "alpha_mean_nonzero": 0.35838091373443604
+            },
+            {
+              "pair": [
+                0,
+                6
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 3.0,
+              "core_pixels": 1171,
+              "low_structure_core_pixels": 766,
+              "alpha_pixels": 8584,
+              "alpha_mean_nonzero": 0.27201521396636963
+            },
+            {
+              "pair": [
+                6,
+                5
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -7.0,
+              "core_pixels": 1265,
+              "low_structure_core_pixels": 811,
+              "alpha_pixels": 8784,
+              "alpha_mean_nonzero": 0.45280373096466064
+            },
+            {
+              "pair": [
+                5,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -8.0,
+              "core_pixels": 1207,
+              "low_structure_core_pixels": 576,
+              "alpha_pixels": 6360,
+              "alpha_mean_nonzero": 0.36916571855545044
+            },
+            {
+              "pair": [
+                3,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -5.0,
+              "core_pixels": 1265,
+              "low_structure_core_pixels": 1123,
+              "alpha_pixels": 10309,
+              "alpha_mean_nonzero": 0.4110410213470459
+            }
+          ],
+          "changed_fraction": 0.02093029022216797,
+          "mean_abs_delta_y_applied": 0.02374872751533985,
+          "p95_abs_delta_y_applied": 0.0,
+          "max_abs_delta_y_applied": 2.5999999046325684
+        },
+        "depth_gate_changed_fraction_vs_hard": 0.10205888748168945,
+        "source_gate_changed_fraction_vs_hard": 0.10817623138427734,
+        "source_vs_depth_gate_mae": 0.018763065338134766,
+        "source_corr_abs_mean": 0.04232197254896164,
+        "depth_corr_abs_mean": 0.02374872751533985
+      },
+      "pair_diagnostics": {
+        "source": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 14361,
+            "core_pixels": 1259,
+            "risk": {
+              "name": "risk",
+              "n": 14361,
+              "mean": 0.1464599221944809,
+              "median": 0.10831567645072937,
+              "p90": 0.34555351734161377,
+              "p95": 0.4648802578449249,
+              "p99": 0.5955350995063782,
+              "high_frac_065": 0.005361743611169138,
+              "high_frac_080": 0.0004177982034677251
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 14361,
+              "mean": 0.12999868392944336,
+              "median": 0.033707864582538605,
+              "p90": 0.4667799174785614,
+              "p95": 0.779021143913269,
+              "p99": 0.9977595806121826,
+              "high_frac_065": 0.07381101594596477,
+              "high_frac_080": 0.04533110507624817
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 14361,
+              "mean": 0.057319942861795425,
+              "median": 0.004333440214395523,
+              "p90": 0.18183887004852295,
+              "p95": 0.40348973870277405,
+              "p99": 0.6529980301856995,
+              "high_frac_065": 0.010584221154515702,
+              "high_frac_080": 0.0009748624747580252
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 14361,
+              "mean": 0.48200279474258423,
+              "median": 0.4876748323440552,
+              "p90": 0.8958807587623596,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 0.31035443214260844,
+              "high_frac_080": 0.16684074925144488
+            },
+            "mean_ncc": 0.4399738311767578,
+            "mean_ncc_support": 399.56756591796875,
+            "high_risk_bbox_y0y1x0x1": [
+              587,
+              666,
+              880,
+              958
+            ]
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 11212,
+            "core_pixels": 1258,
+            "risk": {
+              "name": "risk",
+              "n": 11212,
+              "mean": 0.15018437802791595,
+              "median": 0.12279471755027771,
+              "p90": 0.3308352530002594,
+              "p95": 0.41590431332588196,
+              "p99": 0.5056493878364563,
+              "high_frac_065": 0.00035676061362825543,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 11212,
+              "mean": 0.16442956030368805,
+              "median": 0.07075866311788559,
+              "p90": 0.5161644816398621,
+              "p95": 0.7889046669006348,
+              "p99": 0.9262597560882568,
+              "high_frac_065": 0.08018194791295041,
+              "high_frac_080": 0.04655726007848734
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 11212,
+              "mean": 0.05051286891102791,
+              "median": 0.005759716033935547,
+              "p90": 0.14917229115962982,
+              "p95": 0.34198856353759766,
+              "p99": 0.5910816192626953,
+              "high_frac_065": 0.004013556903317873,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 11212,
+              "mean": 0.44918400049209595,
+              "median": 0.40772026777267456,
+              "p90": 0.8989062905311584,
+              "p95": 0.9999664425849915,
+              "p99": 1.0,
+              "high_frac_065": 0.2712272565108812,
+              "high_frac_080": 0.16205850874063504
+            },
+            "mean_ncc": 0.5665083527565002,
+            "mean_ncc_support": 382.0492248535156,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 11637,
+            "core_pixels": 1219,
+            "risk": {
+              "name": "risk",
+              "n": 11637,
+              "mean": 0.15382979810237885,
+              "median": 0.12363376468420029,
+              "p90": 0.33799657225608826,
+              "p95": 0.410321444272995,
+              "p99": 0.4838694632053375,
+              "high_frac_065": 0.0006874624043997594,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 11637,
+              "mean": 0.1742938905954361,
+              "median": 0.0840783417224884,
+              "p90": 0.4920347332954407,
+              "p95": 0.7574692368507385,
+              "p99": 0.9308245182037354,
+              "high_frac_065": 0.07991750451147203,
+              "high_frac_080": 0.0405602818595858
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 11637,
+              "mean": 0.04973186179995537,
+              "median": 0.008134285919368267,
+              "p90": 0.13773159682750702,
+              "p95": 0.329814076423645,
+              "p99": 0.6048036813735962,
+              "high_frac_065": 0.005070035232448225,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 11637,
+              "mean": 0.4530733823776245,
+              "median": 0.4217976927757263,
+              "p90": 0.8908872604370117,
+              "p95": 0.9999768137931824,
+              "p99": 1.0,
+              "high_frac_065": 0.2693993297241557,
+              "high_frac_080": 0.15699922660479504
+            },
+            "mean_ncc": 0.4654548168182373,
+            "mean_ncc_support": 384.8549499511719,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 13594,
+            "core_pixels": 1171,
+            "risk": {
+              "name": "risk",
+              "n": 13594,
+              "mean": 0.1793237328529358,
+              "median": 0.13628807663917542,
+              "p90": 0.40139448642730713,
+              "p95": 0.4703136086463928,
+              "p99": 0.6216797232627869,
+              "high_frac_065": 0.006326320435486244,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 13594,
+              "mean": 0.17666271328926086,
+              "median": 0.08009794354438782,
+              "p90": 0.6378649473190308,
+              "p95": 0.7667579054832458,
+              "p99": 0.9258090257644653,
+              "high_frac_065": 0.09769015742239223,
+              "high_frac_080": 0.041856701485949686
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 13594,
+              "mean": 0.08877832442522049,
+              "median": 0.007354177534580231,
+              "p90": 0.3298616111278534,
+              "p95": 0.5047281384468079,
+              "p99": 0.6846768856048584,
+              "high_frac_065": 0.017654847726938355,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 13594,
+              "mean": 0.4873507022857666,
+              "median": 0.49530333280563354,
+              "p90": 0.8947121500968933,
+              "p95": 0.9999608993530273,
+              "p99": 1.0,
+              "high_frac_065": 0.31455053700161834,
+              "high_frac_080": 0.1649992643813447
+            },
+            "mean_ncc": 0.1966162621974945,
+            "mean_ncc_support": 393.29315185546875,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 12596,
+            "core_pixels": 1265,
+            "risk": {
+              "name": "risk",
+              "n": 12596,
+              "mean": 0.1864524632692337,
+              "median": 0.1331324577331543,
+              "p90": 0.41863778233528137,
+              "p95": 0.4711835980415344,
+              "p99": 0.5670568346977234,
+              "high_frac_065": 0.002461098761511591,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 12596,
+              "mean": 0.27267444133758545,
+              "median": 0.19935081899166107,
+              "p90": 0.5991576313972473,
+              "p95": 0.8685461282730103,
+              "p99": 0.9615965485572815,
+              "high_frac_065": 0.08399491902191172,
+              "high_frac_080": 0.06073356621149571
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 12596,
+              "mean": 0.045230258256196976,
+              "median": 0.0026207026094198227,
+              "p90": 0.09644632041454315,
+              "p95": 0.38528311252593994,
+              "p99": 0.6282597780227661,
+              "high_frac_065": 0.005477929501429025,
+              "high_frac_080": 0.00015878056525881233
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 12596,
+              "mean": 0.4560084044933319,
+              "median": 0.4233511686325073,
+              "p90": 0.8977588415145874,
+              "p95": 0.9999966025352478,
+              "p99": 1.0,
+              "high_frac_065": 0.2750079390282629,
+              "high_frac_080": 0.16282946967291204
+            },
+            "mean_ncc": 0.22491183876991272,
+            "mean_ncc_support": 387.54937744140625,
+            "high_risk_bbox_y0y1x0x1": [
+              646,
+              664,
+              1408,
+              1431
+            ]
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 11785,
+            "core_pixels": 1207,
+            "risk": {
+              "name": "risk",
+              "n": 11785,
+              "mean": 0.14859716594219208,
+              "median": 0.11709500104188919,
+              "p90": 0.34316229820251465,
+              "p95": 0.4094194769859314,
+              "p99": 0.49391400814056396,
+              "high_frac_065": 0.0,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 11785,
+              "mean": 0.15631024539470673,
+              "median": 0.07750651240348816,
+              "p90": 0.47464773058891296,
+              "p95": 0.7917507290840149,
+              "p99": 0.9776246547698975,
+              "high_frac_065": 0.07441663131098855,
+              "high_frac_080": 0.046330080610946116
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 11785,
+              "mean": 0.05142736807465553,
+              "median": 0.00550389289855957,
+              "p90": 0.18637967109680176,
+              "p95": 0.3019374907016754,
+              "p99": 0.5605139136314392,
+              "high_frac_065": 0.007551972846839203,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 11785,
+              "mean": 0.4544992446899414,
+              "median": 0.4262228012084961,
+              "p90": 0.8892471790313721,
+              "p95": 0.9999570250511169,
+              "p99": 1.0,
+              "high_frac_065": 0.2692405600339415,
+              "high_frac_080": 0.15519728468392024
+            },
+            "mean_ncc": 0.6313543915748596,
+            "mean_ncc_support": 385.8229064941406,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "status": "ok",
+            "rolled": true,
+            "band_pixels": 12164,
+            "core_pixels": 1265,
+            "risk": {
+              "name": "risk",
+              "n": 12164,
+              "mean": 0.14843019843101501,
+              "median": 0.11947411298751831,
+              "p90": 0.32658320665359497,
+              "p95": 0.3876434862613678,
+              "p99": 0.4818648397922516,
+              "high_frac_065": 0.0001644195988161789,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 12164,
+              "mean": 0.16659292578697205,
+              "median": 0.07999999821186066,
+              "p90": 0.46018725633621216,
+              "p95": 0.7457890510559082,
+              "p99": 0.9427424669265747,
+              "high_frac_065": 0.07061821769154883,
+              "high_frac_080": 0.03913186451825058
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 12164,
+              "mean": 0.04380178079009056,
+              "median": 0.0025757797993719578,
+              "p90": 0.12643511593341827,
+              "p95": 0.32168182730674744,
+              "p99": 0.5526472330093384,
+              "high_frac_065": 0.0034528115751397566,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 12164,
+              "mean": 0.4548119008541107,
+              "median": 0.41899484395980835,
+              "p90": 0.897692084312439,
+              "p95": 0.9999549388885498,
+              "p99": 1.0,
+              "high_frac_065": 0.27540282801709964,
+              "high_frac_080": 0.1642551792173627
+            },
+            "mean_ncc": 0.0,
+            "mean_ncc_support": 385.98504638671875,
+            "high_risk_bbox_y0y1x0x1": null
+          }
+        ],
+        "depth_visibility": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.23124456766379548,
+            "band_pixels": 14361,
+            "core_pixels": 1259,
+            "lidar_supported_pixels": 5076,
+            "lidar_supported_frac": 0.35345728013369543,
+            "local_support_count_mean": 42.61562728881836,
+            "depth_m": {
+              "median": 47.98910903930664,
+              "p10": 5.649866580963135,
+              "p90": 68.27098083496094
+            },
+            "parallax_px": {
+              "median": 1.5706483125686646,
+              "p90": 13.340847969055176,
+              "p95": 13.435097694396973
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 5076,
+              "mean": 0.2645816206932068,
+              "median": 0.09771782904863358,
+              "p90": 0.7685617208480835,
+              "p95": 0.9530240893363953,
+              "p99": 0.9940415620803833,
+              "high_frac_065": 0.2119779353821907,
+              "high_frac_080": 0.05713159968479117
+            },
+            "high_depth_risk_frac_supported": 0.2119779353821907
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.2548197838323573,
+            "band_pixels": 11212,
+            "core_pixels": 1258,
+            "lidar_supported_pixels": 5165,
+            "lidar_supported_frac": 0.46066714234748485,
+            "local_support_count_mean": 55.84025955200195,
+            "depth_m": {
+              "median": 17.939390182495117,
+              "p10": 4.4910454750061035,
+              "p90": 19.106918334960938
+            },
+            "parallax_px": {
+              "median": 4.629941940307617,
+              "p90": 18.49420928955078,
+              "p95": 18.846277236938477
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 5165,
+              "mean": 0.4054548442363739,
+              "median": 0.33117905259132385,
+              "p90": 0.7200000286102295,
+              "p95": 0.9517596960067749,
+              "p99": 1.0,
+              "high_frac_065": 0.2238141335914811,
+              "high_frac_080": 0.09874152952565343
+            },
+            "high_depth_risk_frac_supported": 0.2238141335914811
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.25917493526983776,
+            "band_pixels": 11637,
+            "core_pixels": 1219,
+            "lidar_supported_pixels": 7705,
+            "lidar_supported_frac": 0.6621122282375183,
+            "local_support_count_mean": 80.07424926757812,
+            "depth_m": {
+              "median": 25.194435119628906,
+              "p10": 2.588486909866333,
+              "p90": 54.50090408325195
+            },
+            "parallax_px": {
+              "median": 3.3530378341674805,
+              "p90": 32.63602066040039,
+              "p95": 33.553741455078125
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 7705,
+              "mean": 0.348967581987381,
+              "median": 0.2800000011920929,
+              "p90": 0.8505761027336121,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 0.23828682673588578,
+              "high_frac_080": 0.10889033095392603
+            },
+            "high_depth_risk_frac_supported": 0.23828682673588578
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.19900491755091285,
+            "band_pixels": 13594,
+            "core_pixels": 1171,
+            "lidar_supported_pixels": 6865,
+            "lidar_supported_frac": 0.5050022068559659,
+            "local_support_count_mean": 61.10688400268555,
+            "depth_m": {
+              "median": 12.122550964355469,
+              "p10": 5.801464080810547,
+              "p90": 25.462814331054688
+            },
+            "parallax_px": {
+              "median": 5.350814342498779,
+              "p90": 11.180887222290039,
+              "p95": 11.28248119354248
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6865,
+              "mean": 0.44183045625686646,
+              "median": 0.4131510257720947,
+              "p90": 0.6697615385055542,
+              "p95": 0.7204979658126831,
+              "p99": 0.90265953540802,
+              "high_frac_065": 0.16256372906045158,
+              "high_frac_080": 0.042680262199563
+            },
+            "high_depth_risk_frac_supported": 0.16256372906045158
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.25818852143709703,
+            "band_pixels": 12596,
+            "core_pixels": 1265,
+            "lidar_supported_pixels": 3320,
+            "lidar_supported_frac": 0.26357573832962844,
+            "local_support_count_mean": 31.871944427490234,
+            "depth_m": {
+              "median": 4.654294490814209,
+              "p10": 3.8736677169799805,
+              "p90": 4.8144402503967285
+            },
+            "parallax_px": {
+              "median": 18.081443786621094,
+              "p90": 21.72524070739746,
+              "p95": 21.968904495239258
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 3320,
+              "mean": 0.7387230396270752,
+              "median": 0.7200000286102295,
+              "p90": 0.7200000286102295,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 1.0,
+              "high_frac_080": 0.06686746987951807
+            },
+            "high_depth_risk_frac_supported": 1.0
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.2548026051264773,
+            "band_pixels": 11785,
+            "core_pixels": 1207,
+            "lidar_supported_pixels": 6915,
+            "lidar_supported_frac": 0.5867628341111583,
+            "local_support_count_mean": 71.09512329101562,
+            "depth_m": {
+              "median": 7.742196083068848,
+              "p10": 2.61594557762146,
+              "p90": 22.267311096191406
+            },
+            "parallax_px": {
+              "median": 10.72728443145752,
+              "p90": 31.74864959716797,
+              "p95": 32.21700668334961
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6915,
+              "mean": 0.5504546761512756,
+              "median": 0.628385603427887,
+              "p90": 1.0,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 0.4963123644251627,
+              "high_frac_080": 0.18105567606652206
+            },
+            "high_depth_risk_frac_supported": 0.4963123644251627
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "status": "ok",
+            "rolled": true,
+            "baseline_m": 0.2608270914918367,
+            "band_pixels": 12164,
+            "core_pixels": 1265,
+            "lidar_supported_pixels": 4232,
+            "lidar_supported_frac": 0.3479118710950345,
+            "local_support_count_mean": 42.045379638671875,
+            "depth_m": {
+              "median": 35.92097473144531,
+              "p10": 4.964930534362793,
+              "p90": 78.99817657470703
+            },
+            "parallax_px": {
+              "median": 2.366762399673462,
+              "p90": 17.123384475708008,
+              "p95": 17.151504516601562
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 4232,
+              "mean": 0.36358320713043213,
+              "median": 0.2800000011920929,
+              "p90": 0.8950764536857605,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 0.2577977315689981,
+              "high_frac_080": 0.1266540642722117
+            },
+            "high_depth_risk_frac_supported": 0.2577977315689981
+          }
+        ]
+      },
+      "runtime_s": {
+        "load_frame": 0.228,
+        "project": 1.876,
+        "source_risk": 2.041,
+        "lidar_depth": 0.391,
+        "repair": 1.376
+      },
+      "outputs": {
+        "review": "02a00399_a000_bmw_depth_visibility_review_1024.jpg",
+        "crop_review": "02a00399_a000_bmw_depth_visibility_crop_review.jpg",
+        "hard_select": "02a00399_a000_bmw_hard_select_1024.jpg",
+        "depth_risk_overlay": "02a00399_a000_bmw_depth_risk_overlay_1024.jpg",
+        "depth_risk_heat": "02a00399_a000_bmw_depth_risk_heat_1024.jpg"
+      }
+    },
+    {
+      "case": "fbee355f_a095_ped_obj",
+      "log_short": "fbee355f",
+      "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/fbee355f-8878-31fa-8ac8-b9a45a3f130a",
+      "anchor_idx": 95,
+      "anchor_ts_ns": 315967345949927217,
+      "lidar_sweep_ts_ns": 315967345959840000,
+      "lidar_delta_ms": 9.912783,
+      "erp_hw": [
+        1024,
+        2048
+      ],
+      "params": {
+        "band_half_width": 48,
+        "repair_band_half_width": 48,
+        "core_half_width": 2,
+        "ncc_win": 21,
+        "densify_radius_px": 10,
+        "depth_support_max_m": 120.0,
+        "parallax_low_px": 2.0,
+        "parallax_high_px": 12.0,
+        "discontinuity_win": 11,
+        "depth_veto_strength": 1.0
+      },
+      "lidar_depth_summary": {
+        "n_input_pts": 91537,
+        "n_after_range_filter": 82697,
+        "n_hit_pixels": 62005,
+        "n_densified_pixels": 274748,
+        "n_far_fill_pixels": 1760399,
+        "hit_pct": 2.957,
+        "densified_pct": 13.101,
+        "far_fill_pct": 83.942,
+        "erp_hw": [
+          1024,
+          2048
+        ],
+        "min_range_m": 0.5,
+        "max_range_m": 80.0,
+        "densify_radius_px": 10,
+        "fill_far_m": 1000.0
+      },
+      "source_risk_global": {
+        "band_pixels": 87354,
+        "core_pixels": 8536,
+        "risk": {
+          "name": "global_risk",
+          "n": 87354,
+          "mean": 0.19752071797847748,
+          "median": 0.1715659648180008,
+          "p90": 0.36845606565475464,
+          "p95": 0.444424569606781,
+          "p99": 0.5665954351425171,
+          "high_frac_065": 0.0013851683952652426,
+          "high_frac_080": 0.0
+        },
+        "color_risk": {
+          "name": "global_color",
+          "n": 87354,
+          "mean": 0.26864248514175415,
+          "median": 0.19552652537822723,
+          "p90": 0.627855658531189,
+          "p95": 0.7484371662139893,
+          "p99": 0.9307865500450134,
+          "high_frac_065": 0.09034503285482061,
+          "high_frac_080": 0.037548366417107404
+        },
+        "structure_risk": {
+          "name": "global_structure",
+          "n": 87354,
+          "mean": 0.06770166754722595,
+          "median": 0.009329951368272305,
+          "p90": 0.23425285518169403,
+          "p95": 0.38920244574546814,
+          "p99": 0.6146758198738098,
+          "high_frac_065": 0.0063878013599835155,
+          "high_frac_080": 3.4343018064427503e-05
+        },
+        "reliability_risk": {
+          "name": "global_reliability",
+          "n": 87354,
+          "mean": 0.46429988741874695,
+          "median": 0.4407415986061096,
+          "p90": 0.8953972458839417,
+          "p95": 1.0,
+          "p99": 1.0,
+          "high_frac_065": 0.2848753348444261,
+          "high_frac_080": 0.16183574879227053
+        },
+        "high_structure_pixels": 558,
+        "high_color_pixels": 7449,
+        "high_structure_frac_of_band": 0.0063878013599835155,
+        "high_color_frac_of_band": 0.08527371385397349
+      },
+      "depth_visibility_global": {
+        "band_pixels": 87354,
+        "core_pixels": 8536,
+        "lidar_supported_pixels": 44755,
+        "lidar_supported_frac_of_band": 0.5123405911578176,
+        "unknown_frac_of_band": 0.4876594088421824,
+        "depth_risk": {
+          "name": "global_depth_visibility",
+          "n": 44755,
+          "mean": 0.41803067922592163,
+          "median": 0.362648069858551,
+          "p90": 0.8656923770904541,
+          "p95": 0.9871096611022949,
+          "p99": 1.0,
+          "high_frac_065": 0.28101888057200314,
+          "high_frac_080": 0.12050050273712434
+        },
+        "high_depth_risk_pixels": 12577,
+        "high_depth_risk_frac_supported": 0.28101888057200314,
+        "parallax_px": {
+          "name": "parallax_px",
+          "n": 44755,
+          "mean": 6.640708923339844,
+          "median": 4.425728797912598,
+          "p90": 15.374629974365234,
+          "p95": 18.96037483215332,
+          "p99": 33.05641555786133,
+          "high_frac_065": 0.9123226455144676,
+          "high_frac_080": 0.9123226455144676
+        }
+      },
+      "depth_source_correlations_on_supported_seam": {
+        "depth_vs_source_risk": -0.03836527466773987,
+        "depth_vs_structure_risk": 0.04266253486275673,
+        "depth_vs_color_risk": 0.13058504462242126
+      },
+      "seam_gap_y": {
+        "hard_select": {
+          "n": 1747,
+          "mean_delta_y": 28.068689346313477,
+          "median_delta_y": 17.0,
+          "p90_delta_y": 69.0,
+          "p95_delta_y": 85.0,
+          "p99_delta_y": 160.5400390625
+        },
+        "source_gate_repair": {
+          "n": 1747,
+          "mean_delta_y": 22.8122501373291,
+          "median_delta_y": 11.0,
+          "p90_delta_y": 57.0,
+          "p95_delta_y": 78.0,
+          "p99_delta_y": 157.0
+        },
+        "depth_gate_repair": {
+          "n": 1747,
+          "mean_delta_y": 24.542644500732422,
+          "median_delta_y": 13.0,
+          "p90_delta_y": 58.0,
+          "p95_delta_y": 85.0,
+          "p99_delta_y": 160.5400390625
+        },
+        "source_gate_mean_reduction": 0.18727056130516306,
+        "depth_gate_mean_reduction": 0.1256219983083807
+      },
+      "repair_diagnostics": {
+        "source_gate": {
+          "pair_diagnostics": [
+            {
+              "pair": [
+                0,
+                1
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 28.0,
+              "core_pixels": 1163,
+              "low_structure_core_pixels": 1017,
+              "alpha_pixels": 12302,
+              "alpha_mean_nonzero": 0.31642240285873413
+            },
+            {
+              "pair": [
+                1,
+                2
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 12.0,
+              "core_pixels": 1263,
+              "low_structure_core_pixels": 1241,
+              "alpha_pixels": 11910,
+              "alpha_mean_nonzero": 0.4478608965873718
+            },
+            {
+              "pair": [
+                2,
+                3
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -28.0,
+              "core_pixels": 1218,
+              "low_structure_core_pixels": 1154,
+              "alpha_pixels": 10870,
+              "alpha_mean_nonzero": 0.4543231129646301
+            },
+            {
+              "pair": [
+                0,
+                6
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 2.0,
+              "core_pixels": 1148,
+              "low_structure_core_pixels": 1078,
+              "alpha_pixels": 12625,
+              "alpha_mean_nonzero": 0.325009822845459
+            },
+            {
+              "pair": [
+                6,
+                5
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 18.0,
+              "core_pixels": 1263,
+              "low_structure_core_pixels": 1120,
+              "alpha_pixels": 11179,
+              "alpha_mean_nonzero": 0.3768883943557739
+            },
+            {
+              "pair": [
+                5,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -5.0,
+              "core_pixels": 1218,
+              "low_structure_core_pixels": 1197,
+              "alpha_pixels": 10988,
+              "alpha_mean_nonzero": 0.44328463077545166
+            },
+            {
+              "pair": [
+                3,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -12.0,
+              "core_pixels": 1263,
+              "low_structure_core_pixels": 1210,
+              "alpha_pixels": 11850,
+              "alpha_mean_nonzero": 0.4431757628917694
+            }
+          ],
+          "changed_fraction": 0.03626728057861328,
+          "mean_abs_delta_y_applied": 0.1150841936469078,
+          "p95_abs_delta_y_applied": 0.0,
+          "max_abs_delta_y_applied": 9.09999942779541
+        },
+        "depth_gate": {
+          "pair_diagnostics": [
+            {
+              "pair": [
+                0,
+                1
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 28.0,
+              "core_pixels": 1163,
+              "low_structure_core_pixels": 796,
+              "alpha_pixels": 10733,
+              "alpha_mean_nonzero": 0.28062206506729126
+            },
+            {
+              "pair": [
+                1,
+                2
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 12.0,
+              "core_pixels": 1263,
+              "low_structure_core_pixels": 842,
+              "alpha_pixels": 8202,
+              "alpha_mean_nonzero": 0.34614038467407227
+            },
+            {
+              "pair": [
+                2,
+                3
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -28.0,
+              "core_pixels": 1218,
+              "low_structure_core_pixels": 726,
+              "alpha_pixels": 7142,
+              "alpha_mean_nonzero": 0.3407798409461975
+            },
+            {
+              "pair": [
+                0,
+                6
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 1.0,
+              "core_pixels": 1148,
+              "low_structure_core_pixels": 784,
+              "alpha_pixels": 9264,
+              "alpha_mean_nonzero": 0.28794366121292114
+            },
+            {
+              "pair": [
+                6,
+                5
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 18.0,
+              "core_pixels": 1263,
+              "low_structure_core_pixels": 516,
+              "alpha_pixels": 5733,
+              "alpha_mean_nonzero": 0.4321085214614868
+            },
+            {
+              "pair": [
+                5,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -5.0,
+              "core_pixels": 1218,
+              "low_structure_core_pixels": 976,
+              "alpha_pixels": 8932,
+              "alpha_mean_nonzero": 0.3800760805606842
+            },
+            {
+              "pair": [
+                3,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -11.0,
+              "core_pixels": 1263,
+              "low_structure_core_pixels": 1078,
+              "alpha_pixels": 10532,
+              "alpha_mean_nonzero": 0.41961997747421265
+            }
+          ],
+          "changed_fraction": 0.02400064468383789,
+          "mean_abs_delta_y_applied": 0.07138168811798096,
+          "p95_abs_delta_y_applied": 0.0,
+          "max_abs_delta_y_applied": 9.09999942779541
+        },
+        "depth_gate_changed_fraction_vs_hard": 0.09989404678344727,
+        "source_gate_changed_fraction_vs_hard": 0.10583925247192383,
+        "source_vs_depth_gate_mae": 0.041491348296403885,
+        "source_corr_abs_mean": 0.1150841936469078,
+        "depth_corr_abs_mean": 0.07138168811798096
+      },
+      "pair_diagnostics": {
+        "source": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 13630,
+            "core_pixels": 1163,
+            "risk": {
+              "name": "risk",
+              "n": 13630,
+              "mean": 0.25189322233200073,
+              "median": 0.25173014402389526,
+              "p90": 0.40539735555648804,
+              "p95": 0.46978676319122314,
+              "p99": 0.5876121520996094,
+              "high_frac_065": 0.0013939838591342628,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 13630,
+              "mean": 0.38524165749549866,
+              "median": 0.44086021184921265,
+              "p90": 0.6802538633346558,
+              "p95": 0.7789400815963745,
+              "p99": 0.978685736656189,
+              "high_frac_065": 0.14042553191489363,
+              "high_frac_080": 0.0438004402054292
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 13630,
+              "mean": 0.0883050337433815,
+              "median": 0.020911676809191704,
+              "p90": 0.30672740936279297,
+              "p95": 0.47979387640953064,
+              "p99": 0.6597515940666199,
+              "high_frac_065": 0.011665443873807777,
+              "high_frac_080": 0.00022010271460014673
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 13630,
+              "mean": 0.4860408902168274,
+              "median": 0.49333158135414124,
+              "p90": 0.8952648639678955,
+              "p95": 0.9999796748161316,
+              "p99": 1.0,
+              "high_frac_065": 0.3132795304475422,
+              "high_frac_080": 0.16581071166544387
+            },
+            "mean_ncc": 0.2140887975692749,
+            "mean_ncc_support": 392.8621520996094,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 12339,
+            "core_pixels": 1263,
+            "risk": {
+              "name": "risk",
+              "n": 12339,
+              "mean": 0.2037499099969864,
+              "median": 0.18954139947891235,
+              "p90": 0.3538721799850464,
+              "p95": 0.4164526164531708,
+              "p99": 0.5322110652923584,
+              "high_frac_065": 0.0004862630683199611,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 12339,
+              "mean": 0.32363760471343994,
+              "median": 0.3058098256587982,
+              "p90": 0.6499001979827881,
+              "p95": 0.7891326546669006,
+              "p99": 0.9292594194412231,
+              "high_frac_065": 0.100008104384472,
+              "high_frac_080": 0.04781586838479617
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 12339,
+              "mean": 0.04441767930984497,
+              "median": 0.005669272039085627,
+              "p90": 0.11824394762516022,
+              "p95": 0.2623332440853119,
+              "p99": 0.6333910226821899,
+              "high_frac_065": 0.009076910608639273,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 12339,
+              "mean": 0.45511940121650696,
+              "median": 0.4205291271209717,
+              "p90": 0.899342954158783,
+              "p95": 0.9999886155128479,
+              "p99": 1.0,
+              "high_frac_065": 0.2741713266877381,
+              "high_frac_080": 0.16281708404246698
+            },
+            "mean_ncc": 0.6195969581604004,
+            "mean_ncc_support": 386.5946044921875,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 11673,
+            "core_pixels": 1218,
+            "risk": {
+              "name": "risk",
+              "n": 11673,
+              "mean": 0.22826489806175232,
+              "median": 0.22501036524772644,
+              "p90": 0.38542231917381287,
+              "p95": 0.46555760502815247,
+              "p99": 0.5962991118431091,
+              "high_frac_065": 0.0024843656300865243,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 11673,
+              "mean": 0.37248966097831726,
+              "median": 0.40411561727523804,
+              "p90": 0.6101694703102112,
+              "p95": 0.7178738713264465,
+              "p99": 0.9542019367218018,
+              "high_frac_065": 0.07641566007024758,
+              "high_frac_080": 0.03589479996573289
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 11673,
+              "mean": 0.059596896171569824,
+              "median": 0.0052637322805821896,
+              "p90": 0.19052660465240479,
+              "p95": 0.4584234058856964,
+              "p99": 0.6341734528541565,
+              "high_frac_065": 0.007367429109911762,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 11673,
+              "mean": 0.45396721363067627,
+              "median": 0.42427951097488403,
+              "p90": 0.8914029598236084,
+              "p95": 0.999869704246521,
+              "p99": 1.0,
+              "high_frac_065": 0.2686541591707359,
+              "high_frac_080": 0.15600102801336418
+            },
+            "mean_ncc": 0.36386850476264954,
+            "mean_ncc_support": 385.1739196777344,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 13458,
+            "core_pixels": 1148,
+            "risk": {
+              "name": "risk",
+              "n": 13458,
+              "mean": 0.16664619743824005,
+              "median": 0.13480684161186218,
+              "p90": 0.3501999080181122,
+              "p95": 0.4434770345687866,
+              "p99": 0.5521695017814636,
+              "high_frac_065": 0.0003715262297518205,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 13458,
+              "mean": 0.17984747886657715,
+              "median": 0.08880899101495743,
+              "p90": 0.5634652972221375,
+              "p95": 0.722256064414978,
+              "p99": 0.912844717502594,
+              "high_frac_065": 0.07920939218308813,
+              "high_frac_080": 0.03068806657750037
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 13458,
+              "mean": 0.06118009239435196,
+              "median": 0.01319513376802206,
+              "p90": 0.18156544864177704,
+              "p95": 0.3610599637031555,
+              "p99": 0.4974280595779419,
+              "high_frac_065": 0.002229157378510923,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 13458,
+              "mean": 0.48739680647850037,
+              "median": 0.4950971007347107,
+              "p90": 0.8933218121528625,
+              "p95": 0.9999868273735046,
+              "p99": 1.0,
+              "high_frac_065": 0.31297369594293356,
+              "high_frac_080": 0.1645118145341061
+            },
+            "mean_ncc": 0.30252426862716675,
+            "mean_ncc_support": 392.40936279296875,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 12539,
+            "core_pixels": 1263,
+            "risk": {
+              "name": "risk",
+              "n": 12539,
+              "mean": 0.19440849125385284,
+              "median": 0.15189380943775177,
+              "p90": 0.40858885645866394,
+              "p95": 0.4778378903865814,
+              "p99": 0.589104175567627,
+              "high_frac_065": 0.002552037642555228,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 12539,
+              "mean": 0.19074629247188568,
+              "median": 0.0938488021492958,
+              "p90": 0.5892331600189209,
+              "p95": 0.7571732401847839,
+              "p99": 0.9133283495903015,
+              "high_frac_065": 0.08621102161256879,
+              "high_frac_080": 0.0371640481697105
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 12539,
+              "mean": 0.11857789009809494,
+              "median": 0.0363444909453392,
+              "p90": 0.36542102694511414,
+              "p95": 0.4972679913043976,
+              "p99": 0.6507119536399841,
+              "high_frac_065": 0.01028790174655076,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 12539,
+              "mean": 0.45572221279144287,
+              "median": 0.4225914478302002,
+              "p90": 0.8988094329833984,
+              "p95": 0.9999973177909851,
+              "p99": 1.0,
+              "high_frac_065": 0.27402504186936755,
+              "high_frac_080": 0.16221389265491665
+            },
+            "mean_ncc": 0.28828319907188416,
+            "mean_ncc_support": 387.2958679199219,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 11388,
+            "core_pixels": 1218,
+            "risk": {
+              "name": "risk",
+              "n": 11388,
+              "mean": 0.15963782370090485,
+              "median": 0.13573619723320007,
+              "p90": 0.31493455171585083,
+              "p95": 0.3823319673538208,
+              "p99": 0.4863213896751404,
+              "high_frac_065": 0.0,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 11388,
+              "mean": 0.19097474217414856,
+              "median": 0.11627907305955887,
+              "p90": 0.5153306722640991,
+              "p95": 0.7339566946029663,
+              "p99": 0.9128970503807068,
+              "high_frac_065": 0.07244467860906217,
+              "high_frac_080": 0.03626624517035476
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 11388,
+              "mean": 0.05014770105481148,
+              "median": 0.006124652922153473,
+              "p90": 0.16962872445583344,
+              "p95": 0.30632349848747253,
+              "p99": 0.4179951250553131,
+              "high_frac_065": 0.0,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 11388,
+              "mean": 0.4514854848384857,
+              "median": 0.41804206371307373,
+              "p90": 0.890775203704834,
+              "p95": 0.9999025464057922,
+              "p99": 1.0,
+              "high_frac_065": 0.2694063926940639,
+              "high_frac_080": 0.15727081138040042
+            },
+            "mean_ncc": 0.6170358657836914,
+            "mean_ncc_support": 383.84967041015625,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "status": "ok",
+            "rolled": true,
+            "band_pixels": 12327,
+            "core_pixels": 1263,
+            "risk": {
+              "name": "risk",
+              "n": 12327,
+              "mean": 0.1739226132631302,
+              "median": 0.1513858139514923,
+              "p90": 0.3340464234352112,
+              "p95": 0.4177342355251312,
+              "p99": 0.5622536540031433,
+              "high_frac_065": 0.002433682161109759,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 12327,
+              "mean": 0.23426169157028198,
+              "median": 0.22112853825092316,
+              "p90": 0.5141681432723999,
+              "p95": 0.6982428431510925,
+              "p99": 0.8963998556137085,
+              "high_frac_065": 0.0713880100592196,
+              "high_frac_080": 0.030988886184797598
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 12327,
+              "mean": 0.04748742654919624,
+              "median": 0.004046696703881025,
+              "p90": 0.16744592785835266,
+              "p95": 0.31080251932144165,
+              "p99": 0.5224000215530396,
+              "high_frac_065": 0.0034071550255536627,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 12327,
+              "mean": 0.4545821249485016,
+              "median": 0.42076438665390015,
+              "p90": 0.8984251022338867,
+              "p95": 0.9999522566795349,
+              "p99": 1.0,
+              "high_frac_065": 0.2741948568183662,
+              "high_frac_080": 0.16289445931694654
+            },
+            "mean_ncc": 0.0,
+            "mean_ncc_support": 386.6565246582031,
+            "high_risk_bbox_y0y1x0x1": null
+          }
+        ],
+        "depth_visibility": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.2068572311009214,
+            "band_pixels": 13630,
+            "core_pixels": 1163,
+            "lidar_supported_pixels": 6827,
+            "lidar_supported_frac": 0.5008804108584006,
+            "local_support_count_mean": 60.43836975097656,
+            "depth_m": {
+              "median": 39.09402847290039,
+              "p10": 5.711354732513428,
+              "p90": 44.04154968261719
+            },
+            "parallax_px": {
+              "median": 1.7246872186660767,
+              "p90": 11.805425643920898,
+              "p95": 11.944842338562012
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6827,
+              "mean": 0.24554048478603363,
+              "median": 0.1109909638762474,
+              "p90": 0.7162908911705017,
+              "p95": 0.7220562696456909,
+              "p99": 0.9932829737663269,
+              "high_frac_065": 0.1457448366778966,
+              "high_frac_080": 0.04101362238171964
+            },
+            "high_depth_risk_frac_supported": 0.1457448366778966
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.25471368826904967,
+            "band_pixels": 12339,
+            "core_pixels": 1263,
+            "lidar_supported_pixels": 6554,
+            "lidar_supported_frac": 0.5311613582948375,
+            "local_support_count_mean": 64.27198028564453,
+            "depth_m": {
+              "median": 16.542537689208984,
+              "p10": 4.442455291748047,
+              "p90": 23.76842498779297
+            },
+            "parallax_px": {
+              "median": 5.018803596496582,
+              "p90": 18.68870735168457,
+              "p95": 19.054943084716797
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6554,
+              "mean": 0.468624085187912,
+              "median": 0.45071303844451904,
+              "p90": 0.8827627897262573,
+              "p95": 0.9872782826423645,
+              "p99": 1.0,
+              "high_frac_065": 0.25968873970094597,
+              "high_frac_080": 0.13747329874885567
+            },
+            "high_depth_risk_frac_supported": 0.25968873970094597
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.25768493890271715,
+            "band_pixels": 11673,
+            "core_pixels": 1218,
+            "lidar_supported_pixels": 7476,
+            "lidar_supported_frac": 0.6404523258802365,
+            "local_support_count_mean": 77.51194763183594,
+            "depth_m": {
+              "median": 19.02293586730957,
+              "p10": 2.5831031799316406,
+              "p90": 28.784353256225586
+            },
+            "parallax_px": {
+              "median": 4.415313720703125,
+              "p90": 32.51601791381836,
+              "p95": 33.21857452392578
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 7476,
+              "mean": 0.4519543945789337,
+              "median": 0.37546518445014954,
+              "p90": 0.8701262474060059,
+              "p95": 0.9636988639831543,
+              "p99": 1.0,
+              "high_frac_065": 0.3120652755484216,
+              "high_frac_080": 0.11851257356875335
+            },
+            "high_depth_risk_frac_supported": 0.3120652755484216
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.21494112266399398,
+            "band_pixels": 13458,
+            "core_pixels": 1148,
+            "lidar_supported_pixels": 6919,
+            "lidar_supported_frac": 0.5141179967305691,
+            "local_support_count_mean": 62.169193267822266,
+            "depth_m": {
+              "median": 21.393985748291016,
+              "p10": 5.904165267944336,
+              "p90": 44.34471130371094
+            },
+            "parallax_px": {
+              "median": 3.2747480869293213,
+              "p90": 11.866183280944824,
+              "p95": 11.891987800598145
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6919,
+              "mean": 0.35578233003616333,
+              "median": 0.35476717352867126,
+              "p90": 0.7108983993530273,
+              "p95": 0.712923526763916,
+              "p99": 0.9927396178245544,
+              "high_frac_065": 0.1292094233270704,
+              "high_frac_080": 0.0409018644312762
+            },
+            "high_depth_risk_frac_supported": 0.1292094233270704
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.25229014926480303,
+            "band_pixels": 12539,
+            "core_pixels": 1263,
+            "lidar_supported_pixels": 6804,
+            "lidar_supported_frac": 0.5426270037483053,
+            "local_support_count_mean": 65.39412689208984,
+            "depth_m": {
+              "median": 8.986123085021973,
+              "p10": 4.890237331390381,
+              "p90": 13.41825008392334
+            },
+            "parallax_px": {
+              "median": 9.151199340820312,
+              "p90": 16.8159122467041,
+              "p95": 17.239103317260742
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6804,
+              "mean": 0.6691734790802002,
+              "median": 0.6712033748626709,
+              "p90": 0.9316567182540894,
+              "p95": 0.9963985681533813,
+              "p99": 1.0,
+              "high_frac_065": 0.5304232804232805,
+              "high_frac_080": 0.253233392122281
+            },
+            "high_depth_risk_frac_supported": 0.5304232804232805
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.24695738021862687,
+            "band_pixels": 11388,
+            "core_pixels": 1218,
+            "lidar_supported_pixels": 6305,
+            "lidar_supported_frac": 0.5536529680365296,
+            "local_support_count_mean": 67.16631317138672,
+            "depth_m": {
+              "median": 31.695465087890625,
+              "p10": 2.841813564300537,
+              "p90": 68.92292785644531
+            },
+            "parallax_px": {
+              "median": 2.539656162261963,
+              "p90": 28.325428009033203,
+              "p95": 29.284015655517578
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6305,
+              "mean": 0.365230917930603,
+              "median": 0.2800000011920929,
+              "p90": 0.9161165952682495,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 0.30578905630452025,
+              "high_frac_080": 0.1211736716891356
+            },
+            "high_depth_risk_frac_supported": 0.30578905630452025
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "status": "ok",
+            "rolled": true,
+            "baseline_m": 0.24900660989925638,
+            "band_pixels": 12327,
+            "core_pixels": 1263,
+            "lidar_supported_pixels": 3870,
+            "lidar_supported_frac": 0.3139449987831589,
+            "local_support_count_mean": 38.02214813232422,
+            "depth_m": {
+              "median": 36.67424011230469,
+              "p10": 4.91750431060791,
+              "p90": 74.87135314941406
+            },
+            "parallax_px": {
+              "median": 2.2130959033966064,
+              "p90": 16.50502586364746,
+              "p95": 16.528474807739258
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 3870,
+              "mean": 0.3268706202507019,
+              "median": 0.2800000011920929,
+              "p90": 0.879322350025177,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 0.28837209302325584,
+              "high_frac_080": 0.14366925064599484
+            },
+            "high_depth_risk_frac_supported": 0.28837209302325584
+          }
+        ]
+      },
+      "runtime_s": {
+        "load_frame": 0.176,
+        "project": 1.73,
+        "source_risk": 1.972,
+        "lidar_depth": 0.563,
+        "repair": 1.496
+      },
+      "outputs": {
+        "review": "fbee355f_a095_ped_obj_depth_visibility_review_1024.jpg",
+        "crop_review": "fbee355f_a095_ped_obj_depth_visibility_crop_review.jpg",
+        "hard_select": "fbee355f_a095_ped_obj_hard_select_1024.jpg",
+        "depth_risk_overlay": "fbee355f_a095_ped_obj_depth_risk_overlay_1024.jpg",
+        "depth_risk_heat": "fbee355f_a095_ped_obj_depth_risk_heat_1024.jpg"
+      }
+    },
+    {
+      "case": "0bae3b5e_a030_clean_far",
+      "log_short": "0bae3b5e",
+      "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8",
+      "anchor_idx": 30,
+      "anchor_ts_ns": 315969525849927212,
+      "lidar_sweep_ts_ns": 315969525860042000,
+      "lidar_delta_ms": 10.114788,
+      "erp_hw": [
+        1024,
+        2048
+      ],
+      "params": {
+        "band_half_width": 48,
+        "repair_band_half_width": 48,
+        "core_half_width": 2,
+        "ncc_win": 21,
+        "densify_radius_px": 10,
+        "depth_support_max_m": 120.0,
+        "parallax_low_px": 2.0,
+        "parallax_high_px": 12.0,
+        "discontinuity_win": 11,
+        "depth_veto_strength": 1.0
+      },
+      "lidar_depth_summary": {
+        "n_input_pts": 99928,
+        "n_after_range_filter": 94261,
+        "n_hit_pixels": 71479,
+        "n_densified_pixels": 235073,
+        "n_far_fill_pixels": 1790600,
+        "hit_pct": 3.408,
+        "densified_pct": 11.209,
+        "far_fill_pct": 85.382,
+        "erp_hw": [
+          1024,
+          2048
+        ],
+        "min_range_m": 0.5,
+        "max_range_m": 80.0,
+        "densify_radius_px": 10,
+        "fill_far_m": 1000.0
+      },
+      "source_risk_global": {
+        "band_pixels": 87618,
+        "core_pixels": 8579,
+        "risk": {
+          "name": "global_risk",
+          "n": 87618,
+          "mean": 0.19649671018123627,
+          "median": 0.1656322181224823,
+          "p90": 0.37960782647132874,
+          "p95": 0.4450259208679199,
+          "p99": 0.5495843291282654,
+          "high_frac_065": 0.0016092583715674861,
+          "high_frac_080": 2.2826359880389874e-05
+        },
+        "color_risk": {
+          "name": "global_color",
+          "n": 87618,
+          "mean": 0.2526093125343323,
+          "median": 0.18694469332695007,
+          "p90": 0.6496827602386475,
+          "p95": 0.7890971899032593,
+          "p99": 0.9454398155212402,
+          "high_frac_065": 0.0998539112967655,
+          "high_frac_080": 0.04609783377844735
+        },
+        "structure_risk": {
+          "name": "global_structure",
+          "n": 87618,
+          "mean": 0.07695235311985016,
+          "median": 0.01908854767680168,
+          "p90": 0.2389833629131317,
+          "p95": 0.39805346727371216,
+          "p99": 0.6412957906723022,
+          "high_frac_065": 0.008845214453651076,
+          "high_frac_080": 0.0013581684128831976
+        },
+        "reliability_risk": {
+          "name": "global_reliability",
+          "n": 87618,
+          "mean": 0.4640485644340515,
+          "median": 0.4407525956630707,
+          "p90": 0.8961204886436462,
+          "p95": 1.0,
+          "p99": 1.0,
+          "high_frac_065": 0.28516971398571067,
+          "high_frac_080": 0.1627291195872994
+        },
+        "high_structure_pixels": 775,
+        "high_color_pixels": 8443,
+        "high_structure_frac_of_band": 0.008845214453651076,
+        "high_color_frac_of_band": 0.09636147823506586
+      },
+      "depth_visibility_global": {
+        "band_pixels": 87618,
+        "core_pixels": 8579,
+        "lidar_supported_pixels": 45185,
+        "lidar_supported_frac_of_band": 0.5157045355977082,
+        "unknown_frac_of_band": 0.48429546440229176,
+        "depth_risk": {
+          "name": "global_depth_visibility",
+          "n": 45185,
+          "mean": 0.3693174719810486,
+          "median": 0.2863215208053589,
+          "p90": 0.7720949649810791,
+          "p95": 1.0,
+          "p99": 1.0,
+          "high_frac_065": 0.24528051344472723,
+          "high_frac_080": 0.09242005090184796
+        },
+        "high_depth_risk_pixels": 11083,
+        "high_depth_risk_frac_supported": 0.24528051344472723,
+        "parallax_px": {
+          "name": "parallax_px",
+          "n": 45185,
+          "mean": 5.796884536743164,
+          "median": 3.4587621688842773,
+          "p90": 15.158864974975586,
+          "p95": 18.834346771240234,
+          "p99": 29.661670684814453,
+          "high_frac_065": 0.8826380435985394,
+          "high_frac_080": 0.8826380435985394
+        }
+      },
+      "depth_source_correlations_on_supported_seam": {
+        "depth_vs_source_risk": -0.11138441413640976,
+        "depth_vs_structure_risk": -0.03516433387994766,
+        "depth_vs_color_risk": 0.03305395692586899
+      },
+      "seam_gap_y": {
+        "hard_select": {
+          "n": 1778,
+          "mean_delta_y": 24.411699295043945,
+          "median_delta_y": 17.0,
+          "p90_delta_y": 47.0,
+          "p95_delta_y": 68.0,
+          "p99_delta_y": 170.0
+        },
+        "source_gate_repair": {
+          "n": 1778,
+          "mean_delta_y": 19.78965187072754,
+          "median_delta_y": 12.0,
+          "p90_delta_y": 43.0,
+          "p95_delta_y": 64.1500244140625,
+          "p99_delta_y": 170.0
+        },
+        "depth_gate_repair": {
+          "n": 1778,
+          "mean_delta_y": 20.758155822753906,
+          "median_delta_y": 12.0,
+          "p90_delta_y": 45.0,
+          "p95_delta_y": 66.1500244140625,
+          "p99_delta_y": 170.0
+        },
+        "source_gate_mean_reduction": 0.18933738976765016,
+        "depth_gate_mean_reduction": 0.1496636275964525
+      },
+      "repair_diagnostics": {
+        "source_gate": {
+          "pair_diagnostics": [
+            {
+              "pair": [
+                0,
+                1
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -0.5,
+              "core_pixels": 1152,
+              "low_structure_core_pixels": 1060,
+              "alpha_pixels": 12308,
+              "alpha_mean_nonzero": 0.29435300827026367
+            },
+            {
+              "pair": [
+                1,
+                2
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 28.0,
+              "core_pixels": 1262,
+              "low_structure_core_pixels": 1251,
+              "alpha_pixels": 11269,
+              "alpha_mean_nonzero": 0.4639635384082794
+            },
+            {
+              "pair": [
+                2,
+                3
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -3.0,
+              "core_pixels": 1215,
+              "low_structure_core_pixels": 1184,
+              "alpha_pixels": 10782,
+              "alpha_mean_nonzero": 0.4188387989997864
+            },
+            {
+              "pair": [
+                0,
+                6
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 28.0,
+              "core_pixels": 1218,
+              "low_structure_core_pixels": 1100,
+              "alpha_pixels": 13404,
+              "alpha_mean_nonzero": 0.3180498480796814
+            },
+            {
+              "pair": [
+                6,
+                5
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 4.0,
+              "core_pixels": 1264,
+              "low_structure_core_pixels": 1241,
+              "alpha_pixels": 10972,
+              "alpha_mean_nonzero": 0.4128170609474182
+            },
+            {
+              "pair": [
+                5,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 12.0,
+              "core_pixels": 1205,
+              "low_structure_core_pixels": 1164,
+              "alpha_pixels": 10822,
+              "alpha_mean_nonzero": 0.42164668440818787
+            },
+            {
+              "pair": [
+                3,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 11.0,
+              "core_pixels": 1263,
+              "low_structure_core_pixels": 1236,
+              "alpha_pixels": 12320,
+              "alpha_mean_nonzero": 0.42482393980026245
+            }
+          ],
+          "changed_fraction": 0.032543182373046875,
+          "mean_abs_delta_y_applied": 0.09812570363283157,
+          "p95_abs_delta_y_applied": 0.0,
+          "max_abs_delta_y_applied": 9.09999942779541
+        },
+        "depth_gate": {
+          "pair_diagnostics": [
+            {
+              "pair": [
+                0,
+                1
+              ],
+              "status": "near_zero_delta",
+              "median_delta_y_j_minus_i": 0.0,
+              "core_pixels": 1152,
+              "low_structure_core_pixels": 907
+            },
+            {
+              "pair": [
+                1,
+                2
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 28.0,
+              "core_pixels": 1262,
+              "low_structure_core_pixels": 1088,
+              "alpha_pixels": 9744,
+              "alpha_mean_nonzero": 0.41651836037635803
+            },
+            {
+              "pair": [
+                2,
+                3
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": -3.0,
+              "core_pixels": 1215,
+              "low_structure_core_pixels": 601,
+              "alpha_pixels": 6399,
+              "alpha_mean_nonzero": 0.31055155396461487
+            },
+            {
+              "pair": [
+                0,
+                6
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 28.0,
+              "core_pixels": 1218,
+              "low_structure_core_pixels": 971,
+              "alpha_pixels": 12007,
+              "alpha_mean_nonzero": 0.3037585914134979
+            },
+            {
+              "pair": [
+                6,
+                5
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 4.0,
+              "core_pixels": 1264,
+              "low_structure_core_pixels": 983,
+              "alpha_pixels": 8703,
+              "alpha_mean_nonzero": 0.329834908246994
+            },
+            {
+              "pair": [
+                5,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 12.0,
+              "core_pixels": 1205,
+              "low_structure_core_pixels": 641,
+              "alpha_pixels": 5851,
+              "alpha_mean_nonzero": 0.40100905299186707
+            },
+            {
+              "pair": [
+                3,
+                4
+              ],
+              "status": "applied",
+              "median_delta_y_j_minus_i": 11.0,
+              "core_pixels": 1263,
+              "low_structure_core_pixels": 1107,
+              "alpha_pixels": 10849,
+              "alpha_mean_nonzero": 0.3817789554595947
+            }
+          ],
+          "changed_fraction": 0.022875308990478516,
+          "mean_abs_delta_y_applied": 0.0731760561466217,
+          "p95_abs_delta_y_applied": 0.0,
+          "max_abs_delta_y_applied": 9.09999942779541
+        },
+        "depth_gate_changed_fraction_vs_hard": 0.09529447555541992,
+        "source_gate_changed_fraction_vs_hard": 0.1035776138305664,
+        "source_vs_depth_gate_mae": 0.028412342071533203,
+        "source_corr_abs_mean": 0.09812570363283157,
+        "depth_corr_abs_mean": 0.0731760561466217
+      },
+      "pair_diagnostics": {
+        "source": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 13585,
+            "core_pixels": 1152,
+            "risk": {
+              "name": "risk",
+              "n": 13585,
+              "mean": 0.18920336663722992,
+              "median": 0.1468895673751831,
+              "p90": 0.3956297039985657,
+              "p95": 0.4599953889846802,
+              "p99": 0.5574787259101868,
+              "high_frac_065": 0.0001472211998527788,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 13585,
+              "mean": 0.182730570435524,
+              "median": 0.06601830571889877,
+              "p90": 0.5949777364730835,
+              "p95": 0.7247032523155212,
+              "p99": 0.87429279088974,
+              "high_frac_065": 0.08281192491718807,
+              "high_frac_080": 0.026205373573794627
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 13585,
+              "mean": 0.10414419323205948,
+              "median": 0.04248863086104393,
+              "p90": 0.32310017943382263,
+              "p95": 0.4220014214515686,
+              "p99": 0.5521224737167358,
+              "high_frac_065": 0.0004416635995583364,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 13585,
+              "mean": 0.4878369867801666,
+              "median": 0.4942008852958679,
+              "p90": 0.8964926600456238,
+              "p95": 0.9999669790267944,
+              "p99": 1.0,
+              "high_frac_065": 0.3132867132867133,
+              "high_frac_080": 0.16687523003312477
+            },
+            "mean_ncc": 0.3460744619369507,
+            "mean_ncc_support": 393.280517578125,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 11788,
+            "core_pixels": 1262,
+            "risk": {
+              "name": "risk",
+              "n": 11788,
+              "mean": 0.20938484370708466,
+              "median": 0.18984133005142212,
+              "p90": 0.362454354763031,
+              "p95": 0.40723416209220886,
+              "p99": 0.5226722359657288,
+              "high_frac_065": 0.0005938242280285036,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 11788,
+              "mean": 0.3412715494632721,
+              "median": 0.33816367387771606,
+              "p90": 0.6856738924980164,
+              "p95": 0.7993530035018921,
+              "p99": 0.9146335124969482,
+              "high_frac_065": 0.12343060739735325,
+              "high_frac_080": 0.049711571089243296
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 11788,
+              "mean": 0.04399886727333069,
+              "median": 0.004933676682412624,
+              "p90": 0.10281215608119965,
+              "p95": 0.30084800720214844,
+              "p99": 0.6021161079406738,
+              "high_frac_065": 0.005598914149983034,
+              "high_frac_080": 0.00033932813030200206
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 11788,
+              "mean": 0.4529357850551605,
+              "median": 0.4150805175304413,
+              "p90": 0.900102436542511,
+              "p95": 0.9999842643737793,
+              "p99": 1.0,
+              "high_frac_065": 0.27341364099083815,
+              "high_frac_080": 0.16381065490329147
+            },
+            "mean_ncc": 0.5429439544677734,
+            "mean_ncc_support": 384.5612487792969,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 11523,
+            "core_pixels": 1215,
+            "risk": {
+              "name": "risk",
+              "n": 11523,
+              "mean": 0.1906568557024002,
+              "median": 0.15838387608528137,
+              "p90": 0.3831341862678528,
+              "p95": 0.4333980083465576,
+              "p99": 0.5645650029182434,
+              "high_frac_065": 0.001996007984031936,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 11523,
+              "mean": 0.23192159831523895,
+              "median": 0.13160353899002075,
+              "p90": 0.7072188258171082,
+              "p95": 0.8692870736122131,
+              "p99": 0.9793559312820435,
+              "high_frac_065": 0.11663629263212705,
+              "high_frac_080": 0.06812462032456826
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 11523,
+              "mean": 0.08322121948003769,
+              "median": 0.03025238960981369,
+              "p90": 0.22592510282993317,
+              "p95": 0.43524399399757385,
+              "p99": 0.7236717343330383,
+              "high_frac_065": 0.020220428707801788,
+              "high_frac_080": 0.00633515577540571
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 11523,
+              "mean": 0.4524911642074585,
+              "median": 0.4207414388656616,
+              "p90": 0.8917369246482849,
+              "p95": 0.9999972581863403,
+              "p99": 1.0,
+              "high_frac_065": 0.2683328994185542,
+              "high_frac_080": 0.15707715004773062
+            },
+            "mean_ncc": 0.07325128465890884,
+            "mean_ncc_support": 384.3611145019531,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 14249,
+            "core_pixels": 1218,
+            "risk": {
+              "name": "risk",
+              "n": 14249,
+              "mean": 0.22600798308849335,
+              "median": 0.20942670106887817,
+              "p90": 0.37435394525527954,
+              "p95": 0.4329287111759186,
+              "p99": 0.5524507164955139,
+              "high_frac_065": 0.0011930661800828128,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 14249,
+              "mean": 0.3448336124420166,
+              "median": 0.3272727131843567,
+              "p90": 0.6742468476295471,
+              "p95": 0.800024151802063,
+              "p99": 0.9259659051895142,
+              "high_frac_065": 0.1188153554635413,
+              "high_frac_080": 0.0506702224717524
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 14249,
+              "mean": 0.06558298319578171,
+              "median": 0.017041979357600212,
+              "p90": 0.18629001080989838,
+              "p95": 0.34576764702796936,
+              "p99": 0.615818977355957,
+              "high_frac_065": 0.006807495262825461,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 14249,
+              "mean": 0.48349815607070923,
+              "median": 0.4899829030036926,
+              "p90": 0.8960294723510742,
+              "p95": 0.9999554753303528,
+              "p99": 1.0,
+              "high_frac_065": 0.3132149624535055,
+              "high_frac_080": 0.1665380026668538
+            },
+            "mean_ncc": 0.39457085728645325,
+            "mean_ncc_support": 397.8451232910156,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 11945,
+            "core_pixels": 1264,
+            "risk": {
+              "name": "risk",
+              "n": 11945,
+              "mean": 0.18513813614845276,
+              "median": 0.14272478222846985,
+              "p90": 0.407660573720932,
+              "p95": 0.4743773937225342,
+              "p99": 0.5933347344398499,
+              "high_frac_065": 0.004771871075763918,
+              "high_frac_080": 0.00016743407283382168
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 11945,
+              "mean": 0.19527198374271393,
+              "median": 0.09073849767446518,
+              "p90": 0.5968858003616333,
+              "p95": 0.7694469094276428,
+              "p99": 0.928997814655304,
+              "high_frac_065": 0.08514022603599833,
+              "high_frac_080": 0.041356215989953954
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 11945,
+              "mean": 0.09774290025234222,
+              "median": 0.02984595112502575,
+              "p90": 0.2999008893966675,
+              "p95": 0.4958617091178894,
+              "p99": 0.6622849702835083,
+              "high_frac_065": 0.013059857681038092,
+              "high_frac_080": 0.0023440770196735037
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 11945,
+              "mean": 0.45281004905700684,
+              "median": 0.4149891138076782,
+              "p90": 0.8995217680931091,
+              "p95": 0.9999817609786987,
+              "p99": 1.0,
+              "high_frac_065": 0.2727501046462955,
+              "high_frac_080": 0.1638342402678945
+            },
+            "mean_ncc": 0.17431826889514923,
+            "mean_ncc_support": 385.10968017578125,
+            "high_risk_bbox_y0y1x0x1": [
+              396,
+              434,
+              1433,
+              1463
+            ]
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "status": "ok",
+            "rolled": false,
+            "band_pixels": 11584,
+            "core_pixels": 1205,
+            "risk": {
+              "name": "risk",
+              "n": 11584,
+              "mean": 0.19215363264083862,
+              "median": 0.16320756077766418,
+              "p90": 0.37680017948150635,
+              "p95": 0.4351222515106201,
+              "p99": 0.5288330316543579,
+              "high_frac_065": 0.0007769337016574585,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 11584,
+              "mean": 0.2420807033777237,
+              "median": 0.18218962848186493,
+              "p90": 0.611981987953186,
+              "p95": 0.7782416343688965,
+              "p99": 0.9498406052589417,
+              "high_frac_065": 0.08857044198895028,
+              "high_frac_080": 0.04324930939226519
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 11584,
+              "mean": 0.07862325757741928,
+              "median": 0.02237512171268463,
+              "p90": 0.23654018342494965,
+              "p95": 0.42307597398757935,
+              "p99": 0.6359806060791016,
+              "high_frac_065": 0.008373618784530386,
+              "high_frac_080": 0.0
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 11584,
+              "mean": 0.4540916085243225,
+              "median": 0.42469415068626404,
+              "p90": 0.8914855718612671,
+              "p95": 0.9999925494194031,
+              "p99": 1.0,
+              "high_frac_065": 0.2695959944751381,
+              "high_frac_080": 0.1565089779005525
+            },
+            "mean_ncc": 0.3659685254096985,
+            "mean_ncc_support": 385.09063720703125,
+            "high_risk_bbox_y0y1x0x1": null
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "status": "ok",
+            "rolled": true,
+            "band_pixels": 12944,
+            "core_pixels": 1263,
+            "risk": {
+              "name": "risk",
+              "n": 12944,
+              "mean": 0.17949503660202026,
+              "median": 0.13542526960372925,
+              "p90": 0.36834511160850525,
+              "p95": 0.4531010389328003,
+              "p99": 0.5235158801078796,
+              "high_frac_065": 0.0020086526576019777,
+              "high_frac_080": 0.0
+            },
+            "color_risk": {
+              "name": "color",
+              "n": 12944,
+              "mean": 0.22443324327468872,
+              "median": 0.16317784786224365,
+              "p90": 0.5888098478317261,
+              "p95": 0.779914140701294,
+              "p99": 0.9659567475318909,
+              "high_frac_065": 0.08413164400494437,
+              "high_frac_080": 0.0459672435105068
+            },
+            "structure_risk": {
+              "name": "structure",
+              "n": 12944,
+              "mean": 0.06467802077531815,
+              "median": 0.011854061856865883,
+              "p90": 0.20928409695625305,
+              "p95": 0.34365537762641907,
+              "p99": 0.6387603878974915,
+              "high_frac_065": 0.009270704573547589,
+              "high_frac_080": 0.0010815822002472187
+            },
+            "reliability_risk": {
+              "name": "reliability",
+              "n": 12944,
+              "mean": 0.457362562417984,
+              "median": 0.42680978775024414,
+              "p90": 0.8971853256225586,
+              "p95": 0.9999845623970032,
+              "p99": 1.0,
+              "high_frac_065": 0.275880716934487,
+              "high_frac_080": 0.16277812113720644
+            },
+            "mean_ncc": 0.0,
+            "mean_ncc_support": 388.7402648925781,
+            "high_risk_bbox_y0y1x0x1": [
+              572,
+              595,
+              15,
+              32
+            ]
+          }
+        ],
+        "depth_visibility": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.21603605198702028,
+            "band_pixels": 13585,
+            "core_pixels": 1152,
+            "lidar_supported_pixels": 6906,
+            "lidar_supported_frac": 0.5083548030916452,
+            "local_support_count_mean": 61.4830322265625,
+            "depth_m": {
+              "median": 55.58012771606445,
+              "p10": 8.809626579284668,
+              "p90": 59.285255432128906
+            },
+            "parallax_px": {
+              "median": 1.266942024230957,
+              "p90": 7.993165493011475,
+              "p95": 12.249129295349121
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6906,
+              "mean": 0.24424593150615692,
+              "median": 0.0948537290096283,
+              "p90": 0.7115079164505005,
+              "p95": 0.7200000286102295,
+              "p99": 1.0,
+              "high_frac_065": 0.13712713582392122,
+              "high_frac_080": 0.040110049232551404
+            },
+            "high_depth_risk_frac_supported": 0.13712713582392122
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.2523355601233178,
+            "band_pixels": 11788,
+            "core_pixels": 1262,
+            "lidar_supported_pixels": 4002,
+            "lidar_supported_frac": 0.33949779436715305,
+            "local_support_count_mean": 41.090091705322266,
+            "depth_m": {
+              "median": 47.047821044921875,
+              "p10": 4.418160438537598,
+              "p90": 70.78363037109375
+            },
+            "parallax_px": {
+              "median": 1.7481913566589355,
+              "p90": 18.61602783203125,
+              "p95": 18.853412628173828
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 4002,
+              "mean": 0.4064001441001892,
+              "median": 0.2800000011920929,
+              "p90": 0.9548275470733643,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 0.30134932533733133,
+              "high_frac_080": 0.14742628685657172
+            },
+            "high_depth_risk_frac_supported": 0.30134932533733133
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.2597139753807187,
+            "band_pixels": 11523,
+            "core_pixels": 1215,
+            "lidar_supported_pixels": 7442,
+            "lidar_supported_frac": 0.6458387572680726,
+            "local_support_count_mean": 78.12305450439453,
+            "depth_m": {
+              "median": 14.021505355834961,
+              "p10": 2.8953447341918945,
+              "p90": 15.35636043548584
+            },
+            "parallax_px": {
+              "median": 6.037411212921143,
+              "p90": 29.23782730102539,
+              "p95": 29.82128143310547
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 7442,
+              "mean": 0.550518274307251,
+              "median": 0.5391918420791626,
+              "p90": 1.0,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 0.35796828809459824,
+              "high_frac_080": 0.14565976887933352
+            },
+            "high_depth_risk_frac_supported": 0.35796828809459824
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.21869190504064853,
+            "band_pixels": 14249,
+            "core_pixels": 1218,
+            "lidar_supported_pixels": 7017,
+            "lidar_supported_frac": 0.49245561092006457,
+            "local_support_count_mean": 59.24457931518555,
+            "depth_m": {
+              "median": 54.20530700683594,
+              "p10": 5.836888313293457,
+              "p90": 77.19202423095703
+            },
+            "parallax_px": {
+              "median": 1.3150460720062256,
+              "p90": 12.212409973144531,
+              "p95": 12.311992645263672
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 7017,
+              "mean": 0.20153218507766724,
+              "median": 0.05067522078752518,
+              "p90": 0.7200000286102295,
+              "p95": 0.7280689477920532,
+              "p99": 0.9927498698234558,
+              "high_frac_065": 0.1453612654980761,
+              "high_frac_080": 0.040473136668091776
+            },
+            "high_depth_risk_frac_supported": 0.1453612654980761
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.25655579058958583,
+            "band_pixels": 11945,
+            "core_pixels": 1264,
+            "lidar_supported_pixels": 6278,
+            "lidar_supported_frac": 0.5255755546253663,
+            "local_support_count_mean": 63.406864166259766,
+            "depth_m": {
+              "median": 29.7805233001709,
+              "p10": 4.671356201171875,
+              "p90": 45.478919982910156
+            },
+            "parallax_px": {
+              "median": 2.808016777038574,
+              "p90": 17.901479721069336,
+              "p95": 18.424070358276367
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6278,
+              "mean": 0.3947312831878662,
+              "median": 0.3292730748653412,
+              "p90": 0.7200000286102295,
+              "p95": 0.9270220994949341,
+              "p99": 1.0,
+              "high_frac_065": 0.19735584581076776,
+              "high_frac_080": 0.09700541573749602
+            },
+            "high_depth_risk_frac_supported": 0.19735584581076776
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "status": "ok",
+            "rolled": false,
+            "baseline_m": 0.25984295586490325,
+            "band_pixels": 11584,
+            "core_pixels": 1205,
+            "lidar_supported_pixels": 7396,
+            "lidar_supported_frac": 0.6384668508287292,
+            "local_support_count_mean": 77.27262115478516,
+            "depth_m": {
+              "median": 14.950857162475586,
+              "p10": 3.014630079269409,
+              "p90": 24.19606590270996
+            },
+            "parallax_px": {
+              "median": 5.664935111999512,
+              "p90": 28.094867706298828,
+              "p95": 28.834461212158203
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 7396,
+              "mean": 0.5082648992538452,
+              "median": 0.5191934704780579,
+              "p90": 1.0,
+              "p95": 1.0,
+              "p99": 1.0,
+              "high_frac_065": 0.37777176852352623,
+              "high_frac_080": 0.1032990805840995
+            },
+            "high_depth_risk_frac_supported": 0.37777176852352623
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "status": "ok",
+            "rolled": true,
+            "baseline_m": 0.26806617707057073,
+            "band_pixels": 12944,
+            "core_pixels": 1263,
+            "lidar_supported_pixels": 6144,
+            "lidar_supported_frac": 0.4746600741656366,
+            "local_support_count_mean": 57.44321823120117,
+            "depth_m": {
+              "median": 35.17528533935547,
+              "p10": 5.442955017089844,
+              "p90": 71.50923919677734
+            },
+            "parallax_px": {
+              "median": 2.4840164184570312,
+              "p90": 16.053041458129883,
+              "p95": 16.651840209960938
+            },
+            "risk": {
+              "name": "depth_visibility",
+              "n": 6144,
+              "mean": 0.2646605968475342,
+              "median": 0.05298041179776192,
+              "p90": 0.7245990633964539,
+              "p95": 0.9207078814506531,
+              "p99": 1.0,
+              "high_frac_065": 0.19742838541666666,
+              "high_frac_080": 0.09244791666666667
+            },
+            "high_depth_risk_frac_supported": 0.19742838541666666
+          }
+        ]
+      },
+      "runtime_s": {
+        "load_frame": 0.186,
+        "project": 1.73,
+        "source_risk": 1.944,
+        "lidar_depth": 1.465,
+        "repair": 1.442
+      },
+      "outputs": {
+        "review": "0bae3b5e_a030_clean_far_depth_visibility_review_1024.jpg",
+        "crop_review": "0bae3b5e_a030_clean_far_depth_visibility_crop_review.jpg",
+        "hard_select": "0bae3b5e_a030_clean_far_hard_select_1024.jpg",
+        "depth_risk_overlay": "0bae3b5e_a030_clean_far_depth_risk_overlay_1024.jpg",
+        "depth_risk_heat": "0bae3b5e_a030_clean_far_depth_risk_heat_1024.jpg"
+      }
+    }
+  ],
+  "aggregate": {
+    "n_cases": 3,
+    "mean_lidar_supported_frac_of_band": 0.49257085094264924,
+    "mean_high_depth_risk_frac_supported": 0.28598696130309703,
+    "mean_source_gate_dY_reduction": 0.1594408232547315,
+    "mean_depth_gate_dY_reduction": 0.10850833405728065
+  }
+}

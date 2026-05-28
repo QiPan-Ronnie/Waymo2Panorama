@@ -1,5 +1,50 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~08:10 UTC - [LiDAR depth-visibility seam probe: POS as risk metadata / weak NEG as repair.]
+> - **Purpose**: revisit depth without repeating the failed N1 depth-renderer path. Use AV2 LiDAR only as seam-band visibility metadata: adjacent-camera baseline / LiDAR depth estimates near-parallax risk, local depth span estimates occlusion/discontinuity risk, and missing LiDAR support is marked as unknown. Final panorama remains L1 `hard_select`; the only repair tested is the existing Y-only local seam polish with an additional depth-risk veto.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/depth_visibility_seam_probe.py
+>   deliverables/depth_visibility_seam_probe/batch_summary.json
+>   deliverables/depth_visibility_seam_probe/depth_visibility_three_anchor_compact_review.jpg
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/depth_visibility_seam_probe_v1/
+>   ```
+> - **A100 / Drive jobs**:
+>   ```text
+>   first run job: 7149141761b34ca39fee9c931d328767
+>     verified A100, pulled main, then failed because fresh runtime lacked av2
+>   rerun job: b30a0c326ce94992a078da4ab58ff1c5
+>     installed av2, ran 02a00399:0, fbee355f:95, 0bae3b5e:30
+>   ```
+> - **Diagnostics**:
+>   ```text
+>   Aggregate over 3 anchors:
+>     LiDAR-supported seam-band fraction = 49.26%
+>     high-depth-risk fraction of supported seam = 28.60%
+>     source-risk Y repair mean dY reduction = 15.94%
+>     depth-veto Y repair mean dY reduction = 10.85%
+> 
+>   02a00399_a000_bmw:
+>     support 44.97%, high-depth-risk 33.17%
+>     hard mean dY 15.40 -> source-gate 13.83 (-10.17%)
+>     hard mean dY 15.40 -> depth-gate 14.62 (-5.02%)
+>     corr(depth risk, source/structure/color risk) = 0.048 / 0.027 / 0.191
+> 
+>   fbee355f_a095_ped_obj:
+>     support 51.23%, high-depth-risk 28.10%
+>     hard mean dY 28.07 -> source-gate 22.81 (-18.73%)
+>     hard mean dY 28.07 -> depth-gate 24.54 (-12.56%)
+>     corr(depth risk, source/structure/color risk) = -0.038 / 0.043 / 0.131
+> 
+>   0bae3b5e_a030_clean_far:
+>     support 51.57%, high-depth-risk 24.53%
+>     hard mean dY 24.41 -> source-gate 19.79 (-18.93%)
+>     hard mean dY 24.41 -> depth-gate 20.76 (-14.97%)
+>     corr(depth risk, source/structure/color risk) = -0.111 / -0.035 / 0.033
+>   ```
+> - **Visual finding**: depth-risk overlays correctly highlight near/unknown LiDAR-support seam strips, especially ground/curb/foreground zones, but they do not tell us which camera has the correct appearance and they do not align the road/lane/building geometry by themselves. The depth-veto version is safer but weaker: it intentionally refuses to color-polish many high-parallax regions, so it preserves more hard_select geometry at the cost of less seam-gap reduction.
+> - **Conclusion**: [POS as diagnostic / weak NEG as repair] This is the right way to reintroduce depth: use it as visibility/risk metadata, not as a direct projection surface. It does not solve the seam, but it strengthens the paper/Bosch story: depth can flag where 2D seam polish is unsafe. A real depth-based solver would need dense layer/visibility/source reasoning; sparse LiDAR veto alone should not be tuned further as a stitcher.
+
 > ### 2026-05-28 ~07:35 UTC - [Sparse stereo v5 external validation on YOLO-selected ghosty anchor: NEG.]
 > - **Purpose**: avoid retesting the same BMW/fbee95 cases. First run YOLO ghost scoring on fbee stride-5 anchors, then test the most ghost-likely anchor with existing source-faithful sparse-stereo displacement v5.
 > - **Code / artifacts**:
