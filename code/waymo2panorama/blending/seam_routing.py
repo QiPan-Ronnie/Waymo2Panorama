@@ -30,6 +30,7 @@ class SeamRouteConfig:
     edge_weight: float = 2.0
     reliability_weight: float = 0.8
     center_weight: float = 0.5
+    external_weight: float = 0.0
     canny_low: int = 60
     canny_high: int = 150
     edge_dilate: int = 5
@@ -80,6 +81,7 @@ def build_seam_route_cost(
     band: np.ndarray,
     signed: np.ndarray,
     cfg: SeamRouteConfig,
+    external_cost: np.ndarray | None = None,
 ) -> np.ndarray:
     """Build the content/structure cost used by DP inside `band`."""
     valid = band.astype(bool)
@@ -113,6 +115,11 @@ def build_seam_route_cost(
         + cfg.reliability_weight * reliability_penalty
         + cfg.center_weight * center
     )
+    if external_cost is not None and cfg.external_weight > 0:
+        if external_cost.shape != weight_a.shape:
+            raise ValueError(f"external_cost shape {external_cost.shape} != {weight_a.shape}")
+        ext = _norm01(external_cost.astype(np.float32), valid)
+        cost = cost + cfg.external_weight * ext
     cost = np.where(valid, cost, np.inf).astype(np.float32)
     return cost
 
@@ -208,6 +215,7 @@ def route_pair_seam(
     slab_b: np.ndarray,
     weight_b: np.ndarray,
     cfg: SeamRouteConfig | None = None,
+    external_cost: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, dict]:
     """Route a seam for one adjacent pair.
 
@@ -238,7 +246,16 @@ def route_pair_seam(
             },
         )
 
-    cost = build_seam_route_cost(slab_a, weight_a, slab_b, weight_b, band, signed, cfg)
+    cost = build_seam_route_cost(
+        slab_a,
+        weight_a,
+        slab_b,
+        weight_b,
+        band,
+        signed,
+        cfg,
+        external_cost=external_cost,
+    )
     yy, xx = np.where(band)
     y0, y1 = int(yy.min()), int(yy.max()) + 1
     x0, x1 = int(xx.min()), int(xx.max()) + 1
@@ -277,6 +294,7 @@ def route_pair_seam(
         if path_valid.any()
         else None,
         "edge_cross_count": int((edge_full & seam_mask).sum()),
+        "external_weight": float(cfg.external_weight),
         "status": "ok",
     }
     return assign_a, band, seam_mask, diag
@@ -287,6 +305,7 @@ def blend_seam_routing(
     weights: Sequence[np.ndarray],
     ring_pairs: Sequence[tuple[int, int]] = RING_PAIRS,
     return_diagnostics: bool = False,
+    external_cost: np.ndarray | None = None,
     **kwargs,
 ) -> np.ndarray | tuple[np.ndarray, dict]:
     """Hard-select panorama with DP-routed seams inside adjacent overlaps."""
@@ -312,6 +331,7 @@ def blend_seam_routing(
             work_slabs[j],
             work_weights[j],
             cfg=cfg,
+            external_cost=external_cost,
         )
         mutable = pair_band & ((base_label == i) | (base_label == j))
         routed_label[mutable & assign_a] = i

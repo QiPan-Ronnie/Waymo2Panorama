@@ -63,3 +63,28 @@ def test_blend_seam_routing_is_hard_selected():
     assert np.all(from_a | from_b)
     # It should still be a hard selector, not a blended average.
     assert not np.any((~from_a) & (~from_b))
+
+
+def test_blend_seam_routing_accepts_external_cost():
+    h, w = 32, 64
+    yy, xx = np.mgrid[:h, :w]
+    slab_a = np.dstack([np.full((h, w), 150), xx * 2, yy * 4]).astype(np.float32)
+    slab_b = np.dstack([xx * 2, np.full((h, w), 140), yy * 4]).astype(np.float32)
+    wa = np.clip(1.0 - (xx - 20) / 24.0, 0, 1).astype(np.float32)
+    wb = np.clip((xx - 20) / 24.0, 0, 1).astype(np.float32)
+    external = np.zeros((h, w), dtype=np.float32)
+    external[:, 30:34] = 1.0
+
+    out, diag = blend_seam_routing(
+        [slab_a, slab_b],
+        [wa, wb],
+        ring_pairs=[(0, 1)],
+        return_diagnostics=True,
+        band_half_width=12,
+        max_step=3,
+        external_cost=external,
+        external_weight=4.0,
+    )
+    assert out.shape == slab_a.shape
+    assert diag["pairs"][0]["external_weight"] == 4.0
+    assert diag["seam_mask_pixels"] > 0
