@@ -1,5 +1,52 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~06:35 UTC - [Temporal ego-motion ground seam probe: new information source, still NEG as seam solver.]
+> - **Purpose**: test a non-DL route that changes the information source instead of tuning the same seam picker. For lower-half ERP seam bands, intersect target rays with a local ground plane, transform points through AV2 ego poses into nearby 20Hz frames, sample adjacent ring cameras, and replace only seam-band pixels where multiple temporal samples agree.
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/test_temporal_ground_seam.py
+>   deliverables/temporal_ground_seam/three_anchor_v1/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/
+>   ```
+> - **A100 / Drive job**:
+>   ```text
+>   job id: a143cee76b954b3aa66077da83afddab
+>   cases: 02a00399:0:bmw, fbee355f:95:ped_obj, 0bae3b5e:30:clean_far
+>   offsets: -2,-1,+1,+2; erp=1024x2048; band_half_width=48; core_half_width=3
+>   ```
+> - **Hard_select sanity check during user review**:
+>   ```text
+>   v14 DiT input vs live rerender hard_select: diff_max=0, diff_mean=0.0
+>   v14 input vs old deliverables/hard_select/full_compare.png bottom row: MAE ~1.05/255
+>   ```
+>   The apparent "left2 -> 3" hard_select mismatch is not a new regression. It was already in the older accepted hard_select; the latest crop review magnifies a different seam than the earlier BMW/SUV ghost crop. Hard_select fixes view-mixing ghost, not parallax geometry between different optical centers.
+> - **Representative metrics**:
+>   ```text
+>   02a00399_a000_bmw:
+>     offsets ok: +1/+2, ego_delta 0.493m/0.977m
+>     replace 28,331 px = 36.0% of seam band
+>     hard_select NCC/SSD 1.0000 / 0.00
+>     temporal_repair NCC/SSD 0.8583 / 49.59
+>     base-vs-temporal Y diff p50/p90 = 63 / 195
+>   fbee355f_a095_ped_obj:
+>     offsets ok: -2/-1/+1/+2, ego_delta 0.445m-0.900m
+>     replace 32,127 px = 40.7% of seam band
+>     hard_select NCC/SSD 0.9956 / 0.00
+>     temporal_repair NCC/SSD 0.8015 / 68.94
+>     base-vs-temporal Y diff p50/p90 = 32 / 121
+>   0bae3b5e_a030_clean_far:
+>     offsets ok: -2/-1/+1/+2, ego_delta 0.272m-0.560m
+>     replace 32,664 px = 41.3% of seam band
+>     hard_select NCC/SSD 0.9997 / 0.00
+>     temporal_repair NCC/SSD 0.7588 / 116.97
+>     base-vs-temporal Y diff p50/p90 = 52 / 147
+>   ```
+> - **Visual finding**:
+>   - BMW: temporal consensus contains only ground-aligned strips; vehicles/buildings are squeezed or dragged. Repair inserts visible rectangular ground strips and does not fix the BMW/building seam.
+>   - fbee: pedestrians, poles, and sidewalk structure smear under ground-plane temporal sampling. Repair creates obvious pasted bands.
+>   - 0bae: even cleaner far-field scenes get road/building strip artifacts; the NCC drop matches the visual result.
+> - **Conclusion**: [NEG / diagnostic only] Temporal ego-motion provides real new evidence for static ground, but a single ground plane is too narrow for the panorama seam. It cannot repair objects, facades, poles, or vertical structure and degrades source fidelity. Do not promote as a solver; at most keep as evidence that a useful temporal route would need layered/object/depth reasoning, not one-plane replacement.
+
 > ### 2026-05-28 ~05:45 UTC - [DiT360 v14 tri-map latent clamp: no breakthrough; hard_select input verified unchanged.]
 > - **Purpose**: test whether DiT360 can keep source fidelity while filling only the seam by constraining denoising with a 3-zone mask:
 >   ```text

@@ -4,17 +4,18 @@
 
 ---
 
-## Current Seam State (2026-05-27)
+## Current Seam State (2026-05-28)
 
 Read `handoff.md` first, then the top of `progress.md`.
 
 - **Safest visual baseline**: AV2 raw L1 `hard_select`. It removes multiband ghost/halo and avoids near-field OF fragmentation.
-- **No-DL seam fixes tested**: calibration BA, fixed-radius sphere, multi-radius selection, seam-local ECC, and DP seam-routing are all NEG or weak MIXED. They do not beat L1 `hard_select`.
+- **No-DL / source-faithful seam fixes tested**: calibration BA, fixed-radius sphere, multi-radius selection, seam-local ECC, DP seam-routing, region-coherent/component repair, DiT-as-oracle source selection, and temporal ego-motion ground replacement are all NEG or weak MIXED. They do not beat L1 `hard_select`.
 - **Stage A latest**: DP seam-routing v2 moves the hard seam path only, but still cuts visible cars/people/lane structures. Evidence: `deliverables/seam_routing_v2/three_anchor_v1_review/`.
-- **Stage B latest**: DiT360 has been pushed through raw masked completion, post/soft/evidence/fidelity compose, multi-seed, adaptive masks, low-frequency residual, residual-multiband, Poisson/gradient-domain gated compose, and DiT-as-oracle source selection. Safe variants preserve evidence but stay close to hard_select; loose variants look smoother by blurring/rewriting cars, lane lines, pillars, and buildings. DiT-as-oracle stays source-faithful but creates blocky source swaps and still loses to hard_select. It is **NEG as the Bosch training-data solver**, useful only as a qualitative/color-prior baseline. Evidence: `deliverables/dit360_seam_completion/runs_v10_*`, `runs_v11_*`, `runs_v12_residual_multiband/`, `runs_v13_poisson_gate/`, plus `deliverables/dit360_oracle_source/three_anchor_v1/`.
-- **Recommendation**: keep L1 `hard_select` as the conservative training-data baseline; use DiT360 only as qualitative generative baseline / negative evidence unless a future constrained-editing variant proves fidelity.
+- **Stage B latest**: DiT360 has been pushed through raw masked completion, post/soft/evidence/fidelity compose, multi-seed, adaptive masks, low-frequency residual, residual-multiband, Poisson/gradient-domain gated compose, DiT-as-oracle source selection, and v14 tri-map latent clamp. Safe variants preserve evidence but stay close to hard_select; loose/raw variants look smoother by blurring/rewriting cars, lane lines, pillars, and buildings. It is **NEG as the Bosch training-data solver**, useful only as a qualitative/color-prior baseline. Evidence: `deliverables/dit360_seam_completion/runs_v10_*`, `runs_v11_*`, `runs_v12_residual_multiband/`, `runs_v13_poisson_gate/`, `runs_v14_trimap_clamp_*`, plus `deliverables/dit360_oracle_source/three_anchor_v1/`.
+- **Temporal latest**: `scripts/phase3/test_temporal_ground_seam.py` uses nearby AV2 frames + ego poses to fill seam-band ground strips. It is a real new-information route, but one ground plane drags cars/pedestrians/facades and drops NCC versus hard_select. Evidence: `deliverables/temporal_ground_seam/three_anchor_v1/`.
+- **Recommendation**: keep L1 `hard_select` as the conservative training-data baseline; pair it with seam confidence/risk metadata and optional risk-gated Y-only color polish. Use DiT360/temporal-ground outputs as qualitative baselines or negative evidence, not production stitchers.
 
-Most recent execution plan: `plans/2026-05-27-seam-routing-dit360-goal.md`.
+Most recent execution plan: `plans/2026-05-27-seam-routing-dit360-goal.md` plus the temporal-ground follow-up recorded at the top of `progress.md`.
 
 ---
 
@@ -92,7 +93,7 @@ Everything else is historical context (`2026-05-15-brainstorm-survey.md` for the
 
 ## Active project plan
 
-Most recent concrete plan: `plans/2026-05-27-seam-routing-dit360-goal.md`. Its Stage A and Stage B tasks are completed and documented at the top of `progress.md`.
+Most recent concrete plan: `plans/2026-05-27-seam-routing-dit360-goal.md`. Its Stage A and Stage B tasks are completed, and the temporal-ground follow-up is documented at the top of `progress.md`.
 
 ## Parent project
 

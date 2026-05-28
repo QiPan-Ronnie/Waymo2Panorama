@@ -1,0 +1,156 @@
+{
+  "run_name": "0bae3b5e_a030_clean_far",
+  "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8",
+  "anchor_idx": 30,
+  "anchor_timestamp_ns": 315969525849927212,
+  "target_pose_timestamp_ns": 315969525849927212,
+  "erp_hw": [
+    1024,
+    2048
+  ],
+  "panorama_center_z": 1.3787067176088592,
+  "offsets": [
+    {
+      "offset": -2,
+      "status": "ok",
+      "src_anchor": 28,
+      "valid_frac": 0.12822246551513672,
+      "valid_px": 268902,
+      "ego_delta_m": 0.5599936979326086,
+      "pose_dt_ms": -99.999994
+    },
+    {
+      "offset": -1,
+      "status": "ok",
+      "src_anchor": 29,
+      "valid_frac": 0.1313920021057129,
+      "valid_px": 275549,
+      "ego_delta_m": 0.2816620420625835,
+      "pose_dt_ms": -49.999993
+    },
+    {
+      "offset": 1,
+      "status": "ok",
+      "src_anchor": 31,
+      "valid_frac": 0.14218711853027344,
+      "valid_px": 298188,
+      "ego_delta_m": 0.2720673086038135,
+      "pose_dt_ms": 50.000006
+    },
+    {
+      "offset": 2,
+      "status": "ok",
+      "src_anchor": 32,
+      "valid_frac": 0.15079593658447266,
+      "valid_px": 316242,
+      "ego_delta_m": 0.5531496729365935,
+      "pose_dt_ms": 100.000003
+    }
+  ],
+  "seam": {
+    "band_half_width": 48,
+    "core_half_width": 3,
+    "y_min_frac": 0.4,
+    "band_px": 79119,
+    "core_px": 11014,
+    "pair_diags": [
+      {
+        "pair": [
+          0,
+          1
+        ],
+        "band_px": 13158,
+        "core_px": 1529
+      },
+      {
+        "pair": [
+          1,
+          2
+        ],
+        "band_px": 11585,
+        "core_px": 1722
+      },
+      {
+        "pair": [
+          2,
+          3
+        ],
+        "band_px": 11147,
+        "core_px": 1629
+      },
+      {
+        "pair": [
+          0,
+          6
+        ],
+        "band_px": 13726,
+        "core_px": 1618
+      },
+      {
+        "pair": [
+          6,
+          5
+        ],
+        "band_px": 11755,
+        "core_px": 1727
+      },
+      {
+        "pair": [
+          5,
+          4
+        ],
+        "band_px": 11359,
+        "core_px": 1636
+      },
+      {
+        "pair": [
+          3,
+          4
+        ],
+        "band_px": 6389,
+        "core_px": 1153
+      }
+    ]
+  },
+  "repair": {
+    "min_count": 2,
+    "max_temporal_y_std": 18.0,
+    "max_base_temporal_y_diff": 45.0,
+    "replace_px": 32664,
+    "replace_frac_erp": 0.015575408935546875,
+    "replace_frac_seam_band": 0.4128464717703712,
+    "temporal_count_mean_in_band": 2.0095931445038486,
+    "temporal_y_std_p50_in_band": 26.195180892944336,
+    "temporal_y_std_p90_in_band": 255.0,
+    "base_temporal_y_diff_p50_in_band": 52.0,
+    "base_temporal_y_diff_p90_in_band": 147.0
+  },
+  "fidelity": {
+    "changed_px": 32594,
+    "changed_frac": 0.015542030334472656,
+    "mae_vs_hard_select_all": 0.2196013182401657,
+    "mae_vs_hard_select_changed": 14.129512786865234
+  },
+  "scores": {
+    "hard_select": {
+      "total_overlap_px": 88415,
+      "mean_ncc_pano_vs_winner": 0.9996606951553223,
+      "mean_ncc_winner_vs_loser": 0.16722127114293742,
+      "mean_ssd_pano_vs_winner": 0.0
+    },
+    "temporal_repair": {
+      "total_overlap_px": 88415,
+      "mean_ncc_pano_vs_winner": 0.7588175966392738,
+      "mean_ncc_winner_vs_loser": 0.16722127114293742,
+      "mean_ssd_pano_vs_winner": 116.97160049573954
+    }
+  },
+  "runtime_s": 24.58,
+  "outputs": {
+    "hard_select": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_hard_select.jpg",
+    "temporal_consensus": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_temporal_consensus.jpg",
+    "temporal_repair": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_temporal_repair.jpg",
+    "crop_review": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_crop_review.jpg",
+    "overall_review": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_overall_review.jpg"
+  }
+}

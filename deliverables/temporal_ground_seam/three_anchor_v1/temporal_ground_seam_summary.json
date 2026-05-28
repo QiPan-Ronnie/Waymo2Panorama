@@ -1,0 +1,462 @@
+{
+  "cases": [
+    {
+      "run_name": "02a00399_a000_bmw",
+      "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor_idx": 0,
+      "anchor_timestamp_ns": 315966070549927210,
+      "target_pose_timestamp_ns": 315966070549927210,
+      "erp_hw": [
+        1024,
+        2048
+      ],
+      "panorama_center_z": 1.4442600832419257,
+      "offsets": [
+        {
+          "offset": -2,
+          "status": "out_of_range"
+        },
+        {
+          "offset": -1,
+          "status": "out_of_range"
+        },
+        {
+          "offset": 1,
+          "status": "ok",
+          "src_anchor": 1,
+          "valid_frac": 0.1453227996826172,
+          "valid_px": 304764,
+          "ego_delta_m": 0.4932328079834297,
+          "pose_dt_ms": 50.000005
+        },
+        {
+          "offset": 2,
+          "status": "ok",
+          "src_anchor": 2,
+          "valid_frac": 0.16287469863891602,
+          "valid_px": 341573,
+          "ego_delta_m": 0.9771566507832882,
+          "pose_dt_ms": 100.000002
+        }
+      ],
+      "seam": {
+        "band_half_width": 48,
+        "core_half_width": 3,
+        "y_min_frac": 0.4,
+        "band_px": 78651,
+        "core_px": 10885,
+        "pair_diags": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "band_px": 13759,
+            "core_px": 1666
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "band_px": 10831,
+            "core_px": 1685
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "band_px": 11119,
+            "core_px": 1610
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "band_px": 13214,
+            "core_px": 1561
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "band_px": 12442,
+            "core_px": 1736
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "band_px": 11533,
+            "core_px": 1636
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "band_px": 5753,
+            "core_px": 991
+          }
+        ]
+      },
+      "repair": {
+        "min_count": 2,
+        "max_temporal_y_std": 18.0,
+        "max_base_temporal_y_diff": 45.0,
+        "replace_px": 28331,
+        "replace_frac_erp": 0.013509273529052734,
+        "replace_frac_seam_band": 0.36021156755794587,
+        "temporal_count_mean_in_band": 0.9571906269468919,
+        "temporal_y_std_p50_in_band": 255.0,
+        "temporal_y_std_p90_in_band": 255.0,
+        "base_temporal_y_diff_p50_in_band": 63.0,
+        "base_temporal_y_diff_p90_in_band": 195.0
+      },
+      "fidelity": {
+        "changed_px": 28092,
+        "changed_frac": 0.013395309448242188,
+        "mae_vs_hard_select_all": 0.13319523632526398,
+        "mae_vs_hard_select_changed": 9.943424224853516
+      },
+      "scores": {
+        "hard_select": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 1.0,
+          "mean_ncc_winner_vs_loser": 0.22952437885095484,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "temporal_repair": {
+          "total_overlap_px": 88288,
+          "mean_ncc_pano_vs_winner": 0.8582672638857103,
+          "mean_ncc_winner_vs_loser": 0.22952437885095484,
+          "mean_ssd_pano_vs_winner": 49.58918575911731
+        }
+      },
+      "runtime_s": 14.882,
+      "outputs": {
+        "hard_select": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/02a00399_a000_bmw/02a00399_a000_bmw_hard_select.jpg",
+        "temporal_consensus": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/02a00399_a000_bmw/02a00399_a000_bmw_temporal_consensus.jpg",
+        "temporal_repair": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/02a00399_a000_bmw/02a00399_a000_bmw_temporal_repair.jpg",
+        "crop_review": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/02a00399_a000_bmw/02a00399_a000_bmw_crop_review.jpg",
+        "overall_review": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/02a00399_a000_bmw/02a00399_a000_bmw_overall_review.jpg"
+      }
+    },
+    {
+      "run_name": "fbee355f_a095_ped_obj",
+      "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/fbee355f-8878-31fa-8ac8-b9a45a3f130a",
+      "anchor_idx": 95,
+      "anchor_timestamp_ns": 315967345949927217,
+      "target_pose_timestamp_ns": 315967345949927217,
+      "erp_hw": [
+        1024,
+        2048
+      ],
+      "panorama_center_z": 1.4066365725194574,
+      "offsets": [
+        {
+          "offset": -2,
+          "status": "ok",
+          "src_anchor": 93,
+          "valid_frac": 0.12798690795898438,
+          "valid_px": 268408,
+          "ego_delta_m": 0.8995906588050668,
+          "pose_dt_ms": -99.999999
+        },
+        {
+          "offset": -1,
+          "status": "ok",
+          "src_anchor": 94,
+          "valid_frac": 0.13110876083374023,
+          "valid_px": 274955,
+          "ego_delta_m": 0.4447536787375834,
+          "pose_dt_ms": -49.999997
+        },
+        {
+          "offset": 1,
+          "status": "ok",
+          "src_anchor": 96,
+          "valid_frac": 0.1484661102294922,
+          "valid_px": 311356,
+          "ego_delta_m": 0.45183806993822184,
+          "pose_dt_ms": 50.000002
+        },
+        {
+          "offset": 2,
+          "status": "ok",
+          "src_anchor": 97,
+          "valid_frac": 0.1628737449645996,
+          "valid_px": 341571,
+          "ego_delta_m": 0.8950944805479903,
+          "pose_dt_ms": 99.999994
+        }
+      ],
+      "seam": {
+        "band_half_width": 48,
+        "core_half_width": 3,
+        "y_min_frac": 0.4,
+        "band_px": 78948,
+        "core_px": 10819,
+        "pair_diags": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "band_px": 13240,
+            "core_px": 1558
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "band_px": 12060,
+            "core_px": 1712
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "band_px": 11314,
+            "core_px": 1632
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "band_px": 13037,
+            "core_px": 1520
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "band_px": 12266,
+            "core_px": 1713
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "band_px": 11086,
+            "core_px": 1643
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "band_px": 5945,
+            "core_px": 1041
+          }
+        ]
+      },
+      "repair": {
+        "min_count": 2,
+        "max_temporal_y_std": 18.0,
+        "max_base_temporal_y_diff": 45.0,
+        "replace_px": 32127,
+        "replace_frac_erp": 0.015319347381591797,
+        "replace_frac_seam_band": 0.4069387444900441,
+        "temporal_count_mean_in_band": 2.0304757561939506,
+        "temporal_y_std_p50_in_band": 27.73479461669922,
+        "temporal_y_std_p90_in_band": 255.0,
+        "base_temporal_y_diff_p50_in_band": 32.0,
+        "base_temporal_y_diff_p90_in_band": 121.0
+      },
+      "fidelity": {
+        "changed_px": 31812,
+        "changed_frac": 0.015169143676757812,
+        "mae_vs_hard_select_all": 0.1576436311006546,
+        "mae_vs_hard_select_changed": 10.392388343811035
+      },
+      "scores": {
+        "hard_select": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.9955695797901719,
+          "mean_ncc_winner_vs_loser": 0.21067841143188704,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "temporal_repair": {
+          "total_overlap_px": 87802,
+          "mean_ncc_pano_vs_winner": 0.8015313073139072,
+          "mean_ncc_winner_vs_loser": 0.21067841143188704,
+          "mean_ssd_pano_vs_winner": 68.94047994536095
+        }
+      },
+      "runtime_s": 23.919,
+      "outputs": {
+        "hard_select": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/fbee355f_a095_ped_obj/fbee355f_a095_ped_obj_hard_select.jpg",
+        "temporal_consensus": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/fbee355f_a095_ped_obj/fbee355f_a095_ped_obj_temporal_consensus.jpg",
+        "temporal_repair": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/fbee355f_a095_ped_obj/fbee355f_a095_ped_obj_temporal_repair.jpg",
+        "crop_review": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/fbee355f_a095_ped_obj/fbee355f_a095_ped_obj_crop_review.jpg",
+        "overall_review": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/fbee355f_a095_ped_obj/fbee355f_a095_ped_obj_overall_review.jpg"
+      }
+    },
+    {
+      "run_name": "0bae3b5e_a030_clean_far",
+      "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8",
+      "anchor_idx": 30,
+      "anchor_timestamp_ns": 315969525849927212,
+      "target_pose_timestamp_ns": 315969525849927212,
+      "erp_hw": [
+        1024,
+        2048
+      ],
+      "panorama_center_z": 1.3787067176088592,
+      "offsets": [
+        {
+          "offset": -2,
+          "status": "ok",
+          "src_anchor": 28,
+          "valid_frac": 0.12822246551513672,
+          "valid_px": 268902,
+          "ego_delta_m": 0.5599936979326086,
+          "pose_dt_ms": -99.999994
+        },
+        {
+          "offset": -1,
+          "status": "ok",
+          "src_anchor": 29,
+          "valid_frac": 0.1313920021057129,
+          "valid_px": 275549,
+          "ego_delta_m": 0.2816620420625835,
+          "pose_dt_ms": -49.999993
+        },
+        {
+          "offset": 1,
+          "status": "ok",
+          "src_anchor": 31,
+          "valid_frac": 0.14218711853027344,
+          "valid_px": 298188,
+          "ego_delta_m": 0.2720673086038135,
+          "pose_dt_ms": 50.000006
+        },
+        {
+          "offset": 2,
+          "status": "ok",
+          "src_anchor": 32,
+          "valid_frac": 0.15079593658447266,
+          "valid_px": 316242,
+          "ego_delta_m": 0.5531496729365935,
+          "pose_dt_ms": 100.000003
+        }
+      ],
+      "seam": {
+        "band_half_width": 48,
+        "core_half_width": 3,
+        "y_min_frac": 0.4,
+        "band_px": 79119,
+        "core_px": 11014,
+        "pair_diags": [
+          {
+            "pair": [
+              0,
+              1
+            ],
+            "band_px": 13158,
+            "core_px": 1529
+          },
+          {
+            "pair": [
+              1,
+              2
+            ],
+            "band_px": 11585,
+            "core_px": 1722
+          },
+          {
+            "pair": [
+              2,
+              3
+            ],
+            "band_px": 11147,
+            "core_px": 1629
+          },
+          {
+            "pair": [
+              0,
+              6
+            ],
+            "band_px": 13726,
+            "core_px": 1618
+          },
+          {
+            "pair": [
+              6,
+              5
+            ],
+            "band_px": 11755,
+            "core_px": 1727
+          },
+          {
+            "pair": [
+              5,
+              4
+            ],
+            "band_px": 11359,
+            "core_px": 1636
+          },
+          {
+            "pair": [
+              3,
+              4
+            ],
+            "band_px": 6389,
+            "core_px": 1153
+          }
+        ]
+      },
+      "repair": {
+        "min_count": 2,
+        "max_temporal_y_std": 18.0,
+        "max_base_temporal_y_diff": 45.0,
+        "replace_px": 32664,
+        "replace_frac_erp": 0.015575408935546875,
+        "replace_frac_seam_band": 0.4128464717703712,
+        "temporal_count_mean_in_band": 2.0095931445038486,
+        "temporal_y_std_p50_in_band": 26.195180892944336,
+        "temporal_y_std_p90_in_band": 255.0,
+        "base_temporal_y_diff_p50_in_band": 52.0,
+        "base_temporal_y_diff_p90_in_band": 147.0
+      },
+      "fidelity": {
+        "changed_px": 32594,
+        "changed_frac": 0.015542030334472656,
+        "mae_vs_hard_select_all": 0.2196013182401657,
+        "mae_vs_hard_select_changed": 14.129512786865234
+      },
+      "scores": {
+        "hard_select": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.9996606951553223,
+          "mean_ncc_winner_vs_loser": 0.16722127114293742,
+          "mean_ssd_pano_vs_winner": 0.0
+        },
+        "temporal_repair": {
+          "total_overlap_px": 88415,
+          "mean_ncc_pano_vs_winner": 0.7588175966392738,
+          "mean_ncc_winner_vs_loser": 0.16722127114293742,
+          "mean_ssd_pano_vs_winner": 116.97160049573954
+        }
+      },
+      "runtime_s": 24.58,
+      "outputs": {
+        "hard_select": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_hard_select.jpg",
+        "temporal_consensus": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_temporal_consensus.jpg",
+        "temporal_repair": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_temporal_repair.jpg",
+        "crop_review": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_crop_review.jpg",
+        "overall_review": "/content/drive/MyDrive/koi_waymo2pano_colab/results/temporal_ground_seam_v1/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_overall_review.jpg"
+      }
+    }
+  ]
+}
