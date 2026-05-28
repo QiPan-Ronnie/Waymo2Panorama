@@ -1,5 +1,54 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~03:35 UTC - [DiT360 v12/v13 composition pushed to the limit: safer, but still cosmetic; geometry seam remains unsolved.]
+> - **Purpose**: answer the user's observation that `r008/tau5 raw` looks smoother than strict post-compose. Two final composition tests were run without regenerating DiT samples:
+>   ```text
+>   v12 residual multiband: raw - hard_select split into low/mid/high bands, source-edge/diff gated.
+>   v13 Poisson gate: OpenCV seamlessClone proposal, Y-only/RGB/loose presets, then source-edge/diff/fidelity gating.
+>   ```
+> - **Code / artifacts**:
+>   ```text
+>   scripts/phase3/dit360_residual_multiband_compose.py
+>   scripts/phase3/dit360_poisson_gate_compose.py
+>   deliverables/dit360_seam_completion/runs_v12_residual_multiband/
+>   deliverables/dit360_seam_completion/runs_v13_poisson_gate/
+>   ```
+> - **Drive outputs**:
+>   ```text
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v12_residual_multiband/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/runs_v13_poisson_gate/
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/transfers/v12_v13_selected_artifacts.zip
+>   ```
+> - **A100/Colab**:
+>   ```text
+>   v13 job id: a2d2cd1bf0bb40cc92ac1774767fc99c
+>   runtime: A100 40GB; OpenCV composition only, no new DiT inference
+>   n_runs: 21
+>   ```
+> - **v13 representative metrics, color_r008 tau5 masks**:
+>   ```text
+>   BMW 02a00399_a000:
+>     raw preserve MAE 3.969
+>     poisson_y_safe       preserve 0.121, core 7.09 / raw 39.02, edge 0.97 / raw 19.96, boundary 6.63 / raw 19.38
+>     poisson_rgb_balanced preserve 0.186, core 9.88 / raw 39.02, edge 1.52 / raw 19.96, boundary 8.91 / raw 19.38
+>     poisson_mixed_loose  preserve 0.280, core 17.52 / raw 39.02, edge 3.54 / raw 19.96, boundary 12.52 / raw 19.38
+>   fbee355f_a095:
+>     raw preserve MAE 4.460
+>     poisson_y_safe       preserve 0.081, core 6.39 / raw 45.95, edge 1.17 / raw 25.49, boundary 5.04 / raw 24.90
+>     poisson_rgb_balanced preserve 0.127, core 9.48 / raw 45.95, edge 1.83 / raw 25.49, boundary 6.99 / raw 24.90
+>     poisson_mixed_loose  preserve 0.222, core 18.87 / raw 45.95, edge 4.28 / raw 25.49, boundary 12.08 / raw 24.90
+>   0bae3b5e_a030:
+>     raw preserve MAE 4.747
+>     poisson_y_safe       preserve 0.078, core 6.13 / raw 32.22, edge 1.00 / raw 22.04, boundary 4.47 / raw 18.94
+>     poisson_rgb_balanced preserve 0.118, core 8.57 / raw 32.22, edge 1.50 / raw 22.04, boundary 6.21 / raw 18.94
+>     poisson_mixed_loose  preserve 0.216, core 14.68 / raw 32.22, edge 3.24 / raw 22.04, boundary 10.23 / raw 18.94
+>   ```
+> - **Visual finding**:
+>   - `poisson_y_safe` is the safest variant: it removes most raw DiT rewriting and avoids the worst vertical smears, but visually it is very close to `hard_select`; it does not repair BMW/line/object parallax.
+>   - `poisson_rgb_balanced` and `poisson_mixed_loose` keep more of the raw smoothing, but the extra gain shows up as blur/smear around BMW, pillars, road markings, and building edges. This is still a generative patch, not source-faithful geometry.
+>   - Compared with v12 residual-multiband, v13 Poisson improves the hard post-compose boundary metric, but the improvement is cosmetic and cannot create correct geometry where the two physical cameras disagree.
+> - **Conclusion**: [FINAL NEG as main solver / MIXED as qualitative baseline] DiT360 has now been tested as raw generation, strict post-compose, soft/evidence/fidelity compose, multi-seed, adaptive masks, low-frequency residual, multiband residual, and Poisson/gradient-domain gated composition. The trade-off is stable: if we let it look good, it rewrites driving evidence; if we constrain evidence, it reverts toward hard_select and does not solve geometry. Keep DiT360 as a paper qualitative baseline or low-frequency/color-prior ablation, not as the Bosch training-data panorama generator. Next useful direction should pivot back to source-faithful L1/L2: seam confidence metadata, risk-gated local Y repair, and region/object-coherent source selection.
+
 > ### 2026-05-28 ~02:45 UTC - [DiT360 v11 generalization on fbee/0bae: confirms NEG as main solver; lowfreq remains safe but cosmetic.]
 > - **Purpose**: verify whether the BMW-only DiT360 v10 diagnosis generalizes to two different seam regimes:
 >   ```text
