@@ -1,5 +1,46 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-28 ~06:55 UTC - [Same-frame raw ground-plane seam layer: NEG; road-plane geometry creates block artifacts.]
+> - **Purpose**: test a source-faithful, no-DL geometry route for the exact hard_select left2 -> 3 road/lane mismatch the user flagged. Unlike the temporal probe, this uses only the current AV2 frame: intersect ERP rays with a local ground plane, project those 3D ground points into the real ring cameras, then replace only lower-half seam-band pixels where adjacent ground-plane samples agree.
+> - **Code / artifacts**:
+>   ```text
+>   code/waymo2panorama/projection/ground_plane_layer.py
+>   scripts/phase3/test_ground_plane_layer.py
+>   deliverables/ground_plane_layer_compact_mid_review.jpg
+>   /content/drive/MyDrive/koi_waymo2pano_colab/results/ground_plane_layer_v1/
+>   ```
+>   Full Drive outputs include per-anchor review stacks, crop stacks, overlays, diagnostics JSON, and `ground_plane_layer_v1_bundle.zip`. Colab could commit artifacts locally, but push failed because the Colab repo uses HTTPS without GitHub credentials; the compact review was pulled back through the authenticated executor instead.
+> - **A100 / Drive job**:
+>   ```text
+>   job id: 02c25d99ff3c449f9a79c91f2403d1aa
+>   cases: 02a00399:0:bmw, fbee355f:95:ped_obj, 0bae3b5e:30:clean_far
+>   erp=1024x2048; band_half_width=64; loose_band_half_width=96
+>   ```
+> - **Representative metrics**:
+>   ```text
+>   02a00399_a000_bmw:
+>     multiband NCC/SSD      0.6389 / 396.61
+>     hard_select NCC/SSD    0.9969 / 0.00
+>     ground_strict          0.9188 / 68.16
+>     ground_balanced        0.9129 / 80.99
+>     ground_loose           0.9102 / 89.91
+>   fbee355f_a095_ped_obj:
+>     hard_select            0.9874 / 0.00
+>     ground_strict          0.9488 / 37.75
+>     ground_balanced        0.9289 / 57.33
+>     ground_loose           0.9173 / 73.18
+>   0bae3b5e_a030_clean_far:
+>     hard_select            0.9934 / 0.00
+>     ground_strict          0.9319 / 98.25
+>     ground_balanced        0.9116 / 131.14
+>     ground_loose           0.8863 / 169.87
+>   ```
+> - **Visual finding**:
+>   - BMW: strict/balanced/loose can make some road markings look locally smoother, but they insert obvious rectangular ground/foreground blocks and still do not solve the car/building seam.
+>   - fbee: ground-plane replacement cuts through pedestrian/sidewalk/building context; it is safer than temporal dragging but still visibly pasted.
+>   - 0bae: even a cleaner far-field scene gets large block boundaries where the local ground-plane layer disagrees with the original hard_select slab.
+> - **Conclusion**: [NEG] The road plane is a real geometric layer, but a single same-frame ground plane is not enough for panorama seam repair. It improves the wrong subset of pixels and degrades source fidelity around vertical structure. Do not keep tuning one-plane seam replacement unless adding object/depth/layer segmentation.
+
 > ### 2026-05-28 ~06:35 UTC - [Temporal ego-motion ground seam probe: new information source, still NEG as seam solver.]
 > - **Purpose**: test a non-DL route that changes the information source instead of tuning the same seam picker. For lower-half ERP seam bands, intersect target rays with a local ground plane, transform points through AV2 ego poses into nearby 20Hz frames, sample adjacent ring cameras, and replace only seam-band pixels where multiple temporal samples agree.
 > - **Code / artifacts**:
