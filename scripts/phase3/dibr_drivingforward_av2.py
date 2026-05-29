@@ -216,7 +216,7 @@ def run(args):
                 inp = (inp * IMAGENET_STD + IMAGENET_MEAN).clip(0, 1)
                 mse = float(np.mean((ren - inp) ** 2)) + 1e-9
                 psnrs[NUSC_SLOTS[c]] = round(-10 * np.log10(mse), 2)
-                pair = np.vstack([(inp * 255).astype(np.uint8), (ren * 255).astype(np.uint8)])
+                pair = np.ascontiguousarray(np.vstack([(inp * 255).astype(np.uint8), (ren * 255).astype(np.uint8)]))
                 cv2.putText(pair, NUSC_SLOTS[c], (8, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
                 panels.append(pair)
         mont = np.hstack(panels)
