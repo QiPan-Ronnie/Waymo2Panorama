@@ -136,6 +136,13 @@ def to_depth(disp, K0_cam, H, W, min_depth=1.5, max_depth=80.0, fls=300.0):
 def run(args):
     from waymo2panorama.data_io.av2_loader import AV2RingLoader, RING_CAMS_7
     from network import DepthNetwork
+    # Stub the dataset package so importing models/* does NOT drag in the DGP/packnet dataloader chain.
+    import types
+    for _name, _attr in [("dataset", "construct_dataset")]:
+        if _name not in sys.modules:
+            _stub = types.ModuleType(_name)
+            setattr(_stub, _attr, lambda *a, **k: None)
+            sys.modules[_name] = _stub
     from models.gaussian import GaussianNetwork, depth2pc, pts2render, focal2fov, getProjectionMatrix, rotate_sh
     from einops import rearrange
 
