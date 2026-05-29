@@ -36,10 +36,14 @@ import dibr_drivingforward_av2 as dfa  # noqa: E402  (build_inputs, pick_6, to_d
 
 def lidar_depth_for_cams(frame, chosen, H, W, device, min_r=0.5, max_r=80.0):
     """Project nearest LiDAR sweep into each chosen camera -> sparse metric depth [6,1,H,W] (0=invalid)."""
-    from waymo2panorama.depth.lidar_to_erp_depth import load_lidar_sweep_nearest_to_ts
-    log_dir = frame.log_dir if hasattr(frame, "log_dir") else None
-    pts, _, _ = load_lidar_sweep_nearest_to_ts(frame._log_dir, frame.anchor_ts, max_delta_ms=75.0) \
-        if hasattr(frame, "_log_dir") else (frame.lidar_points_ego, 0, 0)
+    # Read LiDAR feather directly (av2.read_lidar_sweep needs py3.9; df is py3.8).
+    import pandas as pd
+    sweep_dir = Path(frame._log_dir) / "sensors" / "lidar"
+    sweeps = sorted(sweep_dir.glob("*.feather"))
+    tss = np.array([int(p.stem) for p in sweeps], dtype=np.int64)
+    idx = int(np.argmin(np.abs(tss - int(frame.anchor_ts))))
+    df_ = pd.read_feather(sweeps[idx])
+    pts = df_[["x", "y", "z"]].values.astype(np.float64)
     out = torch.zeros(6, 1, H, W, dtype=torch.float32, device=device)
     ranges = np.linalg.norm(pts, axis=1)
     keep = (ranges >= min_r) & (ranges <= max_r)
