@@ -1,5 +1,23 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-29 - [DIBR-on-LiDAR single-center re-render (v2: full-frame, IP-Basic depth, hybrid): NEG. Classical LiDAR depth is the wall; escalate to learned feed-forward 3DGS.]
+> - **Purpose**: first / cheapest concrete test of the single-virtual-center view-synthesis direction from the sweep. Does a real single-center re-render (not 2D seam tricks) remove the near-field ghost while staying source-faithful?
+> - **怎么做**: `scripts/phase3/dibr_lidar_single_center.py`. Per-camera image-space LiDAR depth completion (IP-Basic morphological, RGB-frame aligned) -> z-buffer into one ego-centered ERP depth -> backward-warp each ERP pixel into all 7 cameras and sample (reusing the verified `render_lidar_surface_to_erp` + per-camera z-buffer visibility) -> hybrid composite: DIBR where any camera is LiDAR-visible, legacy sphere `hard_select` elsewhere. No flow, no learned depth, no generated pixels. 3 anchors (BMW / fbee / 0bae), A100, ~85s.
+> - **结果 [NEG]**:
+>   ```text
+>   mean over 3 anchors:
+>     ERP LiDAR support frac   = 13.9%   (LiDAR is horizontal -> sky/upper hemisphere has NO returns)
+>     DIBR coverage full-frame =  6.9%   (so ~93% of the panorama falls back to sphere)
+>     DIBR coverage seam-band  = 25.4%
+>     NCC pano-vs-winner: hard_select 0.999 -> dibr_hybrid 0.685   (DOWN, worse than baseline)
+>     seam dY:            hard_select 22.6  -> dibr_hybrid 21.4     (flat)
+>   ```
+> - **Visual finding**: in the DIBR-covered near-field, the BMW SUV and road are visibly SMEARED with horizontal streaks (wrong-depth backward sampling), NOT de-ghosted; hard_select stays clean. Evidence: `deliverables/dibr_lidar_single_center/bmw_hard_vs_dibr_nearfield.jpg`; full Drive `results/dibr_lidar_single_center_v1/`.
+> - **Why it fails (two independent walls, both predicted by the sweep)**: (1) COVERAGE — LiDAR has no upper-hemisphere returns, so a LiDAR-only single-center render can never cover the full ERP; at best it is a near-field-ground patch. (2) DEPTH ACCURACY — classical IP-Basic completion bleeds depth across object/boundary transitions, so the backward warp samples wrong pixels -> smear; NCC drops below the conservative baseline. This is exactly the "stop using crude depth" throughline.
+> - **Note on the metric**: NCC-pano-vs-winner is biased toward hard_select (it compares to the sphere-projected source, which a correct single-center render must differ from); but the VISUAL smear is decisive on its own and agrees with the NCC drop.
+> - **Conclusion**: classical LiDAR-DIBR (and by extension the earlier seam-only `lidar_zbuffer` probe) is NEG as a single-center solver. A clean, useful elimination: the blocker is dense + accurate geometry, which classical LiDAR completion cannot supply. The direction is NOT dead — it points decisively to the next step.
+> - **Next**: learned feed-forward 3DGS for non-co-located AV surround cameras (DrivingForward, AAAI 2025) — predicts DENSE geometry everywhere (incl. sky/upper, not limited to LiDAR returns), learns occlusion/boundaries (no morphological smear), with AV2 LiDAR only ANCHORING scale. Render a single virtual ERP center from the Gaussians. PanSplat / MVSplat360 as ERP-render alternatives.
+
 > ### 2026-05-29 - [CV solution-space sweep (17-agent adversarial): the entire 2D/seam/flow/blend space is EXHAUSTED; ONLY single-center layered/3DGS view-synthesis can cross the parallax ceiling. NEW DIRECTION.]
 > - **Purpose**: answer rigorously, instead of inventing another seam patch — "is there ANY method in all of CV/graphics history that solves non-co-located ring-cam single-center 360 stitching, or are we truly at the physical ceiling?"
 > - **怎么做**: a 17-agent background workflow (`cv-solution-space-sweep`): 8 method families x (WebSearch-grounded literature survey -> adversarial skeptic verify), then a synthesis. Each verifier cross-checked every method against (a) the physical root cause `pixel_shift = baseline/depth * focal`, (b) the existing 18-item NEG ladder (to reject relabeled dead methods), (c) feasibility at million-frame feed-forward scale, (d) source-faithful vs generative. The synthesis agent failed to emit structured output; the 16 survey+verify results were recovered from the workflow journal and synthesized by hand. Journal: `subagents/workflows/wf_bc96dfbe-f9c/journal.jsonl`.
