@@ -1,5 +1,27 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-29 - [DrivingForward Phase 0.5: full source read, exact inference spec written. CRITICAL: depth-fusion hardcodes 6-cam nuScenes topology -> AV2 needs 7->6 map + zero-shot domain gap.]
+> - **Done**: env built+cached (prior entry), weights downloaded+unzipped (`pretrained/weights_SF/{depth_net.pth 77MB, gs_net.pth 5MB, pose_net.pth}`), and ALL relevant source read verbatim (`drivingforward_model.py`, `GaussianRender.py`, `utils.py`, `gaussian_renderer/__init__.py`, `depth_network.py`, `gaussian_network.py`, `volumetric_fusionnet.py`).
+> - **CRITICAL constraint found**: `network/volumetric_fusionnet.py::VFNet.preprocess_overlap` HARDCODES the 6-camera nuScenes overlap topology (`num_cams==6: feat1=voxel[0]+[3]+[4]; feat2=[1]+[2]+[5]`; only 3 or 6 supported, else NotImplementedError). AV2 has 7 ring cams -> must map 7->6 nuScenes slots [CAM_FRONT, CAM_FRONT_LEFT, CAM_FRONT_RIGHT, CAM_BACK_LEFT, CAM_BACK_RIGHT, CAM_BACK] by azimuth (targets ~0/+55/-55/+110/-110/180 deg; pick nearest AV2 cam per slot from T_ego_cam yaw, drop the spare). depth_net is nuScenes-trained -> AV2 run is ZERO-SHOT (domain gap on FoV/intrinsics/topology) -> quality likely needs AV2 finetune; first run is a feasibility probe, not final quality.
+> - **Exact inference spec (SF mode, bypass dataset/DGP; transcribe into `scripts/phase3/dibr_drivingforward_av2.py`)**:
+>   ```text
+>   cfg = yaml configs/nuscenes/main.yaml; set mode='eval', batch_size=1, num_cams=6, novel_view_mode='SF'.
+>   nets: DepthNetwork(cfg).cuda().eval() <- weights_SF/depth_net.pth ; GaussianNetwork(rgb_dim=3,depth_dim=1).cuda().eval() <- gs_net.pth. (ResnetEncoder from external.layers; needs PYTHONPATH=repo + repo/external/packnet_sfm + repo/external. Importing the dataset chain is NOT needed if we call nets directly.)
+>   inputs (B=1, 6 cams, H=352 W=640):
+>     ('color',0,0)=('color_aug',0,0)=[1,6,3,352,640], ImageNet-normalized (mean .485/.456/.406 std .229/.224/.225); RGB.
+>     ('K',s),('inv_K',s) for s=0..3 = [1,6,4,4] (4x4! check: code uses K[:, :3,:3]; build 4x4 with K scaled by 1/2^s after rescaling AV2 K from native to 352x640). Fusion uses ('K',3),('inv_K',3).
+>     'extrinsics'=[1,6,4,4]=cam->ego (AV2 T_ego_cam); 'extrinsics_inv'=inverse=ego->cam.
+>     'mask'=[1,6,1,352,640] all-ones (AV2 has no nuScenes self-occ masks; ones is fine).
+>   forward: depth_feats=depth_net(inputs) -> per-cam ('disp',0)+('img_feat',0,0)[list of 3 feats].
+>     depth=to_depth(disp,K0[cam]): min_disp=1/80,max_disp=1/1.5; disp=min_disp+(max_disp-min_disp)*disp_sigmoid; depth=(1/disp)*K[0,0]/focal_length_scale(=300).
+>     xyz=depth2pc(depth[B,1,H,W], extrinsics_inv[:,cam], K0[:,cam]) -> [B,H*W,3] in EGO frame.
+>     rot,scale,opacity,sh = gs_net(color[:,cam], depth, img_feat[cam]); sh=rotate_sh(sh, c2w_rot=extrinsics[:,cam,:3,:3]); pts_valid=(depth!=0).view(B,-1).
+>   render (single virtual ego-center -> ERP): aggregate all 6 cams' xyz/rot(perm->[-1,4])/scale([-1,3])/opacity([-1,1])/sh(rearrange "p srf r xyz d_sh->(p srf r) d_sh xyz")[valid]. Build virtual cams at ego origin (t=0): cubemap 6 faces or N yaws; R_cam_ego maps ego(x-fwd,y-left,z-up)->gsplat cam(z-fwd,x-right,y-down). world_view_transform=(ego->vcam 4x4).transpose(0,1); proj=getProjectionMatrix(znear=.01,zfar=80,K_v,h,w).transpose(0,1); full_proj=wvt.unsqueeze(0).bmm(proj.unsqueeze(0)).squeeze(0); campos=wvt.inverse()[3,:3]; FovX=focal2fov(K_v[0,0],w),FovY=focal2fov(K_v[1,1],h). render(...) per face -> cube->ERP remap. (render() sig + pts2render aggregation captured verbatim.)
+>   SANITY MILESTONE before ERP: reuse pts2render(novel_cam=cam) to re-render each of the 6 REAL views from the aggregated Gaussians and compare to input -> tells us if depth_net/gs_net generalize to AV2 (domain-gap go/no-go) before investing in cubemap ERP.
+>   ```
+> - **Status**: everything staged; adapter NOT yet written/run. Next session = transcribe spec into the script, run sanity milestone (6 real-view re-render) on BMW/fbee/0bae, then cubemap ERP if sane. Expect a few debug iterations (K-scale 4x4 vs 3x3, normalization, extrinsics direction, cubemap axes).
+> - **A100**: can be disconnected now (env cached, restores ~1 min); next step is local script-writing until the run.
+
 > ### 2026-05-29 - [DrivingForward Phase 0: feed-forward 3DGS environment BUILT on Colab (torch2.2+cu121, all 3 CUDA exts compiled) + cached to Drive. Bypass-dataset inference blueprint ready.]
 > - **Purpose**: stand up DrivingForward (AAAI 2025, feed-forward 3DGS for non-co-located AV surround cams) — the sweep's #1 single-center view-synthesis route — after classical DIBR-on-LiDAR was NEG.
 > - **Env battle + resolution (hard-won, don't repeat)**:
