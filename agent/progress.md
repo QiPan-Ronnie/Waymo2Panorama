@@ -1,5 +1,20 @@
 # Waymo2Panorama Progress
 
+> ### 2026-05-29 - [DrivingForward Phase 3: AV2 FINETUNE works -> clean single-center 360. Streaks gone, +10-15 dB, cameras fused, ghost gone. The CVPR-direction method WORKS on AV2.]
+> - **怎么做**: `scripts/phase3/finetune_drivingforward_av2.py`. Finetune depth_net+gs_net on AV2 (320 frames, stride 5 over the val logs), 1500 iters, Adam lr 2e-5, A100 ~1.3h. Loss = photometric self-render L1 (re-render K=2 random real views via pts2render, match input) + 0.2*LiDAR-depth log-L1 (project LiDAR feather to each of the 6 cams, supervise metric depth where it hits) + 0.01*edge-aware disparity smoothness. LiDAR read directly from .feather (av2.read_lidar_sweep needs py3.9; df is py3.8). Ran fully in background; paced polling at ~9-min intervals (not tight-loop).
+> - **结果 [STRONG POS]**:
+>   ```text
+>   loss trajectory: photo 0.126 -> 0.017 (~7x); depth log-L1 0.29 -> 0.124 (ratio err 1.34x -> 1.13x).
+>   re-render PSNR vs input, zero-shot -> finetuned (iter 1500):
+>     02a00399 BMW : ... BACK_RIGHT 17.4->36.3, BACK 11.0->31.0 (+15-20 dB)
+>     fbee355f     : ~15-20 -> 20.6-28.7 dB
+>     0bae3b5e     : ~14-15 -> 26.1-33.4 dB
+>   ```
+> - **Visual (headline)**: `deliverables/dibr_drivingforward_av2/zeroshot_vs_finetuned_ERP.jpg` (before/after) + `bmw_dfwd_ERP_finetuned.jpg`. The finetuned single-center ERP: the "comb"/streak fans below the road are LARGELY GONE, the scene band is sharp, the gray sports car + white BMW + buildings + lane-line road are crisp and SINGLE, 7 cams fused into one coherent optical center. Full Drive `results/dibr_drivingforward_av2_ftfinal/`; finetune ckpt `results/dfwd_av2_finetune_v1/{depth_net,gs_net}.pth`.
+> - **Net judgment [GOAL milestone]**: the single-virtual-center feed-forward-3DGS route, **finetuned on AV2 with LiDAR-anchored depth**, produces a clean, sharp, ghost-free single-optical-center 360 panorama from the 7 non-co-located ring cameras — exactly the thing every classical/2D method (the whole NEG ladder + classical DIBR) could NOT do. This is the working core of the CVPR method: "make wide-baseline (21-26cm) / low-overlap (18.6deg) AV ring single-center 360 view-synthesis work", with AV2 LiDAR as the scale/geometry anchor.
+> - **Remaining for paper-grade / Bosch**: (1) sky/upper-hemisphere + far-below are still black (FoV-band; AV cams don't see up/down) -> sky-sphere prior or generative outpaint, or deliver the band + mask. (2) residual band-edge wobble + faint cube seams (more faces / spherical splat). (3) source-fidelity gate + quantitative eval vs hard_select across many anchors; scale to full logs + Waymo. (4) proper train/val split + ablations (LiDAR-depth on/off, photometric on/off) for the paper.
+> - **Next**: outpaint/handle sky+ground; multi-anchor quantitative eval + fidelity gate vs hard_select; ablations; then write the method section.
+
 > ### 2026-05-29 - [DrivingForward Phase 2: single-center ERP PRODUCED. Cameras fused into one optical center, ghost GONE (proof-of-concept POS); caveats = FoV-band coverage + zero-shot streaks/soft -> AV2 finetune.]
 > - **怎么做**: `scripts/phase3/dibr_drivingforward_av2.py` v2. Color fix (feed raw [0,1], NO ImageNet norm — repo transform is ToTensor+colorjitter only). After predicting per-pixel Gaussians (1.35M total over 6 cams, ego frame), aggregate ALL cams' Gaussians and render 6 virtual pinhole cube faces (90 deg) sharing the EGO optical center (t=0, zero inter-view parallax) -> cube->ERP (1024x2048) single-center panorama. A100, df env.
 > - **结果 [POS as proof-of-concept]**:
