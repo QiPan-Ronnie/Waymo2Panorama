@@ -24,6 +24,7 @@ from waymo2panorama.blending.region_coherent_seam import (
     blend_region_coherent_hard,
     blend_region_coherent_seam,
 )
+from waymo2panorama.blending.seam_confined import blend_seam_confined
 from waymo2panorama.data_io.av2_loader import RING_CAMS_7, FrameSample
 from waymo2panorama.projection.sphere_projection import render_camera_to_erp
 
@@ -91,6 +92,9 @@ def stitch_one_frame(
         return blend_region_coherent_seam(slabs, weights)
     elif blend_mode == "hard_componentcoherent":
         return blend_region_coherent_hard(slabs, weights)
+    elif blend_mode == "hard_seamconfined":
+        # E1: L1 hard_select everywhere, multiband confined to the ~7 seam strips only.
+        return blend_seam_confined(slabs, weights, num_bands=num_bands, wrap=wrap)["out"]
     else:
         raise ValueError(
             f"blend_mode={blend_mode!r} not recognized. "
