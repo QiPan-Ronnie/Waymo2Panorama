@@ -1,0 +1,24 @@
+{
+  "axis_geometry_cost_M_p90_px_vs_L1": {
+    "L1": 0.0,
+    "E1.5-cut5": 0.2,
+    "E1-full-mb": 0.78,
+    "E2-sparse": 7.6,
+    "E2-dense": 32.9
+  },
+  "frac_warp_gt2px": {
+    "L1": 0.0,
+    "E1.5-cut5": 0.046,
+    "E1-full-mb": 0.066,
+    "E2-sparse": 0.163,
+    "E2-dense": 0.322
+  },
+  "fusion_quality_qualitative": {
+    "L1": "hard cut + doubling",
+    "E1.5-cut5": "photometric step removed, NO doubling, geometric cut remains",
+    "E1-full-mb": "smooth but near-field doubling",
+    "E2-sparse": "attempted merge, mid-range smear",
+    "E2-dense": "over-warp"
+  },
+  "note": "E1.5 = min geometry cost (~0) + removes photometric seam + no doubling = the safe operating point. Fusing the geometric cut via depth escalates distortion (depth-accuracy-bound)."
+}

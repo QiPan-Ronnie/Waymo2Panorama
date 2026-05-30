@@ -521,3 +521,34 @@ v_erp = (lat + π/2) / π * H_erp
 
 
 
+
+
+---
+
+
+
+
+
+`Calibration` 就是相机标定。
+
+在你这个项目里，它主要指每个 ring camera 的几何参数是否准确：
+
+- **内参 intrinsics**：单个相机自己怎么看世界  
+  例如焦距、主点、畸变参数。决定一张图里的像素对应哪条 3D ray。
+
+- **外参 extrinsics**：相机装在车上的位置和朝向  
+  例如 front camera 在 ego 坐标系哪里、偏了多少度。决定 7 个 camera 之间的相对位置关系。
+
+对 AV ring panorama 来说，calibration 的作用是：
+
+> 把每个 camera 图像里的像素，正确投到 360° ERP panorama 上。
+
+如果 calibration 错了，会出现：
+
+- 相邻相机的建筑边缘对不上；
+- 车道线在接缝处跳；
+- 整个相机区域整体偏左/偏右/旋转；
+- 所有距离的物体都有类似方向的系统性错位。
+
+但注意：**calibration 修不了所有接缝问题**。  
+如果 7 个相机物理上不是同一个光心，那么近处物体天然会有视差。3m 的 BMW 可能错 40px，30m 的建筑只错 5px。这不是 calibration 错，而是多相机 baseline 的物理结果。

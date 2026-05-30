@@ -1,5 +1,23 @@
 # Waymo2Panorama — Agent Handoff
 
+> ## ⏩⏩ 2026-05-30 — READ THIS FIRST (supersedes the 2026-05-29 + 2026-05-28 banners below)
+> **Two big shifts today: (1) a positive deliverable confirmed; (2) a reframe that may dissolve the whole impossibility.**
+>
+> **① POSITIVE (vision-confirmed): E1.5 reliably fixes the PHOTOMETRIC seam.** `E1.5` = seam-confined low-frequency multiband blend (`code/waymo2panorama/blending/seam_confined.py`, mode `hard_seamconfined`, lowfreq-cutoff 5). On FAR seams it removes the color/brightness step cleanly; far field stays BYTE-IDENTICAL to L1. It does NOT fix the near-field PARALLAX cut (e.g. the BMW-car seam ≈ unchanged) — but "fix color, not geometry" is a real, shippable sub-result. See `deliverables/e1_seam_confined/seams_ABD_montage.png` (A/B far seams = fixed; D car seam = unchanged).
+>
+> **② REFRAME (today's discussion — possibly the most important insight): we were locked into "single optical center + GEOMETRIC FAITHFULNESS", which is physically impossible for non-co-located cams at near range.** Verified that **Google Street View itself is NOT single-center and NOT geometrically faithful** — it is 7 non-co-located cams (same as us), has parallax, and HIDES seams via local optical-flow warp + seam routing through low-texture + favorable far-field statistics; it openly "tolerates residual seams". The industry standard is a **multi-center mosaic forced into visual agreement**, i.e. PLAUSIBLE not faithful. **User has set the bar to PLAUSIBLE (look like a coherent real street; no hallucinated salient objects).** Under this bar, most of this sprint's NEGs were the FAITHFUL bar over-rejecting good-looking results. We have an edge Street View lacks: **real LiDAR depth** (they only estimate it from flow).
+>
+> - **Today's work, full detail**: `agent/progress.md` top entry (2026-05-30). Autonomous diffusion-sprint log: `agent/EXPLORATION-seam-synthesis-sprint.md`. Paper sparks (20 papers, 3 clusters): `agent/BRAINSTORM-2026-05-30-paper-sparks.md`. Auto-generated plan (one candidate, NOT committed to): `agent/PLAN-plausible-360-synthesis.md`. **Discussion package for the user**: `agent/方向讨论_2026-05-30/` (`00_方向总览.md` + `方法与论文_汇总.xlsx`).
+> - **STATE**: in a CALM JOINT direction-discussion with the user (no charging at a method). The convergent recipe across all papers = geometry (3DGS/LiDAR) owns POSITION, diffusion owns APPEARANCE, a real reference (neighbor pixels / LiDAR point-render) is the LEASH against hallucination. **Open question being discussed: do we formally drop "geometric faithfulness" and adopt the Street-View-style "plausible multi-center + hide-the-seam (now LiDAR-guided)" target?** If yes, many prior NEGs (E3 flow-warp, DiT360 seam-fill) deserve re-evaluation under the relaxed bar.
+> - The 2026-05-29 ladder (E0/E1/E2) below is still valid as the IN-BAND-fusion attempt; its conclusion = in-band faithful fusion is hard (E2/E3/E5/E6/#3 all NEG). The 2026-05-28 section is older NEG-ladder history.
+
+> ## ⏩ 2026-05-29 PIVOT — (superseded by the 2026-05-30 banner above; kept for detail)
+> The "make the seam invisible" exploration below is SETTLED as dead (triple-confirmed). The project has **pivoted** to a new validated direction and is executing it:
+> **Keep rigid L1 hard_select as the globally-clean geometry backbone (far field byte-identical → cannot warp); fuse ONLY the ~7 near-field seam strips.** Executed as an E0→E1→E1.5→E2 ladder.
+> - Full session-by-session detail: `agent/progress.md` (top entries, 2026-05-29).
+> - **Clean experiment→result→files archive** (start here): `agent/experiments/2026-05-29-E0-ruler-and-E1-seam-fusion.md`.
+> - State as of 2026-05-29: E0 ruler validated (`relative_warp`), E1/E1.5 run on Colab (far field byte-identical; near-field seam proven to be PARALLAX, not photometric). The 2026-05-28 section below is the prior-era seam-exploration log, kept for the NEG ladder.
+
 **Updated**: 2026-05-28 (Latest: metric parallax-budget mapping was tested after RGB+DA-V2 superpixel source coherence, dense-depth-aware DP seam routing, dense Depth Anything V2 metadata, LiDAR depth-visibility, sparse stereo v5, semantic object-coherent hard_select, same-frame/temporal ground-plane replacement, DiT360 v14, region-coherent seam v3a/v3b, and DiT-as-oracle source selection. It is POS as impossibility/risk evidence: LiDAR-supported seam pixels have p90 parallax 17.65 px, 23.92% are >=10 px, and 7.14% are >=20 px. Depth remains useful as seam-risk metadata and physical framing, not as a local seam/source-selection solver. Risk-gated local Y repair remains the stable POS optional polish.)
 **Maintainer**: rotating Claude sessions; user is Qi Pan (panq@usc.edu), advisor Koi Chen
 

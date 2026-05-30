@@ -1,0 +1,13 @@
+类别,方法,做法,结果,为什么,代表图(deliverables/ 下)
+基线,L1 hard_select,刚性球投影+逐像素argmax选相机,几何干净(直线直)但硬缝+近景重影,假设所有相机同一点;远处准近处错位,e1_seam_confined/bmw_L1.png
+缝-光度,E1.5 缝带低频融合,缝带内只融低频颜色高频取单相机远场逐字节=L1,远缝色差消除POS;近景视差缝无效NEG,只动颜色不动几何;视差是几何问题,e1_seam_confined/seams_ABD_montage.png
+缝-深度,E2 深度重投影N1,LiDAR/单目深度把相机重投到自我中心再融,抹花/过歪NEG(全变体),N1对深度误差超敏感;中场深度不够准,e2_seam_depth/bmw_carseam_dense_4way.png
+缝-深度,E6 多帧LiDAR累积,跨±N帧运动补偿累积LiDAR(5x密)再E2,仍抹花NEG比单帧更糟,瓶颈是N1机制不是深度密度,e6_multisweep/bmw_carseam_sparse_vs_accum9.png
+缝-光流,E3 光流对齐真实像素,RAFT在缝带测视差warp邻机真实像素,有纹理处对齐;无纹理饿死回退L1弱NEG,无纹理墙面光流瞎猜;近物在单相机区,e3_flowwarp/bmw_dbg_carseam_masked.png
+缝-生成,E4 SDXL-inpaint缝带,公开SDXL-inpaint补缝带,续接结构但不修视差+轻幻觉floor,纯inpaint从含伪影的L1上下文编,e4_sdxl_inpaint/bmw_carseam_L1_vs_E4.png
+缝-学习,E5 限带学习融合,把微调DrivingForward的ERP贴进缝带,现成模型太歪太糊贴进去帮不上NEG,训练模型质量(歪/糊)是瓶颈,e5_confined_dfwd/bmw_carseam_L1_dfwd_E5.png
+缝-学习,#3 留一相机重建LoRA,扔掉相机k用邻机重建它留出真实=GT,渲染一片黑NEG,宽基线相机视野中心邻机根本没拍到,e7_heldout/bmw_it600_heldout_realVSrender.png
+全景3DGS,DrivingForward微调,前馈3DGS融7相机成单光心,融合无重影但全局歪+糊(被否),逐像素前馈深度噪声→单中心重渲畸变,dibr_drivingforward_av2/zeroshot_vs_finetuned_ERP.jpg
+缝-生成-ERP,DiT360 seam-fill v3-v18,FLUX+DiT360 LoRA缝带inpaint(16版),全NEG/MIXED/cosmetic,按像素忠实判平滑=改证据忠实=没修几何,dit360_seam_completion/runs_v14_trimap_clamp_bmw/
+全景补全,DiT360 outpaint天/地,黑色天/地外推成完整球面,视觉完整但天地幻觉MIXED(之前agent做过),plausible可接受faithful会over-reject,e8_dit360_outpaint/bmw_outpaint_corecompose.png
+指标,relative_warp标尺,光流vs L1测远场warp占比,验证有效(L1=0 E1.5=0.2 E2dense=32.9px),几何代价量化单调,e2_seam_depth/pareto_table.json

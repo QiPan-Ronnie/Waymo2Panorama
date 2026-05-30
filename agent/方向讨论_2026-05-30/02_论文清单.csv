@@ -1,0 +1,19 @@
+论文簇,标题,会议/年,arxiv,做什么,核心技巧,怎么用在我们身上,代码
+A_diffusion修3DGS,Difix3D+,CVPR 2025 (NVIDIA),2503.01774,单步diffusion把3DGS渲染的糊/歪/伪影修成干净图,SD-Turbo单步i2i去伪影+干净参考视图经cross-view attention复制真实外观不幻觉76ms,DrivingForward融出的无重影但糊正是它输入;邻机真实像素当参考修缝;单A100轻松,公开 github.com/nv-tlabs/Difix3D 权重在HF
+A_diffusion修3DGS,latentSplat,ECCV 2024,2403.16292,前馈2视图→3D预测带不确定性的变分高斯,每高斯带特征分布:确定处收紧=回归忠实不确定处高方差=生成解码,给我们一张哪块该保真哪块可生成的置信权重图;重叠区回归缝区生成,公开 github.com/Chrixtar/latentsplat (非驾驶需适配)
+A_diffusion修3DGS,3DGS-Enhancer,NeurIPS 2024,2410.16266,稀疏视3DGS的烂渲染用视频diffusion修复再回灌再训,把多视增强当视频生成→时序/跨视一致不闪;时空解码器融合再当伪GT,把ERP排成绕环序列跑视频增强→缝过渡跨视一致;回灌消除7块独立修补的不一致,公开 github.com/xiliu8006/3DGS-Enhancer (视频diffusion较重)
+A_diffusion修3DGS,GenWarp,NeurIPS 2024,2405.17251,单图+单目深度生成新视图,软warp不硬warp,self-attn增cross-view attention+深度warp信号学'往哪看'而非硬warp几何可靠处忠实不可靠处生成,治近景重影:用LiDAR真深度(强于其单目)软合并跨缝相邻相机不出双影,公开 github.com/sony/genwarp (单图/物体中心需适配)
+A_diffusion修3DGS,ProSplat,2025,2506.05935,两阶段宽基线NVS:前馈高斯(退化)+单步生成精修,MORS选最大重叠参考+DWEA极线距离加权注意力信任几何合理对应,我们正是宽基线低重叠;MORS=给缝选最大重叠环相机当参考DWEA从外参精确算,项目页catbbbbb.github.io/prosplat 验证权重
+A_diffusion修3DGS,Deceptive-NeRF/3DGS,ECCV 2024,2305.15171,diffusion造伪观测densify稀疏视监督,deceptive diffusion条件于粗渲染(非文本)生成不漂移再迭代回灌,把一次性修复变成永久干净ERP的循环;条件于粗渲染=防幻觉物体的核心保险,项目页 xinhangliu.com/deceptive-nerf 确认3DGS权重
+A_diffusion修3DGS,StreetCrafter,CVPR 2025,2412.13188,LiDAR条件的视频diffusion做驾驶新视角(变道等),LiDAR点云渲成像素对齐控制图→视频diffusion补纹理+时序一致几何来自LiDAR外观来自diffusion,我们有AV2 LiDAR+外参正是它要的;LiDAR投ERP当结构锁→修缝且禁幻觉物体,公开 github.com/zju3dv/street_crafter 驾驶原生
+B_plausible生成缝补,PowerPaint,ECCV 2024,2312.03594,一个SD-inpaint用任务token切换多行为,P_ctxt续接结构+P_obj当负提示(CFG)主动抑制物体幻觉=内置反物体拨杆,缝带上用:L1当条件mask缝带P_ctxt+负P_obj续接路/楼/天不造车;零训练秒级,公开 github.com/open-mmlab/PowerPaint 权重在HF
+B_plausible生成缝补,Generative Panoramic Stitching,arXiv 2025-07,2507.07133,把拼接重定义为生成:多张有视差的参考图→一张无缝忠实全景,两阶段:per-scene微调inpaint记住本场景→从单张种子图outpaint其余,重叠生成而非拼=重影消失,per-clip LoRA微调ERP-inpaint于7相机从一相机outpaint;用LiDAR深度补其无metric意识,未确认仓库(可从RealFill复现)
+B_plausible生成缝补,RealFill,SIGGRAPH 2024,2309.16668,几张参考图per-scene微调后忠实补全/扩展目标图,DreamBooth+LoRA把场景烤进权重+基于对应的候选筛选剔除不忠实样本,缝带生成N候选只留缝像素同时匹配两邻机+LiDAR的=自动保真QA闸,公开复现多
+B_plausible生成缝补,NTN-Diff,NeurIPS 2025,2510.08273,频带感知文本inpaint一石二鸟保真+一致,把保真/一致拆成频带:null-text去噪低频(保真不幻觉)文本去噪中频当引导,缝带只注入L1高频纹理低频走null-text→结构上不可能造物体,公开 github.com/htyjers/NTN-Diff
+B_plausible生成缝补,Blended Latent Diffusion,SIGGRAPH 2023,2206.02779,mask内局部文本编辑每步latent融合,每噪声级把原图noised-latent与生成latent按mask空间融合,缝合缝带生成回干净L1的latent级算子;逐噪声级所以L1高频从不被覆写,公开 github.com/omriav/blended-latent-diffusion
+B_plausible生成缝补,LaMa,WACV 2022,2109.07161,傅里叶卷积大洞inpaint(确定性非diffusion),快速傅里叶卷积大感受野续接周期/直线结构零幻觉,缝带先跑LaMa确定性续接车道线/楼面零幻觉零算力当快速默认+A/B对照,公开 github.com/advimman/lama
+C_时间多帧,FreeVS,ICLR 2025,2410.18079,免per-scene的相机控制驾驶视角合成,伪图像表征+生成不需逐场景优化,唯一非per-scene的→数据管线吞吐友好;给缝补真实多帧几何,公开
+C_时间多帧,ViewCrafter,2024,2409.02048,点云+视频diffusion迭代扩展新视角,渲点云→diffusion补洞→折回点云→渲下一视角迭代扩张,环一致循环:绕环逐缝渲LiDAR点→diffusion致密→折回→渲下一缝强制0=360,公开 github.com/Drexubery/ViewCrafter
+C_时间多帧,CAT3D,NeurIPS 2024,2405.10314,多视diffusion生成一致新视图再喂3D重建,潜在多视diffusion生成大量一致视图,思路参考(闭源Google)用开源SEVA代;补宽基线缺失信息,闭源(开源替身SEVA)
+C_时间多帧,ReconFusion,CVPR 2024,2312.02981,diffusion当稀疏视重建的正则项,新视采样损失把欠约束区拉向'可信'分布,只在缝方位加diffusion采样损失观测楔忠实缝楔拉向可信街景,闭源(思路开源)
+C_时间多帧,Street Gaussians/OmniRe,ECCV/2024,2401.01339,驾驶场景图3DGS聚合多帧重建,动静分离场景图聚合多帧→真单中心几何+真中场深度,per-scene拟合得无重影但需多帧;converts DrivingForward的糊为per-scene锐,公开 github.com/zju3dv/street_gaussians

@@ -1,0 +1,44 @@
+{
+  "tag": "bmw",
+  "PRIMARY_VLS": {
+    "L1": {
+      "VLS_spread_mrad": 98.44117402324594,
+      "VLS_spread_deg": 5.640263801844866,
+      "VLS_p90_dev_deg": 9.267471645042303,
+      "VLS_mean_lean_deg": 0.12668709976971185,
+      "n_vert": 105,
+      "total_len_px": 3383.6367778778076,
+      "scoreable": true
+    },
+    "TEST_3DGS": {
+      "VLS_spread_mrad": 74.56299343884035,
+      "VLS_spread_deg": 4.2721448319072,
+      "VLS_p90_dev_deg": 8.190541680192275,
+      "VLS_mean_lean_deg": 0.5144101176849565,
+      "n_vert": 72,
+      "total_len_px": 2813.534652709961,
+      "scoreable": true
+    },
+    "VLS_spread_ratio": 0.7574370600378356
+  },
+  "secondary_GCSR": {
+    "L1": {
+      "GCSR_sag_mrad": 106.38237705798844,
+      "GCSR_sag_p90_mrad": 201.4437455605555,
+      "GCSR_rms_mrad": 16.39833664331519,
+      "n_chains": 42,
+      "total_arc_rad": 13.39220288312053,
+      "frac_curved": 0.0,
+      "scoreable": true
+    },
+    "TEST_3DGS": {
+      "GCSR_sag_mrad": 84.73411949501677,
+      "GCSR_sag_p90_mrad": 150.2838949146347,
+      "GCSR_rms_mrad": 11.844711366484391,
+      "n_chains": 27,
+      "total_arc_rad": 6.287661191632333,
+      "frac_curved": 0.0,
+      "scoreable": false
+    }
+  }
+}
