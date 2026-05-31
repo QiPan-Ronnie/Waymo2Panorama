@@ -283,7 +283,10 @@ def main() -> int:
         torch_dtype=dtype,
         low_cpu_mem_usage=True,
     ).to(device)
-    pipe.load_lora_weights("Insta360-Research/DiT360-Panorama-Image-Generation")
+    pipe.load_lora_weights(
+        "Insta360-Research/DiT360-Panorama-Image-Generation",
+        weight_name="adapter_model.safetensors",  # required in HF offline mode (auto-guess disabled)
+    )
     if not args.disable_vae_tiling:
         if hasattr(pipe.vae, "enable_tiling"):
             pipe.vae.enable_tiling()
