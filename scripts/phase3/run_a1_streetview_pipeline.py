@@ -1,17 +1,34 @@
-"""DB-11 / A1 — the FULL Google-Street-View-style composited pipeline (with our LiDAR).
+"""DB-11 / A1 (CORRECTED 2026-06-02) — Google-Street-View ⊕ Meta-Surround360 ⊕ our-LiDAR.
 
-Fixes A0's 3 failures by doing the steps Google does that A0 skipped, using OPEN-SOURCE
-components where they exist (cv2.detail stitching pipeline, cv2 DIS flow, pyransac3d):
+This is the RE-DO after the /code-review retracted the first A1 (it was BUGGY + UNFAITHFUL:
+the old `dis_flow_align` had a meshgrid coord SWAP (#1), no spatial propagation (#5), the
+cv2.detail seam mask left BLACK holes (#7), and — the real sin — it warped each slab TOWARD
+the L1 reference instead of doing Surround360's novel-view synthesis. None of those are here.
 
-  1. coarse-plane reproject  -> our render_camera_to_erp (reviewed) with a LiDAR plane depth map
-  2. (optional) DIS optical-flow residual align in the overlap band   [--flow]
-  3. object-aware seam routing -> cv2.detail GraphCutSeamFinder (+ non-planar objects forced to
-     their single L1 camera so the seam can't cut through them)
-  4. multiband blend          -> cv2.detail MultiBandBlender
-  5. CONFINE + COMPOSITE onto L1 (far field BYTE-IDENTICAL to L1; never hard-replace) -> our
-     _seam_alpha / _label_and_base; non-planar near objects kept as L1 single-camera.
+Direction kept exactly as the user asked — "Google map view + Meta 360 + our own method":
 
-CPU. Plane fit via pyransac3d (open-source).
+  GOOGLE  : coarse LiDAR-plane DIBR reproject (ground + a few facade planes) pre-aligns the 7
+            non-co-located cameras into one ERP so the residual disparity the flow has to fix
+            is small (Street View's step-1 coarse mesh; OUR plane comes from real LiDAR).
+  META    : Surround360 OPTICAL-FLOW NOVEL-VIEW SYNTHESIS in each seam band — for every output
+            ray at fractional position `shift = w_j/(w_i+w_j)` between cam i (shift=0) and cam j
+            (shift=1), warp i forward by `shift·flow_ij` and j backward by `(1-shift)·flow_ji`
+            and blend (1-shift):shift. A near object that L1 DOUBLES is warped to ONE shared
+            virtual-center position before averaging → singled, not blended-ghosted, not cut.
+  OURS    : (a) the plane pre-align uses real LiDAR; (b) FB-consistency gating — where the flow
+            is unreliable (textureless / occlusion, the E3 starvation failure mode) we ABSTAIN
+            and keep L1 (no black tears, no hallucinated warp); (c) the whole edit is CONFINED
+            to the seam bands and COMPOSITED onto L1 (far field BYTE-IDENTICAL to L1); (d)
+            non-planar near objects (LiDAR off all planes — the BMW) are kept as L1 single-cam.
+
+Modes:
+  --mode view   (default) : Surround360 view-interp (the real test).
+  --mode core             : plane-DIBR + seam-confined low-freq multiband (reviewed code), no
+                            flow — the "modest L1+" ablation, NO cv2.detail black-hole path.
+  --prealign plane|none   : view-interp flow input = LiDAR-plane-DIBR slabs (default) or L1
+                            rotation-only slabs (pure-Surround360 ablation: does LiDAR help?).
+
+CPU-only math (cv2 DIS flow + numpy); plane fit via pyransac3d (open-source).
 """
 from __future__ import annotations
 import argparse, json, sys, time
@@ -29,7 +46,8 @@ from waymo2panorama.projection.sphere_projection import render_camera_to_erp  # 
 from waymo2panorama.blending.hard_hdr_of import RING_PAIRS, hard_select  # noqa: E402
 from waymo2panorama.blending.seam_local_align import build_voronoi_seam_band  # noqa: E402
 from waymo2panorama.blending.seam_confined import _label_and_base, _seam_alpha  # noqa: E402 (reviewed)
-from parallax_budget_map import _erp_rays, _safe_corr  # noqa: E402
+from waymo2panorama.blending.seam_confined import multiband_lowfreq_blend  # noqa: E402 (reviewed)
+from parallax_budget_map import _erp_rays  # noqa: E402
 from run_a0_plane_dibr_probe import load_lidar_feather  # noqa: E402 (reviewed feather reader)
 from erp_geometry_metric import relative_warp  # noqa: E402 (validated far-field ruler)
 
@@ -39,7 +57,12 @@ FAR = 1000.0
 
 # ---------------- plane fitting (open-source pyransac3d) ----------------
 def fit_planes_p3(pts, seed=0):
-    import pyransac3d as p3
+    try:
+        import pyransac3d as p3
+    except ImportError:  # self-bootstrap on a bare Colab (review: pyransac3d not in repo deps)
+        import subprocess
+        subprocess.run([sys.executable, "-m", "pip", "install", "-q", "pyransac3d"], check=False)
+        import pyransac3d as p3
     z = pts[:, 2]
     rng = np.linalg.norm(pts[:, :2], axis=1)
     inrange = (rng > 3.0) & (rng < 50.0)
@@ -121,7 +144,7 @@ def off_plane_object_erp(pts, ground, facades, erp_hw, off_thresh=0.6, dilate_px
     obj = P[dmin > off_thresh]
     if len(obj) == 0:
         return np.zeros((H, W), bool)
-    # project to ERP (ego origin spherical)
+    # project to ERP (ego origin spherical) — matches sphere_projection: theta = pi - (u+.5)/W*2pi
     x, y, z = obj[:, 0], obj[:, 1], obj[:, 2]
     th = np.arctan2(y, x); ph = np.arctan2(z, np.sqrt(x * x + y * y))
     u = ((np.pi - th) / (2 * np.pi) * W).astype(int) % W
@@ -131,46 +154,194 @@ def off_plane_object_erp(pts, ground, facades, erp_hw, off_thresh=0.6, dilate_px
     return cv2.dilate(m, k).astype(bool)
 
 
-# ---------------- OSS seam + blend (cv2.detail) ----------------
-def detail_seam_blend(slabs_u8, masks_u8, seam_scale=0.33):
-    """OSS seam (GraphCut, at reduced scale for speed — as OpenCV's stitcher does) + full-res
-    MultiBand blend."""
-    H, W = slabs_u8[0].shape[:2]
-    hs, ws = max(1, int(H * seam_scale)), max(1, int(W * seam_scale))
-    corners_s = [(0, 0)] * len(slabs_u8)
-    imgs_s = [cv2.resize(s, (ws, hs), interpolation=cv2.INTER_AREA).astype(np.float32) for s in slabs_u8]
-    masks_s = [cv2.resize(m, (ws, hs), interpolation=cv2.INTER_NEAREST) for m in masks_u8]
-    sf = cv2.detail_GraphCutSeamFinder("COST_COLOR_GRAD")
-    seam_s = sf.find(imgs_s, corners_s, [m.copy() for m in masks_s])
-    seam_s = [np.asarray(m.get() if hasattr(m, "get") else m) for m in seam_s]
-    seam = []  # upscale seam masks to full res, clamp to full-res validity
-    for ms, mfull in zip(seam_s, masks_u8):
-        up = cv2.resize(ms, (W, H), interpolation=cv2.INTER_NEAREST)
-        seam.append((((up > 0) & (mfull > 0)).astype(np.uint8)) * 255)
-    bl = cv2.detail_MultiBandBlender(); bl.prepare((0, 0, W, H))
-    for s, m in zip(slabs_u8, seam):
-        bl.feed(s.astype(np.int16), m, (0, 0))
-    res, _ = bl.blend(None, None)
-    return np.clip(np.asarray(res), 0, 255).astype(np.uint8), seam
-
-
-def dis_flow_align(slabs, alphas, band, ref):
-    """Optional: warp each plane-DIBR slab toward the L1 reference in the band via DIS flow."""
+# ---------------- Meta Surround360 optical-flow novel-view synthesis ----------------
+def _make_dis():
+    """DIS optical flow with spatial propagation + mean normalization ON (FIX #5: without
+    setUseSpatialPropagation the flow leaves black holes where samples fall outside)."""
     dis = cv2.DISOpticalFlow_create(cv2.DISOPTICAL_FLOW_PRESET_MEDIUM)
-    gref = cv2.cvtColor(np.clip(ref, 0, 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
-    out = []
-    yy, xx = np.meshgrid(np.arange(slabs[0].shape[1]), np.arange(slabs[0].shape[0]))
-    for s, a in zip(slabs, alphas):
-        g = cv2.cvtColor(np.clip(s, 0, 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
-        fl = dis.calc(g, gref, None)  # flow from slab->ref
-        m = (a & band)
-        fl[~m] = 0  # only warp inside the band where this cam is valid
-        mapx = (xx + fl[..., 0]).astype(np.float32); mapy = (yy + fl[..., 1]).astype(np.float32)
-        w = cv2.remap(s.astype(np.float32), mapx, mapy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
-        out.append(np.where(m[..., None], w, s))
-    return out
+    try:
+        dis.setUseSpatialPropagation(True)
+        dis.setUseMeanNormalization(True)
+        dis.setVariationalRefinementIterations(8)
+    except Exception:
+        pass
+    return dis
 
 
+def _fb_consistency(flow_fwd, flow_bwd, thresh=2.0):
+    """Forward-backward consistency: a pixel's flow is reliable iff
+    |flow_fwd(x) + flow_bwd(x + flow_fwd(x))| < thresh px. Unreliable = occlusion / textureless
+    garbage → caller keeps L1 there (this is the E3-starvation safety valve)."""
+    H, W = flow_fwd.shape[:2]
+    # FIX #1: correct meshgrid ORDER — xx are COLUMN indices, yy are ROW indices.
+    xx, yy = np.meshgrid(np.arange(W), np.arange(H))
+    mx = (xx + flow_fwd[..., 0]).astype(np.float32)
+    my = (yy + flow_fwd[..., 1]).astype(np.float32)
+    bwd_at = cv2.remap(flow_bwd, mx, my, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    err = flow_fwd + bwd_at
+    mag = np.sqrt((err[..., 0] ** 2 + err[..., 1] ** 2))
+    return mag < float(thresh)
+
+
+def surround360_view_interp(slab_i, slab_j, wi, wj, dis, max_disp=60.0, fb_thresh=2.0,
+                            flow_sigma=1.5):
+    """Synthesize the virtual-center novel view between two overlapping ERP slabs.
+
+    shift = wj/(wi+wj) ∈ [0,1] is the angular fraction of the output ray between cam i (shift=0,
+    its optical axis) and cam j (shift=1). For output column u:
+        warp_i(u) = slab_i(u − shift·flow_ij(u))       # move i's content toward the virtual centre
+        warp_j(u) = slab_j(u − (1−shift)·flow_ji(u))   # move j's content toward it
+        novel(u)  = (1−shift)·warp_i(u) + shift·warp_j(u)
+    A doubled near object (at u_i in i, u_j in j) is warped to the SAME u* = u_i+shift·(u_j−u_i)
+    in both before averaging → it appears ONCE (singled), not as two ghosts.
+
+    Returns (novel float32 HxWx3, reliable bool HxW). `reliable` is overlap ∧ both-have-content
+    ∧ FB-consistent — the caller composites novel onto L1 only where reliable.
+    """
+    H, W = slab_i.shape[:2]
+    overlap = (wi > 1e-6) & (wj > 1e-6)
+    novel = np.zeros((H, W, 3), np.float32)
+    reliable = np.zeros((H, W), bool)
+    if int(overlap.sum()) < 100:
+        return novel, reliable
+    gi = cv2.cvtColor(np.clip(slab_i, 0, 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
+    gj = cv2.cvtColor(np.clip(slab_j, 0, 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
+    # CRITICAL (Surround360-faithful): compute flow on the OVERLAP STRIP only. Adjacent ring cams
+    # overlap in just a ~18.6deg wedge; feeding DIS the full mostly-disjoint slabs makes it match
+    # content ~300px apart and that garbage flow propagates into the band (median in-band |flow|
+    # was 300px instead of the true ~3px parallax). Masking both grayscales to the (dilated)
+    # overlap → outside the wedge both are 0 → DIS sees black==black → 0 flow → only true parallax
+    # remains inside. This single fix takes FB-consistency from ~0% to 55-84% per seam.
+    kov = cv2.dilate(overlap.astype(np.uint8),
+                     cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))).astype(bool)
+    gi = np.where(kov, gi, 0).astype(np.uint8)
+    gj = np.where(kov, gj, 0).astype(np.uint8)
+    flow_ij = dis.calc(gi, gj, None)  # i -> j  (where each i pixel lands in j)
+    flow_ji = dis.calc(gj, gi, None)  # j -> i
+    # regularize + clip the flow (Surround360 smooths the flow; clip stops a wild vector warping
+    # content across the band). Do this BEFORE the FB check so consistency reflects the flow we
+    # actually warp with (review: cons was being measured on the pre-smooth flow).
+    if flow_sigma > 0:
+        for fl in (flow_ij, flow_ji):
+            fl[..., 0] = cv2.GaussianBlur(fl[..., 0], (0, 0), flow_sigma)
+            fl[..., 1] = cv2.GaussianBlur(fl[..., 1], (0, 0), flow_sigma)
+    np.clip(flow_ij, -max_disp, max_disp, out=flow_ij)
+    np.clip(flow_ji, -max_disp, max_disp, out=flow_ji)
+    cons = _fb_consistency(flow_ij, flow_ji, fb_thresh)
+
+    shift = np.zeros((H, W), np.float32)
+    s = (wi + wj)
+    shift[overlap] = (wj[overlap] / np.maximum(s[overlap], 1e-9)).astype(np.float32)
+
+    xx, yy = np.meshgrid(np.arange(W), np.arange(H))  # FIX #1 order: xx=cols, yy=rows
+    xx = xx.astype(np.float32); yy = yy.astype(np.float32)
+    mix_x = (xx - shift * flow_ij[..., 0]).astype(np.float32)
+    mix_y = (yy - shift * flow_ij[..., 1]).astype(np.float32)
+    mjx = (xx - (1.0 - shift) * flow_ji[..., 0]).astype(np.float32)
+    mjy = (yy - (1.0 - shift) * flow_ji[..., 1]).astype(np.float32)
+    warp_i = cv2.remap(slab_i.astype(np.float32), mix_x, mix_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    warp_j = cv2.remap(slab_j.astype(np.float32), mjx, mjy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    a = shift[..., None]
+    novel = warp_i * (1.0 - a) + warp_j * a
+
+    # CONTRACT FIX (review): gate reliability on plane CONTENT AT THE WARPED SAMPLE LOCATION, not at
+    # the output pixel. A warp can sample a plane-DIBR interior hole (the A0 lost-ground case) via
+    # bilinear interp and pull genuine black in. Remap a coverage channel through the SAME maps with
+    # BORDER_CONSTANT=0; require ~full coverage. Any warp that touches a hole (or its bilinear
+    # neighborhood) abstains → caller keeps byte-exact L1 there (no darkening, no black tears).
+    cov_i = (slab_i.astype(np.float32).sum(2) > 0).astype(np.float32)
+    cov_j = (slab_j.astype(np.float32).sum(2) > 0).astype(np.float32)
+    warp_ci = cv2.remap(cov_i, mix_x, mix_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0.0)
+    warp_cj = cv2.remap(cov_j, mjx, mjy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0.0)
+    reliable = overlap & (warp_ci > 0.999) & (warp_cj > 0.999) & cons
+    return novel, reliable
+
+
+def _circular_center_col(overlap, W):
+    """Circular-mean column of the overlap (handles the back seam that wraps across u=0/W)."""
+    cols = np.flatnonzero(overlap.any(axis=0))
+    if cols.size == 0:
+        return None
+    ang = cols.astype(np.float64) / W * 2 * np.pi
+    cx = np.arctan2(np.sin(ang).mean(), np.cos(ang).mean())
+    return int(round((cx / (2 * np.pi)) * W)) % W
+
+
+def view_interp_panorama(content_slabs, l1_slabs, l1_w, obj_mask, base, band_half_width,
+                         max_disp, fb_thresh, protect_obj=False):
+    """Run Surround360 view-interp on every ring seam and composite onto the L1 base.
+
+    content_slabs : the slabs whose CONTENT feeds the flow + warp (plane-DIBR if --prealign plane,
+                    else the L1 rotation-only slabs). l1_w defines the seam geometry (shift/band).
+    Far field and FB-unreliable pixels stay byte-exact L1.
+
+    protect_obj=False (default for VIEW): do NOT force non-planar objects to L1. Surround360's
+    view-interp is *designed* to carry objects smoothly across the seam (it warps both views to a
+    shared virtual centre, not a hard cut), so the FB-consistency gate is the right safety valve —
+    forcing objects to L1 would forbid the method from touching exactly the textured doubling
+    surfaces (buildings / the BMW) it exists to fix. Set True only for the conservative ablation.
+    """
+    H, W = base.shape[:2]
+    dis = _make_dis()
+    out = base.astype(np.float32).copy()
+    touched = np.zeros((H, W), np.float32)
+    n_pairs = 0
+    for (i, j) in RING_PAIRS:
+        overlap = (l1_w[i] > 1e-6) & (l1_w[j] > 1e-6)
+        if int(overlap.sum()) < 200:
+            continue
+        cc = _circular_center_col(overlap, W)
+        roll = (W // 2 - cc) if cc is not None else 0
+        si = np.roll(content_slabs[i], roll, axis=1)
+        sj = np.roll(content_slabs[j], roll, axis=1)
+        wir = np.roll(l1_w[i], roll, axis=1)
+        wjr = np.roll(l1_w[j], roll, axis=1)
+        band, signed = build_voronoi_seam_band(wir.astype(np.float32), wjr.astype(np.float32),
+                                               band_half_width=band_half_width, threshold=1e-6)
+        if int(band.sum()) < 100:
+            continue
+        novel, reliable = surround360_view_interp(si, sj, wir, wjr, dis,
+                                                  max_disp=max_disp, fb_thresh=fb_thresh)
+        # cos feather: 1 on the seam → 0 at band_half_width
+        d = np.clip(np.abs(signed) / float(band_half_width), 0.0, 1.0)
+        feather = np.where(band, 0.5 * (1.0 + np.cos(np.pi * d)), 0.0).astype(np.float32)
+        eff_r = feather * band.astype(np.float32) * reliable.astype(np.float32)
+        # roll back to the canonical frame
+        novel_o = np.roll(novel, -roll, axis=1)
+        eff = np.roll(eff_r, -roll, axis=1)
+        if protect_obj:
+            eff = eff * (~obj_mask).astype(np.float32)  # conservative ablation only
+        a3 = eff[..., None]
+        out = out * (1.0 - a3) + novel_o * a3
+        touched = np.maximum(touched, eff)
+        n_pairs += 1
+    out = np.clip(out, 0, 255).astype(np.uint8)
+    # GUARANTEE byte-exact L1 where untouched (far field + objects + unreliable flow)
+    far = touched <= 0.0
+    out[far] = base[far]
+    return out, touched, n_pairs
+
+
+def core_plane_blend(plane_slabs, l1_slabs, l1_w, obj_mask, base, band_half_width):
+    """--mode core: plane-DIBR slabs (empty pixels filled by L1) → seam-confined low-freq
+    multiband (reviewed `multiband_lowfreq_blend`), composited onto L1. NO cv2.detail / no flow
+    (drops the #7 black-hole path entirely). The 'modest L1+' ablation."""
+    argmax, valid, _ = _label_and_base(l1_slabs, l1_w)
+    alpha, _ = _seam_alpha(argmax, valid, band_half_width)
+    filled = []
+    for ps, ls in zip(plane_slabs, l1_slabs):
+        m = (ps.astype(np.float32).sum(2) > 0)[..., None]
+        filled.append(np.where(m, ps.astype(np.float32), ls.astype(np.float32)))
+    mb = multiband_lowfreq_blend(filled, l1_w, lowfreq_cutoff=4)
+    a = (alpha * (~obj_mask).astype(np.float32))[..., None]
+    out = base.astype(np.float32) * (1.0 - a) + mb.astype(np.float32) * a
+    out = np.clip(out, 0, 255).astype(np.uint8)
+    untouched = a[..., 0] <= 0.0
+    out[untouched] = base[untouched]
+    return out, (a[..., 0])
+
+
+# ---------------- viz helpers ----------------
 def _rw(img, w):
     h = round(img.shape[0] * w / img.shape[1])
     return cv2.resize(np.clip(img, 0, 255).astype(np.uint8), (w, h), interpolation=cv2.INTER_AREA)
@@ -196,8 +367,15 @@ def main():
     ap.add_argument("--out-dir", type=Path, default=Path("/content/drive/MyDrive/koi_waymo2pano_colab/results/a1_streetview_pipeline"))
     ap.add_argument("--erp-h", type=int, default=1024)
     ap.add_argument("--erp-w", type=int, default=2048)
-    ap.add_argument("--band-hw", type=int, default=64)
-    ap.add_argument("--flow", action="store_true", help="enable DIS optical-flow residual align (step 2)")
+    ap.add_argument("--band-hw", type=int, default=80)
+    ap.add_argument("--mode", choices=["view", "core"], default="view")
+    ap.add_argument("--prealign", choices=["plane", "none"], default="plane",
+                    help="view-interp flow input: LiDAR-plane-DIBR slabs (plane) or L1 rot-only (none)")
+    ap.add_argument("--max-disp", type=float, default=60.0)
+    ap.add_argument("--fb-thresh", type=float, default=2.0)
+    ap.add_argument("--protect-obj", action="store_true",
+                    help="(view mode, ablation) force non-planar objects to L1 instead of letting "
+                         "view-interp carry them across the seam")
     ap.add_argument("--review-w", type=int, default=1300)
     args = ap.parse_args()
     erp_hw = (args.erp_h, args.erp_w); out = args.out_dir; out.mkdir(parents=True, exist_ok=True)
@@ -215,75 +393,85 @@ def main():
     obj_mask = off_plane_object_erp(pts, ground, facades, erp_hw)
     print(f"[obj] non-planar near-object ERP frac={obj_mask.mean()*100:.2f}%", flush=True)
 
-    # render L1 (rotation-only) and plane-DIBR
-    l1_slabs, l1_w, pl_slabs, pl_w, alphas = [], [], [], [], []
+    # render L1 (rotation-only) and plane-DIBR for every cam
+    l1_slabs, l1_w, pl_slabs = [], [], []
     for cam in RING_CAMS_7:
         cb = frame.calibrations[cam]
-        r1, a1, w1 = render_camera_to_erp(frame.images[cam], cb.K, cb.T_ego_cam, erp_hw=erp_hw, convergence_distance_m=None)
-        rp, ap_, wp = render_camera_to_erp(frame.images[cam], cb.K, cb.T_ego_cam, erp_hw=erp_hw, convergence_distance_m=conv)
-        l1_slabs.append(r1); l1_w.append(w1); pl_slabs.append(rp); pl_w.append(wp); alphas.append(ap_)
+        r1, _a1, w1 = render_camera_to_erp(frame.images[cam], cb.K, cb.T_ego_cam, erp_hw=erp_hw,
+                                           convergence_distance_m=None)
+        rp, _ap, _wp = render_camera_to_erp(frame.images[cam], cb.K, cb.T_ego_cam, erp_hw=erp_hw,
+                                            convergence_distance_m=conv)
+        l1_slabs.append(r1); l1_w.append(w1); pl_slabs.append(rp)
     L1 = hard_select(l1_slabs, l1_w)
-    argmax, valid, base = _label_and_base(l1_slabs, l1_w)  # L1 base + label
-    alpha, boundary = _seam_alpha(argmax, valid, args.band_hw)
-    band = alpha > 0
+    _, _, base = _label_and_base(l1_slabs, l1_w)  # L1 hard_select base (uint8)
 
-    # plane-DIBR slabs to use in band; force non-planar objects OUT of plane-DIBR masks (keep L1 there)
-    masks = []
-    for k, a in enumerate(alphas):
-        m = (a & ~obj_mask).astype(np.uint8) * 255
-        masks.append(m)
-    slabs_for_stitch = pl_slabs
-    if args.flow:
-        slabs_for_stitch = dis_flow_align(pl_slabs, alphas, band, L1)
+    tag = f"A1_{args.mode}"
+    if args.mode == "view":
+        tag += f"_{args.prealign}"
+        content = pl_slabs if args.prealign == "plane" else l1_slabs
+        res, touched, n_pairs = view_interp_panorama(
+            content, l1_slabs, l1_w, obj_mask, base,
+            band_half_width=args.band_hw, max_disp=args.max_disp, fb_thresh=args.fb_thresh,
+            protect_obj=args.protect_obj)
+        edit_frac = float((touched > 0).mean())
+        print(f"[view] pairs={n_pairs} edited_frac={edit_frac*100:.2f}% "
+              f"reliable_mean_alpha={float(touched[touched>0].mean()) if (touched>0).any() else 0:.3f}", flush=True)
+    else:
+        res, touched = core_plane_blend(pl_slabs, l1_slabs, l1_w, obj_mask, base,
+                                        band_half_width=args.band_hw)
+        edit_frac = float((touched > 0).mean())
+        print(f"[core] edited_frac={edit_frac*100:.2f}%", flush=True)
 
-    stitched, seam_masks = detail_seam_blend([np.clip(s, 0, 255).astype(np.uint8) for s in slabs_for_stitch], masks)
-
-    # composite: L1 base, feather to stitched inside band ONLY where stitched has content
-    # (fixes dark/black patches: where plane-DIBR slabs are empty, keep L1 instead of darkening).
-    vs = (stitched.sum(2) > 0)
-    a3 = (alpha * vs.astype(np.float32))[..., None]
-    res = base.astype(np.float32) * (1 - a3) + stitched.astype(np.float32) * a3
-    res = np.clip(res, 0, 255).astype(np.uint8)
-    res[obj_mask] = base[obj_mask]              # non-planar near objects kept as L1 single-cam
-    nob = a3[..., 0] == 0.0
-    res[nob] = base[nob]                        # far field + empty-stitch + objects = byte-identical L1
-    tag = "A1_flow" if args.flow else "A1_core"
-
-    # far-field fidelity vs L1 (must be ~0 outside band by construction)
+    # far-field fidelity vs L1 (must be ~0 outside the bands by construction)
     try:
         rw = relative_warp(L1, res)
-        rw = {k: (float(v) if np.isscalar(v) or isinstance(v, (int, float)) else v) for k, v in rw.items()} if isinstance(rw, dict) else {"val": float(rw)}
+        rw = {k: (float(v) if np.isscalar(v) or isinstance(v, (int, float)) else v)
+              for k, v in rw.items()} if isinstance(rw, dict) else {"val": float(rw)}
     except Exception as e:
         rw = {"error": str(e)}
 
-    # outputs: stacked review L1 vs A1; crops at the 2 worst-parallax seams
-    _save(out / f"{tag}_L1_vs_result.jpg", np.vstack([_label(_rw(L1, args.review_w), "L1 hard_select"),
-                                                      _label(_rw(res, args.review_w), f"{tag} (plane-DIBR + OSS seam/blend, confined)")]))
-    # crops
+    # outputs: stacked review L1 vs result; crops at the 2 worst-parallax seams
+    _save(out / f"{tag}_L1_vs_result.jpg",
+          np.vstack([_label(_rw(L1, args.review_w), "L1 hard_select"),
+                     _label(_rw(res, args.review_w), f"{tag}")]))
     cand = []
     for i, j in RING_PAIRS:
-        b, _ = build_voronoi_seam_band(l1_w[i].astype(np.float32), l1_w[j].astype(np.float32), band_half_width=args.band_hw, threshold=1e-6)
+        b, _ = build_voronoi_seam_band(l1_w[i].astype(np.float32), l1_w[j].astype(np.float32),
+                                       band_half_width=args.band_hw, threshold=1e-6)
         bm = b & (conv < 80.0)
         if int(bm.sum()) < 200:
             continue
-        cand.append((int(bm.sum()), int(np.median(np.where(bm)[1])), (i, j)))
+        cc = _circular_center_col(bm, args.erp_w)  # wrap-aware (review: plain median mis-centers the back seam)
+        if cc is None:
+            cc = int(np.median(np.where(bm)[1]))
+        cand.append((int(bm.sum()), cc, (i, j)))
     cand.sort(reverse=True)
     crop_cols = []
+    cw = args.erp_w // 2
     for npx, cc, (i, j) in cand[:2]:
-        c0, c1 = max(0, cc - 230), min(args.erp_w, cc + 230)
-        crop_cols.append(np.vstack([_label(L1[300:760, c0:c1], f"L1 seam{i}-{j}"),
-                                    _label(res[300:760, c0:c1], f"{tag} seam{i}-{j}")]))
+        roll = cw - cc  # roll the seam (incl. the wrapping back seam) to centre → contiguous crop
+        L1r = np.roll(L1, roll, axis=1); resr = np.roll(res, roll, axis=1)
+        c0, c1 = cw - 230, cw + 230
+        crop_cols.append(np.vstack([_label(L1r[300:760, c0:c1], f"L1 seam{i}-{j}"),
+                                    _label(resr[300:760, c0:c1], f"{tag} seam{i}-{j}")]))
     if crop_cols:
         h = max(c.shape[0] for c in crop_cols)
-        crop_cols = [np.vstack([c, np.zeros((h - c.shape[0], c.shape[1], 3), np.uint8)]) if c.shape[0] < h else c for c in crop_cols]
+        crop_cols = [np.vstack([c, np.zeros((h - c.shape[0], c.shape[1], 3), np.uint8)])
+                     if c.shape[0] < h else c for c in crop_cols]
         _save(out / f"{tag}_seam_crops.jpg", np.hstack(crop_cols), q=95)
-    # object mask viz
-    ov = L1.copy(); ov[obj_mask] = (0.5 * ov[obj_mask] + np.array([255, 0, 255]) * 0.5).astype(np.uint8)
-    _save(out / f"{tag}_objmask.jpg", _rw(ov, args.review_w))
+    # edited-region viz
+    ov = L1.copy()
+    em = touched > 0
+    ov[em] = (0.5 * ov[em] + np.array([0, 255, 255]) * 0.5).astype(np.uint8)
+    ov[obj_mask] = (0.5 * ov[obj_mask] + np.array([255, 0, 255]) * 0.5).astype(np.uint8)
+    _save(out / f"{tag}_editmask.jpg", _rw(ov, args.review_w))
 
-    diag = {"tag": tag, "uuid": args.uuid, "anchor": args.anchor, "lidar_pts": int(pts.shape[0]),
-            "ground": bool(ground), "n_facades": len(facades), "obj_frac": float(obj_mask.mean()),
-            "far_field_relative_warp_vs_L1": rw, "runtime_s": round(time.time() - t0, 1)}
+    diag = {"tag": tag, "mode": args.mode, "prealign": args.prealign, "uuid": args.uuid,
+            "anchor": args.anchor, "lidar_pts": int(pts.shape[0]), "ground": bool(ground),
+            "n_facades": len(facades), "obj_frac": float(obj_mask.mean()),
+            "edited_frac": edit_frac, "band_hw": args.band_hw, "max_disp": args.max_disp,
+            "fb_thresh": args.fb_thresh, "far_field_relative_warp_vs_L1": rw,
+            "runtime_s": round(time.time() - t0, 1)}
     with open(out / f"{tag}_diag.json", "w") as f:
         json.dump(diag, f, indent=2, default=str)
     print("[diag]", json.dumps(diag, indent=2, default=str), flush=True)
