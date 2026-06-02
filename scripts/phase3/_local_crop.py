@@ -17,7 +17,7 @@ except Exception:
         h = round(im.shape[0]*w/im.shape[1]); return np.array(Image.fromarray(im[..., ::-1]).resize((w, h), Image.NEAREST))[..., ::-1].copy()
 
 D = Path(r"D:\BaiduSyncdisk\2024 to future\koi chen\experiments\Waymo2Panorama\deliverables\a1_streetview_pipeline")
-im = imread(D / "A1_FINAL_L1_vs_result.jpg")
+im = imread(D / "A1_align_route_L1_vs_result.jpg")
 Hf, Wf = im.shape[:2]
 print("figure", Wf, "x", Hf)
 # layout: [label30 + L1panel] over [label30 + RESpanel]; each panel ~ Wf wide, height = Wf*1024/2048
@@ -35,7 +35,7 @@ def both(name, u0, u1, v0, v1, zoom=900):
     imwrite(D / f"ZOOM_{name}.jpg", resize(pair, zoom))
     print("saved ZOOM_%s.jpg  (L1 over result)  u[%d:%d] v[%d:%d]" % (name, u0, u1, v0, v1))
 
-# gray car (front-left): scan a wide u window, mid-low rows
-both("graycar_final", 560, 1000, 340, 560)
+# gray car (front-left)
+both("graycar_route", 560, 1000, 340, 560)
 # BMW (right)
-both("bmw_final", 1600, 1980, 360, 590)
+both("bmw_route", 1580, 1980, 360, 600)

@@ -559,7 +559,7 @@ def main():
     # base weights = L1, optionally with the seam ROUTED around compact near objects (fixes the
     # car frame-parallax: object comes from one camera, not sliced across the seam).
     w_base = l1_w
-    if args.mode == "view" and args.obj_route:
+    if args.obj_route and args.mode in ("view", "align"):
         w_base, n_routed = object_coherent_weights(l1_w, obj_mask)
         print(f"[obj-route] routed {n_routed} compact near-objects to a single camera", flush=True)
     _, _, base = _label_and_base(l1_slabs, w_base)  # (object-coherent) hard_select base (uint8)
@@ -604,8 +604,12 @@ def main():
         # caught reintroducing translucent overlap.
         warped = flow_align_chain(l1_slabs, l1_w, band_hw=args.band_hw, max_disp=args.max_disp,
                                   fb_thresh=args.fb_thresh)
-        sc = blend_seam_confined(warped, l1_w, band_half_width=args.band_hw, lowfreq_cutoff=5)
+        # hard_select uses w_base (optionally obj-routed so the cut goes AROUND near objects → the
+        # car comes from one camera, not sliced). Single-source throughout (no blend → no ghost).
+        sc = blend_seam_confined(warped, w_base, band_half_width=args.band_hw, lowfreq_cutoff=5)
         res = sc["out"]; touched = sc["alpha"]
+        if args.obj_route:
+            tag += "_route"
         edit_frac = float((touched > 0).mean())
         print(f"[align] warp+hard_select+lowfreq, edited_frac={edit_frac*100:.2f}%", flush=True)
     else:
