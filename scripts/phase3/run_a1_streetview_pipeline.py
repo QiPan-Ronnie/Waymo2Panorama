@@ -132,12 +132,21 @@ def off_plane_object_erp(pts, ground, facades, erp_hw, off_thresh=0.6, dilate_px
 
 
 # ---------------- OSS seam + blend (cv2.detail) ----------------
-def detail_seam_blend(slabs_u8, masks_u8):
-    H, W = slabs_u8[0].shape[:2]; K = len(slabs_u8); corners = [(0, 0)] * K
-    imgs_f = [s.astype(np.float32) for s in slabs_u8]
+def detail_seam_blend(slabs_u8, masks_u8, seam_scale=0.33):
+    """OSS seam (GraphCut, at reduced scale for speed — as OpenCV's stitcher does) + full-res
+    MultiBand blend."""
+    H, W = slabs_u8[0].shape[:2]
+    hs, ws = max(1, int(H * seam_scale)), max(1, int(W * seam_scale))
+    corners_s = [(0, 0)] * len(slabs_u8)
+    imgs_s = [cv2.resize(s, (ws, hs), interpolation=cv2.INTER_AREA).astype(np.float32) for s in slabs_u8]
+    masks_s = [cv2.resize(m, (ws, hs), interpolation=cv2.INTER_NEAREST) for m in masks_u8]
     sf = cv2.detail_GraphCutSeamFinder("COST_COLOR_GRAD")
-    seam = sf.find(imgs_f, corners, [m.copy() for m in masks_u8])
-    seam = [np.asarray(m.get() if hasattr(m, "get") else m) for m in seam]
+    seam_s = sf.find(imgs_s, corners_s, [m.copy() for m in masks_s])
+    seam_s = [np.asarray(m.get() if hasattr(m, "get") else m) for m in seam_s]
+    seam = []  # upscale seam masks to full res, clamp to full-res validity
+    for ms, mfull in zip(seam_s, masks_u8):
+        up = cv2.resize(ms, (W, H), interpolation=cv2.INTER_NEAREST)
+        seam.append((((up > 0) & (mfull > 0)).astype(np.uint8)) * 255)
     bl = cv2.detail_MultiBandBlender(); bl.prepare((0, 0, W, H))
     for s, m in zip(slabs_u8, seam):
         bl.feed(s.astype(np.int16), m, (0, 0))
