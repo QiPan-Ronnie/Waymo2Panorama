@@ -30,6 +30,8 @@ Most recent execution plan: `plans/2026-05-27-seam-routing-dit360-goal.md` plus 
 
 These rules exist because the repo had bloated to **47 stale finding/summary mds** that duplicated information already in `progress.md`. User asked to consolidate and enforce going forward.
 
+> **🚫 NO NEW `.md` FILES unless the user explicitly asks (per user 2026-06-02).** Default: capture EVERYTHING in the **4 living docs** (`README` / `handoff` / `progress` / `decision_briefs`) + visual evidence as images under `deliverables/<topic>/`. This applies EVERYWHERE — `agent/`, `deliverables/`, `notes/`. Do NOT spawn brainstorm/plan/summary/finding `.md`s on your own. Only create a standalone `.md` (e.g. a handoff prompt, or a human-facing `deliverables/handoff_to_<name>_<date>.md`) when the user specifically requests it. If you feel the urge to write a new doc, put it in a `progress.md` entry or a `decision_briefs.md` brief instead.
+
 ### ✅ DO
 
 | When you... | Do this |
@@ -100,7 +102,7 @@ A `progress.md` result block should therefore name: the GitHub path(s) committed
 - **`decision_briefs.md`** — the experiment GATE (direction decisions: question/hypothesis/kill/scope + one-line result link). See the Decision Gate section above.
 - **`README.md`** — this file. The agent dir guide + work protocol. Updated when rules change.
 
-Historical experiment records (every prior exploration path) are preserved under `../notes/archived/` (see its `README.md` index) and `../deliverables/archived/`; the original method landscape is `2026-05-15-brainstorm-survey.md` (here). Nothing is deleted — old paths are archived, not lost.
+Historical experiment records (every prior exploration path) are preserved under `../notes/archived/` (see its `README.md` index) and `../deliverables/archived/`; the original method landscape is `../notes/archived/2026-05-15-brainstorm-survey.md`. Nothing is deleted — old paths are archived, not lost.
 
 ---
 
@@ -109,7 +111,7 @@ Historical experiment records (every prior exploration path) are preserved under
 | Topic | Location |
 |---|---|
 | Paper drafts (intro/method/experiments/discussion/related_work/outline) | `../paper/` |
-| Historical method-landscape brainstorm (5.15) | `2026-05-15-brainstorm-survey.md` (here) |
+| Historical method-landscape brainstorm (5.15) | `../notes/archived/2026-05-15-brainstorm-survey.md` |
 | Old design plans (N1, parallax fix, etc.) | `plans/` (here, historical) |
 | Old design specs | `specs/` (here, historical) |
 | External-facing handoffs (delivered to advisor/teammate) | `../deliverables/handoff_to_*.md` |

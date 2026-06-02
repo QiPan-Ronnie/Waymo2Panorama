@@ -9,6 +9,12 @@
 - Drive queue / Colab queue migration notes
 - Phase 2-3 progress reports
 
+**Added 2026-06-02** (archived from `agent/` during the cleanup to the 4 living docs):
+- `2026-05-15-brainstorm-survey.md` — original L0–L4 method landscape.
+- `BRAINSTORM-2026-05-30-paper-sparks.md` — 20-paper survey, 3 clusters (superseded by `agent/BRAINSTORM-2026-06-02-seam-path-forward.md`).
+- `PLAN-plausible-360-synthesis.md` — an auto-generated plan candidate (never committed to).
+- `HANDOFF-PROMPT-for-other-agent-2026-05-30.md` — old parallel-agent prompt (superseded by `agent/HANDOFF-PROMPT-full-project-2026-06-02.md`).
+
 These notes are **historical context only** — most concepts/methods they discuss are either shipped (see `code/`) or NEG (documented in `agent/progress.md` entries).
 
 **Don't add new files here**. New design notes → docstring in the relevant `code/` module, or a `progress.md` entry. This folder is read-only history.
