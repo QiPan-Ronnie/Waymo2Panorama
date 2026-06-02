@@ -393,6 +393,71 @@ def core_plane_blend(plane_slabs, l1_slabs, l1_w, obj_mask, base, band_half_widt
     return out, (a[..., 0])
 
 
+# ---------------- SINGLE-SOURCE seam alignment (Surround360/Google paradigm) ----------------
+# Research (Surround360 NovelView, Jump §5.5, Google Seamless SV, Zhang&Liu CVPR'14, SEAGULL):
+# GHOST comes EXCLUSIVELY from mixing two sources at one pixel. The production paradigm is
+# warp-to-ALIGN → hard-select (single source) → blend only LOW-FREQ colour across the thin seam.
+# So here we WARP the losing slab toward its neighbour INSIDE the band, then hard_select (never
+# average), then E1.5 low-freq colour. This cannot create the translucent overlap of view-interp.
+def _align_cur_to_prev(cur, prev, w_cur, w_prev, dis, band_hw=80, max_disp=40.0,
+                       fb_thresh=2.0, flow_sigma=1.5):
+    """Resample slab `cur` to AGREE with `prev` inside their shared seam band (DIS flow, overlap-
+    masked, FB-gated, tapered to 0 at the band edge). `cur` is only warped, NEVER mixed with `prev`
+    → single-source. Outside band / FB-fail / far field → `cur` unchanged (taper=0 → identity)."""
+    H, W = cur.shape[:2]
+    overlap = (w_cur > 1e-6) & (w_prev > 1e-6)
+    if int(overlap.sum()) < 200:
+        return cur
+    cc = _circular_center_col(overlap, W); roll = (W // 2 - cc) if cc is not None else 0
+    cr = np.roll(cur, roll, 1); pr = np.roll(prev, roll, 1)
+    wc = np.roll(w_cur, roll, 1); wp = np.roll(w_prev, roll, 1)
+    ov = (wc > 1e-6) & (wp > 1e-6)
+    band, signed = build_voronoi_seam_band(wc.astype(np.float32), wp.astype(np.float32),
+                                           band_half_width=band_hw, threshold=1e-6)
+    if int(band.sum()) < 100:
+        return cur
+    gc = cv2.cvtColor(np.clip(cr, 0, 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
+    gp = cv2.cvtColor(np.clip(pr, 0, 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
+    kov = cv2.dilate(ov.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))).astype(bool)
+    gc = np.where(kov, gc, 0).astype(np.uint8); gp = np.where(kov, gp, 0).astype(np.uint8)
+    f_pc = dis.calc(gp, gc, None)  # prev -> cur : where prev's pixel lands in cur
+    f_cp = dis.calc(gc, gp, None)  # cur -> prev (for FB consistency)
+    if flow_sigma > 0:
+        for fl in (f_pc, f_cp):
+            fl[..., 0] = cv2.GaussianBlur(fl[..., 0], (0, 0), flow_sigma)
+            fl[..., 1] = cv2.GaussianBlur(fl[..., 1], (0, 0), flow_sigma)
+    np.clip(f_pc, -max_disp, max_disp, out=f_pc); np.clip(f_cp, -max_disp, max_disp, out=f_cp)
+    cons = _fb_consistency(f_pc, f_cp, fb_thresh)
+    d = np.clip(np.abs(signed) / float(band_hw), 0.0, 1.0)
+    ramp = np.where(band, 0.5 * (1.0 + np.cos(np.pi * d)), 0.0).astype(np.float32)  # 1@seam→0@edge
+    taper = ramp * cons.astype(np.float32)  # warp only in-band AND where flow FB-consistent
+    xx, yy = np.meshgrid(np.arange(W), np.arange(H))
+    mapx = (xx.astype(np.float32) + f_pc[..., 0] * taper).astype(np.float32)
+    mapy = (yy.astype(np.float32) + f_pc[..., 1] * taper).astype(np.float32)
+    warped = cv2.remap(cr.astype(np.float32), mapx, mapy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    cov = (cr.astype(np.float32).sum(2) > 0).astype(np.float32)
+    wcov = cv2.remap(cov, mapx, mapy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0.0)
+    out = np.where((wcov > 0.5)[..., None], warped, cr.astype(np.float32))  # no warp-into-hole black
+    return np.roll(out, -roll, axis=1)
+
+
+def flow_align_chain(slabs, weights, band_hw=80, max_disp=40.0, fb_thresh=2.0):
+    """Chain-warp each ring slab to AGREE with its anchor-side neighbour in the seam band; caller
+    hard_selects (single source). front_center=anchor; CCW 0→1→2→3, CW 0→6→5→4, back seam 3-4.
+    Like of_chain_warp but: DIS flow overlap-masked (the 300px fix), CORRECT warp direction (fixes
+    the legacy #2 sign bug), FB-gated, band-confined+tapered → far field byte-exact, single-source."""
+    dis = _make_dis()
+    warped = [s.astype(np.float32).copy() for s in slabs]
+    for chain in ([0, 1, 2, 3], [0, 6, 5, 4]):
+        for k in range(1, len(chain)):
+            prev, cur = chain[k - 1], chain[k]
+            warped[cur] = _align_cur_to_prev(warped[cur], warped[prev], weights[cur], weights[prev],
+                                             dis, band_hw=band_hw, max_disp=max_disp, fb_thresh=fb_thresh)
+    warped[4] = _align_cur_to_prev(warped[4], warped[3], weights[4], weights[3], dis,
+                                   band_hw=band_hw, max_disp=max_disp, fb_thresh=fb_thresh)
+    return warped
+
+
 # ---------------- viz helpers ----------------
 def _rw(img, w):
     h = round(img.shape[0] * w / img.shape[1])
@@ -420,7 +485,9 @@ def main():
     ap.add_argument("--erp-h", type=int, default=1024)
     ap.add_argument("--erp-w", type=int, default=2048)
     ap.add_argument("--band-hw", type=int, default=80)
-    ap.add_argument("--mode", choices=["view", "core"], default="view")
+    ap.add_argument("--mode", choices=["align", "view", "core"], default="align",
+                    help="align = warp-to-align + HARD-SELECT + low-freq colour (single-source, no "
+                         "blend ghost — recommended); view = view-interp alpha-blend (ghosts); core")
     ap.add_argument("--prealign", choices=["plane", "ground", "none"], default="ground",
                     help="view-interp flow input pre-align: 'ground' = LiDAR GROUND plane only "
                          "(connects the near-road seam, no facade distortion — recommended); "
@@ -525,6 +592,17 @@ def main():
         edit_frac = float((touched > 0).mean())
         print(f"[view] pairs={n_pairs} edited_frac={edit_frac*100:.2f}% "
               f"reliable_mean_alpha={float(touched[touched>0].mean()) if (touched>0).any() else 0:.3f}", flush=True)
+    elif args.mode == "align":
+        # ★ SINGLE-SOURCE (research-grounded): warp each slab to AGREE with its neighbour in the band
+        # (flow, FB-gated, tapered) → hard_select (NEVER average → cannot ghost) → E1.5 low-freq
+        # colour only across the thin seam. This replaces the view-interp ALPHA-BLEND that the user
+        # caught reintroducing translucent overlap.
+        warped = flow_align_chain(l1_slabs, l1_w, band_hw=args.band_hw, max_disp=args.max_disp,
+                                  fb_thresh=args.fb_thresh)
+        sc = blend_seam_confined(warped, l1_w, band_half_width=args.band_hw, lowfreq_cutoff=5)
+        res = sc["out"]; touched = sc["alpha"]
+        edit_frac = float((touched > 0).mean())
+        print(f"[align] warp+hard_select+lowfreq, edited_frac={edit_frac*100:.2f}%", flush=True)
     else:
         res, touched = core_plane_blend(pl_slabs, l1_slabs, l1_w, obj_mask, base,
                                         band_half_width=args.band_hw)
