@@ -1,6 +1,6 @@
 # Agent Workspace — Waymo2Panorama
 
-> **TL;DR for agents new to this repo**: write to `handoff.md` + `progress.md` + this `README.md` ONLY. Don't create new `.md` files under `deliverables/`. Read the [rules below](#-rules-for-new-agents-per-user-2026-05-27) FIRST.
+> **TL;DR for agents new to this repo**: the 4 living docs are `handoff.md` + `progress.md` + `decision_briefs.md` + this `README.md` — write to those ONLY. Don't create new `.md` files under `deliverables/`. **Before starting any new experiment direction, open a brief in `decision_briefs.md` (the experiment gate — it has Kill criteria + Max scope).** Read the [rules below](#-rules-for-new-agents-per-user-2026-05-27) FIRST.
 
 ---
 
@@ -55,17 +55,52 @@ These rules exist because the repo had bloated to **47 stale finding/summary mds
 - `.gitignore` excludes user personal notes, large data (`.tfrecord`/`.npy`/`.feather`), generated PDFs.
 - `.gitattributes` normalizes line endings (`eol=lf` in repo) + declares binaries (PNG/JPG/PDF/tfrecord/npy). No more `LF will be replaced by CRLF` warnings on Windows.
 - Direct push to `main` authorized for THIS repo (per `[[feedback-direct-push-main-waymo2pano]]` memory) — no PR review needed.
-- Commit messages: imperative subject (≤ 60 chars), then a blank line, then a short body. End with `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`.
+- Commit messages: imperative subject (≤ 60 chars), then a blank line, then a short body. End with `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
 
 ---
 
-## The 3 source-of-truth files
+## 🚦 Experiment Decision Gate (added 2026-06-02)
 
-- **`handoff.md`** — current-state onboarding doc for any agent picking up this work. **Read this first.** Includes documentation rules (same as here) + recent milestones + infrastructure notes.
-- **`progress.md`** — append-only timeline. Each completed track → a 4-line block (怎么做 / 结果 / Deliverables / Status / Next). Latest entry at top.
-- **`README.md`** — this file. The agent dir guide. Updated when rules change.
+Before starting any new experiment direction, create or update an entry in `agent/decision_briefs.md`.
 
-Everything else is historical context (`2026-05-15-brainstorm-survey.md` for the original L0-L4 method landscape) or sub-folders.
+Each decision brief must include:
+- Question / hypothesis
+- Why this is worth testing now
+- Expected observable output
+- **Kill criteria**
+- **Max scope / budget**
+- Required vision check
+
+After the experiment finishes:
+- Write the detailed result block in `agent/progress.md`
+- Update the corresponding decision brief status to `explored`, `accepted`, `rejected`, or `paused`
+- Add a one-line result summary and link to the exact `progress.md` block
+- **Do not start a follow-up experiment unless it has its own decision brief or explicitly extends the existing one.**
+
+Why this exists: the project's recurring failure mode is NOT lack of ideas — it is patch-on-patch on a direction that "looks promising" until it turns out NEG. The brief is the entry gate that stops that. `decision_briefs.md` and `progress.md` are **strongly bound but never duplicate**: briefs hold the *decision state* (why / hypothesis / kill / scope + a one-line result link); `progress.md` holds the *facts* (commands / params / artifacts / metrics / vision verdict / POS-MIXED-NEG evidence).
+
+---
+
+## 📍 Recording Experiment Artifacts: the 3-Location Rule (added 2026-06-02)
+
+Every completed experiment MUST have its products recorded in **three durable locations** (reproducibility + auditability + cross-session continuity). `progress.md` entries must state, per artifact, WHERE it lives in all three:
+
+1. **GitHub** (committed) — `git@github.com:QiPan-Ronnie/Waymo2Panorama.git`, branch `main`, direct-push authorized. Commit: pipeline code (`code/**`, `scripts/**`), the `progress.md` entry, and visual evidence PNG/JPG under `deliverables/<topic>/` (images ARE evidence, not bloat).
+2. **Local** — this Windows dev machine: `D:\BaiduSyncdisk\2024 to future\koi chen\experiments\Waymo2Panorama\` (synced via BaiduSync). The working tree + pulled result figures live here.
+3. **Drive** — `MyDrive/koi_waymo2pano_colab/` (panq@usc.edu): raw/large run outputs (`outputs/phase3/`, `results/`), AV2 data (`data/argoverse2/`), cached envs + FLUX/LoRA (`cache/`). The Colab compute reads/writes here.
+
+A `progress.md` result block should therefore name: the GitHub path(s) committed, the local figure path(s), and the Drive `results/...` path for the full/large outputs.
+
+---
+
+## The 4 source-of-truth files (living docs)
+
+- **`handoff.md`** — current consensus + roadmap; onboarding doc for any agent picking up this work. **Read this first.** Includes documentation rules + recent milestones + infrastructure notes.
+- **`progress.md`** — append-only FACTS timeline. Each completed track → a 4-line block (怎么做 / 结果 / Deliverables[GitHub/local/Drive] / Status / Next). Latest entry at top.
+- **`decision_briefs.md`** — the experiment GATE (direction decisions: question/hypothesis/kill/scope + one-line result link). See the Decision Gate section above.
+- **`README.md`** — this file. The agent dir guide + work protocol. Updated when rules change.
+
+Historical experiment records (every prior exploration path) are preserved under `../notes/archived/` (see its `README.md` index) and `../deliverables/archived/`; the original method landscape is `2026-05-15-brainstorm-survey.md` (here). Nothing is deleted — old paths are archived, not lost.
 
 ---
 

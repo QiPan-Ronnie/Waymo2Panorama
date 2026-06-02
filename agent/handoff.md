@@ -1,5 +1,11 @@
 # Waymo2Panorama — Agent Handoff
 
+> ## ⏩⏩⏩ 2026-06-02 — PROTOCOL + ROADMAP (read this, then the 2026-05-30 banner below)
+> **Work protocol is now 4 living docs** (see `README.md`): `README.md`=rules · `handoff.md`=consensus+roadmap (this) · `progress.md`=facts (each product names GitHub/local/Drive) · **`decision_briefs.md`=experiment GATE** (open a brief with Kill criteria + Max scope BEFORE any new direction). A **3-Location rule** (GitHub/local/Drive) is enforced in README.
+> **Current roadmap (two parallel routes toward a near-perfect PLAUSIBLE seam — no hallucinated objects):** Route **A** = Google-Street-View-style plausible multi-center (top card: **Difix-on-band**, band-confined 3DGS fuse + single-step refiner, far field byte-exact L1). Route **B** = DiT360 + real-evidence leash (top card: **EPI-Mix**, epipolar+LiDAR reference attention — depth re-weights attention, never warps → dodges the E2–E6 wall). **Cheap de-risk FIRST** before any GPU: DB-01 LiDAR copy-disambiguation kill-test (gates A&B) + DB-04 per-seam convergence sweep + DB-05 in-band metric/object-gate. All directions parked as briefs → `decision_briefs.md` (DB-20260602-01..10; DB-10 selection-family = REJECTED).
+> **New-agent onboarding**: full-project arc + infra + rules in `agent/HANDOFF-PROMPT-full-project-2026-06-02.md` (original 8 methods → Xinhan Waymo meeting → PLAUSIBLE reframe → other-agent seam work → Colab+Drive → current routes). Every historical exploration path is indexed under `notes/archived/` (`notes/archived/README.md`).
+> **Process rule (hard-won)**: discuss direction JOINTLY before building; vision-check EVERY image; never re-charge a NEG family (E2 depth-reproject, copy-selection). 
+
 > ## ⏩⏩ 2026-05-30 — READ THIS FIRST (supersedes the 2026-05-29 + 2026-05-28 banners below)
 > **Two big shifts today: (1) a positive deliverable confirmed; (2) a reframe that may dissolve the whole impossibility.**
 >
