@@ -46,7 +46,7 @@ from waymo2panorama.projection.sphere_projection import render_camera_to_erp  # 
 from waymo2panorama.blending.hard_hdr_of import RING_PAIRS, hard_select  # noqa: E402
 from waymo2panorama.blending.seam_local_align import build_voronoi_seam_band  # noqa: E402
 from waymo2panorama.blending.seam_confined import _label_and_base, _seam_alpha  # noqa: E402 (reviewed)
-from waymo2panorama.blending.seam_confined import multiband_lowfreq_blend  # noqa: E402 (reviewed)
+from waymo2panorama.blending.seam_confined import multiband_lowfreq_blend, blend_seam_confined  # noqa: E402 (reviewed)
 from parallax_budget_map import _erp_rays  # noqa: E402
 from run_a0_plane_dibr_probe import load_lidar_feather  # noqa: E402 (reviewed feather reader)
 from erp_geometry_metric import relative_warp  # noqa: E402 (validated far-field ruler)
@@ -184,7 +184,7 @@ def _fb_consistency(flow_fwd, flow_bwd, thresh=2.0):
 
 
 def surround360_view_interp(slab_i, slab_j, wi, wj, dis, max_disp=60.0, fb_thresh=2.0,
-                            flow_sigma=1.5):
+                            flow_sigma=1.5, struct_thresh=0.0):
     """Synthesize the virtual-center novel view between two overlapping ERP slabs.
 
     shift = wj/(wi+wj) ∈ [0,1] is the angular fraction of the output ray between cam i (shift=0,
@@ -253,7 +253,23 @@ def surround360_view_interp(slab_i, slab_j, wi, wj, dis, max_disp=60.0, fb_thres
     cov_j = (slab_j.astype(np.float32).sum(2) > 0).astype(np.float32)
     warp_ci = cv2.remap(cov_i, mix_x, mix_y, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0.0)
     warp_cj = cv2.remap(cov_j, mjx, mjy, cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, borderValue=0.0)
-    reliable = overlap & (warp_ci > 0.999) & (warp_cj > 0.999) & cons
+    covered = (warp_ci > 0.999) & (warp_cj > 0.999)
+
+    # STRUCTURE-AGREEMENT path (Google/LiDAR plane edge; enabled only when struct_thresh>0, i.e.
+    # plane prealign). Where the two slabs' HIGH-FREQUENCY structure already matches, blending is
+    # safe and singles the surface WITHOUT needing reliable flow: this covers (a) flat textureless
+    # surfaces — no texture to ghost — and (b) plane-DIBR-registered facades. The ghost-prone case
+    # (textured + geometrically misaligned) has HIGH struct residual → it is NOT trusted here and
+    # must instead pass the flow (cons) gate, else it abstains to L1. High-pass = exposure-robust.
+    if struct_thresh > 0:
+        hp_i = gi.astype(np.float32) - cv2.GaussianBlur(gi.astype(np.float32), (0, 0), 8.0)
+        hp_j = gj.astype(np.float32) - cv2.GaussianBlur(gj.astype(np.float32), (0, 0), 8.0)
+        struct_resid = cv2.GaussianBlur(np.abs(hp_i - hp_j), (0, 0), 3.0)
+        struct_agree = struct_resid < float(struct_thresh)
+        trust = cons | struct_agree
+    else:
+        trust = cons
+    reliable = overlap & covered & trust
     return novel, reliable
 
 
@@ -268,7 +284,7 @@ def _circular_center_col(overlap, W):
 
 
 def view_interp_panorama(content_slabs, l1_slabs, l1_w, obj_mask, base, band_half_width,
-                         max_disp, fb_thresh, protect_obj=False):
+                         max_disp, fb_thresh, protect_obj=False, struct_thresh=0.0):
     """Run Surround360 view-interp on every ring seam and composite onto the L1 base.
 
     content_slabs : the slabs whose CONTENT feeds the flow + warp (plane-DIBR if --prealign plane,
@@ -301,7 +317,8 @@ def view_interp_panorama(content_slabs, l1_slabs, l1_w, obj_mask, base, band_hal
         if int(band.sum()) < 100:
             continue
         novel, reliable = surround360_view_interp(si, sj, wir, wjr, dis,
-                                                  max_disp=max_disp, fb_thresh=fb_thresh)
+                                                  max_disp=max_disp, fb_thresh=fb_thresh,
+                                                  struct_thresh=struct_thresh)
         # cos feather: 1 on the seam → 0 at band_half_width
         d = np.clip(np.abs(signed) / float(band_half_width), 0.0, 1.0)
         feather = np.where(band, 0.5 * (1.0 + np.cos(np.pi * d)), 0.0).astype(np.float32)
@@ -373,9 +390,16 @@ def main():
                     help="view-interp flow input: LiDAR-plane-DIBR slabs (plane) or L1 rot-only (none)")
     ap.add_argument("--max-disp", type=float, default=60.0)
     ap.add_argument("--fb-thresh", type=float, default=2.0)
+    ap.add_argument("--struct-thresh", type=float, default=8.0,
+                    help="(plane prealign only) high-freq structure-residual threshold for the "
+                         "plane-alignment trust path; 0 disables (pure flow). Higher = trust more.")
     ap.add_argument("--protect-obj", action="store_true",
                     help="(view mode, ablation) force non-planar objects to L1 instead of letting "
                          "view-interp carry them across the seam")
+    ap.add_argument("--with-photo", action="store_true",
+                    help="(view mode) use the proven E1.5 low-freq photometric seam blend as the "
+                         "base, so the band is photometrically clean even where view-interp abstains "
+                         "(textureless wall); view-interp adds the geometric singling on top")
     ap.add_argument("--review-w", type=int, default=1300)
     args = ap.parse_args()
     erp_hw = (args.erp_h, args.erp_w); out = args.out_dir; out.mkdir(parents=True, exist_ok=True)
@@ -408,11 +432,29 @@ def main():
     tag = f"A1_{args.mode}"
     if args.mode == "view":
         tag += f"_{args.prealign}"
-        content = pl_slabs if args.prealign == "plane" else l1_slabs
+        if args.prealign == "plane":
+            # plane-DIBR slabs with interior holes (A0 lost-ground) FILLED by L1, so the warped-
+            # coverage gate doesn't reject the whole band. Where the plane has content (ground +
+            # facades = incl. the textureless dark wall) it pre-aligns the two cams geometrically
+            # via LiDAR → residual flow ~0 → singled even where flow alone starves. Elsewhere = L1.
+            content = []
+            for ps, ls in zip(pl_slabs, l1_slabs):
+                m = (ps.astype(np.float32).sum(2) > 0)[..., None]
+                content.append(np.where(m, ps.astype(np.float32), ls.astype(np.float32)))
+        else:
+            content = l1_slabs
+        st = args.struct_thresh if args.prealign == "plane" else 0.0  # plane-trust only w/ plane DIBR
+        view_base = base
+        if args.with_photo:
+            # E1.5 low-freq photometric seam blend (reviewed, far-field byte-exact) as the base, so
+            # the band is colour-clean even where view-interp abstains; geometric singling adds on top.
+            view_base = blend_seam_confined(l1_slabs, l1_w, band_half_width=args.band_hw,
+                                            lowfreq_cutoff=5)["out"]
+            tag += "_photo"
         res, touched, n_pairs = view_interp_panorama(
-            content, l1_slabs, l1_w, obj_mask, base,
+            content, l1_slabs, l1_w, obj_mask, view_base,
             band_half_width=args.band_hw, max_disp=args.max_disp, fb_thresh=args.fb_thresh,
-            protect_obj=args.protect_obj)
+            protect_obj=args.protect_obj, struct_thresh=st)
         edit_frac = float((touched > 0).mean())
         print(f"[view] pairs={n_pairs} edited_frac={edit_frac*100:.2f}% "
               f"reliable_mean_alpha={float(touched[touched>0].mean()) if (touched>0).any() else 0:.3f}", flush=True)
