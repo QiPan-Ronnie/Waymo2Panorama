@@ -128,6 +128,37 @@ def build_plane_convergence(ground, facades, erp_hw):
     return lam.reshape(H, W)
 
 
+def object_coherent_weights(l1_w, obj_mask, min_area=150, max_area=9000):
+    """Google-style seam ROUTING around compact near objects. L1 hard_select cuts the seam at the
+    cos²-weight crossover, which can slice straight through a car/pole that straddles two cameras —
+    that cut IS the 'frame parallax' (the object split between two viewpoints). Here, for each
+    COMPACT off-plane object component we assign the WHOLE object to its single best-viewing camera
+    (zero the other cams' weight inside it where the best cam is valid), so the seam routes around
+    it and the object stays whole + single. LARGE components (facades/buildings) are left untouched
+    (routing a whole facade to one cam would drop coverage). General: every AV scene has cars/poles.
+    Returns (modified weights, n_routed)."""
+    K = len(l1_w)
+    n, lbl, stats, _ = cv2.connectedComponentsWithStats(obj_mask.astype(np.uint8), connectivity=8)
+    w_mod = [w.copy() for w in l1_w]
+    routed = 0
+    for k in range(1, n):
+        area = int(stats[k, cv2.CC_STAT_AREA])
+        if area < min_area or area > max_area:
+            continue
+        comp = lbl == k
+        sums = [float(l1_w[m][comp].sum()) for m in range(K)]
+        c = int(np.argmax(sums))
+        cvalid = l1_w[c] > 1e-6
+        sel = comp & cvalid
+        if int(sel.sum()) < min_area // 2:
+            continue  # best cam doesn't actually cover most of the object → don't force it
+        for m in range(K):
+            if m != c:
+                w_mod[m][sel] = 0.0
+        routed += 1
+    return w_mod, routed
+
+
 def off_plane_object_erp(pts, ground, facades, erp_hw, off_thresh=0.6, dilate_px=9):
     """ERP mask of NON-PLANAR near objects: LiDAR points far from ALL fitted planes,
     within range, projected to ERP. These get kept as L1 single-camera (seam routed around)."""
@@ -184,7 +215,7 @@ def _fb_consistency(flow_fwd, flow_bwd, thresh=2.0):
 
 
 def surround360_view_interp(slab_i, slab_j, wi, wj, dis, max_disp=60.0, fb_thresh=2.0,
-                            flow_sigma=1.5, struct_thresh=0.0):
+                            flow_sigma=1.5, struct_thresh=0.0, return_debug=False):
     """Synthesize the virtual-center novel view between two overlapping ERP slabs.
 
     shift = wj/(wi+wj) ∈ [0,1] is the angular fraction of the output ray between cam i (shift=0,
@@ -270,6 +301,10 @@ def surround360_view_interp(slab_i, slab_j, wi, wj, dis, max_disp=60.0, fb_thres
     else:
         trust = cons
     reliable = overlap & covered & trust
+    if return_debug:
+        fmag = np.sqrt((flow_ij[..., 0] ** 2 + flow_ij[..., 1] ** 2))
+        return novel, reliable, {"overlap": overlap, "covered": covered, "cons": cons,
+                                 "trust": trust, "fmag": fmag}
     return novel, reliable
 
 
@@ -386,13 +421,17 @@ def main():
     ap.add_argument("--erp-w", type=int, default=2048)
     ap.add_argument("--band-hw", type=int, default=80)
     ap.add_argument("--mode", choices=["view", "core"], default="view")
-    ap.add_argument("--prealign", choices=["plane", "none"], default="plane",
-                    help="view-interp flow input: LiDAR-plane-DIBR slabs (plane) or L1 rot-only (none)")
+    ap.add_argument("--prealign", choices=["plane", "ground", "none"], default="ground",
+                    help="view-interp flow input pre-align: 'ground' = LiDAR GROUND plane only "
+                         "(connects the near-road seam, no facade distortion — recommended); "
+                         "'plane' = ground+facade planes (distorts facades); 'none' = L1 rot-only")
     ap.add_argument("--max-disp", type=float, default=60.0)
     ap.add_argument("--fb-thresh", type=float, default=2.0)
-    ap.add_argument("--struct-thresh", type=float, default=8.0,
-                    help="(plane prealign only) high-freq structure-residual threshold for the "
-                         "plane-alignment trust path; 0 disables (pure flow). Higher = trust more.")
+    ap.add_argument("--struct-thresh", type=float, default=15.0,
+                    help="(plane/ground prealign) high-freq structure-residual threshold for the "
+                         "alignment-trust path; 0 disables (pure flow). Higher = trust more flat/"
+                         "aligned regions (safe in ground mode: facades stay L1 → fires only where "
+                         "structure already agrees). 15 ~ near-road fired 71%; 25 ~ 82%.")
     ap.add_argument("--protect-obj", action="store_true",
                     help="(view mode, ablation) force non-planar objects to L1 instead of letting "
                          "view-interp carry them across the seam")
@@ -400,6 +439,9 @@ def main():
                     help="(view mode) use the proven E1.5 low-freq photometric seam blend as the "
                          "base, so the band is photometrically clean even where view-interp abstains "
                          "(textureless wall); view-interp adds the geometric singling on top")
+    ap.add_argument("--obj-route", action="store_true",
+                    help="(view mode) route the L1 seam AROUND compact near objects (cars/poles) so "
+                         "they come from one camera and aren't sliced — fixes object frame-parallax")
     ap.add_argument("--review-w", type=int, default=1300)
     args = ap.parse_args()
     erp_hw = (args.erp_h, args.erp_w); out = args.out_dir; out.mkdir(parents=True, exist_ok=True)
@@ -413,42 +455,67 @@ def main():
 
     ground, facades = fit_planes_p3(pts)
     print(f"[planes] ground={'y' if ground else 'N'} facades={len(facades)}", flush=True)
-    conv = build_plane_convergence(ground, facades, erp_hw)
+    conv = build_plane_convergence(ground, facades, erp_hw)          # ground+facades (for obj/crops)
     obj_mask = off_plane_object_erp(pts, ground, facades, erp_hw)
     print(f"[obj] non-planar near-object ERP frac={obj_mask.mean()*100:.2f}%", flush=True)
 
-    # render L1 (rotation-only) and plane-DIBR for every cam
+    # convergence map used to PRE-ALIGN the view-interp content:
+    #   ground = GROUND plane only → connects the near-road seam (largest-parallax, low-texture →
+    #            flow drifts → FB rejects) WITHOUT the facade distortion the full-plane mode causes.
+    #   plane  = ground + facades.   none = no pre-align (rotation-only content).
+    if args.prealign == "ground":
+        conv_pre = build_plane_convergence(ground, [], erp_hw) if ground else None
+    elif args.prealign == "plane":
+        conv_pre = conv
+    else:
+        conv_pre = None
+
+    # render L1 (rotation-only) always; pre-aligned slabs only if a pre-align mode is set
     l1_slabs, l1_w, pl_slabs = [], [], []
     for cam in RING_CAMS_7:
         cb = frame.calibrations[cam]
         r1, _a1, w1 = render_camera_to_erp(frame.images[cam], cb.K, cb.T_ego_cam, erp_hw=erp_hw,
                                            convergence_distance_m=None)
-        rp, _ap, _wp = render_camera_to_erp(frame.images[cam], cb.K, cb.T_ego_cam, erp_hw=erp_hw,
-                                            convergence_distance_m=conv)
-        l1_slabs.append(r1); l1_w.append(w1); pl_slabs.append(rp)
+        l1_slabs.append(r1); l1_w.append(w1)
+        if conv_pre is not None:
+            rp, _ap, _wp = render_camera_to_erp(frame.images[cam], cb.K, cb.T_ego_cam, erp_hw=erp_hw,
+                                                convergence_distance_m=conv_pre)
+            pl_slabs.append(rp)
+        else:
+            pl_slabs.append(r1)
     L1 = hard_select(l1_slabs, l1_w)
-    _, _, base = _label_and_base(l1_slabs, l1_w)  # L1 hard_select base (uint8)
+    # base weights = L1, optionally with the seam ROUTED around compact near objects (fixes the
+    # car frame-parallax: object comes from one camera, not sliced across the seam).
+    w_base = l1_w
+    if args.mode == "view" and args.obj_route:
+        w_base, n_routed = object_coherent_weights(l1_w, obj_mask)
+        print(f"[obj-route] routed {n_routed} compact near-objects to a single camera", flush=True)
+    _, _, base = _label_and_base(l1_slabs, w_base)  # (object-coherent) hard_select base (uint8)
 
     tag = f"A1_{args.mode}"
     if args.mode == "view":
         tag += f"_{args.prealign}"
-        if args.prealign == "plane":
-            # plane-DIBR slabs with interior holes (A0 lost-ground) FILLED by L1, so the warped-
-            # coverage gate doesn't reject the whole band. Where the plane has content (ground +
-            # facades = incl. the textureless dark wall) it pre-aligns the two cams geometrically
-            # via LiDAR → residual flow ~0 → singled even where flow alone starves. Elsewhere = L1.
+        if args.obj_route:
+            tag += "_route"
+        if args.prealign in ("plane", "ground"):
+            # pre-aligned slabs with interior holes (A0 lost-ground) FILLED by L1 so the warped-
+            # coverage gate doesn't reject the band. Where the chosen plane(s) have content it
+            # pre-aligns the two cams geometrically via LiDAR → residual flow ~0 → fires even where
+            # flow alone drifts (the near road). Elsewhere = L1. 'ground' aligns ONLY the road
+            # (well-fit, planar → no facade distortion); 'plane' also aligns facades (distorts them).
             content = []
             for ps, ls in zip(pl_slabs, l1_slabs):
                 m = (ps.astype(np.float32).sum(2) > 0)[..., None]
                 content.append(np.where(m, ps.astype(np.float32), ls.astype(np.float32)))
         else:
             content = l1_slabs
-        st = args.struct_thresh if args.prealign == "plane" else 0.0  # plane-trust only w/ plane DIBR
+        # struct-trust path is safe with a pre-align (flat/aligned regions only); off for pure flow.
+        st = args.struct_thresh if args.prealign in ("plane", "ground") else 0.0
         view_base = base
         if args.with_photo:
             # E1.5 low-freq photometric seam blend (reviewed, far-field byte-exact) as the base, so
             # the band is colour-clean even where view-interp abstains; geometric singling adds on top.
-            view_base = blend_seam_confined(l1_slabs, l1_w, band_half_width=args.band_hw,
+            view_base = blend_seam_confined(l1_slabs, w_base, band_half_width=args.band_hw,
                                             lowfreq_cutoff=5)["out"]
             tag += "_photo"
         res, touched, n_pairs = view_interp_panorama(
