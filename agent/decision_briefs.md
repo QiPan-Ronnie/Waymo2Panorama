@@ -27,7 +27,49 @@ Result summary: TBD. Full details in `agent/progress.md#...`
 
 ---
 
-> **Context (2026-06-02):** the user wants two parallel routes — **A = Google-Street-View-style plausible multi-center** (warp REAL overlapping pixels into agreement, hide seams, LiDAR-guided) and **B = DiT360 refined with a real-evidence leash** — toward the ultimate goal of a near-perfect **PLAUSIBLE** seam (no hallucinated salient objects). The briefs below come from the 2026-06-02 divergent+adversarial ideation (`agent/BRAINSTORM-2026-06-02-seam-path-forward.md`, workflow `wf_1fc2d59b-bb5`). **Recommended order: run the cheap de-risk gate (DB-01 + DB-04 + DB-05) BEFORE committing GPU to DB-02 / DB-03.**
+> **Context (2026-06-02):** the user wants two parallel routes — **A = Google-Street-View-style plausible multi-center** (warp REAL overlapping pixels into agreement, hide seams, LiDAR-guided) and **B = DiT360 refined with a real-evidence leash** — toward the ultimate goal of a near-perfect **PLAUSIBLE** seam (no hallucinated salient objects). The briefs below come from the 2026-06-02 divergent+adversarial ideation (`agent/BRAINSTORM-2026-06-02-seam-path-forward.md`, workflow `wf_1fc2d59b-bb5`). **▶ LEAD / FIRST TO DO = DB-11** (Street-View coarse-plane LiDAR-DIBR program, immediately below) — it sequences the cheap de-risk (DB-01 = its step A0) + the eval (DB-05) + PowerPaint (DB-06 = its A4), with per-seam-convergence (DB-04) as a PIVOT fallback. **Start A0 on CPU.** Keep DB-02 (Difix-on-band) and DB-03 (EPI-Mix) as the heavier alternative POSITION mechanisms to fall back to if DB-11 pivots.
+
+# DB-20260602-11: ▶ LEAD — Street-View-style COARSE-PLANE LiDAR-DIBR panorama (Route A primary program)
+Status: proposed → STARTING A0 (CPU)
+Route: A (the lead Route-A program. ABSORBS/SEQUENCES: DB-01 = its A0; DB-05 = its eval; DB-06 = its A4; DB-04 = a PIVOT fallback; DB-02/DB-03 = heavier alternative position mechanisms if this pivots)
+Progress link: TBD (this session: a Colab CPU runtime is up)
+Inspiration (grounded 2026-06-02, workflow `wf_23dfe385`): Google Street View's ACTUAL pipeline (Anguelov 2010 IEEE; Google "Seamless" 2017 blog) + Surround360. SV defeats non-co-located parallax with a **COARSE plane/mesh depth reprojection** + a residual flow-warp + seam/blend — NOT rotation-only, NOT flow-only. Our edge over SV: **real LiDAR** (they only estimate depth from flow).
+
+RESEARCH QUESTION: Can a robust COARSE LiDAR plane-mesh (ground + a few facade planes) reproject the 7 non-co-located AV2 cameras into one ERP so near/mid surfaces ALIGN to within a few px at every seam (killing L1's doubling) — WITHOUT the per-pixel-depth smear that killed E2, and WITHOUT relying on optical flow — under the PLAUSIBLE bar (no hallucinated salient objects)?
+
+WHY NOW / THE GAP: L1 = rotation-only (drops camera translation → near doubling, math-guaranteed). E2 = per-pixel LiDAR depth (sparse/noisy → smear; N1 error ∝ baseline·focal·Δ(1/z)). The MIDDLE we never isolated = robust **COARSE-PLANE** depth (a fitted plane is stable under LiDAR noise) — exactly SV's trick. Cheap, mostly CPU, uses our LiDAR edge.
+
+HYPOTHESES (mechanistic + prediction):
+- **H1 (core):** coarse plane-mesh DIBR (ray → hit the fitted plane → reproject into the covering camera with FULL R, C, depth) aligns plane-supported near/mid pixels → seam residual disparity <~5 px, far field stays L1-clean, NO smear (depth from a robust plane, not noisy per-pixel z).
+- **H2:** a LIGHT, texture-gated + FB-consistency-gated global flow-warp ON TOP of H1 cleans residual misalignment WITHOUT E3's textureless starvation (H1 already aligns the bulk; flow only nudges textured residuals, abstains elsewhere).
+- **H3:** graph-cut seam routing driven by the closed-form LiDAR parallax-budget cost places the hard cut through low-parallax/agreeing regions → routed seam invisible; never cuts a salient object.
+- **H4:** coverage holes (poles / no-LiDAR / no-cam) filled by structure-continuation inpaint (PowerPaint + P_obj-negative + SAM/YOLO veto + LiDAR free-space) → plausible, object-invention ≈ 0.
+
+EVALUATION (locked proxy metrics; VISION wins on conflict):
+- `relative_warp` far-field ≈ 0 (don't break the far field) [validated ruler];
+- in-band LiDAR-measured residual seam disparity ↓ (target <5 px on plane-supported pixels);
+- object-safety gate: no net-new salient objects vs the real source strips (= DB-05);
+- MANDATORY vision check on EVERY output image.
+
+INNER-LOOP EXPERIMENT LADDER (cheap-first; each step isolates ONE variable; lock protocol in git before running):
+- **A0 [KILL-TEST · CPU · ~1–2h] (= DB-01):** on BMW, fit ground+facade planes to the LiDAR sweep; measure plane-fit residual + seam-band coverage; render colorized LiDAR/plane points into the seam band and check (vision + NCC) whether the plane/LiDAR selects the CORRECT un-doubled copy on the MID-RANGE doubling surface (the 10–30 m building, NOT the near car). **KILL:** planes don't fit sanely OR LiDAR can't vote on the doubling surface → downgrade this program; PIVOT to plane-sweep MVS (DB-07) or the selection floor.
+- **A1 [H1 · CPU]:** coarse-plane DIBR reproject all 7 cams → ERP; vision + seam-disparity + relative_warp far-field. **KILL:** smears like E2 OR far field broken → PIVOT to per-seam single-plane (DB-04) or up to plane-sweep/MPI.
+- **A2 [H3 · CPU]:** add LiDAR-parallax graph-cut seam routing (reuse `seam_routing` external_cost + `parallax_budget_map`). **KILL:** seam still visible / moves <2–3% of pixels.
+- **A3 [H2 · CPU/light-GPU]:** add the light gated flow-warp residual. **KILL:** textureless starve / introduces warp.
+- **A4 [H4 · A100] (= DB-06):** inpaint poles/holes (PowerPaint, anti-object). **KILL:** object-gate fires.
+- **A5 [integration]:** full pipeline vs L1+E1.5 on BMW; generalize to fbee/0bae; pass object-gate. CONCLUDE if stable across 3 anchors.
+
+OUTER-LOOP DIRECTION CRITERIA: DEEPEN (A1 works → finer/per-region planes, facades, objects); PIVOT (A1 smears → per-seam single-plane DB-04, or plane-sweep/MPI real-depth DB-07); CONCLUDE (full pipeline beats L1+E1.5 on the locked metrics + passes object-gate on 3 anchors → write the method).
+
+MAX SCOPE: A0–A2 are CPU (this session's runtime). Do NOT escalate to GPU (A3+) until A0+A1 are POS on vision. **Hard stop:** if A0 or A1 hits its kill criterion, STOP and run an outer-loop reflection / PIVOT — do NOT patch-on-patch (the project's recurring failure mode).
+
+REQUIRED VISION CHECK: every A-step output, eyeballed; eyes beat metrics on conflict.
+
+AUTORESEARCH SETUP (on go): workspace `experiments/streetview-dibr/{protocol,code,results,analysis}`; reuse `code/.../projection` (N1 scalar→plane), `graphcut_seam`, `seam_confined`, `parallax_budget_map`; lock each A-step protocol (git) BEFORE running; synthesize findings after A1/A3/A5; the `/loop` continuity is set up ONLY with the user's explicit go (per the discuss-before-charging rule).
+
+Result summary: TBD. Full facts → `agent/progress.md` (each artifact names GitHub/local/Drive).
+
+---
 
 # DB-20260602-01: Shared LiDAR copy-disambiguation kill-test (gates DB-02 & DB-03)
 Status: proposed
