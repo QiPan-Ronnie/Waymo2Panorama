@@ -428,9 +428,14 @@ def _align_cur_to_prev(cur, prev, w_cur, w_prev, dis, band_hw=80, max_disp=40.0,
             fl[..., 1] = cv2.GaussianBlur(fl[..., 1], (0, 0), flow_sigma)
     np.clip(f_pc, -max_disp, max_disp, out=f_pc); np.clip(f_cp, -max_disp, max_disp, out=f_cp)
     cons = _fb_consistency(f_pc, f_cp, fb_thresh)
+    # FEATHER the FB mask (review fix): multiplying a HARD boolean into the displacement field makes
+    # the resampling map STEP by |flow| across a cons-island border → a visible TEAR at near-object
+    # silhouettes (where FB fails and flow is large). Blurring cons → the displacement ramps smoothly
+    # to 0 instead of jumping. Still single-source + band-tapered, so the leak is benign.
+    cons_soft = cv2.GaussianBlur(cons.astype(np.float32), (0, 0), 3.0)
     d = np.clip(np.abs(signed) / float(band_hw), 0.0, 1.0)
     ramp = np.where(band, 0.5 * (1.0 + np.cos(np.pi * d)), 0.0).astype(np.float32)  # 1@seam→0@edge
-    taper = ramp * cons.astype(np.float32)  # warp only in-band AND where flow FB-consistent
+    taper = ramp * cons_soft  # warp only in-band AND smoothly faded where flow is FB-inconsistent
     xx, yy = np.meshgrid(np.arange(W), np.arange(H))
     mapx = (xx.astype(np.float32) + f_pc[..., 0] * taper).astype(np.float32)
     mapy = (yy.astype(np.float32) + f_pc[..., 1] * taper).astype(np.float32)
