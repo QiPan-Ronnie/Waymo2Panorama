@@ -47,6 +47,8 @@ class Case:
     halo_min_t: float = 0.50
     far_min_t: float = 0.00
     compose_halo_alpha: float = 0.45
+    guidance: float | None = None   # per-case (overrides --guidance) so a tau×guidance sweep loads FLUX once
+    seed: int | None = None         # per-case seed (for seed ensembles); None -> fall back to --guidance/--seed
 
 
 def _parse_case(text: str) -> Case:
@@ -66,6 +68,8 @@ def _parse_case(text: str) -> Case:
         halo_min_t=float(values.get("halo_min_t", 0.50)),
         far_min_t=float(values.get("far_min_t", 0.00)),
         compose_halo_alpha=float(values.get("compose_halo_alpha", 0.45)),
+        guidance=(float(values["guidance"]) if "guidance" in values else None),
+        seed=(int(values["seed"]) if "seed" in values else None),
     )
 
 
@@ -381,8 +385,8 @@ def main() -> int:
             stop_timestep=0.99,
             num_inference_steps=args.steps,
             eta=1.0,
-            guidance_scale=args.guidance,
-            generator=torch.Generator(device=device).manual_seed(args.seed),
+            guidance_scale=(case.guidance if case.guidance is not None else args.guidance),
+            generator=torch.Generator(device=device).manual_seed(case.seed if case.seed is not None else args.seed),
             mask=model_mask,
             use_timestep=True,
             callback_on_step_end=clamp_callback,
@@ -421,8 +425,8 @@ def main() -> int:
             "height": args.height,
             "width": args.width,
             "steps": args.steps,
-            "seed": args.seed,
-            "guidance": args.guidance,
+            "seed": (case.seed if case.seed is not None else args.seed),
+            "guidance": (case.guidance if case.guidance is not None else args.guidance),
             "tau": case.tau,
             "tau_internal": case.tau / 100.0,
             "halo_px": case.halo_px,
