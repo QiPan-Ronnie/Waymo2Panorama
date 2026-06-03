@@ -27,8 +27,8 @@ Result summary: TBD. Full details in `agent/progress.md#...`
 
 ---
 
-# DB-20260602-12: ▶ NEW LEAD — AV Perspective Evidence Guidance (start with a NO-GPU evidence-pack kill-test)
-Status: proposed → kill-test BUILDING (2026-06-02)
+# DB-20260602-12: ▶ AV Perspective Evidence Guidance (NO-GPU evidence-pack kill-test) — ★ L1 KILL-TEST DONE → copy-selection premise KILLED
+Status: explored → **the L1 evidence-pack kill-test came back NEGATIVE for copy-selection (2026-06-02): LiDAR decisively prefers one copy BUT BOTH copies are ~20px from the true ego-centre position (straddle=0, same side); the winning copy's residual (16-21px med) is 3-4× the doubling gap. So copy-SELECTION is geometrically the WRONG operation, and the only faithful op (reproject both to LiDAR-true = N1/E2) smears on sparse LiDAR. → DOWNGRADE the reference-guided-diffusion-via-copy-selection premise (L2/L3 + EPI-Mix's "LiDAR collapses to the correct neighbour"). This is the VALID, VALUABLE kill the brief anticipated.** Full facts: `progress.md` "A1 RE-DO part 5". Also: Meta deghost-softmax + Jump depth-over (flow-mag) tested in the same Workflow = NO fix (band already flow-merged; residual = occlusion/textureless). Remaining real path to beat L1 = ACCURATE DENSE DEPTH (plane-sweep MVS untested reach, or LiDAR-anchored learned 3DGS de-shredded), NOT 2D compositing and NOT copy-selection-guided diffusion.
 Route: A+B bridge (real-evidence gate before any generative fill)
 Progress link: `agent/progress.md` 2026-06-02 "A1 RE-DO part 4" (the ceiling that motivates this) + the forthcoming "Evidence Pack" entry.
 Origin: user + codex(gpt-5.5) adversarial dialogue 2026-06-02 (logged `agent/codex_logs/`). Reframe: do NOT treat DiT360 as a ready perspective→ERP solver; abstract it to **"perspective evidence enters ERP space but the model is constrained ONLY inside the valid mask."** Absorbs/expands DB-01 (LiDAR copy-disambiguation).
