@@ -95,6 +95,17 @@ A `progress.md` result block should therefore name: the GitHub path(s) committed
 
 ---
 
+## 🔑 Account & Drive access — MIGRATED to 1jingshuo1 (2026-06-03)
+
+The Drive workspace `MyDrive/koi_waymo2pano_colab/` is **OWNED by `panq@usc.edu`** (USC account). As of 2026-06-03 it is **shared (Editor) to `1jingshuo1@gmail.com`** (the user's personal account), and a **shortcut to it was added in 1jingshuo1's "My Drive"** — so the Colab mount path `/content/drive/MyDrive/koi_waymo2pano_colab/` is **identical under both accounts; scripts need NO change.**
+
+- **Operate under `1jingshuo1` going forward**: run Colab logged into 1jingshuo1; the Claude Drive connector is now 1jingshuo1. Verified 2026-06-03 on a 1jingshuo1 CPU Colab — data mounts via the shortcut, **write access OK (Editor)**, repo present at `be82ba7`.
+- **Colab connection = the cloudflare tunnel** (`url`+`token` in `runtime/active_url.json`), **independent of the Drive account** — switching the Drive/connector account does NOT affect the Colab tunnel.
+- **This is ACCESS/OPERATION migration, NOT ownership** — the data physically still lives in panq's Drive (nothing was copied).
+- **⚠️ TODO if panq/USC access is ever lost** (cross-org ownership transfer usc.edu→gmail is BLOCKED, so you must COPY): copy the irreplaceable items into 1jingshuo1's OWN Drive — `results/dfwd_av2_finetune_v1/` (finetuned depth_net/gs_net, ~1.3 h A100, irreplaceable) and `cache/df_env_torch22cu121.tar.zst` (2.6 GB built `df` env). AV2 raw data under `data/argoverse2/` is the PUBLIC dataset → re-downloadable, no need to copy. (`secrets/` — do not touch.)
+
+---
+
 ## The 4 source-of-truth files (living docs)
 
 - **`handoff.md`** — current consensus + roadmap; onboarding doc for any agent picking up this work. **Read this first.** Includes documentation rules + recent milestones + infrastructure notes.

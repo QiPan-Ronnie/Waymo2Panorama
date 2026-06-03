@@ -9,6 +9,22 @@ This file is the **direction/decision gate**. It is STRONGLY BOUND to `progress.
 
 Status values: `proposed` / `running` / `explored` / `accepted` / `rejected` / `paused`.
 
+---
+
+## ★★ TERMINAL STATE (2026-06-03) — source-faithful optimization COMPLETE
+
+**DELIVERABLE (accepted) = `scripts/phase3/_seamroute.py`** = `align` (chain-warp losing slab to AGREE, single-source) + **object-moat min-cut seam routing** (route the hard cut AROUND near objects via a custom cost: cross-view RGB resid + LiDAR-near + dilated near-object ∞ moats) + **virtual-centre select** (warp BOTH cams to the virtual centre, then HARD-select one — NEVER average) → ghost-free, sharp, beats `view_none`, verified BMW/0bae/2c65. This is the source-faithful CEILING for this 7-cam non-co-located rig.
+
+- **Ghost root-caused (part-7):** the user's 虚影 = AVERAGING two misaligned copies (`0.5·A(x)+0.5·B(x−d)`, d>1px = two rendered copies). FIX = single-source PICK (never average geometry). Triple-validated (vision `_ghostkill_compare` + codex r3 + perturbation curve `_perturb_ghost`: averaging holds sharpness only at d=0, ~55% @1px; pick flat 100%).
+- **Curb = CO-OBSERVATION physical floor (DB-13 GPU-proven, `_db13_occlusion.py`):** the two curb cams (ring_front_center sees road, ring_front_right sees sidewalk) barely co-observe the curb (38% grazing-occlusion disagreement). NO method (CPU/LiDAR/learned-GPU depth) fixes a surface a camera doesn't see. The single-source curb IS the faithful answer; the "jaggedness" = the genuine foreshortened FoV-boundary curb.
+- **Learned single-centre (DrivingForward-AV2) = WORSE (`CPU_vs_LEARNED_bmw.jpg`):** soft / shredded / band-limited (15% ERP coverage) vs the sharp CPU deliverable. Fuses to one centre but pays in softness; does NOT beat it, can't fix the curb.
+- **Remaining residual = sky/ground out-of-FoV black → generative-outpaint-only (NOT source-faithful; a known DiT360 re-do).**
+- Convergence backing: 7 codex rounds + CPU 5-angle wall + GPU learned + occlusion floor ALL converge. Full facts: `progress.md` 2026-06-03 top entry.
+
+**Brief disposition:** **DB-11 = accepted** (deliverable lineage) · **DB-13 = explored/closed** (learned = optional paper "reach", not a quality gain) · **DB-12 = rejected** (copy-selection KILLED by its own L1 kill-test) · **DB-10 = rejected** · DB-01..09 = subsumed/superseded by the above (their questions were answered inside DB-11/12/13's arc).
+
+---
+
 ### Template
 ```markdown
 # DB-YYYYMMDD-NN: <short title>
@@ -58,7 +74,7 @@ WHY IT MIGHT WORK (vs the dead methods): learns occlusion/disocclusion + a multi
 KILL CRITERIA: overfit-one-log can't single the BMW cleanly (still doubles/smears/blurs vs L1) → reject the learned route. Or: it works overfit but fails to generalize to fbee/0bae → it's a per-scene optimizer (like full-3DGS), reject for the faithful-data goal.
 MAX SCOPE: multi-day, A100. Step 1 = the overfit kill-test on BMW ONLY (do not build the full train/val pipeline until overfit beats L1). NEEDS USER GO (multi-day commitment; per the co-decide-direction rule).
 Required vision check: YES — does the overfit strip-render SINGLE the BMW cleanly (sharp, one car) vs L1's doubled-at-cut?
-Result summary: TBD → `agent/progress.md`.
+Result summary: **★ CLOSED 2026-06-03 (A100 GPU, terminal).** User opened A100 after the CPU ceiling. The finetuned DrivingForward depth was reprojected (`_db13_reproject.py`, real pixels not the shredding 3DGS render) → learned depth is band-limited (15% ERP coverage) + coarse → fired 1.92% ≈ LiDAR-kNN 2.11%, curb UNCHANGED. The decisive occlusion test (`_db13_occlusion.py`) proved the curb is a **CO-OBSERVATION + grazing-OCCLUSION floor** (38% cross-view disagreement), NOT depth-limited — no learned depth fixes a surface a camera doesn't see. Head-to-head (`CPU_vs_LEARNED_bmw.jpg`): learned single-centre = SOFT/SHREDDED, WORSE than the sharp CPU deliverable. **VERDICT: the learned route does NOT beat the source-faithful CPU deliverable and cannot fix the physical floor → closed as an optional paper "reach", not a quality gain.** Full facts: `progress.md` 2026-06-03 top entry.
 
 ---
 
@@ -107,6 +123,7 @@ REQUIRED VISION CHECK: every A-step output, eyeballed; eyes beat metrics on conf
 AUTORESEARCH SETUP (on go): workspace `experiments/streetview-dibr/{protocol,code,results,analysis}`; reuse `code/.../projection` (N1 scalar→plane), `graphcut_seam`, `seam_confined`, `parallax_budget_map`; lock each A-step protocol (git) BEFORE running; synthesize findings after A1/A3/A5; the `/loop` continuity is set up ONLY with the user's explicit go (per the discuss-before-charging rule).
 
 Result summary: A0 NEG/MIXED (plane-alone misaligns) → A1 RE-DONE = **POSITIVE for the FLOW component** (faithful Surround360 view-interp = clean L1++, singles geometric seam doubling on textured co-visible surfaces, 3 anchors, far-field byte-exact) but **NEGATIVE for THIS brief's coarse-LiDAR-plane thesis** (it distorts). Net: the Street-View-style program yields a real clean L1++ via FLOW, not via our LiDAR plane; the under-determined residual (textureless / large-parallax occlusion) is abstained and routes to DB-02/03 (learned). Full facts → `agent/progress.md` 2026-06-02 "A1 RE-DO" entry (each artifact names GitHub/local/Drive).
+**★ ACCEPTED 2026-06-03 — this brief's lineage produced the FINAL DELIVERABLE.** parts 3→7 evolved the flow view-interp into the shippable: ghost root-caused (= I AVERAGED two misaligned copies; FIX = single-source) → `_seamroute.py` = `align` + **object-moat min-cut seam routing** + **virtual-centre select** (warp both cams to the virtual centre, hard-select one, never average). Ghost-free, sharp, beats `view_none`, verified BMW/0bae/2c65. The coarse-LiDAR-plane thesis stays REFUTED; the win is Meta's FLOW + single-source compositing. See the TERMINAL STATE banner at the top of this file + `progress.md` 2026-06-03.
 
 ---
 

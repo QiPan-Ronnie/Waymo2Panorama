@@ -1,0 +1,438 @@
+Reading prompt from stdin...
+2026-06-03T06:30:12.982326Z ERROR codex_core::session: failed to load skill C:\Users\14294\.codex\skills\ai-research-explore\SKILL.md: invalid YAML: mapping values are not allowed in this context at line 2 column 82
+2026-06-03T06:30:12.982391Z ERROR codex_core::session: failed to load skill C:\Users\14294\.codex\skills\build_workspace_app\SKILL.md: missing YAML frontmatter delimited by ---
+2026-06-03T06:30:12.984294Z ERROR codex_core::session: failed to load skill C:\Users\14294\.codex\skills\configure_mcp_server\SKILL.md: missing YAML frontmatter delimited by ---
+2026-06-03T06:30:12.984312Z ERROR codex_core::session: failed to load skill C:\Users\14294\.codex\skills\develop_extension\SKILL.md: missing YAML frontmatter delimited by ---
+2026-06-03T06:30:12.984316Z ERROR codex_core::session: failed to load skill C:\Users\14294\.codex\skills\work_with_server\SKILL.md: missing YAML frontmatter delimited by ---
+2026-06-03T06:30:12.984319Z ERROR codex_core::session: failed to load skill C:\Users\14294\.codex\skills\frontend-slides\plugins\frontend-slides\skills\frontend-slides\SKILL.md: missing YAML frontmatter delimited by ---
+OpenAI Codex v0.130.0
+--------
+workdir: D:\BaiduSyncdisk\2024 to future\koi chen\experiments\Waymo2Panorama
+model: gpt-5.5
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: xhigh
+reasoning summaries: none
+session id: 019e8c2c-e69c-70d2-8dd7-6a70d1ba314f
+--------
+user
+# Adversarial round 4 — the single-source deliverable still looks ≈L1; the user wants near-object doubling DRAMATICALLY singled. What CPU lever am I missing?
+
+gpt-5.5 xhigh, adversarial. Two images attached: (A) full-pano 3-row L1 | view_none | deliverable;
+(B) BMW seam zoom L1 | view_none | deliverable. Vision-judge them yourself, then attack my plan.
+
+## State
+Rig: 7 pinhole ring cams, optical centres ~2 m off ego origin, adjacent baseline 21-26 cm, adjacent
+overlap a ~18.6° azimuth WEDGE. Target: clean ego-centred ERP, source-faithful (real pixels/LiDAR, NO
+generation). CPU only (cv2/numpy/scipy).
+
+Settled last round (you concurred): the seam GHOST (虚影) = AVERAGING two misaligned copies; fixed by
+SINGLE-SOURCE (never average) — `pick` (reproject both to ego at dense-LiDAR depth, pick higher-weight
+cam) and `align` (flow warp-to-agree → hard_select). Perturbation proof: averaging loses 30% sharpness
+at 0.5 px, pick stays sharp.
+
+The clean deliverable = align + pick (single-source, gain colour, obj-route around compact near objects,
+graph-cut option). It is GHOST-FREE and beats view_none (which still blends→ghosts). BUT: the clean
+DE-DOUBLING fires on only ~2% (depth + cross-view-agree gate); loosening or smoothing the depth gate did
+NOT enlarge it cleanly (4 independent confirmations: E2 dense-depth smears, plane-sweep <1%, loose
+LiDAR gate, edge-aware-smoothed gate). So near objects that L1 doubles and obj-route didn't catch stay
+doubled. The user (reliable vision) says it still has "lots of doubling" and isn't clearly better than
+view_none, and insists the path is viable and I'm under-implementing.
+
+## The reframe I want you to pressure-test
+For a source-faithful MULTI-PERSPECTIVE panorama (not a true single centre), the doubling at a seam is
+just "the same object appears in BOTH cameras' regions because the cut runs through it." If I instead
+ROUTE THE SEAM ENTIRELY AROUND every near object (take each whole object from ONE camera, run the cut
+only through far / low-disparity / cross-view-AGREEING regions — sky, distant facade, road vanishing
+point), then NO near object is split → no doubling and no ghost, by construction. The object sits at one
+camera's (off-ego) viewpoint, which is fine for a multi-perspective pano. This is the Google-Street-View
+move (min-disparity seam), and it does NOT need accurate depth — only a disparity/agreement COST map
+(LiDAR range discontinuity, or cross-view RGB residual after the band warp) to push the cut away from
+near/disagreeing pixels.
+
+## Questions — adversarial, concrete
+1. Vision verdict on the attached deliverable: is there still visible near-object DOUBLING, or is it
+   actually ≈L1-clean and the user is reacting to the OLD averaged result? Be specific about WHERE.
+2. Is "route the seam around ALL near objects via a disparity/agreement-cost min-cut" the right
+   highest-leverage CPU lever to dramatically reduce visible doubling — or does it just MOVE the problem
+   (e.g. the object's BACKGROUND now has a discontinuity at the cut, or two adjacent objects make the
+   wedge un-routable)? When does seam-routing fail and you're forced back to doubling/ghost?
+3. My current graph-cut uses cv2.detail COST_COLOR_GRAD (route through low colour+gradient diff). Is
+   that already a disparity-routing proxy, or do I need an explicit cost = (LiDAR range or 1/agreement)
+   so the cut provably avoids near/high-parallax pixels? Give the concrete cost map to build.
+4. Brutal check: is the user's "lots of doubling, not better than view_none" most likely (a) true
+   residual splitting my routing misses, (b) them judging the old averaged image, or (c) a real ceiling
+   where on an 18.6° wedge with multiple near objects the seam CANNOT avoid them all? Which, and why?
+5. Give the SINGLE highest-leverage next experiment (CPU, source-faithful) to make near-object doubling
+   dramatically cleaner. One concrete thing.
+
+End with one line: the single highest-leverage CPU lever + whether you expect it to clearly beat
+view_none and L1, or whether this genuinely needs GPU learned depth.
+
+2026-06-03T06:30:19.938706Z ERROR codex_memories_write::phase2::job: failed to claim job: error returned from database: (code: 1) no such table: jobs
+ERROR: The process "4924" not found.
+2026-06-03T06:30:21.474021Z ERROR rmcp::transport::worker: worker quit with fatal: Transport channel closed, when Client(HttpRequest(HttpRequest("http/request failed: error sending request for url (http://127.0.0.1:8001/mcp)")))
+codex
+I’ll treat this as a reasoning review, not an implementation turn. I’m going to load the relevant local instructions briefly, then answer from the two attached images and the geometry you described.
+exec
+"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 'C:\\Users\\14294\\.codex\\skills\\autoresearch-skill\\skills\\reason\\SKILL.md' -TotalCount 220" in D:\BaiduSyncdisk\2024 to future\koi chen\experiments\Waymo2Panorama
+exec
+"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Get-Content -LiteralPath 'C:\\Users\\14294\\.codex\\superpowers\\skills\\using-superpowers\\SKILL.md' -TotalCount 220" in D:\BaiduSyncdisk\2024 to future\koi chen\experiments\Waymo2Panorama
+exec
+"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath 'C:\\Users\\14294\\.codex\\memories\\MEMORY.md' -Pattern 'Waymo2Panorama','koi','pano','seam','doubling' -Context 1,2" in D:\BaiduSyncdisk\2024 to future\koi chen\experiments\Waymo2Panorama
+ declined in 0ms:
+`"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath 'C:\\Users\\14294\\.codex\\memories\\MEMORY.md' -Pattern 'Waymo2Panorama','koi','pano','seam','doubling' -Context 1,2"` rejected: blocked by policy
+2026-06-03T06:30:42.543565Z ERROR codex_core::tools::router: error=`"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath 'C:\\Users\\14294\\.codex\\memories\\MEMORY.md' -Pattern 'Waymo2Panorama','koi','pano','seam','doubling' -Context 1,2"` rejected: blocked by policy
+ succeeded in 609ms:
+---
+name: using-superpowers
+description: Use when starting any conversation - establishes how to find and use skills, requiring Skill tool invocation before ANY response including clarifying questions
+---
+
+<SUBAGENT-STOP>
+If you were dispatched as a subagent to execute a specific task, skip this skill.
+</SUBAGENT-STOP>
+
+<EXTREMELY-IMPORTANT>
+If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.
+
+This is not negotiable. This is not optional. You cannot rationalize your way out of this.
+</EXTREMELY-IMPORTANT>
+
+## Instruction Priority
+
+Superpowers skills override default system prompt behavior, but **user instructions always take precedence**:
+
+1. **User's explicit instructions** (CLAUDE.md, GEMINI.md, AGENTS.md, direct requests) â€” highest priority
+2. **Superpowers skills** â€” override default system behavior where they conflict
+3. **Default system prompt** â€” lowest priority
+
+If CLAUDE.md, GEMINI.md, or AGENTS.md says "don't use TDD" and a skill says "always use TDD," follow the user's instructions. The user is in control.
+
+## How to Access Skills
+
+**In Claude Code:** Use the `Skill` tool. When you invoke a skill, its content is loaded and presented to youâ€”follow it directly. Never use the Read tool on skill files.
+
+**In Copilot CLI:** Use the `skill` tool. Skills are auto-discovered from installed plugins. The `skill` tool works the same as Claude Code's `Skill` tool.
+
+**In Gemini CLI:** Skills activate via the `activate_skill` tool. Gemini loads skill metadata at session start and activates the full content on demand.
+
+**In other environments:** Check your platform's documentation for how skills are loaded.
+
+## Platform Adaptation
+
+Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-tools.md` (Copilot CLI), `references/codex-tools.md` (Codex) for tool equivalents. Gemini CLI users get the tool mapping loaded automatically via GEMINI.md.
+
+# Using Skills
+
+## The Rule
+
+**Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
+
+```dot
+digraph skill_flow {
+    "User message received" [shape=doublecircle];
+    "About to EnterPlanMode?" [shape=doublecircle];
+    "Already brainstormed?" [shape=diamond];
+    "Invoke brainstorming skill" [shape=box];
+    "Might any skill apply?" [shape=diamond];
+    "Invoke Skill tool" [shape=box];
+    "Announce: 'Using [skill] to [purpose]'" [shape=box];
+    "Has checklist?" [shape=diamond];
+    "Create TodoWrite todo per item" [shape=box];
+    "Follow skill exactly" [shape=box];
+    "Respond (including clarifications)" [shape=doublecircle];
+
+    "About to EnterPlanMode?" -> "Already brainstormed?";
+    "Already brainstormed?" -> "Invoke brainstorming skill" [label="no"];
+    "Already brainstormed?" -> "Might any skill apply?" [label="yes"];
+    "Invoke brainstorming skill" -> "Might any skill apply?";
+
+    "User message received" -> "Might any skill apply?";
+    "Might any skill apply?" -> "Invoke Skill tool" [label="yes, even 1%"];
+    "Might any skill apply?" -> "Respond (including clarifications)" [label="definitely not"];
+    "Invoke Skill tool" -> "Announce: 'Using [skill] to [purpose]'";
+    "Announce: 'Using [skill] to [purpose]'" -> "Has checklist?";
+    "Has checklist?" -> "Create TodoWrite todo per item" [label="yes"];
+    "Has checklist?" -> "Follow skill exactly" [label="no"];
+    "Create TodoWrite todo per item" -> "Follow skill exactly";
+}
+```
+
+## Red Flags
+
+These thoughts mean STOPâ€”you're rationalizing:
+
+| Thought | Reality |
+|---------|---------|
+| "This is just a simple question" | Questions are tasks. Check for skills. |
+| "I need more context first" | Skill check comes BEFORE clarifying questions. |
+| "Let me explore the codebase first" | Skills tell you HOW to explore. Check first. |
+| "I can check git/files quickly" | Files lack conversation context. Check for skills. |
+| "Let me gather information first" | Skills tell you HOW to gather information. |
+| "This doesn't need a formal skill" | If a skill exists, use it. |
+| "I remember this skill" | Skills evolve. Read current version. |
+| "This doesn't count as a task" | Action = task. Check for skills. |
+| "The skill is overkill" | Simple things become complex. Use it. |
+| "I'll just do this one thing first" | Check BEFORE doing anything. |
+| "This feels productive" | Undisciplined action wastes time. Skills prevent this. |
+| "I know what that means" | Knowing the concept â‰  using the skill. Invoke it. |
+
+## Skill Priority
+
+When multiple skills could apply, use this order:
+
+1. **Process skills first** (brainstorming, debugging) - these determine HOW to approach the task
+2. **Implementation skills second** (frontend-design, mcp-builder) - these guide execution
+
+"Let's build X" â†’ brainstorming first, then implementation skills.
+"Fix this bug" â†’ debugging first, then domain-specific skills.
+
+## Skill Types
+
+**Rigid** (TDD, debugging): Follow exactly. Don't adapt away discipline.
+
+**Flexible** (patterns): Adapt principles to context.
+
+The skill itself tells you which.
+
+## User Instructions
+
+Instructions say WHAT, not HOW. "Add X" or "Fix Y" doesn't mean skip workflows.
+
+ succeeded in 623ms:
+---
+name: autoresearch:reason
+description: |
+  Adversarial multi-round reasoning with blind-judge panel to reach rigorous conclusions.
+  TRIGGER when: user wants rigorous reasoning or argument evaluation; user wants a decision
+  analyzed from multiple angles; user wants devil's advocate critique; user asks "what are
+  the strongest arguments for/against"; user wants a structured debate; user wants to avoid
+  groupthink or anchoring; user invokes /autoresearch:reason.
+  DO NOT TRIGGER when: user wants a simple recommendation; user wants a quick summary;
+  user wants factual lookup; user just wants pros/cons without adversarial pressure.
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - WebFetch
+  - WebSearch
+---
+
+# autoresearch:reason
+
+Adversarial multi-round reasoning loop with a blind-judge panel. Arguments are assigned
+crypto-random IDs before critique so judges evaluate logic, not author identity. Runs until
+convergence or budget exhausted.
+
+## Autonomy Directive
+
+**You are an autonomous reasoning agent.** Once the debate begins:
+
+1. **NEVER STOP** to ask permission between rounds.
+2. **NEVER ASK** "should I continue?" mid-debate.
+3. **NEVER DECLARE CONVERGENCE** prematurely â€” a single unchallenged round is not convergence.
+4. **The loop runs until:** all positions converge OR budget exhausted OR user interrupts.
+5. **If neither condition is true, begin the next round immediately.**
+
+---
+
+## Setup
+
+### Step 1 â€” Define the question
+If not provided, ask once: "What is the question or decision to reason about?"
+The question must be specific enough to allow falsifiable positions. Refuse vague inputs like
+"think about AI" â€” ask for a concrete framing.
+
+### Step 2 â€” Set parameters
+Ask if not provided:
+- **Number of positions** (default: 3). Minimum 2, maximum 5.
+- **Max rounds** (default: 4). Minimum 2.
+- **Convergence threshold:** "Converged" = all judges rate the top position's logical score â‰¥8/10
+  AND no position has an unanswered rebuttal.
+
+---
+
+## Round Structure
+
+Each round follows this exact sequence:
+
+### Phase 1 â€” Propose Positions (Round 1 only)
+Generate N distinct positions on the question. Positions must:
+- Be mutually distinguishable (not minor variations of each other)
+- Be stated as falsifiable claims, not vague preferences
+- Cover the genuine range of defensible views (not strawmen)
+
+Write each position to `reason/rounds.md` as: `Position [PENDING-ID]: [statement]`
+
+### Phase 2 â€” Assign Crypto-Random IDs
+Assign each position a random alphanumeric ID (e.g., `ARG-7F3A`, `ARG-2C91`).
+Write the mapping to `reason/id-map.md` â€” this file is **sealed until the end** (not read during debate).
+Replace all position labels in `reason/rounds.md` with their assigned IDs.
+**From this point forward, all debate references use IDs only â€” never "Position 1" or author names.**
+
+### Phase 3 â€” Blind Critique Round
+For each argument ID, write a rigorous critique:
+- Identify the strongest assumption and test whether it holds
+- Find the weakest logical link in the chain
+- Propose a concrete counterexample or falsifying scenario
+- Rate logical strength: 1â€“10 (where 10 = logically airtight)
+
+Critiques reference IDs only: "ARG-7F3A assumes X, which fails when Y..."
+Write all critiques to `reason/rounds.md` under `## Round [N] â€” Critiques`.
+
+### Phase 4 â€” Rebuttal Round
+Each argument ID responds to the critiques it received:
+- Acknowledge valid critiques (update or narrow the claim)
+- Rebut invalid critiques with specific evidence or reasoning
+- A position may concede partially â€” update the statement if weakened by critique
+
+Write rebuttals to `reason/rounds.md` under `## Round [N] â€” Rebuttals`.
+
+### Phase 5 â€” Judge Evaluation
+Three independent judges evaluate all arguments:
+- Judge A: Logic and internal consistency
+- Judge B: Evidence quality and falsifiability
+- Judge C: Practical applicability
+
+Each judge scores every argument ID on their dimension (1â€“10) and identifies the strongest argument.
+Judges reference IDs only. Write scores to `reason/rounds.md` under `## Round [N] â€” Judgment`.
+
+### Phase 6 â€” Convergence Check
+After each round:
+- If top-scoring argument has score â‰¥8/10 from all judges AND no unanswered rebuttal exists â†’ converged.
+- If max rounds reached â†’ converged by budget.
+- Otherwise â†’ begin next round (return to Phase 3 with updated positions).
+
+---
+
+## Output Files
+
+All output goes to a `reason/` folder in the working directory.
+
+| File | Purpose |
+|------|---------|
+| `reason/rounds.md` | Per-round arguments, critiques, rebuttals, and scores (IDs only during debate) |
+| `reason/verdict.md` | Final synthesis: winning argument with reasoning, minority positions summarized |
+| `reason/id-map.md` | Revealed at end only: maps each ID â†’ original position label |
+
+### verdict.md structure
+```
+# Verdict: [Question]
+Rounds completed: [N]
+Convergence: [yes/no â€” budget exhausted]
+
+## Winning Argument
+ID: [ARG-XXXX] (revealed: [original position])
+Score: [avg judge score]/10
+Summary: [2-3 sentence synthesis]
+Key evidence: [bullet points]
+
+## Minority Positions
+- [ARG-YYYY]: [why it lost â€” specific logical weakness identified]
+- [ARG-ZZZZ]: [why it lost]
+
+## Synthesis
+[2-3 paragraphs on what the debate revealed â€” including any nuances that
+don't fit cleanly into the winning argument]
+
+## Confidence
+[Low / Medium / High] â€” with explicit statement of remaining uncertainty
+```
+
+---
+
+## Anti-Anchoring Protocol
+
+The ID system exists to prevent these failure modes:
+- **Position ordering bias** â€” "the first argument always sounds best"
+- **Framing bias** â€” "the argument labeled 'conservative' gets dismissed without evaluation"
+- **Authority bias** â€” "the argument by the named expert wins by default"
+
+Judges MUST NOT reference position order, original labels, or authorship until after `verdict.md` is written and `id-map.md` is revealed.
+
+---
+
+## Edge Cases
+
+| Situation | Handling |
+|-----------|----------|
+| Two positions are identical | Merge them; reduce N by 1 |
+| One position dominates all others in round 1 | Still run min 2 rounds â€” premature convergence is bias |
+| Judges disagree strongly (spread â‰¥5 points) | Note as "contested" in verdict.md â€” no forced winner |
+| Budget = 1 round | Complete one full cycle, write verdict with low confidence |
+| Question has a factual answer | Note this upfront â€” reason is for judgment calls, not facts |
+
+codex
+Using `autoresearch:reason` for the adversarial framing. Its file-based debate workflow cannot be followed literally in this read-only sandbox, so I’m applying the critique/judge structure inline rather than writing `reason/` artifacts.
+exec
+"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath 'C:\\Users\\14294\\.codex\\memories\\MEMORY.md' -Pattern 'Waymo2Panorama' -Context 1,2" in D:\BaiduSyncdisk\2024 to future\koi chen\experiments\Waymo2Panorama
+ declined in 0ms:
+`"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath 'C:\\Users\\14294\\.codex\\memories\\MEMORY.md' -Pattern 'Waymo2Panorama' -Context 1,2"` rejected: blocked by policy
+2026-06-03T06:30:57.344443Z ERROR codex_core::tools::router: error=`"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -Command "Select-String -LiteralPath 'C:\\Users\\14294\\.codex\\memories\\MEMORY.md' -Pattern 'Waymo2Panorama' -Context 1,2"` rejected: blocked by policy
+codex
+The memory registry lookup is blocked by the current execution policy, so I’m not going to rely on prior-rollout details. The answer below is based on the attached images plus the geometry and state you supplied in this turn.
+codex
+Vision verdict: the deliverable is not just the old averaged ghost, but it still has visible hard-seam doubling/splitting. In the BMW zoom, the obvious artifact is the vertical seam band through/near the white BMW and the facade behind it: the car body/pavement has a source jump, and the building/tree/facade behind it is stepped or partially repeated. The purple/green fringes on the car are source/camera artifacts, not the seam issue. Full-pano view: the right-side vehicle/facade region is still the salient problem. So the user is not only reacting to `view_none`; the clean result is ghost-free but still not dramatically de-doubled.
+
+Your reframe is right: the missing CPU lever is seam topology, not more blending or slightly better dense depth. If a near object is split by the cut, single-source selection only changes the artifact from “two transparent copies” to “one hard broken copy.” Routing the cut around the whole near object is the correct high-leverage move.
+
+`cv2.detail COST_COLOR_GRAD` is not enough. It is a seam-visibility proxy, not a parallax/object proxy. It can happily cut through a smooth white car door because color/gradient cost is low there. You need an explicit cut cost like:
+
+```text
+C = base
+  + w_near  * sigmoid((Z_near - Z) / s)
+  + w_zedge * |grad(log Z)|
+  + w_rgb   * robust_norm(Lab_A - Lab_B_after_gain)
+  + w_flow  * clamp(|align_flow| / tau)
+  + w_fb    * forward_backward_flow_error
+  + w_occ   * invalid_or_occlusion_mask
+  + w_obj   * dilated_near_object_or_disagree_component
+```
+
+Then solve a hard-select seam/path/min-cut over the overlap. Use the high-cost terms as moats; do not require perfect depth agreement as a binary gate. The cut should prefer sky, far facade, far road, and low-flow/low-residual regions.
+
+Where this fails: if near/disagreeing regions form a barrier across the whole overlap, if an object touches both usable seam boundaries, if two near objects create no topological corridor, or if the same object already appears outside the overlap support of both cameras. Then you can only choose the least bad single-source seam; no CPU trick can make a source-faithful, no-generation pano fully central-view consistent.
+
+Brutal check: most likely `(a)` true residual splitting your routing misses. Some `(c)` will happen in crowded wedges, but this crop does not prove a hard ceiling. `(b)` is unlikely because the attached deliverable itself still shows the hard split.
+
+Single next experiment: on the BMW seam only, build an oracle/object-moat disparity min-cut: mark the BMW plus nearby high-flow/high-residual/LiDAR-near connected components as near-infinite cut cost, route one hard seam through the remaining low-disagreement corridor, and compose with zero blending. If that crop becomes clean, automate the cost; if it cannot find a path, you’ve found a real topology ceiling.
+
+Single highest-leverage CPU lever: explicit near/disagreement/object-moat min-cut seam routing; I expect it to clearly beat `view_none` and current L1 on this class before needing GPU learned depth.
+SUCCESS: The process with PID 63180 (child process of PID 29892) has been terminated.
+SUCCESS: The process with PID 29892 (child process of PID 18624) has been terminated.
+SUCCESS: The process with PID 18624 (child process of PID 66084) has been terminated.
+SUCCESS: The process with PID 66084 (child process of PID 23988) has been terminated.
+SUCCESS: The process with PID 23988 (child process of PID 50876) has been terminated.
+tokens used
+40,358
+Vision verdict: the deliverable is not just the old averaged ghost, but it still has visible hard-seam doubling/splitting. In the BMW zoom, the obvious artifact is the vertical seam band through/near the white BMW and the facade behind it: the car body/pavement has a source jump, and the building/tree/facade behind it is stepped or partially repeated. The purple/green fringes on the car are source/camera artifacts, not the seam issue. Full-pano view: the right-side vehicle/facade region is still the salient problem. So the user is not only reacting to `view_none`; the clean result is ghost-free but still not dramatically de-doubled.
+
+Your reframe is right: the missing CPU lever is seam topology, not more blending or slightly better dense depth. If a near object is split by the cut, single-source selection only changes the artifact from “two transparent copies” to “one hard broken copy.” Routing the cut around the whole near object is the correct high-leverage move.
+
+`cv2.detail COST_COLOR_GRAD` is not enough. It is a seam-visibility proxy, not a parallax/object proxy. It can happily cut through a smooth white car door because color/gradient cost is low there. You need an explicit cut cost like:
+
+```text
+C = base
+  + w_near  * sigmoid((Z_near - Z) / s)
+  + w_zedge * |grad(log Z)|
+  + w_rgb   * robust_norm(Lab_A - Lab_B_after_gain)
+  + w_flow  * clamp(|align_flow| / tau)
+  + w_fb    * forward_backward_flow_error
+  + w_occ   * invalid_or_occlusion_mask
+  + w_obj   * dilated_near_object_or_disagree_component
+```
+
+Then solve a hard-select seam/path/min-cut over the overlap. Use the high-cost terms as moats; do not require perfect depth agreement as a binary gate. The cut should prefer sky, far facade, far road, and low-flow/low-residual regions.
+
+Where this fails: if near/disagreeing regions form a barrier across the whole overlap, if an object touches both usable seam boundaries, if two near objects create no topological corridor, or if the same object already appears outside the overlap support of both cameras. Then you can only choose the least bad single-source seam; no CPU trick can make a source-faithful, no-generation pano fully central-view consistent.
+
+Brutal check: most likely `(a)` true residual splitting your routing misses. Some `(c)` will happen in crowded wedges, but this crop does not prove a hard ceiling. `(b)` is unlikely because the attached deliverable itself still shows the hard split.
+
+Single next experiment: on the BMW seam only, build an oracle/object-moat disparity min-cut: mark the BMW plus nearby high-flow/high-residual/LiDAR-near connected components as near-infinite cut cost, route one hard seam through the remaining low-disagreement corridor, and compose with zero blending. If that crop becomes clean, automate the cost; if it cannot find a path, you’ve found a real topology ceiling.
+
+Single highest-leverage CPU lever: explicit near/disagreement/object-moat min-cut seam routing; I expect it to clearly beat `view_none` and current L1 on this class before needing GPU learned depth.

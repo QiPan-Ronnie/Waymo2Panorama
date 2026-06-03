@@ -77,3 +77,14 @@ self_learning/assets/
 self_learning/02_cv_foundations 0*.md
 self_learning/小孔成像模型.html
 agent/plans/5.26 review 进程后的plan.md
+
+# Secrets — NEVER commit (defensive; see agent/README.md)
+secrets/
+
+# Third-party reference source / papers (cached for research; NOT redistributable in this repo)
+NovelView.cpp
+NovelView.h
+jump.pdf
+
+# Temp scratch scripts
+_tmp_*.py
