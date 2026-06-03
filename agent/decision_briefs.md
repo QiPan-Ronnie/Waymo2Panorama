@@ -47,6 +47,20 @@ Result summary: TBD → `agent/progress.md` "Evidence Pack" entry.
 
 ---
 
+# DB-20260602-13: ▶ ONLY REMAINING LEAD to strictly beat L1 in-band — LEARNED strip-confined Band-MPI / MVSNet (leave-one-camera-out supervised)
+Status: proposed (needs user GO — multi-day) — recommended by BOTH codex(gpt-5.5 xhigh) rounds after the 5-angle wall proof
+Route: B (learned dense layered depth, strip-confined) — NOT generative (no diffusion core solver)
+Origin: codex round-2 (`agent/codex_logs/...-02-VERDICT.md`). After 5 vision-judged angles proved the in-band doubling is depth-accuracy-bound (copy-SELECT→≈L1, copy-MIX→ghost, every depth-REPROJECT→smear/shred/≈L1; LiDAR straddle=0 kills selection), the ONLY thing not yet tried that could beat L1 is a LEARNED dense layered depth in the seam strip.
+QUESTION: Can a strip-confined Band-MPI (multi-plane-image) / MVSNet-style cost-volume, supervised WITHOUT GT-ERP by leave-one-camera-out cross-camera reprojection + sparse LiDAR + occlusion masks + smoothness, predict dense layered depth accurate enough to reproject the seam band to the true ego-centre and SINGLE the near-object doubling (BMW) cleanly — where sparse-LiDAR reproject smeared (E2), zero-shot-ish DrivingForward shredded, and cross-view MVS was confident on <1%?
+WHY IT MIGHT WORK (vs the dead methods): learns occlusion/disocclusion + a multi-DEPTH (layered) representation per ray (LDI/MPI — the thing single-warp/selection can't do); cost-volume aggregates ALL planes with learned regularization (vs my 24-plane raw-RGB argmax); leave-one-out gives a real supervision signal with NO GT-ERP (codex: no-GT is NOT a blocker). Precedents: MVSNet (ECCV'18 differentiable-homography cost volume), MPI (Zhou'18 learned layered), Band-MPI confined to strips (this project's long-noted "only untested reach").
+★ DECISIVE OVERFIT KILL-TEST (codex): OVERFIT the strip-MPI/MVSNet on ONE AV2 log (BMW), supervised by leave-one-camera-out reprojection + LiDAR, render ONLY the seam strip to ego-centre. **If it cannot beat L1 on the BMW seam AFTER overfitting one log → the learned route is not worth scaling → STOP, ship align+E1.5.** (Overfit-first is the cheapest possible falsification.)
+KILL CRITERIA: overfit-one-log can't single the BMW cleanly (still doubles/smears/blurs vs L1) → reject the learned route. Or: it works overfit but fails to generalize to fbee/0bae → it's a per-scene optimizer (like full-3DGS), reject for the faithful-data goal.
+MAX SCOPE: multi-day, A100. Step 1 = the overfit kill-test on BMW ONLY (do not build the full train/val pipeline until overfit beats L1). NEEDS USER GO (multi-day commitment; per the co-decide-direction rule).
+Required vision check: YES — does the overfit strip-render SINGLE the BMW cleanly (sharp, one car) vs L1's doubled-at-cut?
+Result summary: TBD → `agent/progress.md`.
+
+---
+
 > **Context (2026-06-02):** the user wants two parallel routes — **A = Google-Street-View-style plausible multi-center** (warp REAL overlapping pixels into agreement, hide seams, LiDAR-guided) and **B = DiT360 refined with a real-evidence leash** — toward the ultimate goal of a near-perfect **PLAUSIBLE** seam (no hallucinated salient objects). The briefs below come from the 2026-06-02 divergent+adversarial ideation (`agent/BRAINSTORM-2026-06-02-seam-path-forward.md`, workflow `wf_1fc2d59b-bb5`). **▶ LEAD / FIRST TO DO = DB-11** (Street-View coarse-plane LiDAR-DIBR program, immediately below) — it sequences the cheap de-risk (DB-01 = its step A0) + the eval (DB-05) + PowerPaint (DB-06 = its A4), with per-seam-convergence (DB-04) as a PIVOT fallback. **Start A0 on CPU.** Keep DB-02 (Difix-on-band) and DB-03 (EPI-Mix) as the heavier alternative POSITION mechanisms to fall back to if DB-11 pivots.
 
 # DB-20260602-11: ▶ LEAD — Street-View-style COARSE-PLANE LiDAR-DIBR panorama (Route A primary program)
