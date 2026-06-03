@@ -30,9 +30,9 @@ from PIL import Image
 
 
 DEFAULT_PROMPT = (
-    "This is a 360-degree street panorama captured by an autonomous vehicle in "
-    "an urban driving scene, with roads, lane markings, sidewalks, cars, "
-    "buildings, signs, and sky."
+    "continuous existing street panorama texture with no new salient objects; "
+    "preserve existing geometry and edges; smooth local seam repair only; "
+    "no vehicles, no people, no signs, no traffic lights, no new buildings"
 )
 
 
