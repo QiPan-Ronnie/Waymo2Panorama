@@ -280,6 +280,17 @@ def main():
     cv2.imwrite(str(OUT / f"SR_{a.tag}_ground_pano.jpg"), cv2.cvtColor(rw(final_ground, 2048), cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 95])
     # full-res lossless deliverable = the DiT360 trimap-clamp init (refine the thin seam, far byte-exact)
     cv2.imwrite(str(OUT / f"SR_{a.tag}_final_1024x2048.png"), cv2.cvtColor(final, cv2.COLOR_RGB2BGR))
+    # DB-18 (codex r10): ground-RISK seam mask for DiT360 — preserve=white(255), generate=black(0).
+    # NOT a thin vertical strip: the wavy defect lives on the NEAR-GROUND, so the seam ribbon WIDENS
+    # downward (curb/road), and tall-object interiors are HARD-excluded so DiT never regenerates a car.
+    seam_edge = ((label != np.roll(label, 1, 1)) | (label != np.roll(label, -1, 1))) & valid
+    ribbon = np.zeros((H, W), np.uint8)
+    for lo, hi, rad in [(0, int(H * 0.50), 8), (int(H * 0.50), int(H * 0.72), 26), (int(H * 0.72), H, 46)]:
+        b = np.zeros((H, W), np.uint8); b[lo:hi][seam_edge[lo:hi]] = 1
+        ribbon |= cv2.dilate(b, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (rad * 2 + 1, rad * 2 + 1)))
+    risk = ribbon.astype(bool) & (~objm) & valid
+    cv2.imwrite(str(OUT / f"SR_{a.tag}_seamcore.png"), np.where(~risk, 255, 0).astype(np.uint8))
+    print(f"[{a.tag}] DB18 seamcore risk-mask = {100*risk.mean():.2f}% of pano", flush=True)
     spots = SPOTS.get(a.tag, DEFAULT_SPOTS)
     PAL = np.array([[60, 60, 210], [60, 210, 60], [210, 60, 60], [60, 210, 210], [210, 60, 210], [210, 210, 60], [210, 130, 60]], np.uint8)
     labcol = PAL[np.clip(label, 0, 6)]               # BGR camera-id colour per pixel
