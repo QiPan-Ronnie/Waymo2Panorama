@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-03 (DB-19 sky-only outpaint generalization — 0bae PASS, 2c65 diagnostic PASS-with-caveat)
+> **Goal:** verify the BMW sky-only win is not a one-off by running the same constrained DiT360 sky-only recipe on `0bae` and `2c65`.
+> **What ran on A100:** `SR_0bae_bevfinal_1024x2048.png` and `SR_2c65_bevfinal_1024x2048.png` → border-connected `opmask_sky` → DiT360 tau50/guidance2.8/seed0/halo32 → object gate + local vision. Then CPU sky-edge postcompose `thr45` was applied to reduce roofline/fringe, matching the BMW DB-19 cleanup.
+> **Gate results:** both PASS. `0bae`: src_salient=19, gen_salient=22, netnew=0, far/halo MAE=0. `2c65`: src_salient=6, gen_salient=6, netnew=0, far/halo MAE=0.
+> **Vision verdict:** **0bae = POSITIVE generalization.** Sky is coherent and object-free; roofline fringe reduced by postcompose. **2c65 = diagnostic PASS with caveat**: sky fill is gate-clean, but the base pano already contains strong multi-time/exposure sky/content slabs, so the final still has visible sky-panel/color discontinuities; it proves the sky-only method generalizes, but it is not a clean presentation anchor.
+> **Locations:** Drive `results/db19_combo/{0bae_bevfinal_sky_t50_s0,2c65_bevfinal_sky_t50_s0}/` with final `*_postcompose_thr45.png`; local zips/folders `deliverables/dit360_v2/db19_{0bae,2c65}_sky_t50_s0_fetch*`, local inits `db19_{0bae,2c65}_bevfinal_init.png`, postcompose folders `db19_{0bae,2c65}_sky_edge_postcompose/`, final PNGs `deliverables/dit360_v2/db19_0bae_sky_t50_s0_postcompose_thr45.png` and `deliverables/dit360_v2/db19_2c65_sky_t50_s0_postcompose_thr45.png`.
+> **Conclusion:** sky-only outpaint is the one DiT360 direction that is consistently useful: BMW + 0bae presentable, 2c65 technically passes but is limited by its input slab inconsistency. T1 seam/ground-line DiT remains rejected.
+> ---
+
 > ### 2026-06-03 (DB-19 current-best G base + sky-only outpaint — BMW accepted with honest residuals)
 > **Goal:** after DB-14/21 rejected DiT seam-line repair, assemble the cleanest honest BMW panorama: `G_bmw_pano` horizontal content + generated sky-only upper hemisphere, with no DiT ground/seam redraw.
 > **What ran on A100:** generated `opmask_sky` from `G_bmw_pano` using border-connected black-band masking, then ran DiT360 tau50/guidance2.8/seed0/halo32 with sky-only prompt. Object gate PASS (netnew=0; src_salient=10, gen_salient=9). Far/halo byte-exact for corecompose diagnostics.

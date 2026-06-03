@@ -43,25 +43,8 @@ Result summary: TBD → archive to progress.md when done, then delete here.
 
 ---
 
-# DB-20260603-19: ▶ PARTIAL — cleanest faithful-ish pano = current-best base + **SKY-outpaint**; then generalize
-Status: **BMW accepted / generalization pending** (`G_bmw_pano` + sky-only + postcompose thr45 is archived in `progress.md`; DB-14/21 seam-line DiT rejected, so assemble without a DiT seam layer)
-Route: B (generative, constrained + object-gated)
-Origin: this session's WIN = **sky-only outpaint is gate-clean** (archived POSITIVE in progress; `deliverables/dit360_v2/op_sky_t50_s0.png`, `sky_roofline_cmp.jpg`). Assemble the proven faithful layers into ONE deliverable and test generalization.
-
-Plan (in order, each gated):
-1. **BMW combo DONE:** current best base `G_bmw_pano` → sky-only outpaint → CPU sky-edge postcompose thr45 = `deliverables/dit360_v2/db19_G_bmw_pano_sky_t50_s0_postcompose_thr45.png` (Drive mirror recorded in progress). Source-faithful horizontal band + generated upper sky; no DiT seam layer.
-2. **Re-judge D4b ground/full outpaint** (already RAN; judging was blocked by the tunnel outage): `results/dit360_outpaint_v2/{ground_t50_s0,full_t50_s0}/` → hardened object gate + vision. codex predicts ground = high-risk (invents lane/curb/cars). Decide: any ground completion usable, or ground outpaint stays REJECTED (sky-only stands).
-3. **Multi-anchor generalize**: re-run the proven sky-outpaint on **0bae + 2c65** (bevfinal + masks already PREPPED on Drive `results/seamroute/SR_{0bae,2c65}_bevfinal*` + `dit360_outpaint_v2/masks_{0bae,2c65}/`). Confirm the sky-win is not BMW-specific.
-
-Kill criteria: combo — if sky-only introduces objects/boundary artifacts on the chosen base, fall back to current-best base without outpaint; ground outpaint — if it invents past the hardened gate OR looks worse than honest black → ground REJECTED (note honestly; may still be a "plausible demo", NOT faithful data); multi-anchor — if sky-outpaint hallucinates on 0bae/2c65 → the win is anchor-specific, report that.
-Max scope: A100 sequential; each ~3–5 min; vision + gate EVERY output; record each result's Drive + local location.
-Required vision check: YES.
-Result summary: TBD → archive to progress.md when done, then delete here.
-
----
-
 # DB-20260603-20: ▶ PARTIAL — DiT360 paper/code levers after DB-21
-Status: **partially superseded** (Dir 1 sky generalization remains active; T1 seam-line levers paused/rejected unless new evidence appears)
+Status: **mostly superseded** (Dir 1 sky generalization completed/accepted via DB-19; T1 seam-line levers paused/rejected unless new evidence appears)
 Route: B (generative, constrained + object-gated)
 Origin: user 2026-06-03 "再仔细看原论文还有什么我们可以用的, 我们疏忽的内容". A 6-agent Workflow mined the DiT360 paper + OUR actual code (`pa_src/pipeline.py`, `attn_processor.py`, `yaw_rotate.py`, `run_dit360_trimap_clamp.py`) for inference levers we never used, cross-checked vs all 16 prior variants, adversarially KILLED 5 of 8. **Full raw record: `agent/codex_logs/round11_dit360_levermining_raw.json`.**
 
@@ -70,7 +53,7 @@ Origin: user 2026-06-03 "再仔细看原论文还有什么我们可以用的, �
 ⚠️ **CODE CAVEATS (every knob sweep must respect):** (1) a LEGACY clamp at `pa_src/pipeline.py:1053-1056` fires whenever `mask` passed AND `timestep/1000>=0.5`, hard-copying batch[0]→batch[1] over preserve regions — it CO-EXISTS with the runner's clamp_callback; confirm which dominates before crediting a swept knob. (2) RF window/eta/gamma are hardcoded (`start0/stop0.99/eta1.0` @ :384-388, `gamma1.0` @ :315) → Dirs 2/3 need them plumbed as args.
 
 **SURVIVING DIRECTIONS after DB-21 (updated 2026-06-03):**
-1. **Sky-outpaint GENERALIZE + prompt fix** (T2, low risk, ~1.5 A100h). Extend the D4 sky WIN to 0bae+2c65 (masks prepped), HOLD tau50/guid2.8/halo32, A/B ONLY the prompt (anti-object vs the buggy one). PASS = gate netnew=0 + rooflines byte-exact + no boundary seam on BOTH anchors. KILL = sky win is BMW-specific (gate fail / boundary on either).
+1. **DONE — Sky-outpaint GENERALIZE + prompt fix.** BMW + 0bae accepted; 2c65 gate-clean diagnostic with base-slab caveat. Detail in DB-19 progress entries.
 2. **PAUSED / do not spend A100 now — Multi-yaw generate-and-SELECT (T1).** DB-21 shows even current-base aligned masks redraw semantic ground structure; yaw decorrelation may move artifacts but does not solve source-faithful line geometry. Reopen only if a CPU/cube diagnostic shows the defect is projection-frame dependent rather than generative redraw.
 3. **PAUSED / do not spend A100 now — RF faithful micro-sweep (eta/gamma).** DB-21 already found the core-moving regime: it moved, stayed far/halo byte-exact, and still hallucinated sidewalk/curb/planter content. RF knobs are unlikely to turn semantic completion into geometry-preserving line repair without new conditioning.
 
@@ -78,7 +61,7 @@ Origin: user 2026-06-03 "再仔细看原论文还有什么我们可以用的, �
 
 **DROPPED (do NOT re-propose — adversarially killed, full reasons in the raw json):** RF window-shrink/stop_timestep (INVERTED mechanism = the D2 car-invention regime); real-evidence donor / shift_mask (re-litigates v18 "vanilla DiT360 = inpainting NOT multi-ref stitching" NEG + its select step = the twice-rejected copy-SELECTION family DB-10/12); PA layer-subset (speculative, unknown LoRA depth split — park as contingency); cube-face metric (measurement wrapper for Dir 2, no standalone slot; vision wins); additive concept_process (fallback to dropped donor); thin tau{8,12} (interpolates the known no-op→invent bracket); wide/ground-risk mask + ground/full outpaint + post-compose + multi-seed (confirmed dead poles).
 
-Max scope: A100 only for Dir 1 sky generalization; T1 seam knobs require a new decision brief and new evidence before any GPU spend. Vision + object gate EVERY output, record each result location.
+Max scope: no more A100 in this brief. T1 seam knobs require a new decision brief and new evidence before any GPU spend. Vision + object gate EVERY output, record each result location.
 Required vision check: YES.
 Result summary: TBD → archive to progress.md when done, then delete here.
 
@@ -87,5 +70,6 @@ Result summary: TBD → archive to progress.md when done, then delete here.
 > **DONE THIS SESSION (2026-06-03, A100) — full record in `progress.md` (top "DiT360 SESSION SYNTHESIS" entry); kept here only as pointers so this queue stays short:**
 > - **D2 DiT360 seam-completion, WIDE ground-risk mask (5.56%) + tau{20,50}** = **NEG** (object-gate FAIL: invents small cars + melts textureless cuts). → superseded by DB-14 (thin mask). Results: `deliverables/dit360_v2/gr_tau*`.
 > - **D4 DiT360 SKY-ONLY outpaint** = **POSITIVE** (gate-clean upper-hemisphere fill; rooflines byte-exact). → folded into DB-19. Results: `deliverables/dit360_v2/op_sky_t50_s0.png`, `sky_roofline_cmp.jpg`.
+> - **DB-19 sky-only combo/generalization** = **ACCEPTED** for BMW + 0bae; 2c65 gate-clean diagnostic with base-slab caveat. Results: `deliverables/dit360_v2/db19_G_bmw_pano_sky_t50_s0_postcompose_thr45.png`, `db19_0bae_sky_t50_s0_postcompose_thr45.png`, `db19_2c65_sky_t50_s0_postcompose_thr45.png`. Detail in progress.md.
 > - **DB-15/16/17** (non-DiT reroute / Poisson / line-snap) = CLOSED, superseded by the BEV ground atlas (codex round-8 lead). Detail in progress.md.
 > - INFRA recipe + /code-review fixes (box-overlap object gate, fail-safe asserts, flood-fill outpaint mask) recorded in progress.md.
