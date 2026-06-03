@@ -21,6 +21,28 @@ Result summary: TBD → archive to progress.md when done, then delete here.
 
 ---
 
+# DB-20260603-18: ▶▶ ACTIVE LEAD — DiT360 EXPLORATION PROGRAM (seam completion + outpaint + paper-derived inference tricks)
+Status: **running** (A100 always-on; autonomous overnight; ultracode). Big user goal 2026-06-03.
+Route: B (generative — DiT360/FLUX, bounded by masks + object-safety gate)
+GOAL (user): explore DiT360 for our AV ERP panorama as far as possible. TWO targets:
+  **(T1)** HIDE the wavy near-ground seam (the non-generative physical floor) via thin-mask generation.
+  **(T2)** OUTPAINT the black sky/ground band (the biggest gap to "Google-Maps look") — RE-TRY from multiple angles, judge if usable for faithful-ish data (koi asked to re-tune outpaint; the OLD full-frame center-outpaint hallucinated cars/vans → was rejected; test whether a constrained outpaint is different).
+Best init = `SR_bmw_bevfinal_1024x2048.png` (bleed-free, code-review-fixed); alt inits = G_bmw_pano / BEST_bmw_pano / A1_view_none.
+DiT360 (arXiv 2510.11712, Insta360): FLUX.1-dev + LoRA, hybrid TRAINING = image-level (perspective-guidance + panoramic-refinement) + token-level (**circular-padding** wraparound, **yaw-loss** rotation-robust, **cube-loss** distortion). → the LoRA already "knows" wraparound/yaw/distortion. INFERENCE = RF-Inversion (gamma/eta) + PersonalizeAnything attn (tau) + our trimap latent-clamp (core free / halo soft / far byte-clamp); circular latent padding already applied. Env: A100-40GB, FLUX+DiT360-LoRA cached, code `/content/DiT360`, runner `run_dit360_trimap_clamp.py`.
+SUB-DIRECTIONS (each = own kill-test; results under Drive `results/dit360_seam_v2/` (T1) + `results/dit360_outpaint_v2/` (T2), fetched to `deliverables/dit360_v2/`):
+- **D1 seam corecompose baseline** on bevfinal (= the old DB-14; RUNNING).
+- **D2 param sweep**: tau{1,5,10,20} × guidance{2.0,2.8,4.0} × core-radius{r008,r016} × halo — regime that visibly smooths the wavy seam WITHOUT inventing objects.
+- **D3 yaw-ensemble** (NEW, from the yaw-loss): roll pano by several yaw offsets, seam-complete each, median-merge where consistent (or roll seams to benign azimuths).
+- **D4 OUTPAINT sky/ground** (T2), multiple angles: (a) sky-only (low-risk, no objects), (b) thin structure-continuation band, (c) full hemisphere; guidance/prompt/mask variants; anti-object gate. Judge usable vs hallucinate.
+- **D5 object-safety gate** (DB-05): SAM/YOLO band-diff vs source → reject any output with net-new salient objects. Gates ALL generative outputs.
+- **D6 multi-anchor** (0bae/2c65) once a BMW config is good.
+KILL (per sub-dir): D2 — no tau/guidance regime both smooths AND passes the object gate → seam-DiT is cosmetic-only; D3 — ensemble blurs or no variance drop → drop; D4 — even sky-only/thin outpaint hallucinates past the gate OR looks worse than black → outpaint stays REJECTED for faithful data (note honestly; may still be a "plausible demo"); D5 — detector recall too low → report "invention rate at recall R".
+MAX SCOPE: A100 autonomous; each config ~3-5 min (sequential GPU); vision EVERY output + object gate; record each result's location. codex r10 adversarial running to reprioritize.
+Required vision check: YES — every generated pano + seam/curb/sky crops; scan for invented/bent structure.
+Result summary: TBD → archive to progress.md; sub-results recorded as produced.
+
+---
+
 # DB-20260603-14: ▶ ACTIVE — DiT360 thin-seam (trimap-clamp) completion ON the BEV-improved deliverable
 Status: **proposed** (CPU prep DONE + pipeline verified; NEEDS GPU)
 Route: B (generative — but CONSTRAINED: thin seam band only; NOT a core solver, NOT full outpaint)
