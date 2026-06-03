@@ -107,7 +107,7 @@ def main():
     gmask = cv2.erode(gmask.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))).astype(bool)
     print(f"[erp] ground composite mask = {100*gmask.mean():.2f}% of pano (tall-excluded={100*tall.mean():.1f}%)", flush=True)
 
-    cur = cv2.cvtColor(cv2.imread(str(OUT / "SR_bmw_final_1024x2048.png")), cv2.COLOR_BGR2RGB).astype(np.float32)
+    cur = cv2.cvtColor(cv2.imread(str(OUT / f"SR_{a.tag}_final_1024x2048.png")), cv2.COLOR_BGR2RGB).astype(np.float32)
     m = cv2.GaussianBlur(gmask.astype(np.float32), (0, 0), 2.0)[..., None]
     bevpano = (cur * (1 - m) + erp_g * m).astype(np.uint8)
     cur_u = cur.astype(np.uint8)
