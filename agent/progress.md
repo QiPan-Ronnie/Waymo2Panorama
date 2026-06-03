@@ -1,5 +1,13 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-03 (DB-22 CubeComposer-inspired rectilinear diagnostic — informative only / closed)
+> **Goal:** check whether CubeComposer-style cube/rectilinear representation reveals a missed projection-frame issue around the BMW right-ground seam.
+> **What ran:** CPU-only rectilinear projection of `G_bmw_pano` around the BMW/right white-line seam, with panels for input, DB-21 ultra mask overlay, rejected DB-21 output, and accepted DB-19 sky-only final. No CubeComposer/Wan model inference; this was a representation diagnostic only.
+> **Vision verdict:** **Informative, not a new repair path.** In rectilinear view the DB-21 ultra mask is visibly aligned to the intended right-ground line/curb region and avoids the BMW body. The DB-21 output still replaces that region with a new planter/grass/curb structure. Therefore the failure is not primarily ERP/cube projection or mask placement; it is DiT semantic redrawing under ground/curb prompts. DB-19 sky-only final keeps the residual ground seam, which is the correct honest behavior.
+> **Locations:** local `deliverables/dit360_v2/db22_rectilinear_diag/db22_rect_bmw_rightline_montage.jpg`; script `scripts/phase3/db22_rectilinear_diag.py`.
+> **Conclusion:** CubeComposer contributes a useful lens: cube/rectilinear views are good diagnostics for seam localization, but the full CubeComposer model is not a justified next step for AV seam repair. DB-22 closed.
+> ---
+
 > ### 2026-06-03 (DB-19 sky-only outpaint generalization — 0bae PASS, 2c65 diagnostic PASS-with-caveat)
 > **Goal:** verify the BMW sky-only win is not a one-off by running the same constrained DiT360 sky-only recipe on `0bae` and `2c65`.
 > **What ran on A100:** `SR_0bae_bevfinal_1024x2048.png` and `SR_2c65_bevfinal_1024x2048.png` → border-connected `opmask_sky` → DiT360 tau50/guidance2.8/seed0/halo32 → object gate + local vision. Then CPU sky-edge postcompose `thr45` was applied to reduce roofline/fringe, matching the BMW DB-19 cleanup.
