@@ -21,52 +21,43 @@ Result summary: TBD → archive to progress.md when done, then delete here.
 
 ---
 
-# DB-20260603-18: ▶▶ ACTIVE LEAD — DiT360 EXPLORATION PROGRAM (seam completion + outpaint + paper-derived inference tricks)
-Status: **running** (A100 always-on; autonomous overnight; ultracode). Big user goal 2026-06-03.
-Route: B (generative — DiT360/FLUX, bounded by masks + object-safety gate)
-GOAL (user): explore DiT360 for our AV ERP panorama as far as possible. TWO targets:
-  **(T1)** HIDE the wavy near-ground seam (the non-generative physical floor) via thin-mask generation.
-  **(T2)** OUTPAINT the black sky/ground band (the biggest gap to "Google-Maps look") — RE-TRY from multiple angles, judge if usable for faithful-ish data (koi asked to re-tune outpaint; the OLD full-frame center-outpaint hallucinated cars/vans → was rejected; test whether a constrained outpaint is different).
-Best init = `SR_bmw_bevfinal_1024x2048.png` (bleed-free, code-review-fixed); alt inits = G_bmw_pano / BEST_bmw_pano / A1_view_none.
-DiT360 (arXiv 2510.11712, Insta360): FLUX.1-dev + LoRA, hybrid TRAINING = image-level (perspective-guidance + panoramic-refinement) + token-level (**circular-padding** wraparound, **yaw-loss** rotation-robust, **cube-loss** distortion). → the LoRA already "knows" wraparound/yaw/distortion. INFERENCE = RF-Inversion (gamma/eta) + PersonalizeAnything attn (tau) + our trimap latent-clamp (core free / halo soft / far byte-clamp); circular latent padding already applied. Env: A100-40GB, FLUX+DiT360-LoRA cached, code `/content/DiT360`, runner `run_dit360_trimap_clamp.py`.
-SUB-DIRECTIONS (each = own kill-test; results under Drive `results/dit360_seam_v2/` (T1) + `results/dit360_outpaint_v2/` (T2), fetched to `deliverables/dit360_v2/`):
-- **D1 seam corecompose baseline** on bevfinal (= the old DB-14; RUNNING).
-- **D2 param sweep**: tau{1,5,10,20} × guidance{2.0,2.8,4.0} × core-radius{r008,r016} × halo — regime that visibly smooths the wavy seam WITHOUT inventing objects.
-- **D3 yaw-ensemble** (NEW, from the yaw-loss): roll pano by several yaw offsets, seam-complete each, median-merge where consistent (or roll seams to benign azimuths).
-- **D4 OUTPAINT sky/ground** (T2), multiple angles: (a) sky-only (low-risk, no objects), (b) thin structure-continuation band, (c) full hemisphere; guidance/prompt/mask variants; anti-object gate. Judge usable vs hallucinate.
-- **D5 object-safety gate** (DB-05): SAM/YOLO band-diff vs source → reject any output with net-new salient objects. Gates ALL generative outputs.
-- **D6 multi-anchor** (0bae/2c65) once a BMW config is good.
-KILL (per sub-dir): D2 — no tau/guidance regime both smooths AND passes the object gate → seam-DiT is cosmetic-only; D3 — ensemble blurs or no variance drop → drop; D4 — even sky-only/thin outpaint hallucinates past the gate OR looks worse than black → outpaint stays REJECTED for faithful data (note honestly; may still be a "plausible demo"); D5 — detector recall too low → report "invention rate at recall R".
-MAX SCOPE: A100 autonomous; each config ~3-5 min (sequential GPU); vision EVERY output + object gate; record each result's location. codex r10 adversarial running to reprioritize.
-Required vision check: YES — every generated pano + seam/curb/sky crops; scan for invented/bent structure.
-Result summary: TBD → archive to progress.md; sub-results recorded as produced.
+# DB-20260603-14: ▶▶ ACTIVE LEAD (next GPU run) — DiT360 FAITHFUL **THIN**-seam (trimap r008) on the best base
+Status: **proposed** (CPU prep DONE + pipeline verified; NEEDS A100). **This is the SEAM method of record** — it REPLACES yesterday's mis-run wide ground-risk mask (= NEG, archived to progress).
+Route: B (generative, CONSTRAINED: thin r008 seam core only; far/halo byte-exact; NOT a wide solver, NOT full outpaint)
 
----
+★ **WHY THIS BRIEF (user correction 2026-06-03):** yesterday's seam run used a **WIDE ground-risk mask (5.56%) + tau{20,50}** → it INVENTED small cars + melted textureless cuts (object-gate FAIL → NEG, archived). **That is NOT our prior, trusted method.** Our prior method = the **v14 trimap-clamp THIN seam: r008 core (~1.6%), tau5 (light touch), corecompose** — the image the user judged "其实也可以": `deliverables/dit360_seam_completion/runs_v14_trimap_clamp_bmw/trimap_r008_h016_w025_tau5/..._raw_fullres_1024x2048.png`. The productive UNEXPLORED cell = **THIN mask × MODERATE tau** (NOT wide × high). tau5 on the thin core was found ≈no-op in v14 history (raw ≈ hard_select); the question is whether a *slightly* higher tau on the *same thin* mask gives a real bridge while staying gate-clean.
 
-# DB-20260603-14: ▶ ACTIVE — DiT360 thin-seam (trimap-clamp) completion ON the BEV-improved deliverable
-Status: **proposed** (CPU prep DONE + pipeline verified; NEEDS GPU)
-Route: B (generative — but CONSTRAINED: thin seam band only; NOT a core solver, NOT full outpaint)
-Origin: user 2026-06-03 — revived the OLD `runs_v14_trimap_clamp` result and judged the small-mask version "其实也可以"; proposes applying it to the LATEST deliverable to smooth the residual seam. codex (earlier rounds) explicitly approved diffusion for thin seams/holes with a hard mask (NOT as a core solver).
+Question: Does the v14 THIN-seam trimap-clamp on the **current best base** (`SR_bmw_bevfinal_1024x2048.png`, bleed-free) with **r008 core × tau {5, 8, 12}** (guidance 2.8, halo soft-clamp, far byte-exact, fixed seed) VISIBLY smooth the residual wavy near-ground seam WITHOUT inventing salient objects?
 
-Question: Does DiT360 trimap-clamp **corecompose** (regenerate ONLY the ~1.6% thin seam "core"; halo soft-clamped; far 95% BYTE-EXACT) applied to the **BEV-improved deliverable** (`SR_bmw_bevfinal_1024x2048.png`) visibly SMOOTH the residual seam (incl. the off-plane curb the BEV road layer can't fix) — WITHOUT inventing salient objects — i.e., a cleaner, more "Google-Map-like" seam at bounded faithfulness cost?
+Hypothesis: thin core = too little canvas to fit a whole salient object → object gate stays green; moderate tau (8–12) on the thin core gives the light plausible bridge tau5 didn't; far/halo byte-exact = zero global hallucination.
 
-Hypothesis: applied to the de-ghosted + BEV-road base (residual = a small seam/curb kink, NOT L1's big misalignment), the thin core has little to invent → a light, plausible bridge; far/halo byte-exact guarantees no global hallucination; the 1.6% core is too thin to fit a whole car/sign → object invention bounded.
-
-Why now: the source-faithful geometry path is EXHAUSTED — DB-11/12/13 + IPM NEG + the BEV atlas (road = representation-fixable but modest ERP payoff) + the curb off-plane floor. The only remaining lever to make the seam/curb cleaner is generation. The trimap pipeline exists and is verified ready.
-
-Expected evidence: corecompose pano vs the bevfinal base — vision: is the residual seam/curb smoother/more continuous? + object-safety gate (SAM/YOLO band-diff, DB-05): zero net-new salient instances vs the source strips. + far/halo MAE = 0 (byte-exact preservation confirmed).
-
-Kill criteria: (a) the core regeneration SMEARS/bends a lane line/edge or invents a salient object the anti-object gate flags → reject for faithful data; (b) corecompose under-changes (≈ bevfinal, no visible smoothing) → not worth the GPU/faithfulness cost; (c) it only helps where already clean → drop.
-
-Max scope: GPU (L4 enough), ~140s/anchor. Step 1 = ONE anchor (BMW) corecompose on the bevfinal init + the existing r008 mask + vision + object gate. Do NOT batch/generalize until BMW passes vision + gate. The faithfulness line: thin-seam synthetic is acceptable ONLY with the anti-object gate green + every image eyeballed.
-
-Required vision check: YES — eyeball the seam smoothing AND scan the core band for any invented/bent structure.
-
-READY STATE (CPU prep done 2026-06-03): init = `results/seamroute/SR_bmw_bevfinal_1024x2048.png` (**the BEV-improved deliverable, adopted 2026-06-03**); core_mask `results/dit360_seam_completion/inputs_v14_trimap/02a00399_a000/02a00399_a000_mask_preserve_nonseam_r008.png` (same inter-camera seam azimuths, still aligns); weights cached `cache/huggingface` (32G); DiT360 code `external/DiT360` (42M, put or clone on GPU); runner `scripts/phase3/run_dit360_trimap_clamp.py` (`--init-image` ← bevfinal; `--case name=...,core_mask=...`; `--guidance 2.8 --steps 50`). BLOCKER: GPU runtime (current Colab = CPU).
-
+Kill criteria: (a) any tau where the thin core SMEARS/bends a lane line/edge OR the object gate flags net-new salient objects → that tau rejected; (b) the whole thin × moderate-tau cell under-changes (≈ bevfinal at every safe tau) → DiT thin-seam confirmed cosmetic-only → CLOSE T1; (c) helps only where already clean → drop.
+Max scope: A100, ONE anchor (BMW) first; r008 × tau{5,8,12} = 3 cases (~15 min sequential); vision EVERY output + object gate; do NOT widen the mask, do NOT batch other anchors until BMW passes vision + gate.
+Required vision check: YES — seam smoothing AND scan the thin core for invented/bent structure.
+READY STATE: init=`results/seamroute/SR_bmw_bevfinal_1024x2048.png`; core_mask=`results/dit360_seam_completion/inputs_v14_trimap/02a00399_a000/02a00399_a000_mask_preserve_nonseam_r008.png` (⚠️ init + core_mask 都 **Drive-only，本地没有** → 跑前从 Drive 拉到 runtime；bevfinal 本 session 重生成过 = bleed-free，Drive 副本是 canonical); runner `scripts/phase3/run_dit360_trimap_clamp.py` (per-case guidance/seed override added this session); FLUX+LoRA cached `cache/huggingface`; DiT360 code clone `/content/DiT360`; INFRA recipe (local FLUX cache / `pip uninstall torchao` / torchvision object gate / tau scale 0–100) in progress.md. BLOCKER: A100 runtime — needs a fresh tunnel url+token.
 Result summary: TBD → archive to progress.md when done, then delete here.
 
 ---
 
-> **ARCHIVED 2026-06-03 (moved to progress.md):**
-> - **DB-15/16/17 (non-DiT "hide-the-seam" program: reroute / Poisson / line-snap) = SUPERSEDED by the BEV ground atlas** (codex round-8 lead). DB-15 (visibility-aware reroute) tested = marginal/NEG (line-w 10 & 50 → seam barely moves, pano unchanged); DB-16/17 not needed. The BEV ground atlas (`_bev_ground.py`) is the road-layer ceiling (road = representation-fixable, modest ERP payoff); the curb is the off-plane floor. Non-generative road path EXHAUSTED. Full detail: `progress.md` codex-round-8 entry.
+# DB-20260603-19: ▶ NEW (prepared-to-run) — cleanest faithful-ish pano = bevfinal + thin-seam + **SKY-outpaint**; then generalize
+Status: **proposed** (D4 sky-outpaint already POSITIVE this session; this brief assembles + generalizes it)
+Route: B (generative, constrained + object-gated)
+Origin: this session's WIN = **sky-only outpaint is gate-clean** (archived POSITIVE in progress; `deliverables/dit360_v2/op_sky_t50_s0.png`, `sky_roofline_cmp.jpg`). Assemble the proven faithful layers into ONE deliverable and test generalization.
+
+Plan (in order, each gated):
+1. **COMBO pano**: bevfinal → (DB-14 thin-seam if it passes) → **sky-only outpaint** (opmask_sky, tau50, guid2.8 — the proven recipe) = ONE pano: source-faithful horizontal band + smoothed seam + generated upper sky. Vision + object gate. = the best "Google-Maps-like" faithful-ish output to show.
+2. **Re-judge D4b ground/full outpaint** (already RAN; judging was blocked by the tunnel outage): `results/dit360_outpaint_v2/{ground_t50_s0,full_t50_s0}/` → hardened object gate + vision. codex predicts ground = high-risk (invents lane/curb/cars). Decide: any ground completion usable, or ground outpaint stays REJECTED (sky-only stands).
+3. **Multi-anchor generalize**: re-run the proven sky-outpaint (+ combo) on **0bae + 2c65** (bevfinal + masks already PREPPED on Drive `results/seamroute/SR_{0bae,2c65}_bevfinal*` + `dit360_outpaint_v2/masks_{0bae,2c65}/`). Confirm the sky-win is not BMW-specific.
+
+Kill criteria: combo — if thin-seam fails DB-14, ship bevfinal + sky only; ground outpaint — if it invents past the hardened gate OR looks worse than honest black → ground REJECTED (note honestly; may still be a "plausible demo", NOT faithful data); multi-anchor — if sky-outpaint hallucinates on 0bae/2c65 → the win is anchor-specific, report that.
+Max scope: A100 sequential; each ~3–5 min; vision + gate EVERY output; record each result's Drive + local location.
+Required vision check: YES.
+Result summary: TBD → archive to progress.md when done, then delete here.
+
+---
+
+> **DONE THIS SESSION (2026-06-03, A100) — full record in `progress.md` (top "DiT360 SESSION SYNTHESIS" entry); kept here only as pointers so this queue stays short:**
+> - **D2 DiT360 seam-completion, WIDE ground-risk mask (5.56%) + tau{20,50}** = **NEG** (object-gate FAIL: invents small cars + melts textureless cuts). → superseded by DB-14 (thin mask). Results: `deliverables/dit360_v2/gr_tau*`.
+> - **D4 DiT360 SKY-ONLY outpaint** = **POSITIVE** (gate-clean upper-hemisphere fill; rooflines byte-exact). → folded into DB-19. Results: `deliverables/dit360_v2/op_sky_t50_s0.png`, `sky_roofline_cmp.jpg`.
+> - **DB-15/16/17** (non-DiT reroute / Poisson / line-snap) = CLOSED, superseded by the BEV ground atlas (codex round-8 lead). Detail in progress.md.
+> - INFRA recipe + /code-review fixes (box-overlap object gate, fail-safe asserts, flood-fill outpaint mask) recorded in progress.md.
