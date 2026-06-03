@@ -23,15 +23,21 @@ def main():
     init_path = sys.argv[1]; outdir = Path(sys.argv[2]); outdir.mkdir(parents=True, exist_ok=True)
     hor = float(sys.argv[3]) if len(sys.argv) > 3 else 0.5
     band_px = int(sys.argv[4]) if len(sys.argv) > 4 else 60
-    img = cv2.imread(init_path); H, W = img.shape[:2]
-    # captured content = non-black; close small holes so interior dark (e.g. dark wall) isn't treated as gap
+    img = cv2.imread(init_path)
+    assert img is not None, f"cannot read init image: {init_path}"
+    H, W = img.shape[:2]
     content = (img.sum(2) > 12).astype(np.uint8)
     content = cv2.morphologyEx(content, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21)))
-    # but KEEP the true outer black band: erode-then-dilate closed only fills interior specks; recompute black
-    contour_fill = content.copy()
-    # flood-fill exterior to separate the true outer black band from interior dark that got closed
     cb = content.astype(bool)
-    black = ~cb
+    # fill target = the TRUE OUTER black band (connected to the image border = sky-top / ground-bottom),
+    # NOT interior dark (a dark wall / inter-slab gap surrounded by content). Flood-fill from the border so
+    # DiT never regenerates over real captured-but-dark content (the unimplemented step the old code promised).
+    ff = (~cb).astype(np.uint8)
+    fmask = np.zeros((H + 2, W + 2), np.uint8)
+    for sy, sx in [(0, 0), (0, W - 1), (H - 1, 0), (H - 1, W - 1), (0, W // 2), (H - 1, W // 2), (H // 2, 0), (H // 2, W - 1)]:
+        if ff[sy, sx] == 1:
+            cv2.floodFill(ff, fmask, (sx, sy), 2)
+    black = (ff == 2)                      # outer black band only; interior dark stays PRESERVE
     rows = np.arange(H)[:, None] * np.ones((1, W))
     cont_d = cv2.dilate(content, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (band_px * 2 + 1, band_px * 2 + 1))).astype(bool)
 

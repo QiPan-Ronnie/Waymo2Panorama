@@ -39,10 +39,12 @@ def main():
     device = sys.argv[6] if len(sys.argv) > 6 else "cpu"
     model = fasterrcnn_resnet50_fpn(weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT).eval().to(device)
 
-    src = cv2.imread(src_p); gen = cv2.imread(gen_p); H, W = gen.shape[:2]
+    src = cv2.imread(src_p); gen = cv2.imread(gen_p)
+    assert src is not None, f"cannot read source: {src_p}"
+    assert gen is not None, f"cannot read gen: {gen_p}"
+    H, W = gen.shape[:2]
     preserve = cv2.imread(mask_p, 0)
-    if preserve is None:
-        preserve = np.full((H, W), 255, np.uint8)
+    assert preserve is not None, f"cannot read mask: {mask_p} -- a safety gate must NOT silently pass on a bad mask"
     if preserve.shape[:2] != (H, W):
         preserve = cv2.resize(preserve, (W, H), interpolation=cv2.INTER_NEAREST)
     generated = preserve < 128
@@ -61,12 +63,18 @@ def main():
     sd, gd = dets(src), dets(gen)
     netnew = []
     for c, box, cf in gd:
-        cx, cy = int(0.5 * (box[0] + box[2])), int(0.5 * (box[1] + box[3]))
-        if not (0 <= cy < H and 0 <= cx < W and generated[cy, cx]):
+        # BOX-AREA overlap with the generated region (NOT center-only: a hallucination straddling the
+        # seam whose centroid lands on a preserved pixel must still be caught).
+        x0, y0, x1, y1 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
+        x0, y0 = max(0, x0), max(0, y0); x1, y1 = min(W, x1), min(H, y1)
+        if x1 <= x0 or y1 <= y0:
+            continue
+        gen_overlap = float(generated[y0:y1, x0:x1].mean())
+        if gen_overlap < 0.30:                       # object mostly OUTSIDE the generated region -> not a fill-invention
             continue
         if any(c == c2 and _iou(box, b2) > 0.3 for c2, b2, _ in sd):
-            continue
-        netnew.append({"cls": SALIENT[c], "box": [round(v, 1) for v in box], "conf": round(cf, 3)})
+            continue                                  # matches a pre-existing source object of the same class -> not new
+        netnew.append({"cls": SALIENT[c], "box": [round(v, 1) for v in box], "conf": round(cf, 3), "gen_overlap": round(gen_overlap, 2)})
 
     res = {"source": src_p, "gen": gen_p, "mask": mask_p, "conf": conf,
            "src_salient": len(sd), "gen_salient": len(gd), "netnew_count": len(netnew),
