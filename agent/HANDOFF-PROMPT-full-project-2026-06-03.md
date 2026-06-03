@@ -9,7 +9,7 @@
 1. `agent/README.md` —— 工作协议：4 个 living docs（README/handoff/progress/decision_briefs）、**Experiment Decision Gate**（动手前先写 brief，含 Kill criteria + Max scope）、**3-Location 规则**（每个产物在 GitHub / 本地 / Drive 三地留存）。
 2. `agent/handoff.md` —— 顶部 banner（当前共识 + 路线图，最新覆盖旧）。
 3. `agent/progress.md` —— **顶部 3 条**（2026-06-03 ★DiT360 SESSION SYNTHESIS = 本次结果与位置索引；DB-18 探索程序；code-review 修 BEV bleed bug）。这是**实验事实流水**，最新在顶。
-4. `agent/decision_briefs.md` —— **当前 active 队列**：**DB-14**（下一次 GPU 跑：DiT360 忠实**细缝**）+ **DB-19**（组合 pano + 多锚点泛化 + 重判 ground/full outpaint）。这是动手的入口闸门。
+4. `agent/decision_briefs.md` —— **当前 active 队列**：**DB-14**（DiT360 忠实**细缝**）+ **DB-19**（组合 pano + 多锚点泛化 + 重判 ground/full outpaint）+ **DB-20**（再读论文挖出的未用杠杆 + 一个代码实锤 prompt bug，含跑序与 kill）。这是动手的入口闸门。DB-20 的原始挖掘记录 = `agent/codex_logs/round11_dit360_levermining_raw.json`。
 5. 记忆：`memory/MEMORY.md` 索引，尤其 `waymo2pano-seam-direction.md`、`waymo2pano-dit360-findings.md`（跨 session 结论）。
 6. 略读历史：`agent/HANDOFF-PROMPT-full-project-2026-06-02.md`（上一版）、`agent/EXPLORATION-seam-synthesis-sprint.md`（diffusion 实验全记录）、`meeting/5.22_meeting with xihan/本次prompt.md`（Bosch 会议 + 8 个方法 brainstorm 全表）。
 
@@ -37,14 +37,16 @@ Bosch 有个自驾 world model，输入普通图质量不行，**输入 panorama
   - **T1 隐藏波浪缝 = 取决于掩码宽窄。** 我**误跑**了一版"**宽** ground-risk 掩码(5.56%) + tau{20,50}" → DiT **造小车 + 糊掉无纹理切口**（object-gate FAIL = **NEG**）。**这不是我们之前的方法。** 之前可信方法 = **v14 trimap 细缝：r008 核(~1.6%) + tau5 轻触**（用户判"其实也可以"）。**未探索的正确格子 = 细掩码 × 中等 tau**（不是宽 × 高）→ 已写进 **DB-14**（下一次 GPU 跑的方法 of record）。
   - **★ T2 sky-only OUTPAINT = POSITIVE（本次 WIN）。** 只补水平线以上的黑天带（opmask_sky, tau50, guid2.8）→ 整个上半球填满**连续自然天空**，楼顶**逐字节保真**，**object-gate PASS（零造物）**，vision 干净。组装好的成品 = `results/dit360_outpaint_v2/sky_t50_s0/sky_t50_s0_corecompose.png`（Drive；sky 掩码 ~37% 帧）；本地 `deliverables/dit360_v2/op_sky_t50_s0.png` + `sky_roofline_cmp.jpg`。和 2026-05 被拒的"全幅 outpaint 造车"的区别 = **约束（只补天空 + object gate）**。**目前最像 Google-Map 的全景 = bevfinal + sky-outpaint。**
   - **object-safety gate** = `_object_gate.py`（torchvision fasterrcnn，flag 生成区 net-new 显著物体）= 所有生成输出的判官，已 /code-review 硬化。
+**(e) DiT360 论文/代码 lever-mining（6-agent 对抗，对照真实代码）= 写成 DB-20。** ★ **代码实锤 bug**：`run_dit360_trimap_clamp.py:32-36` 的 DEFAULT_PROMPT 列了 "cars, lane markings, signs, buildings" = object gate 要拒的类，而 FLUX-dev 没有 negative CFG → prompt 是**唯一**语义控制 → **我们等于在叫模型生成车**（改成 anti-object prompt，所有 run 都该改；**此修复还没落地到代码**）。3 条存活新方向（跑序）：① sky-outpaint 泛化到 0bae/2c65 + prompt 修复；② multi-yaw 生成后 SELECT（不平均，先 3 角度 decorrelation 试探闸）；③ RF eta/gamma 忠实微扫（**保持完整 window** —— 砍掉的 window-shrink 是机制反了 = 造车区）。砍了 5/8（理由在 DB-20 + raw json）。⚠️ caveat：legacy clamp `pipeline.py:1053-1056` 与 runner clamp 共存，扫 knob 前先确认谁主导；RF gamma/eta 是 hardcode 的，要先 plumb 成 arg。
 
 ## 3. 当前状态 + 下一步（2026-06-03）
 - **source-faithful 天花板** = `_seamroute.py` + BEV 地面层 → `SR_bmw_bevfinal_1024x2048.png`。残留 floor：近地波浪 kink、grazing curb、out-of-FoV 黑天/黑地（全是物理/硬件）。
 - **生成式（只在物理 floor 上、被掩码 + object gate 约束）已知**：sky-outpaint = WIN（可用，标注"generated sky"）；wide-mask 补缝 = NEG（造车 + 糊无纹理切口）。（两个 verdict 都成立，但用 /code-review **硬化后的 object gate** 的正式重判仍 PENDING — 在 resume plan 上；D2 是连"弱 gate"都没过，所以 NEG 稳。）
-- **下一次 GPU 跑（见 decision_briefs.md，**需要用户开 A100 给隧道**）**：
-  - **DB-14**：DiT360 **细缝**（r008 × tau{5,8,12}）在 bevfinal 上 — 找"细掩码 × 中等 tau"是否能轻微平滑波浪缝又不造物（gate）。
-  - **DB-19**：组合 pano（bevfinal + 细缝 + sky-outpaint）+ 重判 ground/full outpaint（已跑、判定被隧道中断）+ 多锚点 0bae/2c65 泛化。
-- **未押过的牌（可讨论）**：RF gamma/eta 扫描、yaw-SELECT（不是 average，median 会糊边）、cube-space 检查（py360convert）、把 LiDAR/邻相机当"缰绳"的 reference-attention（DB-03 EPI-Mix 思路，绕开 E2-E6 深度墙）。
+- **下一次 GPU 跑（见 decision_briefs.md，**需要用户开 A100 给隧道**）建议跑序：**
+  - **先 DB-20 ①**：把 prompt bug 修了（near-zero risk），顺手 sky-outpaint 泛化到 0bae/2c65 —— 最便宜、扩展已确认的 WIN。
+  - **DB-20 ②③**：multi-yaw SELECT（先 decorrelation 试探闸）、RF eta/gamma 微扫 —— 两条 ≤2h 决断的忠实 seam 尝试；若都 no-op-or-invent → T1-DiT 判 **CLOSED**（只能 cosmetic），交付物留在非生成式 bevfinal。
+  - **DB-14**（细缝 r008×tau）+ **DB-19**（组合 / 重判 ground-full / 多锚点）= 已备好的配套。
+- **已 triage（别再当新点子重提，全在 DB-20 dropped + raw json）**：RF window-shrink（机制反了 = 造车）、evidence-donor / shift_mask（re-litigate v18 + copy-selection 已拒）、PA layer-subset（投机，park 为 contingency）、cube-metric（是 #2 的度量壳，非独立方向）。
 
 ## 4. 基础设施（GitHub / 本地 / Drive 三地 + Colab）
 - **GitHub**：`git@github.com:QiPan-Ronnie/Waymo2Panorama.git`，分支 `main`，**直推已授权**（无需 PR）。commit footer：`Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`。
@@ -63,4 +65,4 @@ Bosch 有个自驾 world model，输入普通图质量不行，**输入 panorama
 - **codex (gpt-5.5 xhigh) 当对立面**：动 GPU / 下大结论前，把真实 seam 图喂给 codex 做对抗（log 存 `agent/codex_logs/`），防止陷入局部最优。
 
 ## 6. 你现在该做什么
-**读完 1–5 → 简短回报"已读 + 理解 + 方向倾向" → 等用户一起讨论先动哪条 DB（DB-14 细缝 还是 DB-19 组合/泛化）。** 不要先跑实验。GPU 现在大概率没开——先确认用户是否已开 A100 给新隧道。你的角色 = 和用户保持同步、随时接力、动手前一起把方向和闸门定清楚。当前最值得看的产物：`deliverables/dit360_v2/op_sky_t50_s0.png`（sky-outpaint WIN）、`deliverables/ghostkill/G_bmw_pano.jpg`（几何天花板，波浪缝）。
+**读完 1–5 → 简短回报"已读 + 理解 + 方向倾向" → 和用户定先动哪条 DB（建议 DB-20 ① = prompt 修复 + sky 泛化，最便宜、扩展已确认的 WIN）。** 不要先跑实验。**重要：DB-14 / DB-19 / DB-20 全部只写了 brief、没在 GPU 上跑过**（2026-06-03 那场 A100 隧道全程是死的，整场是 docs-only）；**DB-20 的代码改动也还没落地**（prompt-bug 修复 + RF gamma/eta arg plumbing —— DB-20 写了怎么改，跑前先改 + `/code-review`）。GPU 现在大概率没开 —— 先确认用户是否已开 A100 给新隧道（心跳 = Drive `runtime/active_url.json` 的 timestamp；machine-sleep 后 worker 会保持**同一个死域名**，要用户重跑 worker cell 才会出**新域名**）。你的角色 = 和用户保持同步、随时接力、动手前一起把方向和闸门定清楚。当前最值得看的产物：`deliverables/dit360_v2/op_sky_t50_s0.png`（sky-outpaint WIN）、`deliverables/ghostkill/G_bmw_pano.jpg`（几何天花板，波浪缝）。
