@@ -1,52 +1,61 @@
 """DB-18 D5 — object-safety GATE for generative outputs (the judge for every DiT360 result).
 
-Flags NET-NEW salient objects (car/person/bus/truck/motorcycle/bicycle/traffic-light/stop-sign) that
-appear in the GENERATED region of the output but were NOT in the source. This catches the failure mode
-that disqualifies generative AV data (a hallucinated car/person teaches wrong statistics).
+Flags NET-NEW salient objects (person/bicycle/car/motorcycle/bus/truck/traffic-light/stop-sign) that
+appear in the GENERATED region of the output but were NOT in the source. A hallucinated car/person =
+the disqualifier for faithful AV data. It does NOT prove faithfulness — only catches obvious new
+instances at the detector's recall.
 
-It does NOT prove faithfulness — it only catches obvious new salient instances at the detector's recall.
+Uses torchvision Faster R-CNN (COCO) — already in the env, NO pip install / env churn. Runs on CPU by
+default (safe alongside a FLUX GPU job; ~20s for 2 panos).
 
-Convention: `preserve_mask` PNG = white(255) preserves source, black(0) = generated (matches the DiT
-runner). Generated region = preserve < 128.
+Mask convention (matches the DiT runner): preserve PNG white(255)=preserve source, black(0)=generated.
+Generated region = preserve < 128.
 
-usage: python _object_gate.py <source.png> <gen.png> <preserve_mask.png> <out_prefix> [conf=0.30]
-emits <out_prefix>_gate.json + <out_prefix>_gate.jpg (source dets green, gen dets cyan, NET-NEW red).
+usage: python _object_gate.py <source.png> <gen.png> <preserve_mask.png> <out_prefix> [conf=0.50] [device=cpu]
+emits <out_prefix>_gate.json + <out_prefix>_gate.jpg (source dets green, NET-NEW red).
 """
 from __future__ import annotations
 import sys, json
 from pathlib import Path
 import cv2
 import numpy as np
+import torch
+from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights
 
-SALIENT = {0: "person", 1: "bicycle", 2: "car", 3: "motorcycle", 5: "bus", 7: "truck", 9: "traffic_light", 11: "stop_sign"}
+# torchvision COCO category ids (91-class, with gaps)
+SALIENT = {1: "person", 2: "bicycle", 3: "car", 4: "motorcycle", 6: "bus", 8: "truck", 10: "traffic_light", 13: "stop_sign"}
 
 
 def _iou(a, b):
-    ax0, ay0, ax1, ay1 = a; bx0, by0, bx1, by1 = b
-    ix0, iy0 = max(ax0, bx0), max(ay0, by0); ix1, iy1 = min(ax1, bx1), min(ay1, by1)
-    iw, ih = max(0, ix1 - ix0), max(0, iy1 - iy0); inter = iw * ih
-    ua = (ax1 - ax0) * (ay1 - ay0) + (bx1 - bx0) * (by1 - by0) - inter
+    ix0, iy0, ix1, iy1 = max(a[0], b[0]), max(a[1], b[1]), min(a[2], b[2]), min(a[3], b[3])
+    iw, ih = max(0.0, ix1 - ix0), max(0.0, iy1 - iy0); inter = iw * ih
+    ua = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
     return inter / ua if ua > 0 else 0.0
 
 
 def main():
     src_p, gen_p, mask_p, out_prefix = sys.argv[1:5]
-    conf = float(sys.argv[5]) if len(sys.argv) > 5 else 0.30
-    from ultralytics import YOLO
-    model = YOLO("yolov8x.pt")
-    src = cv2.imread(src_p); gen = cv2.imread(gen_p)
-    H, W = gen.shape[:2]
-    preserve = cv2.imread(mask_p, 0)
-    preserve = cv2.resize(preserve, (W, H), interpolation=cv2.INTER_NEAREST) if preserve.shape[:2] != (H, W) else preserve
-    generated = preserve < 128   # the region DiT was allowed to change
+    conf = float(sys.argv[5]) if len(sys.argv) > 5 else 0.50
+    device = sys.argv[6] if len(sys.argv) > 6 else "cpu"
+    model = fasterrcnn_resnet50_fpn(weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT).eval().to(device)
 
-    def dets(img):
-        r = model(img, conf=conf, verbose=False)[0]
+    src = cv2.imread(src_p); gen = cv2.imread(gen_p); H, W = gen.shape[:2]
+    preserve = cv2.imread(mask_p, 0)
+    if preserve is None:
+        preserve = np.full((H, W), 255, np.uint8)
+    if preserve.shape[:2] != (H, W):
+        preserve = cv2.resize(preserve, (W, H), interpolation=cv2.INTER_NEAREST)
+    generated = preserve < 128
+
+    def dets(img_bgr):
+        rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        t = torch.from_numpy(rgb).permute(2, 0, 1).float().div(255.0).to(device)
+        with torch.no_grad():
+            o = model([t])[0]
         out = []
-        for c, box, cf in zip(r.boxes.cls.cpu().numpy(), r.boxes.xyxy.cpu().numpy(), r.boxes.conf.cpu().numpy()):
-            c = int(c)
-            if c in SALIENT:
-                out.append((c, [float(v) for v in box], float(cf)))
+        for box, lbl, sc in zip(o["boxes"].cpu().numpy(), o["labels"].cpu().numpy(), o["scores"].cpu().numpy()):
+            if float(sc) >= conf and int(lbl) in SALIENT:
+                out.append((int(lbl), [float(v) for v in box], float(sc)))
         return out
 
     sd, gd = dets(src), dets(gen)
@@ -54,9 +63,9 @@ def main():
     for c, box, cf in gd:
         cx, cy = int(0.5 * (box[0] + box[2])), int(0.5 * (box[1] + box[3]))
         if not (0 <= cy < H and 0 <= cx < W and generated[cy, cx]):
-            continue  # only flag objects whose center is in the GENERATED region
+            continue
         if any(c == c2 and _iou(box, b2) > 0.3 for c2, b2, _ in sd):
-            continue  # matches a pre-existing source object -> not new
+            continue
         netnew.append({"cls": SALIENT[c], "box": [round(v, 1) for v in box], "conf": round(cf, 3)})
 
     res = {"source": src_p, "gen": gen_p, "mask": mask_p, "conf": conf,
@@ -65,7 +74,6 @@ def main():
     Path(out_prefix).parent.mkdir(parents=True, exist_ok=True)
     with open(f"{out_prefix}_gate.json", "w") as f:
         json.dump(res, f, indent=2)
-    # overlay
     viz = gen.copy()
     for c, box, cf in sd:
         cv2.rectangle(viz, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (0, 200, 0), 1)
@@ -74,7 +82,7 @@ def main():
         cv2.putText(viz, f"NEW {nn['cls']} {nn['conf']}", (int(b[0]), max(0, int(b[1]) - 4)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
     cv2.imwrite(f"{out_prefix}_gate.jpg", viz, [cv2.IMWRITE_JPEG_QUALITY, 90])
     print(json.dumps(res, indent=2), flush=True)
-    print(f"[gate] {'PASS' if res['PASS'] else 'FAIL'} netnew={res['netnew_count']} -> {out_prefix}_gate.{{json,jpg}}", flush=True)
+    print(f"[gate] {'PASS' if res['PASS'] else 'FAIL'} netnew={res['netnew_count']} src={len(sd)} gen={len(gd)} -> {out_prefix}_gate.{{json,jpg}}", flush=True)
     return 0
 
 
