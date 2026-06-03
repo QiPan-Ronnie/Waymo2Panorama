@@ -101,6 +101,7 @@ def main():
     ap.add_argument("--anchor", type=int, default=0); ap.add_argument("--band-hw", type=int, default=80)
     ap.add_argument("--max-disp", type=float, default=60.0); ap.add_argument("--fb-thresh", type=float, default=2.0)
     ap.add_argument("--near-m", type=float, default=18.0, help="range below this = near -> moat")
+    ap.add_argument("--line-w", type=float, default=10.0, help="DB-15: cost weight for cutting along ground lines (lane markings/curb)")
     a = ap.parse_args(); t0 = time.time(); erp_hw = (H, W)
 
     loader = a1.AV2RingLoader(ROOT / a.uuid); ts = loader.anchor_timestamps_ns(); frame = loader.load_synced_frame(ts[a.anchor])
@@ -158,6 +159,16 @@ def main():
     rows = np.arange(H)[:, None] * np.ones((1, W))
     ng_global = (rows > H * 0.52) & (~tall_mask)   # below-horizon ground (road/sidewalk/curb), not tall
 
+    # DB-20260603-15: ground high-gradient map (lane markings / curb edges / cracks). Penalize the DP
+    # seam from running ALONG these -> route through uniform asphalt + cross lines PERPENDICULARLY ->
+    # the parallax offset shows as a tiny jog instead of a long wavy double-line. Pure cut-LOCATION change.
+    grayL1 = cv2.cvtColor(L1, cv2.COLOR_RGB2GRAY).astype(np.float32)
+    gmag = np.hypot(cv2.Sobel(grayL1, cv2.CV_32F, 1, 0, ksize=3), cv2.Sobel(grayL1, cv2.CV_32F, 0, 1, ksize=3))
+    gmag = gmag / (np.percentile(gmag, 99.5) + 1e-6)                       # robust 0..~1 normalise
+    ground_region = (rows > H * 0.50) & (~tall_mask)                      # below-horizon ground, off tall objects
+    ground_line = cv2.dilate(np.where(ground_region, np.clip(gmag, 0, 1), 0.0).astype(np.float32),
+                             cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+
     label = np.stack([w.astype(np.float32) for w in w_base], 0).argmax(0)  # global base label
     routed = 0
     for (i, j) in a1.RING_PAIRS:
@@ -171,8 +182,10 @@ def main():
         ovb = ovr[r0:r1, c0:c1]
         rgb = np.abs(si.astype(np.float32) - sj.astype(np.float32)).mean(2) / 255.0  # 0..1, high = parallax
         moat = (np.roll(near_mask, roll, 1) | np.roll(objm, roll, 1))[r0:r1, c0:c1]
-        # cut cost: low on agreeing/far corridor, BIG moat on near objects, BIG outside overlap
-        cost = rgb + 60.0 * moat.astype(np.float32) + 1000.0 * (~ovb).astype(np.float32)
+        # cut cost: low on agreeing/far corridor, BIG moat on near objects, BIG outside overlap,
+        # + DB-15: penalize cutting along ground lines (lane markings/curb) -> route off them
+        gline = np.roll(ground_line, roll, 1)[r0:r1, c0:c1]
+        cost = rgb + 60.0 * moat.astype(np.float32) + a.line_w * gline + 1000.0 * (~ovb).astype(np.float32)
         cost = cv2.GaussianBlur(cost, (0, 0), 1.5)
         seam = dp_seam(cost)  # col per local row
         # which camera is on the LEFT of the seam? compare exclusive-region mean cols
@@ -238,9 +251,35 @@ def main():
     print(f"[{a.tag}] virtual-centre select fired={100*(fired_vc>0).mean():.2f}%", flush=True)
     print(f"[{a.tag}] seams routed={routed} near_mask={100*near_mask.mean():.1f}% obj={100*obj_mask.mean():.2f}% rt={time.time()-t0:.0f}s", flush=True)
 
-    res = {"L1": L1, "view_none (ghost)": view, "deliverable": final}
+    # --- GROUND-PLANE near-road reproject (NEW lever): for the below-horizon ROAD/sidewalk, re-render the
+    # SAME routed camera at the LiDAR GROUND-plane depth (IPM). A road point then lands at its TRUE ego
+    # position no matter which camera shot it -> lane lines + curb-base stay CONTINUOUS across the seam
+    # (pure geometry, no texture -> fixes the low-texture-asphalt kink that flow/vc-select abstain on and
+    # leave as rotation-only L1). Ground-ONLY (facades=[] -> no building distortion). The raised curb lip
+    # (~0.15m off-plane) is the irreducible residual. Single-source (routed label) -> cannot ghost. ---
+    final_ground = final.copy(); road_fired = 0.0
+    if ground is not None:
+        conv_g = a1.build_plane_convergence(ground, [], erp_hw)        # ground hit-depth below horizon, FAR above
+        g_stack = np.stack([a1.render_camera_to_erp(frame.images[cam], cams[cam].K, cams[cam].T_ego_cam,
+                            erp_hw=erp_hw, convergence_distance_m=conv_g)[0].astype(np.float32)
+                            for cam in a1.RING_CAMS_7], 0)
+        ground_pano = np.take_along_axis(g_stack, label[None, ..., None], axis=0)[0]   # same routed cam, ground depth
+        # confine to the SEAM BAND (away-from-seam road stays the clean current deliverable) AND to the
+        # near-mid depth window 3-35m: far grazing rays (just below horizon, hit ground >35m) are the
+        # IPM stretch source -> excluded; the user's circled kinks are on the 3-35m near road.
+        bandU_d = cv2.dilate(bandU.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (31, 31))).astype(bool)
+        on_ground = (conv_g > 3.0) & (conv_g < 35.0) & (~tall_mask) & (ground_pano.sum(2) > 0) & valid & bandU_d
+        rm = cv2.GaussianBlur(on_ground.astype(np.float32), (0, 0), 2.0)[..., None]     # thin feather at road boundary
+        final_ground = np.where(valid[..., None], np.clip(final.astype(np.float32) * (1 - rm) + ground_pano * rm, 0, 255), 0).astype(np.uint8)
+        road_fired = 100.0 * on_ground.mean()
+    print(f"[{a.tag}] ground-road reproject fired={road_fired:.2f}%", flush=True)
+
+    res = {"L1": L1, "deliverable (current)": final, "+ground-road (NEW)": final_ground}
     cv2.imwrite(str(OUT / f"SR_{a.tag}_compare.jpg"), cv2.cvtColor(np.vstack([lab(rw(v, 1900), k) for k, v in res.items()]), cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 93])
     cv2.imwrite(str(OUT / f"SR_{a.tag}_pano.jpg"), cv2.cvtColor(rw(routed_pano, 2048), cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 95])
+    cv2.imwrite(str(OUT / f"SR_{a.tag}_ground_pano.jpg"), cv2.cvtColor(rw(final_ground, 2048), cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 95])
+    # full-res lossless deliverable = the DiT360 trimap-clamp init (refine the thin seam, far byte-exact)
+    cv2.imwrite(str(OUT / f"SR_{a.tag}_final_1024x2048.png"), cv2.cvtColor(final, cv2.COLOR_RGB2BGR))
     spots = SPOTS.get(a.tag, DEFAULT_SPOTS)
     PAL = np.array([[60, 60, 210], [60, 210, 60], [210, 60, 60], [60, 210, 210], [210, 60, 210], [210, 210, 60], [210, 130, 60]], np.uint8)
     labcol = PAL[np.clip(label, 0, 6)]               # BGR camera-id colour per pixel
