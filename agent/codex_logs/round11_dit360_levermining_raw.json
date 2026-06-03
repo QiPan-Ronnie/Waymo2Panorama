@@ -1,0 +1,503 @@
+{
+  "summary": "Mine the DiT360 paper + our code for UNEXPLOITED inference levers, cross-check against what we already tried, adversarially kill weak ones, output a ranked NEW-direction run-plan",
+  "agentCount": 6,
+  "logs": [],
+  "result": {
+    "final_plan": {
+      "directions": [
+        {
+          "name": "Sky-outpaint generalization (0bae+2c65) + anti-object prompt fix",
+          "summary": "This is the only direction anchored to a CONFIRMED win and a CODE-VERIFIED bug, so it survives untouched as #1. progress.md line 11 RESUME PLAN item (d) already pre-registers 'multi-anchor sky outpaint 0bae+2c65 (generalize the win)' as the next step, and the win itself is recorded (dit360-findings line 12: sky-only mask, tau50, guid2.8 -> upper hemisphere fills, rooflines byte-exact, gate PASS). The prompt bug is real and verified at run_dit360_trimap_clamp.py:32-36: DEFAULT_PROMPT literally enumerates 'lane markings, cars, buildings, signs' -- the exact salient classes the torchvision gate rejects -- and FLUX-dev is guidance-distilled (no CFG negative, confirmed pipeline.py:980-986 guidance is a scalar embed, not a negative branch) so the prompt string is the ONLY semantic steer. Fixing it is near-zero-risk insurance on an already-passing region.",
+          "target": "T2-outpaint",
+          "how_to_test": "init=bevfinal for anchors 0bae3b5e and 2c65 (masks prepped per progress.md line 11/23). mask=opmask_sky (band above content horizon, deliverables/dit360_v2/opmask_sky_preview.jpg). Hold the D4 win params: tau50, guid2.8, halo32, far/halo byte-exact compose. CHANGE ONLY --prompt to an anti-object sky string ('continuous overcast sky above an urban skyline; existing rooftops; smooth uniform sky; no vehicles, no people, no signs, no new objects'). Single FLUX load, 2 anchors x {object-listing prompt (control), anti-object prompt}. PASS = on BOTH new anchors: torchvision gate netnew=0, rooflines byte-exact (far MAE==0 by construction), sky vision-clean, no boundary seam. Report whether the anti-object prompt changes the gate verdict vs control.",
+          "gpu_cost_est": "~1.5 A100-hr: 2 anchors x 2 prompts, single load (~60s) + per-anchor invert (~90s x2) + 4 reverse passes (~3min).",
+          "kill_criteria": "KILL/flag-for-review if the sky win FAILS to generalize: any of (a) gate netnew>0 on 0bae or 2c65, (b) visible horizon boundary seam, (c) rooftop drift (far MAE>0) on either anchor -> the D4 win was BMW-anchor-specific, do not ship multi-anchor sky. SEPARATELY: if anti-object prompt makes zero gate difference vs control on both anchors, keep the simpler prompt and record 'prompt steering weak for sky region'. Decisive in one 1.5-hr run.",
+          "expected_payoff": "High and near-certain for the generalization half (extends a recorded WIN to the 2 anchors the project needs for a 3-anchor deliverable). Prompt fix is cheap correctness insurance regardless of outcome.",
+          "faithfulness_risk": "low",
+          "priority": 1,
+          "novelty_note": "D4 ran sky-outpaint on the BMW anchor ONLY, with the object-LISTING prompt; progress.md line 11(d) explicitly lists 0bae/2c65 generalization as PENDING/next, and no prior run swept the prompt axis (every run used the buggy DEFAULT_PROMPT). This is the pre-registered open item + an untested, code-verified prompt-bug fix, not a re-run of D4."
+        },
+        {
+          "name": "Multi-yaw generate-and-SELECT (min-local-gradient) for the near-ground seam",
+          "summary": "Survives as the single strongest NEW T1 lever, but with TIGHTENED, decisive kill gating because the whole bet rides on one unverified assumption: that yaw rotation actually DECORRELATES the near-ground seam artifact. It exploits two real assets -- the LoRA's trained yaw-equivariance (progress.md line 15 lists yaw-loss as a training objective) and the project's own CONFIRMED single-source>averaging finding (MEMORY: ghost=averaging, single-source FIXED it) -- via SELECT-not-average, which by construction cannot introduce a net-new object beyond what one gate-passing pass already contains. progress.md line 11(e) pre-registers 'yaw-SELECT' as an optional next step, so it is sanctioned, not speculative. The mechanism is sound IF the artifact decorrelates; the pilot settles that for ~1.5 hr.",
+          "target": "T1-seam",
+          "how_to_test": "init=bevfinal. Use external/DiT360/src/yaw_rotate.equirectangular_rotate_yaw VERBATIM (verified: for a full 1024x2048 ERP, orig_H=W//2=1024==crop_H so start_row=0, full phi span, theta wrap via atan2 -> a geometrically exact full-pano yaw; padding_mode='border' is irrelevant at start_row=0). PILOT 3 offsets {0,120,240}deg ONLY: per offset o, yaw-rotate init by +o AND yaw-rotate the seamcore mask (deliverables/dit360_v2/seamcore_overlay region) by +o so the seam strip tracks, run the v14 thin r008/tau5 config (the user-liked 'works' cell, progress.md line 62), yaw-rotate _raw by -o to re-register. DECORRELATION GATE FIRST (cheap, before any selection): in a band around the seam, compute per-pixel variance across the 3 re-registered _raw outputs; the seam wave must move to a DIFFERENT registered location/phase per offset. ONLY IF it decorrelates: SELECT per-pixel argmin of local Sobel energy in the band, copy source elsewhere, then gate+vision the selected pano. If it survives, expand to 8 offsets.",
+          "gpu_cost_est": "Pilot 3 offsets ~1.5 A100-hr (3 inverts, since the image changes per yaw, + 3 reverse). Full 8 offsets ~4 A100-hr only if pilot passes. SELECT/rotate is CPU-seconds.",
+          "kill_criteria": "KILL at the 3-offset pilot, BEFORE any 8-offset spend, if EITHER: (a) the seam-band cross-offset variance is near-zero (same wave at the same registered location every pass) -> yaw does not decorrelate this rig-geometry artifact, abandon; OR (b) min-gradient SELECT yields a blocky/patchwork seam (the dead DiT-oracle loose-select failure mode, progress.md). Also KILL if any single yaw pass at r008/tau5 already trips the gate (would mean even the thin cell hallucinates under rotation). The variance map is the decisive 1-screenshot test.",
+          "expected_payoff": "Medium. If the wave decorrelates it is the only lever that can collapse a defect single-pass cannot, and it rides a confirmed project win-pattern. If it does not decorrelate, the pilot kills it for 1.5 hr with no wasted 8-offset run.",
+          "faithfulness_risk": "low",
+          "priority": 2,
+          "novelty_note": "Multi-SEED (v9) replaced noise at FIXED geometry = closed no-op loophole. Multi-YAW is a spherical re-projection that decorrelates by AZIMUTH (distinct mechanism, exploiting the trained yaw-loss). SELECT-not-average aligns with the project's confirmed single-source finding and was never applied to a yaw-ensemble of DiT renders (DiT-oracle selected from SOURCE pixels, not from rotated DiT outputs). Pre-registered at progress.md line 11(e)."
+        },
+        {
+          "name": "RF faithfulness micro-sweep: eta-MAGNITUDE down + decay_eta (NOT window-shrink)",
+          "summary": "This REPLACES the proposal's Direction 1 (window-shrink), which I KILL on a code-verified inverted mechanism, and absorbs Direction 5's gamma/eta into the one faithful RF knob that is genuinely untested and points the RIGHT way. Verified at pipeline.py:1031-1037: eta scales v_t_cond=(y_0-latents)/(1-t_i) which pulls latents TOWARD the source y_0=image_latents (line 989); the runner hardcodes eta=1.0/start=0.0/stop=0.99 (run_dit360_trimap_clamp.py:384-388) AND gamma=1.0 at invert (:315). The faithful edit-room lever is to LOWER eta magnitude slightly (give the seam region freedom from a still-source-consistent inversion) and/or enable decay_eta so the anchor relaxes only in LATE steps in a CONTROLLED way -- the opposite of Direction 1's window-shrink, which abruptly zeroes the anchor and free-runs (= the D2 car-invention regime). gamma<1.0 at invert gives a less-rigid start so the model can move the seam at all (a candidate root cause of the thin-mask no-op).",
+          "target": "T1-seam",
+          "how_to_test": "Plumb --gamma into pipe.invert (pipeline.py:315 call site) and --eta/--decay-eta/--eta-decay-power into the pipe() call (run_dit360_trimap_clamp.py:384-388). KEEP start=0.0/stop=0.99 (full window) FIXED -- do NOT shrink it. On the v14 thin r008/tau5 config: 2x2 micro-grid gamma in {0.8,1.0} x eta in {0.7,1.0}, plus one decay_eta=True,power=1 cell at gamma1.0/eta1.0. PASS = core MAE rises measurably above the tau5 no-op floor (~the v14 raw_core_mae) WHILE far MAE stays ~0 AND gate netnew=0 AND vision shows a smoother (not melted) seam. Each gamma value = 1 extra invert; eta/decay are reverse-only (free).",
+          "gpu_cost_est": "~2 A100-hr: 2 inverts (gamma 0.8,1.0) + ~5 reverse passes, single FLUX load.",
+          "kill_criteria": "KILL T1-RF (and with it the 'faithful RF knob' hope) if BOTH faithful settings fail: (a) gamma=0.8 + eta=0.7 still under-changes (core MAE ~= tau5 no-op floor, raw ~= hard_select) -> the inversion rigidity is NOT the no-op cause; AND (b) any setting that DOES move the core also drifts far pixels (far MAE climbs) or trips the gate. If lowering eta only ever either no-ops or hallucinates, the RF anchor cannot thread faithful seam-hide -> CLOSE T1-RF.",
+          "expected_payoff": "Low-medium. A finer faithful dial than binary tau; most valuable COMBINED with Direction 2 (low gamma + yaw-select). Negative is still decisive: it closes the last RF knob for T1.",
+          "faithfulness_risk": "low",
+          "priority": 3,
+          "novelty_note": "Done-list swept tau/steps/seed/guidance but NEVER gamma (invert hardcoded 1.0 at :315) and NEVER eta-magnitude or decay_eta (hardcoded eta=1.0/decay off at :384-388). progress.md line 15 explicitly names 'RF gamma/eta' as the untried inference lever. This is the faithful direction of the RF knob; it deliberately does NOT shrink stop_timestep (that is the KILLED inverted-mechanism Direction 1)."
+        }
+      ],
+      "dropped": [
+        {
+          "name": "RF editing-window shrink (stop_timestep sweep) -- proposal Direction 1",
+          "why_dropped": "KILLED on a CODE-VERIFIED inverted mechanism. The proposal claims shrinking stop_timestep makes the model 'nudge the seam in EARLY steps then snap back to the source trajectory.' The code shows the OPPOSITE: pipeline.py:1032 'eta_t = eta if start_timestep <= i < stop_timestep else 0.0' and :1031 'v_t_cond=(y_0-latents)/(1-t_i)' make eta the SOURCE ANCHOR (y_0=image_latents, :989). Current stop=0.99 keeps the anchor ON for steps 0-48 (faithful almost the whole loop); shrinking to 0.20 turns the anchor OFF for steps 10-49 -> the latent FREE-RUNS to t=0. The official docstring (pipeline.py:70-73) confirms stop_timestep=0.25 IS the canonical EDIT setting (the 'tomato' edit). The done-list (D2, progress.md:5) proved late-step free-running INVENTS cars + melts. So this sweep marches straight at the hallucination pole the gate rejects -- it is a re-derivation of the D2 failure via a different knob, not a new faithful mechanism. The salvageable faithful RF lever (eta-magnitude down / decay_eta / gamma<1) is folded into the kept Direction 3."
+        },
+        {
+          "name": "Real-evidence donor reference (shift_mask / swapped batch[0] invert) -- proposal Direction 3",
+          "why_dropped": "Dropped: this is v18's conclusion re-litigated at a lower level, and it needs clean cross-camera evidence the rig cannot supply at the seam. v18 (progress.md:471-492) already fed real L1 camera evidence to DiT360 and got NEG: 'DiT360 fills missing camera chunks with plausible but nonexistent streets/buildings... prompt+mask DiT360 is panorama inpainting, NOT multi-reference stitching... to pursue this route seriously we need a reference-driven/multi-view diffusion model or fine-tuning, not vanilla DiT360 masking.' The donor wiring (shift_mask/batch[0]) IS built (attn_processor.py:41,52-55,89-93) but feeding evidence as a read-only donor vs as canvas is a wiring detail -- the BINDING constraint v18 found is that this LoRA does not do reference-driven stitching, which the donor mode does not change. Worse, the proposal's own kill-test for selecting WHICH evidence to copy is the geometrically-WRONG copy-SELECTION family already REJECTED twice (DB-12 line 69: both copies sit ~20px off ego-centre, straddle=0; DB-10 line 70: selection hides colour step NOT geometric offset). FLUX latent is 16x downsampled so shift granularity is ~16px ERP blocks -- coarser than the wavy seam needs. medium faithfulness risk + needs evidence we lack cleanly + re-treads v18's documented limitation."
+        },
+        {
+          "name": "PersonalizeAnything layer-subset injection (set_attn_module_names) -- proposal Direction 6",
+          "why_dropped": "Dropped as speculative-until-the-dichotomy-survives, per the proposal's own gating ('run only after Directions 1-2'). With proposal-Direction-1 KILLED and Directions 2-3(now eta/gamma) being the real dichotomy tests, this is downstream of unresolved questions and rests on an UNKNOWN: whether this specific DiT360 LoRA even has a clean deep=structure / shallow=texture split. set_attn_module_names is built (attn_processor.py:18-24) but there is no evidence the LoRA's layers separate that way, and medium faithfulness risk (desyncing the circular-wrap, which the runner maintains via the 1-col pad at :343). If the kept Directions 1-3 all under-change-or-invent, T1-DiT is CLOSED and this never runs; if one works, this is unnecessary. Park as a contingency, not an A100 spend now."
+        },
+        {
+          "name": "Cube-face seam metric + polar-face QA gate -- proposal Direction 7",
+          "why_dropped": "Not a standalone direction -- it is a measurement wrapper whose entire value is multiplying Direction 2. The proposal admits 'Low-medium standalone.' The project rule (MEMORY feedback-vision-not-just-metrics) is that VISION WINS on any metric conflict, and the proposal's own kill_criteria concedes 'if down-face edge energy does NOT correlate with visually-judged quality -> fall back to vision-only.' So in the worst case it is discarded and in the best case it is a tie-breaker inside Direction 2. cube_map_from_equirectangular exists (src/cube_map.py:58) and is near-zero GPU, so if Direction 2's pilot passes the decorrelation gate, the cube-down-face metric can be tried as the argmin objective INSIDE Direction 2 at no extra GPU -- but it does not earn its own ranked A100 slot."
+        },
+        {
+          "name": "Additive concept_process conditioning (soft K/V append) -- proposal Direction 8",
+          "why_dropped": "Dropped: it is explicitly the conditional fallback to the already-dropped donor Direction 3 ('run ONLY if Direction 3's hard shift_mask shows a paste-edge artifact'). With the donor direction dropped (re-treads v18 + copy-selection-wrong), its fallback has no parent to fall back FROM. concept_process is built (attn_processor.py:41,72-74,110-121,183-187) but never validated, and it inherits Direction 3's binding constraint: appending real-evidence K/V still asks vanilla DiT360 to do reference-driven repair, which v18 documented it does not do. proposal-stated payoff 'Low... not worth running independently.' Self-eliminating once its parent is cut."
+        },
+        {
+          "name": "Thin r008 x tau{8,12} magnitude-only sweep",
+          "why_dropped": "Subsumed/dead axis (agrees with proposal). tau5=no-op (v14, dit360-findings:14), tau20/50=invent cars (D2, progress.md:5); the tau{8,12} cell is technically un-run but is just interpolating the known no-op->invent bracket. The kept Direction 3 holds tau at the user-liked r008/tau5 and varies the genuinely-untested gamma/eta instead -- the right way to probe the no-op without re-treading the magnitude axis."
+        },
+        {
+          "name": "Wide / ground-risk seam mask at higher tau; ground/full outpaint as deliverable",
+          "why_dropped": "Confirmed dead poles (agrees with proposal). Wide-mask+high-tau == D2 (r040 tau20/50) = object-gate FAIL (progress.md:5). Ground/full outpaint: center-outpaint and v15 full both NEG/fictional (progress.md:232 '95% ENTIRELY FICTIONAL... invented a British high street'); D4b ground/full RAN and is gate-pending but codex-predicted high-risk (invents lane/curb/cars). The LoRA never trained on photoreal downward views. Only SKY-outpaint (kept Direction 1) is faithfulness-safe for T2."
+        },
+        {
+          "name": "Post-compose operators; multi-seed ensemble; custom sigma schedule; 2-col circular pad; mix-training LoRA; external FLUX ControlNet",
+          "why_dropped": "All agree with the proposal's own dropped set and verified against actuals: post-compose family exhaustively NEG (v6-v14); multi-seed at fixed geometry = closed no-op (v9); custom sigma spacing lower-leverage and fiddly (invert N must match reverse N); 2-col pad is a non-problem tweak (the 1-col wrap at run_dit360_trimap_clamp.py:343 already keeps 0/360 continuous and does nothing for the INTERNAL seam); region-specialized LoRA needs heavy fine-tune (out of scope for inference-time + violates cheap/low-risk preference); DiT360 ships no ControlNet (no weights in repo). None earns A100 time now."
+        }
+      ],
+      "notes": "VERIFIED AGAINST ACTUAL CODE (run_dit360_trimap_clamp.py, pa_src/pipeline.py, pa_src/attn_processor.py, src/yaw_rotate.py) and the done-list (agent/progress.md, dit360-findings memory). HEADLINE KILL: the proposal's #1-ranked RF window-shrink rests on an INVERTED mechanism. eta is the SOURCE ANCHOR (pipeline.py:1031-1037, v_t_cond pulls toward y_0=image_latents); shrinking stop_timestep 0.99->0.20 turns that anchor OFF for the late steps and FREE-RUNS to t=0 -- which is exactly the late-step free-running the done-list (D2) proved invents cars, and which the official docstring (pipeline.py:70-73) confirms is the EDIT (not faithful) regime. The proposal's prose 'nudges early then snaps back to source' is backwards. I replaced it with the faithful direction of the same machinery (eta-magnitude DOWN / decay_eta / gamma<1, full window kept) folded into the kept #3.\\\\n\\\\nSURVIVORS, re-ranked by payoff x faithfulness-safety / cost: (1) Sky-outpaint generalization + prompt-bug fix -- extends a CONFIRMED win to the 2 anchors the deliverable needs, low risk, cheap, and fixes a real verified bug (DEFAULT_PROMPT:32-36 lists the exact classes the gate rejects on a no-CFG-negative model). (2) Multi-yaw SELECT -- strongest NEW T1 lever, rides the confirmed single-source>average finding and the trained yaw-loss, but GATED on a cheap 3-offset DECORRELATION-VARIANCE pilot that kills it in 1.5hr if the rig-geometry seam does not move with azimuth. (3) RF eta/gamma faithful micro-sweep -- the last untested faithful RF knob (progress.md:15 names gamma/eta as the open lever), decisive negative closes T1-RF.\\\\n\\\\nDROPPED 5 of 8 proposal directions: window-shrink (inverted mechanism = D2 hallucination regime), evidence-donor (re-litigates v18's documented 'vanilla DiT360 is inpainting not multi-ref stitching' NEG + needs clean cross-cam evidence the 21-26cm-baseline rig lacks at the seam, and its selection step is the twice-REJECTED geometrically-wrong copy-SELECTION family DB-10/DB-12), layer-subset (speculative, unknown LoRA depth-split, downstream of the dichotomy test), cube-metric (a measurement wrapper for Dir 2, not a standalone spend; vision wins per project rule), additive-concept (self-eliminating fallback to the dropped donor).\\\\n\\\\nSTRATEGIC READ unchanged from the proposal's spine but hardened: T1 is bracketed no-op<->invent; the only faithful shots that survive code scrutiny are multi-yaw SELECT and the eta/gamma micro-sweep, and BOTH have a <=2hr decisive kill. If both under-change-or-invent, T1-DiT is CLOSED as cosmetic-only and the deliverable stays the non-generative bevfinal/_seamroute base. T2's only faithful win is SKY-outpaint; ship it on all 3 anchors and fix the object-listing prompt regardless. Every output still passes the torchvision fasterrcnn object gate (netnew=0) + vision; vision wins on conflict. CAVEAT to respect on EVERY run: the LEGACY clamp at pipeline.py:1053-1056 fires whenever mask is passed AND timestep/1000>=0.5, hard-copying batch[0]->batch[1] over preserve regions, CO-EXISTING with the runner's clamp_callback -- when sweeping gamma/eta/yaw, confirm which clamp dominates before attributing a result to the swept knob.\""
+    },
+    "pre_kill": {
+      "directions": [
+        {
+          "name": "RF editing-window shrink (stop_timestep sweep) for thin seam-hide",
+          "summary": "The single highest-leverage unswept knob. Our runner pins start_timestep=0.0/stop_timestep=0.99 so eta=1 anchors the WHOLE loop while the seam core free-runs all the way to t=0 — exactly the late-step free-running that the done-list proved invents cars (D2, v3). Shrink the editing window so the model only nudges seam structure in EARLY high-noise steps then snaps back to the source trajectory. This re-textures the wavy seam without the late-step object invention, attacking the no-op-vs-melt dichotomy from the un-tried 'window' axis rather than the already-dead mask-size/tau axis.",
+          "target": "T1-seam",
+          "how_to_test": "init=SR_bmw_bevfinal_1024x2048.png; mask=SR_bmw_seamcore.png thin r008 core (h016 halo), exactly the v14 trimap that the user liked. Hold tau=8 (the one un-run thin cell) and gamma=1.0 fixed. Add two args to run_dit360_trimap_clamp.py main (currently hardcoded at line 384-385): plumb --start-timestep (fixed 0.0) and --stop-timestep into the pipe() call. Sweep stop_timestep in {0.20, 0.35, 0.50, 0.99(=current control)}. 4 cases, single FLUX load, single invert (window is reverse-only). For each: torchvision object gate (netnew=0 required) + vision on _raw.png, and report core/halo/far MAE vs init. WIN = MAE in core rises above the v14-tau5 no-op floor (~30) AND gate clean AND vision shows smoother seam.",
+          "gpu_cost_est": "~1 A100-hour: 1 load (~60s) + 1 invert (~90s) + 4 reverse passes (~3min each). Cheapest possible non-trivial experiment.",
+          "kill_criteria": "If even stop_timestep=0.20 either (a) under-changes (core MAE still ~= tau5 no-op floor, raw ~= hard_select) OR (b) trips the object gate on any setting, then the window knob does not break the seam dichotomy -> CLOSE T1-DiT as cosmetic-only (consistent with done-list prior).",
+          "expected_payoff": "Medium-high. This is THE knob the sampling-lens ranked #1 and is the most defensible single experiment; it is the cleanest remaining shot at faithful seam-hide. Even a negative result is decisive (closes T1).",
+          "faithfulness_risk": "low",
+          "priority": 1,
+          "novelty_note": "Done-list swept tau MAGNITUDE, mask SIZE, steps, seed, guidance, and all POST-COMPOSE operators — but NEVER start/stop_timestep (runner hardcodes 0.0/0.99). The done-list 'invents cars' results were all at the FULL 0.99 window; shrinking the window is a distinct, untested mechanism, not a re-run of v3/v9/D2."
+        },
+        {
+          "name": "Multi-yaw generate-and-SELECT (not average) for seam-hide",
+          "summary": "Weaponizes the LoRA's trained yaw-equivariance PLUS the project's own confirmed single-source>averaging finding. Run the SAME thin-seam edit at N spherical yaw offsets; each pass lands the residual near-ground wave at a different azimuth/phase. Rotate each result back and SELECT per-region the lowest-local-gradient pixels along the seam band (NEVER average). Because every candidate pixel is a real DiT render of source-anchored content (no new mask region), and selection only picks the cleanest existing pixel, no net-new object can be introduced beyond what a single pass already passes the gate on.",
+          "target": "T1-seam",
+          "how_to_test": "init=SR_bmw_bevfinal_1024x2048.png. Use external/DiT360/src/yaw_rotate.equirectangular_rotate_yaw verbatim. PILOT first with 3 offsets {0,120,240} deg: for each offset o, yaw-rotate init by +o, also yaw-rotate the seamcore mask by +o (so the seam strip tracks), run the winning thin-seam config from Direction 1 (or v14 r008/tau8), yaw-rotate the _raw output by -o to re-register. Stack 3 re-registered panos; SELECT per-pixel argmin of local Sobel gradient energy in a band around the seam, copy source elsewhere. Gate+vision the selected pano. If artifacts decorrelate (the 3 passes differ in the seam band), expand to 8 offsets {0,45,...,315}.",
+          "gpu_cost_est": "Pilot 3 offsets ~1.5 A100-hr (3 inverts + 3 reverse; invert must redo per yaw since image changes). Full 8 offsets ~4 A100-hr. SELECT/rotate is CPU-cheap.",
+          "kill_criteria": "If the 3-offset pilot shows the seam-band artifact does NOT decorrelate across offsets (same wave at same registered location every pass) -> abandon before 8. If min-gradient selection produces a patchwork/blocky seam (like the dead DiT-oracle loose-select) -> kill.",
+          "expected_payoff": "Medium. Strongest NEW lever the panorama-prior lens surfaced; directly exploits an existing project win-pattern (single-source select). If it works it collapses the wave that single-pass cannot.",
+          "faithfulness_risk": "low",
+          "priority": 2,
+          "novelty_note": "Done-list multi-SEED (v9) is replacing the noise seed at fixed geometry and was a closed loophole; multi-YAW is a SPHERICAL re-projection that decorrelates artifacts by AZIMUTH (a different mechanism, exploiting the trained yaw-loss). SELECT-not-average is explicitly aligned with the project's confirmed finding and was never run for DiT outputs (DiT-oracle selected from source pixels, not from a yaw-ensemble of DiT renders)."
+        },
+        {
+          "name": "Real-evidence donor reference (shift_mask / swapped batch[0]) to bound seam fill",
+          "summary": "Converts DiT360 from a self-consistency clamp into a real-evidence rein. The attn processor already supports reading reference tokens from batch[0] at `mask` and WRITING them into batch[1] at an independent `shift_mask` (utils.shift_tensor exists), and pipe.invert() accepts ANY donor image. Today both are self-reference. Point the donor at the CLEAN neighbor-cam pixels of the same physical surface (or an alternative clean stitch e.g. virtual-centre single-source). The seam then gets repainted from real adjacent-camera appearance that actually exists, not from FLUX's text/self prior — bounding hallucination to real evidence, which is precisely why it stays gate-clean.",
+          "target": "T1-seam",
+          "how_to_test": "init/canvas=bevfinal as batch[1]. Donor (batch[0]) = the existing virtual-centre single-source stitch SR (already a project deliverable) OR a per-seam neighbor-cam ERP slab. Two sub-tests: (A) cheap shift_mask: pass shift_mask (donor strip a few latent cols across the seam, target=wavy strip) into PersonalizeAnythingAttnProcessor via the runner's lambda; keep tau low (10-15) so token-replace dominates early. (B) swapped-donor invert: call pipe.invert(image=donor_stitch) for batch[0] but keep bevfinal as the canvas/clamp target, seamcore mask. Gate+vision both. Sweep donor in {virtual-centre stitch, neighbor-cam slab} x shift in {0,1,2 latent cols}.",
+          "gpu_cost_est": "~2 A100-hr. Sub-test B needs a 2nd invert (donor) but that is one-time; reverse passes are cheap. Note FLUX latent is 16x downsampled so shift granularity is ~16px ERP blocks — fine for the wavy seam, not hairline.",
+          "kill_criteria": "If hard token-replacement creates a NEW mini-seam at the donor/target boundary that the halo cannot hide, AND the additive fallback (Direction 7) also fails -> kill. If the donor stitch's own geometry conflicts with bevfinal causing ghosting -> kill (the very failure single-source was meant to avoid).",
+          "expected_payoff": "Medium-high. The conditioning lens's strongest claim: the entire shift_mask/donor machinery is built but never used; this is the only lever that gives the seam REAL pixels to copy instead of inventing. Highest novelty.",
+          "faithfulness_risk": "medium",
+          "novelty_note": "Done-list v18 'reference canvas' fed L1 camera evidence as the GENERATION target/canvas and asked DiT to fill missing cameras (cooperative stitcher) — NEG. This is the opposite wiring: real evidence is the read-only DONOR (batch[0] token source / shift_mask), bevfinal stays the canvas. Self-reference donor (current) and evidence-as-canvas (v18) are both explored; evidence-as-donor is not.",
+          "priority": 3
+        },
+        {
+          "name": "Sky-outpaint generalization + per-encoder anti-object prompt hardening",
+          "summary": "Locks in and extends the session's only confirmed WIN (D4 sky-only outpaint) on new anchors, and hardens it with the unexploited prompt-side lever. Our DEFAULT_PROMPT literally enumerates 'cars, lane markings, signs, buildings' — inviting the exact salient objects the gate rejects. FLUX-dev is guidance-distilled (no CFG negative) so prompt wording is the ONLY semantic steering. Swap to an anti-object sky prompt and exploit prompt vs prompt_2 (T5 vs CLIP) asymmetry. Pure constraint tightening on an already-passing region = near-zero faithfulness risk.",
+          "target": "T2-outpaint",
+          "how_to_test": "init = bevfinal for 0bae3b5e + 2c65 (masks already PREPPED per done-list). mask = opmask_sky (the ~37% band above content horizon from _outpaint_mask.py). Params from the D4 win: tau50, guid2.8, halo32, corecompose far/halo byte-exact. CHANGE ONLY the prompt: replace DEFAULT_PROMPT with 'a continuous clear overcast sky above an urban skyline; existing building rooftops; smooth uniform sky; no vehicles, no people, no signs, no new objects, empty scene'. Pass it to BOTH prompt slots first; then A/B a run where prompt_2 (CLIP) carries global sky style and prompt (T5) carries 'no new objects'. Gate (netnew=0) + vision: rooflines must stay byte-exact, sky vision-clean.",
+          "gpu_cost_est": "~1.5 A100-hr for 2 anchors x 2 prompt variants, single load.",
+          "kill_criteria": "If the sky win does NOT generalize to 0bae/2c65 (gate fail or visible boundary) -> the D4 win was anchor-specific, flag for review. If the anti-object prompt makes no measurable difference vs the object-listing prompt on the gate -> keep the simpler prompt, note prompt steering is weak.",
+          "expected_payoff": "High and near-certain for the generalization half (extends a known WIN); prompt hardening is a cheap faithfulness insurance bonus.",
+          "faithfulness_risk": "low",
+          "novelty_note": "Done-list D4 ran sky-outpaint on the BMW anchor with the object-LISTING prompt; it never (a) confirmed generalization on 0bae/2c65 (listed as 'still-open/pending') nor (b) swept the anti-object prompt or prompt_2 asymmetry. This is the pending-open item plus an untested prompt axis, not a re-run.",
+          "priority": 4
+        },
+        {
+          "name": "RF gamma x eta-decay faithfulness micro-sweep",
+          "summary": "gamma (inversion fidelity, invert line 315 hardcoded 1.0) and decay_eta/eta_decay_power (never enabled) are the continuous faithfulness dials that the binary tau token-replace approximates discretely. A too-rigid gamma=1.0 inversion can make the latent reconstruct the source so exactly the model resists ANY edit — one root cause of the thin-seam no-op. Lowering gamma slightly gives edit-room from a still-source-consistent start; eta_decay relaxes the anchor only in late steps so outpaint gains detail without early drift. Cheap because the source is inverted once per gamma.",
+          "target": "both",
+          "how_to_test": "Plumb --gamma into pipe.invert (line 315) and --decay-eta/--eta-decay-power into pipe() (lines 384-388 region). T1: on the v14 thin r008/tau8 config, sweep gamma in {0.6, 0.8, 1.0}; pick the gamma where core MAE rises off the no-op floor while far MAE stays ~3. T2: on opmask_sky, keep gamma=1.0 on content, enable decay_eta=True, sweep eta_decay_power in {1,2}; check the outpainted sky gains gradient detail without the FoV content drifting. Gate+vision every output. Each gamma value = 1 extra invert; eta_decay is reverse-only (free).",
+          "gpu_cost_est": "~2 A100-hr: 3 inverts (gamma) + ~6 reverse passes across both targets, single load.",
+          "kill_criteria": "If lowering gamma to 0.6 still under-changes the seam (no-op) OR starts drifting far-region pixels (far MAE climbs) -> gamma is not the unlock, drop. If decay_eta produces no visible sky-detail gain -> drop, keep eta=1 fixed.",
+          "expected_payoff": "Low-medium. A finer faithfulness dial than tau; most useful as a knob to COMBINE with Direction 1 (low gamma + short window). Marginal alone.",
+          "faithfulness_risk": "low",
+          "novelty_note": "Done-list swept tau/steps/seed/guidance but explicitly NOT gamma (invert always gamma=1.0) and NEVER decay_eta. These are distinct RF-Inversion knobs untouched by any prior run.",
+          "priority": 5
+        },
+        {
+          "name": "PersonalizeAnything layer-subset injection (set_attn_module_names)",
+          "summary": "Our runner installs the PA token-replace processor on EVERY attn layer uniformly (lambda over all names). set_attn_module_names lets us restrict injection to a block subset. Deep/double-stream blocks carry structure (lane lines, curb geometry); shallow/single blocks carry texture. Inject source tokens ONLY in deep blocks to hold geometry byte-faithful while shallow layers freely repaint seam TEXTURE -> directly attacks no-op-vs-melt from a structurally orthogonal axis. For T2 sky, the inverse (shallow-only) makes generated sky inherit source exposure/color while deep layers invent plausible sky gradient. Entirely unswept axis.",
+          "target": "both",
+          "how_to_test": "set_flux_transformer_attn_processor already accepts set_attn_module_names (attn_processor.py line 18, prefix-match). In the runner, pass set_attn_module_names to scope PA. T1: variant A = double-stream only ('transformer_blocks.'); variant B = late single blocks only ('single_transformer_blocks.' high indices). Use v14 thin r008/tau8. T2-sky: shallow-texture subset on opmask_sky. Gate+vision each. First confirm which block-name prefixes exist via list(pipe.transformer.attn_processors.keys()) and split by structure/texture depth.",
+          "gpu_cost_est": "~2 A100-hr: reverse-only sweeps (invert reused), ~6 passes, single load.",
+          "kill_criteria": "If deep-only injection still melts/under-changes the seam the same as all-blocks (no separation between structure and texture layers in this LoRA) -> the axis is inert, drop. If it desyncs the circular-wrap (the 1-col pad must stay consistent) -> revert.",
+          "expected_payoff": "Low-medium. A genuinely orthogonal axis the sampling lens ranked #2; speculative because we do not yet know this LoRA's depth-wise structure/texture split. Run only after Directions 1-2 to see if the dichotomy survives.",
+          "faithfulness_risk": "medium",
+          "novelty_note": "Done-list never touched layer placement — every prior run injected PA into ALL attn layers. set_attn_module_names is a built-but-unused argument; this is a new control surface, not a re-parameterization of mask/tau.",
+          "priority": 6
+        },
+        {
+          "name": "Cube-face-space objective seam metric + targeted polar-face QA gate",
+          "summary": "Adds an OBJECTIVE selection/QA metric that none of the prior runs had — the wavy near-ground seam is an ERP curve but becomes a near-STRAIGHT step defect on the -Y (down/ground) cube face, far easier to score than ERP edge energy. Use cube_map_from_equirectangular as (a) the per-region objective driving the multi-yaw SELECT in Direction 2, and (b) a polar-face QA gate for T2: after sky/ground outpaint, convert to cube and inspect +Y/-Y faces for hallucinated polar structure; if a face shows invented geometry, mask just that face region back to flat and re-run. This is QA/scoring substrate, not a generation change, so it adds faithfulness SAFETY rather than risk.",
+          "target": "both",
+          "how_to_test": "Reuse external/DiT360/src/cube_map.cube_map_from_equirectangular (ERP->6 faces, grid_sample). For T1: for each multi-yaw candidate (Direction 2), cube-project, measure Sobel edge energy on the down(-Y) face in the seam band, feed as the argmin objective instead of raw ERP gradient. For T2: cube-project the sky-outpaint winner, eyeball +Y face; if clean, accept. Use py360convert for the inverse cube->ERP round-trip if a face needs local re-mask. No new generation params; pure measurement loop wrapped around Directions 2 and 4.",
+          "gpu_cost_est": "Near-zero GPU (cube ops are grid_sample on CPU/GPU, seconds). Cost is only the underlying generation it scores.",
+          "kill_criteria": "If down-face edge energy does NOT correlate with the visually-judged seam quality (metric disagrees with vision) -> fall back to vision-only selection, drop the metric. Per project rule, vision wins on conflict.",
+          "expected_payoff": "Low-medium standalone, but multiplies the value of Direction 2 by giving it a principled objective. Mainly a force-multiplier + an extra T2 safety gate.",
+          "faithfulness_risk": "low",
+          "novelty_note": "Done-list judged everything with the torchvision OBJECT gate + ERP vision; it NEVER used cube-face-space as a seam metric or a polar-face QA gate. cube_map is a training-side op never invoked at inference here.",
+          "priority": 7
+        },
+        {
+          "name": "Additive concept_process conditioning (soft K/V append) as the blend-friendly donor mode",
+          "summary": "The fallback/companion to Direction 3. Where hard token-replacement (shift_mask) creates a new paste boundary, set concept_process=True so the real neighbor-cam / LiDAR-ground tokens are APPENDED as extra attendable keys/values (IP-Adapter-style) with their original rotary positions, rather than overwriting target latents. FLUX then ATTENDS to the real evidence as context while denoising the region freely -> softer, blend-friendly pull toward real color/texture/structure with no hard cut. Stays gate-clean because the appended reference is real evidence and the region is still constrained by the clamp + object gate.",
+          "target": "both",
+          "how_to_test": "PersonalizeAnythingAttnProcessor already has concept_process flag + get_concept_rotary_emb (built, default False). In the runner lambda set concept_process=True and feed the real neighbor-cam crop (T1 halo zone) or a real sky strip (T2 tone-match) as the donor. Keep guidance low (~2.8) so the appended reference dominates the text prior. Run ONLY if Direction 3's hard shift_mask shows a paste-edge artifact. Gate+vision; compare paste-edge sharpness vs Direction 3.",
+          "gpu_cost_est": "~1 A100-hr incremental on top of Direction 3 (same donor invert, reverse-only, slightly more tokens in attn).",
+          "kill_criteria": "If additive conditioning is too weak to pull the seam toward the evidence (under-changes, like the no-op floor) OR if appended tokens destabilize the wrap -> drop. Strictly a tie-breaker for Direction 3.",
+          "expected_payoff": "Low. Conditional on Direction 3 needing a softer boundary; not worth running independently.",
+          "faithfulness_risk": "medium",
+          "novelty_note": "concept_process (additive K/V append) has never been enabled in any prior run — all runs used hard token-replacement or pixel/latent compose. This is the built-but-unused additive branch of the SAME processor, distinct from the replacement-mode and from post-compose blending.",
+          "priority": 8
+        }
+      ],
+      "dropped": [
+        {
+          "name": "Thin r008 x tau{5,8,12} magnitude-only sweep",
+          "why_dropped": "Largely subsumed. tau5 is already proven no-op (v14) and tau20/50 proven to invent cars (D2); only the tau{8,12} cell is technically un-run. Rather than sweep tau magnitude alone (the dead axis), tau=8 is folded into Direction 1 as the FIXED tau while the genuinely-unswept start/stop window is varied. Pure tau-magnitude sweep would re-tread the done-list dichotomy."
+        },
+        {
+          "name": "Wide / ground-risk seam mask at higher tau",
+          "why_dropped": "Direct repeat of done-list v3 (r040 tau20) and D2 (5.56% core, tau20/50) — both object-gate FAIL (invent cars, melt textureless cuts). Wide-mask/high-tau is the confirmed hallucination pole. Excluded by HARD RULE 1."
+        },
+        {
+          "name": "Ground-band / full-sphere outpaint as a faithful deliverable",
+          "why_dropped": "Done-list: center-outpaint (keep 5%) and invalid/full outpaint (v15) both NEG (entirely fictional, hallucinates objects, visible boundary). D4b ground/full already RAN and is predicted high-risk (invents lane/curb/cars). Ground outpaint is not faithfulness-safe because the LoRA never trained on photoreal downward views. Re-running it as a deliverable is a known dead pole; only sky-outpaint (Direction 4) is retained."
+        },
+        {
+          "name": "Post-compose operators (soft / evidence-gate / low-freq residual / Poisson-gate / residual-multiband / DiT-oracle source-select)",
+          "why_dropped": "Exhaustively explored NEG in v6-v14 (soft-compose, evidence-gate, low-freq residual, Poisson-gate, multiband, DiT-oracle). Every composition that keeps the smoothing also keeps a generative patch -> cannot extract faithful geometry from post-compose. Any new composition operator would re-tread this closed family."
+        },
+        {
+          "name": "Multi-seed ensemble at fixed geometry",
+          "why_dropped": "Done-list v9 (seeds 1/2 at r008/r010 tau5) = closed loophole, ~no-op (generate 1.6-2.0%, PSNR ~30dB). Seed variation does not decorrelate the seam artifact. Direction 2 (multi-YAW, spherical) is the live alternative; multi-seed is dead."
+        },
+        {
+          "name": "Custom sigma/timestep schedule (dense late/early sigmas)",
+          "why_dropped": "Lower expected payoff than the window/eta/gamma knobs and harder to reason about (inversion N must match reverse N, so re-spacing both is fiddly). The done-list already bumped steps 28->50 with marginal effect; bespoke sigma spacing is a speculative refinement better deferred until the higher-leverage RF knobs (Directions 1,5) are exhausted."
+        },
+        {
+          "name": "Widen circular-pad to 2 latent columns",
+          "why_dropped": "The 1-col 0/360 wrap already keeps the ERP boundary continuous (confirmed working) and does NOTHING for the INTERNAL near-ground seam (not a circular boundary). Widening to 2 cols is at best a tiny robustness tweak on a non-problem region; negligible payoff."
+        },
+        {
+          "name": "Mix-training / region-specialized seam-repair LoRA on our AV2 cams",
+          "why_dropped": "Only lever that fixes the DOMAIN prior at the root, but it requires a multi-hundred-step LoRA fine-tune (GPU-heavy, dataset jsonl build, training infra) — violates the cheap/low-risk preference and is out of scope for an inference-time direction list. Parked as a future heavyweight option, not a near-term testable inference direction."
+        },
+        {
+          "name": "External FLUX.1-dev ControlNet (edge/line/depth structure conditioning)",
+          "why_dropped": "DiT360 ships NO ControlNet; this needs an out-of-repo FLUX ControlNet, new weights, and integration. Out of scope for in-repo inference-time levers; the in-repo structure rein (cube-loss consistency, Direction 7) is the available substitute."
+        }
+      ],
+      "notes": "Code verified against actuals. Two load-bearing interactions every runner must respect: (1) The pipeline has a LEGACY consistency clamp at pa_src/pipeline.py:1053-1056 that fires whenever `mask` is passed AND timestep/1000>=0.5, hard-copying batch[0]->batch[1] over preserve regions — it CO-EXISTS with our clamp_callback. When sweeping any knob that also passes mask=, both clamps fire; verify which dominates before attributing a result to a knob. (2) The RF window/eta lives at pipeline.py:1032-1037 but is hardcoded 0.0/0.99/eta=1.0/decay off in run_dit360_trimap_clamp.py:384-388 and gamma=1.0 at :315 — Directions 1 and 5 require plumbing these as args. \\n\\nStrategic read: T1 (seam-hide) is bracketed by the done-list (thin=no-op, wide=invent). The 3 directions with real probability of breaking that bracket are, in order, (1) RF window-shrink, (2) multi-yaw SELECT, (3) real-evidence donor — and they COMPOSE: short window + low gamma + a yaw-ensemble selected by a cube-face metric, optionally with an evidence donor. If Directions 1-3 all under-change-or-invent, T1-DiT is decisively CLOSED as cosmetic-only and the deliverable stays the non-generative bevfinal base. T2's only faithful win is SKY-outpaint; Direction 4 just generalizes the known win + hardens the prompt (the DEFAULT_PROMPT currently invites the exact objects the gate rejects — fix that regardless). Ground/full outpaint stays dead. Run order: 4 (cheap, extends a win) and 1 (cheapest seam shot) first; 2 and 3 next; 5-8 only if the dichotomy survives. Every output passes the existing torchvision fasterrcnn object gate (box-area-overlap>30%, netnew=0) + vision; vision wins on any metric conflict per project rule."
+    },
+    "lens_reads": [
+      {
+        "lens": "read:sampling-levers",
+        "levers": [
+          {
+            "name": "RF-Inversion editing window (start_timestep / stop_timestep)",
+            "category": "RF-Inversion controlled-reverse-ODE schedule",
+            "paper_basis": "pa_src/pipeline.py __call__ args start_timestep/stop_timestep -> mapped to integer step indices (lines 966-973); eta is applied ONLY for start<=i<stop (line 1032 `eta_t = eta if start_timestep <= i < stop_timestep else 0.0`). The RF-Inversion paper (2410.10792 Alg.2) defines this as the interval over which the source-anchoring vector field v_t_cond pulls latents toward the inverted image.",
+            "already_used": "no",
+            "how_to_exploit": "Our runner hardcodes start_timestep=0.0, stop_timestep=0.99 (so eta=1 anchors over the WHOLE loop -> maximal faithfulness everywhere, leaving generation to come only from the seam/outpaint mask). This is the single biggest UNUSED knob. T1-seam: set start_timestep=0.0, stop_timestep~0.3-0.5 so the model is anchored to source early and only does mild texture editing in the seam zone in late steps -> hides the wavy seam WITHOUT the late-step free-running that currently invents cars. T2-outpaint: opposite — stop_timestep high (0.8-0.99) keeps content anchored while the masked-black sky/ground band (which has no source to anchor to) is free to fill the full loop; sweep stop_timestep down to find the point where outpaint stays continuous but content stops drifting.",
+            "for_target": "both"
+          },
+          {
+            "name": "eta strength + eta decay (eta / decay_eta / eta_decay_power)",
+            "category": "RF-Inversion reverse-ODE faithfulness gain",
+            "paper_basis": "pipeline.py __call__ eta=1.0 default, plus decay_eta (bool) and eta_decay_power (float) at lines 742-743, applied at lines 1033-1037 `eta_t = eta_t * (1 - i/num_inference_steps)**eta_decay_power`. Docstring (lines 786-788): 'higher eta -> better faithfulness, less editability'.",
+            "already_used": "partial",
+            "how_to_exploit": "Our runner passes eta=1.0 fixed and never sets decay_eta. eta is the continuous faithfulness dial that PersonalizeAnything-tau does discretely. T1-seam: lower eta to ~0.7-0.85 ONLY enough to let the seam ribbon re-texture while the rest stays locked — gives a smoother faithfulness/editability tradeoff than the binary tau token-replace. T2-outpaint: keep eta=1 on content but enable decay_eta with eta_decay_power~1-2 so the anchor relaxes in late steps and the generated sky/ground gains detail/diversity without early-step drift. Sweep eta in {0.7,0.85,1.0} x decay_eta {off,on} — never done.",
+            "for_target": "both"
+          },
+          {
+            "name": "Inversion gamma (forward controlled ODE)",
+            "category": "RF-Inversion forward-ODE inversion fidelity",
+            "paper_basis": "pipe.invert(gamma=...) at pipeline.py line 1117, used at line 1267 `u_hat = u_t + gamma*(u_t_cond - u_t)` (Eq.8). Higher gamma -> the inverted noise stays closer to a reconstructable trajectory of the SOURCE image. Our runner calls invert(..., gamma=1.0) at run_dit360_trimap_clamp.py line 315.",
+            "already_used": "no",
+            "how_to_exploit": "gamma=1.0 is the strongest-faithfulness inversion; never varied. Because we invert the source ONCE for all cases, gamma is essentially free to sweep (one extra invert per value). T1-seam & T2-outpaint both: a too-high gamma can make the inverted latent rigidly reconstruct the source so the model resists ANY edit (one cause of seam no-op at low tau). Try gamma in {0.5, 0.7, 1.0}: lower gamma gives the reverse pass more freedom to smooth the seam / blend the outpaint boundary while still starting from a source-consistent point. Pair a slightly lower gamma with a short stop_timestep to get edit-room without hallucination.",
+            "for_target": "both"
+          },
+          {
+            "name": "PersonalizeAnything injection LAYER subset (set_attn_module_names)",
+            "category": "PersonalizeAnything attention-injection placement",
+            "paper_basis": "pa_src/attn_processor.py set_flux_transformer_attn_processor takes set_attn_module_names (prefix-match list, lines 18-24); our runner installs the PA processor on EVERY attn layer (lambda over all names, run_dit360_trimap_clamp.py lines 366-375) so token-replacement happens in all double+single Flux blocks. PA paper injects reference tokens to anchor identity; which blocks carry structure vs texture differs by depth.",
+            "already_used": "no",
+            "how_to_exploit": "We inject into ALL blocks uniformly — never subsetted. Pass set_attn_module_names to restrict token-replacement to e.g. only the double-stream blocks (transformer_blocks.*) or only late single blocks. T1-seam: inject the source tokens only in deep/structure layers so geometry (lane lines, curb) is held byte-faithful while shallow texture layers are free to repaint the seam smoothly — directly attacks the 'no-op vs melt' dichotomy. T2-outpaint: the inverse — inject in shallow texture layers so the generated sky inherits source color/exposure statistics while deep layers freely invent plausible sky geometry. This is an entirely unswept axis of PA.",
+            "for_target": "both"
+          },
+          {
+            "name": "PersonalizeAnything tau as a TIMESTEP gate (which steps replace tokens)",
+            "category": "PersonalizeAnything injection-timestep window",
+            "paper_basis": "attn_processor.py line 76 `t_flag = timestep > self.tau` gates token replacement (r_q/r_k/r_v) — replacement happens only while normalized timestep > tau/100, i.e. the EARLY (high-noise) steps. tau is the boundary. Our runner sets tau in {5,20,50}.",
+            "already_used": "partial",
+            "how_to_exploit": "tau magnitude was swept (findings: 5=no-op, 20-50=melt for seam) but tau is really a STEP-WINDOW knob, and it interacts with start/stop_timestep which we never co-varied. T1-seam: keep tau moderate but COMBINE with a short RF stop_timestep so early steps replace source tokens (lock structure) and the un-anchored late steps only do gentle denoise -> seam blends without late-step object invention. T2-outpaint: a LOW tau (replace tokens for almost all steps) over the PRESERVE region keeps content pinned while the masked band generates — current sky-outpaint win used tau=50; try tau=10-20 to pin content harder and see if sky boundary continuity improves. Sweep tau x stop_timestep jointly (2D), which has never been done.",
+            "for_target": "both"
+          },
+          {
+            "name": "Sampling steps + custom sigma/timestep schedule (num_inference_steps / sigmas / timesteps)",
+            "category": "scheduler discretization",
+            "paper_basis": "pipeline.py accepts num_inference_steps (default 28), and custom `sigmas` / `timesteps` lists via retrieve_timesteps (lines 940-965, 748-749). Default sigmas = np.linspace(1.0, 1/N, N) (line 942). Our runner uses steps=50 and never passes custom sigmas. invert uses the SAME N as reverse.",
+            "already_used": "partial",
+            "how_to_exploit": "Step count was bumped 28->50 but the sigma SPACING is still uniform-linear and never customized. T1-seam: feed a custom `sigmas` schedule that is dense in the LATE (low-noise) steps where seam micro-texture is decided, so the seam repaint is high-quality without adding early free-generation steps. T2-outpaint: dense EARLY sigmas help the large masked band acquire coherent global structure (sky gradient) before detail. Also note inversion N must match reverse N — sweeping steps changes both; an under-explored cheap lever (FID/continuity vs steps curve never measured here).",
+            "for_target": "both"
+          },
+          {
+            "name": "Circular-padding width / wrap latent seam (the 1-column ERP wrap)",
+            "category": "DiT360 token-level circular padding (boundary continuity)",
+            "paper_basis": "DiT360's core token-level module is position-aware circular padding for 0/360 continuity (paper sec 3.3). In code it is realized as a ONE-column latent wrap applied consistently in invert (pipeline.py 1179-1189), reverse-latent prep (919-924), mask (run_dit360_trimap_clamp.py line 343 `torch.cat([mask[:,0:1],mask,mask[:,-1:]])`), latent weights (_latent_weights wrap, lines 136-138) and stripped at the end (1083-1085). Fixed width = 1 latent col.",
+            "already_used": "yes",
+            "how_to_exploit": "We inherit the 1-col wrap (good — it is why the 0/360 ERP seam stays continuous) but it is FIXED at 1 column and only at the image's left/right wrap, NOT at our INTERNAL near-ground seam. T1-seam: the internal wavy seam is NOT a circular boundary, so circular padding does nothing for it — exploit instead by re-using the same wrap mechanism to give the seam-mask a symmetric few-pixel latent halo so PA token-replacement blends across the cut (we already dilate in pixel space via halo_px; consider doing it in LATENT space to match the wrap). T2-outpaint: confirm the wrap keeps the outpainted sky continuous across 0/360 (it does) — keep as-is; widening to 2 cols is a cheap robustness try for the left/right outpaint seam.",
+            "for_target": "both"
+          },
+          {
+            "name": "Dual text encoders + per-branch prompt (prompt vs prompt_2, parallel batch[0]/batch[1])",
+            "category": "prompt-side / classifier-free conditioning",
+            "paper_basis": "pipeline runs a PARALLEL batch of 2 (source-anchored slot [0], edited slot [1]); __call__ takes prompt AND prompt_2 (T5 vs CLIP, lines 734-735) and our runner passes the SAME prompt twice ([args.prompt, args.prompt], run line 378). FLUX.1-dev is guidance-distilled (guidance_embeds true, lines 980-984) so guidance_scale is an embedded scalar, NOT true CFG — there is no negative-prompt branch.",
+            "already_used": "no",
+            "how_to_exploit": "We use one positive prompt, duplicated, and never touch prompt_2. T1-seam: make the edited-slot prompt explicitly suppress the failure mode — e.g. add 'empty road, no vehicles, no people, smooth continuous ground, no new objects' to bias the un-anchored seam region away from inventing cars (cheap, directly targets the documented melt/invent failure). T2-outpaint: set a sky-only descriptive prompt ('clear continuous overcast sky, no objects') for the generated band; use prompt_2 (CLIP pooled) vs prompt (T5) asymmetrically to push global style on one encoder and local texture on the other. Since FLUX-dev has no CFG negative, prompt wording is the ONLY semantic steering — currently un-tuned per target.",
+            "for_target": "both"
+          }
+        ],
+        "notes": "Files read (all absolute): D:\\BaiduSyncdisk\\2024 to future\\koi chen\\experiments\\Waymo2Panorama\\external\\DiT360\\pa_src\\pipeline.py (RF-Inversion forward/reverse ODE — the source of gamma, eta, decay_eta, eta_decay_power, start/stop_timestep, sigmas/timesteps, guidance handling, the parallel-2-batch, and the 1-col circular wrap), \\external\\DiT360\\pa_src\\attn_processor.py (PersonalizeAnything token-replacement: tau as a timestep gate, set_attn_module_names layer subsetting, r_q/r_k/r_v), \\external\\DiT360\\pa_src\\utils.py, \\external\\DiT360\\editing.py + inference.py (official defaults: tau=50, guidance=2.8, steps 28-50, gamma=1.0, eta=1.0, start=0/stop=0.99), \\external\\DiT360\\README.md, \\scripts\\phase3\\run_dit360_trimap_clamp.py (OUR runner) and \\scripts\\phase3\\_outpaint_mask.py.\n\nALREADY-SWEPT (per memory waymo2pano-dit360-findings.md + runner code, deprioritized): PersonalizeAnything tau magnitude (5 vs 20/50), guidance_scale (2.8, per-case override), num steps (28->50), seed (per-case), and the trimap latent-clamp (halo_px / halo_weight / halo_min_t / far_min_t / compose_halo_alpha — these are OUR hand-rolled clamp_callback, not native DiT360 levers, so I excluded them from the 8 to keep the list on true inference-time DiT360/FLUX/RF/PA knobs).\n\nHIGHEST-LEVERAGE UNSWEPT (rank): (1) start_timestep/stop_timestep RF editing-window — we pin it to 0/0.99 so eta anchors the whole loop; shrinking the window is the cleanest fix for the seam 'no-op vs invent-cars' dichotomy and the most defensible single experiment. (2) PA layer-subset injection (set_attn_module_names) — lets us hold geometry faithful in deep blocks while repainting seam texture in shallow blocks; entirely unexplored axis. (3) eta (and decay_eta) as a continuous faithfulness dial that is finer-grained than the binary tau token-replace. (4) per-target prompt / prompt_2 wording with explicit 'no new vehicles/people' suppression — the ONLY semantic steering available since FLUX-dev is guidance-distilled (no true CFG negative branch). \n\nTwo cross-cutting cautions for whoever runs these: (a) inversion N (num_inversion_steps) and reverse N must match, and we invert the source ONCE — so gamma/steps sweeps cost one extra invert each but are otherwise cheap to batch. (b) The pipeline's built-in legacy latent-consistency clamp (pipeline.py lines 1052-1056, `t_l=0.5`) co-exists with our clamp_callback; if a sweep also passes `mask=`, both clamps fire — verify which is active before attributing a result to a knob."
+      },
+      {
+        "lens": "read:panorama-priors",
+        "levers": [
+          {
+            "name": "Inference-time circular padding (0/360 wrap) is done FOR us",
+            "category": "token-level / boundary continuity",
+            "paper_basis": "src/pipeline.py 837-853 wraps the latent + latent_image_ids (last col->front, first col->back), denoises on width n_w+2, then crops the pad cols (980-984); pa_src/pipeline.py invert() 1179-1183 does the same; editing.py:44 wraps the mask columns identically. Paper sec 9 = position-aware circular padding for 0/360 continuity.",
+            "already_used": "yes",
+            "how_to_exploit": "Both targets, guardrail. The pipeline already guarantees the 0/360 ERP wrap seam is continuous at inference, so we must NOT pre-split or pad the pano ourselves and must keep width=2048 (n_w=128) so the wrap math holds. Practical exploit for T1: if a stubborn inter-cam seam sits near the 0/360 azimuth, the wrap handling makes that the BENIGN place to put it — combine with the multi-yaw lever to ROLL a bad seam to the 0/360 column where circular padding actively smooths it. For T2: when outpainting the sky/ground band, trust the wrap so the left/right edges of the band stay continuous; just ensure any mask we pass is column-wrapped exactly like editing.py:44 or it desyncs from the padded latent.",
+            "for_target": "both"
+          },
+          {
+            "name": "Yaw-loss rotation robustness -> multi-yaw generate-and-SELECT",
+            "category": "token-level / yaw consistency",
+            "paper_basis": "src/dit360.py 213-225 trains loss_yaw using src/yaw_rotate.equirectangular_rotate_yaw (true spherical yaw remap via 3D rotation matrix, NOT a pixel roll). The LoRA is thus trained to be yaw-equivariant, so the same scene at different yaw offsets is near-equally plausible but per-region artifacts land at different azimuths each pass.",
+            "already_used": "no",
+            "how_to_exploit": "T1 primary (helps T2). Pick N yaw offsets (e.g. 0/45/.../315 deg). For each: spherically yaw-rotate the bevfinal base with equirectangular_rotate_yaw (reuse src/yaw_rotate.py verbatim), run the SAME thin-seam-mask seam-hide edit, then yaw-rotate the result BACK by -offset to re-register. Stack the N re-registered panos and SELECT per-region the cleanest pixels along the seam band (min local-gradient / min cube-face edge energy, see cube lever), NEVER average (averaging reblurs — matches the project's confirmed single-source>averaging finding). Each pass puts the residual near-ground wave at a different phase, so per-region min-artifact selection collapses it. Cheap pilot: 3 offsets first to confirm artifacts decorrelate before committing to 8.",
+            "for_target": "T1-seam"
+          },
+          {
+            "name": "Cube-loss distortion awareness -> verify/repair in cube-face space",
+            "category": "token-level / cube consistency",
+            "paper_basis": "src/dit360.py 227-236 trains loss_cube using src/cube_map.cube_map_from_equirectangular (grid_sample ERP->6 faces: lateral front/right/back/left + up/down). cube_map.py is a standalone reusable ERP->cube op; the LoRA is trained so face-wise structure (esp. polar) is coherent.",
+            "already_used": "no",
+            "how_to_exploit": "T1 verify + T2 generate. The near-ground wavy seam is an ERP curve but becomes a FLAT structure on the -Y (down/ground) cube face where waviness is a straight-line step defect, far easier to detect/score. T1: run cube_map_from_equirectangular on each seam-hide candidate, measure edge energy on the down face / lateral face the seam crosses, and use THAT as the objective selection metric driving the multi-yaw select. T2: after sky/ground outpaint, convert to cube and inspect +Y (sky) / -Y (ground) faces for the polar smear the cube-loss prior is meant to suppress; if a face shows hallucinated structure, mask just that face region back to flat and re-run. Use py360convert (README-recommended) for the inverse cube->ERP round-trip. Cube faces are the QA gate, not the generation substrate — keeps us source-faithful.",
+            "for_target": "both"
+          },
+          {
+            "name": "Perspective-image-guidance realism prior on a masked ERP band",
+            "category": "image-level / cross-domain realism",
+            "paper_basis": "Paper 3.2 + README mix-training: LoRA trained on 40k real perspective photos projected as cubemap lateral faces into masked ERP regions, supervised ONLY inside mask M (L_perspective = MSE(eps*M, eps_hat*M)). So the LoRA learned to paint photoreal texture/lighting inside a masked ERP sub-region from real-photo statistics, NOT to invent global geometry (sec 12 / ablation: it is the realism teacher, not the geometry teacher).",
+            "already_used": "partial",
+            "how_to_exploit": "T1 primary. Our seam content IS real ring-cam perspective imagery — exactly the lateral-face-photo-in-ERP-region domain this branch was trained to make photoreal. Scope the seam-hide edit to a THIN masked ERP band over the seam and let the LoRA re-render only texture/lighting continuity there; because the branch teaches texture/light/detail and explicitly NOT geometry, it closes the seam WITHOUT inventing salient objects. This is the code-level reason thin seam-TEXTURE closure is faithfulness-safe while large seam-COMPLETION holes invent cars (memory NEG). Keep the mask in the mid-latitude lateral band where this prior is strongest.",
+            "for_target": "T1-seam"
+          },
+          {
+            "name": "RF-Inversion gamma + eta/[start,stop] denoise window = faithfulness dial",
+            "category": "inference / inversion editing",
+            "paper_basis": "pa_src/pipeline.py invert() applies gamma (u_hat = u_t + gamma*(u_cond - u_t), line ~1267); generation injects controlled noise eta ONLY inside start_timestep<=i<stop_timestep (line ~1032: eta_t = eta if window else 0.0). editing.py uses gamma=1.0, start=0.0, stop=0.99, eta=1.0.",
+            "already_used": "partial",
+            "how_to_exploit": "Both targets. gamma sets how hard inversion is pulled toward the source; eta+[start,stop] set WHERE in denoising the model may deviate from the inverted source trajectory. T1 seam-hide wants minimal deviation: SHRINK the window (start=0.0, stop~0.2-0.3 instead of 0.99) so the model only nudges early-step structure at the seam then snaps back to source, preserving non-seam pixels near-exactly. T2 outpaint needs more freedom in the black band but constraint elsewhere: keep a wider window and rely on the preserve-mask (mask=1 keeps source) so only the out-of-FoV region is synthesized. Sweep stop_timestep as the single knob trading faithfulness vs seam-smoothing; pick the winner via the cube-face edge metric (cube lever) + the torchvision object gate.",
+            "for_target": "both"
+          },
+          {
+            "name": "PersonalizeAnything tau token-replacement gate = source anchoring",
+            "category": "inference / token replacement",
+            "paper_basis": "pa_src/attn_processor.py: t_flag = timestep > tau forces masked-region q/k/v to the SOURCE (concept) features hidden_states[mask] during early (high-timestep) steps while preserving positional encodings; mask=1 = preserved source. tau in 0..1 (editing.py tau=50/100); smaller tau = stronger source consistency per the editing.py comment.",
+            "already_used": "partial",
+            "how_to_exploit": "Both targets — the core faithfulness lever; memory's working default is tau=50. Mechanism: at early steps the model is FORCED to use source tokens inside the preserved mask, hard-anchoring everything outside the thin seam strip (T1) or outside the black band (T2) to bevfinal — this is what keeps net-new salient objects out and passes the object gate. T1: preserved=1 everywhere EXCEPT the thin seam strip (the strip is where generation is allowed); lower tau toward 30-40 if off-seam drift appears, raise toward 50-60 if the strip looks too locked to hide the seam. T2: preserved=1 over the real FoV, =0 over sky/ground band, tau~50 so FoV is pinned and only the band is synthesized. Always set mask per README (mask = 1-mask for inpainting holes) and column-wrap it (editing.py:44) to align with the circular-padded latent.",
+            "for_target": "both"
+          },
+          {
+            "name": "Lateral-face-only training bias -> split T2 into sky vs ground passes by latitude",
+            "category": "image-level / data-domain prior",
+            "paper_basis": "Paper 3.2 + 02 notes: perspective branch restricted to cubemap LATERAL faces (sky/ground = rare angles, excluded); panoramic refinement (Fig 3) instead INPAINTS the blurry top/bottom faces of Matterport3D before training. So the LoRA's photoreal prior is strong on the equatorial band but its polar prior is a refinement/inpainting prior, not a photo-realism one.",
+            "already_used": "partial",
+            "how_to_exploit": "Splits our targets by latitude. T1 near-ground seam sits just below the equator — keep its mask in the lateral band, do NOT push it into polar rows. T2 splits into two sub-problems matching two trained priors: (a) SKY band (upper pole) -> exploit the panoramic-refinement/inpainting prior (gate-clean fill = the confirmed WIN in memory); constraint + object-gate sky pass with prompt like 'clear sky'. (b) GROUND band (lower pole) -> same refinement prior but weaker texture (model never saw photoreal downward views); hard-constrain to flat ground color/gradient, prompt 'road ground plane', and gate with the cube down-face check (cube lever). Run sky and ground as SEPARATE masked passes with different prompts, not one polar outpaint, because the trained prior treats them as distinct refinement targets.",
+            "for_target": "T2-outpaint"
+          },
+          {
+            "name": "1024x2048 native-resolution lock",
+            "category": "infra / resolution constraint",
+            "paper_basis": "README inference note: trained only at 1024x2048, other sizes -> abnormal results; inference.py/editing.py hardcode height=1024 width=2048; circular-pad math assumes n_h=H/16, n_w=W/16; ~37GB VRAM unoptimized.",
+            "already_used": "yes",
+            "how_to_exploit": "Both targets, guardrail. Our base is SR_bmw_bevfinal_1024x2048 so we are on-spec — keep every generative pass at exactly 1024x2048 or the yaw/cube/circular priors (all tied to the latent grid math) degrade. If a higher-res deliverable is needed, do the DiT360 edit at 1024x2048 then SR the RESULT; never feed off-size ERP into the pipeline. Budget the multi-yaw select loop (yaw lever) as SEQUENTIAL single-image passes (~37GB each), not a batch, to fit GPU. This lever mainly defines what NOT to vary so the other levers stay valid.",
+            "for_target": "both"
+          }
+        ],
+        "notes": "All 8 levers are grounded in the actual DiT360 code under external/DiT360, not just paper prose. Load-bearing files: external/DiT360/src/pipeline.py (837-853, 980-984 = inference-time circular padding done FOR us), external/DiT360/src/dit360.py (213-250 = yaw+cube training losses, expose reusable ops), external/DiT360/src/yaw_rotate.py (equirectangular_rotate_yaw, reuse verbatim for multi-yaw select), external/DiT360/src/cube_map.py (cube_map_from_equirectangular, reuse as seam-QA metric + polar-face check), external/DiT360/editing.py (RF-Inversion + PersonalizeAnything wiring, tau=50, gamma=1.0, mask wrap line 44), external/DiT360/pa_src/attn_processor.py (tau gate t_flag=timestep>tau), external/DiT360/pa_src/pipeline.py (invert gamma ~1267, eta window ~1032).\n\nStrongest NEW levers (already_used=no) to act on: (2) multi-yaw generate-and-SELECT for T1 — weaponizes the yaw-robustness prior AND the project's confirmed single-source>averaging finding; and (3) cube-face-space VERIFY giving an OBJECTIVE seam metric (the ERP seam curve flattens into a straight-line step defect on the -Y down face). These COMPOSE into one loop: yaw-rotate -> thin-seam-hide -> rotate back -> score in cube-face space -> select per-region min-edge-energy. Circular padding (lever 1) lets us also ROLL a stubborn seam to the benign 0/360 azimuth.\n\nReconciling with MEMORY: memory says sky-only OUTPAINT is the WIN and seam-COMPLETION is NEG (invents cars). Levers 4 + 7 explain WHY at code level — the perspective-guidance realism prior is texture-only on lateral faces, so thin seam-TEXTURE closure (T1) is faithfulness-safe whereas large seam holes trigger object hallucination; and ground outpaint is weaker than sky because the model never trained on photoreal downward views, so ground must be hard-constrained + cube-down-face gated. tau (lever 6) + the eta/gamma window (lever 5) are the two faithfulness dials that keep both targets passing the torchvision object gate; for T1 specifically, shrink stop_timestep (~0.2-0.3) instead of the editing.py default 0.99 to minimize off-seam drift.\n\nCaveats: yaw-loss and cube-loss are TRAINING losses — we cannot toggle them at inference, only exploit the resulting robustness indirectly (the LoRA is already yaw/cube robust). The multi-yaw select assumes per-pass artifacts decorrelate across offsets; run a 3-offset pilot before 8. Every generative output still must pass the existing torchvision object gate + vision regardless of lever, per the project's hard faithfulness constraint."
+      },
+      {
+        "lens": "read:conditioning-design",
+        "levers": [
+          {
+            "name": "Decoupled shift_mask: relocate REAL neighbor-cam tokens across the seam",
+            "category": "reference-image attention (token relocation)",
+            "paper_basis": "external/DiT360/pa_src/attn_processor.py PersonalizeAnythingAttnProcessor.__init__(self, name, mask, device, tau, shift_mask=None,...): reference tokens are READ from batch[0] at `self.mask` positions (concept_feature_ = hidden_states[0, mask]) and WRITTEN into batch[1] at `self.shift_mask` positions (image_hidden_states[shift_mask]=concept_feature_). shift_mask defaults to mask (pure self-reference) but is an independent argument. The utils.shift_tensor helper exists for exactly this.",
+            "already_used": "no",
+            "how_to_exploit": "T1 seam-hide: build TWO masks. `mask` (donor) = a strip of the OPPOSITE side of the seam that shows the same physical surface captured cleanly by the neighbor camera (e.g. the lane/curb pixels a few px left of the seam that the left cam saw well). `shift_mask` (target) = the wavy/ghosted seam strip to be repaired, shifted by the disparity (a few latent columns). Pass shift_mask into PersonalizeAnythingAttnProcessor so FLUX paints the seam using the REAL neighbor-cam appearance instead of inventing texture. Keep tau low (5-15) so token replacement dominates early steps. This turns the attn-processor from a copy-self into a copy-real-neighbor rein, bounding hallucination to evidence that actually exists in an adjacent camera.",
+            "for_target": "T1-seam"
+          },
+          {
+            "name": "Swap the donor: invert a REAL evidence image into batch[0] instead of the panorama itself",
+            "category": "reference-image conditioning",
+            "paper_basis": "external/DiT360/editing.py + pa_src/pipeline.py __call__: the pipeline runs batch of 2; batch[0] is the source reconstruction produced by pipe.invert(image=init_image) and acts as the token donor, batch[1] is the edited output. Nothing requires the donor and the canvas to be the same image — invert() takes any PipelineImageInput, and the in-loop consistency line `latents[1]=latents[1]*(1-mask)+latents[0]*mask` plus the attn donor both read batch[0].",
+            "already_used": "no",
+            "how_to_exploit": "T2 ground outpaint: render the missing ground band from LiDAR (BEV-projected road/intensity) or paste the real overlapping-cam ground, ERP-warp it into a full 2048x1024 canvas, and invert THAT as batch[0]; keep our faithful bevfinal as batch[1]. Set the outpaint generate-mask (from _outpaint_mask.py `ground`/`band`) so DiT360 only fills the band, but now the donor latents it pulls from are real LiDAR ground, not Flux's imagination -> faithful road continuation, no invented crosswalks/cars. Same trick for T1: donor = an alternative clean stitch (e.g. virtual-centre single-source) so the seam repair copies real geometry.",
+            "for_target": "both"
+          },
+          {
+            "name": "concept_process token-concatenation (IP-Adapter-style cross-image K/V append)",
+            "category": "reference-image attention (additive, not replacement)",
+            "paper_basis": "external/DiT360/pa_src/attn_processor.py: c_q/c_kv branch (concept_process flag, default False). When enabled it does c_key=attn.to_k(concept_feature_); key=torch.cat([key,c_key]) and gives the appended tokens their ORIGINAL rotary positions via get_concept_rotary_emb. This ADDS reference tokens as extra attendable keys/values rather than overwriting target latents.",
+            "already_used": "no",
+            "how_to_exploit": "Where hard token-replacement (shift_mask) causes seams/discontinuities, instead set concept_process=True and feed the real neighbor-cam crop (or LiDAR ground) as concept_feature_. FLUX then ATTENDS to the real evidence as additional context while still denoising the target region freely -> softer, blend-friendly conditioning that pulls color/texture/structure toward the evidence without a hard paste boundary. Good for T1 halo zone (the yellow band in run_dit360_trimap_clamp) and for T2 sky tone-matching. Combine with low guidance (~2.8) so the appended reference dominates over the text prior.",
+            "for_target": "both"
+          },
+          {
+            "name": "MultiPersonalizeAnythingAttnProcessor: multiple real-evidence donors at once",
+            "category": "reference-image attention (multi-source rein)",
+            "paper_basis": "external/DiT360/pa_src/attn_processor.py MultiPersonalizeAnythingAttnProcessor(masks=[...], shift_masks=[...]): loops over a LIST of (mask, shift_mask) pairs, each extracting its own concept_feature_ and writing to its own shift target; rotary emb concatenates all donor masks. Built but never wired into editing.py or our runner.",
+            "already_used": "no",
+            "how_to_exploit": "T1 has up to 6 seams (7 cams). Provide one (mask,shift_mask) pair per seam so each seam is repaired from its OWN correct neighbor camera in a single forward pass, instead of one global self-reference. For T2, use multiple donors for the ground band: one mask=LiDAR-road donor for the lower band, one mask=real-sky-strip donor for the upper band, each relocated to its target region. This scales the neighbor-evidence rein to the whole panorama and keeps every fill anchored to the physically-correct source.",
+            "for_target": "both"
+          },
+          {
+            "name": "Perspective-Image-Guidance mix-training on OUR real cams (LoRA fine-tune, faithful domain)",
+            "category": "structure/domain conditioning via training data",
+            "paper_basis": "external/DiT360/README.md Mix Training + src/dynamic_dataset.py preprocess_mixed_stage_train + src/dit360_mix_staged.py cube2pano branch: perspective images enter as {image, caption, mask}, projected to ERP via py360convert, and loss is computed ONLY inside the valid-projection mask (all_masked_losses). This is exactly the 'real photo -> ERP region -> masked supervision' recipe, and the masked-loss path is generic to ANY masked ERP region.",
+            "already_used": "partial",
+            "how_to_exploit": "We already HAVE faithful per-camera ERP slabs + their valid masks (the bevfinal build produces them). Build a small jsonl of our 7 AV2 cams as the 'perspective' branch and our best stitched panos as the 'panorama' branch, then LoRA-finetune DiT360 a few hundred steps. This teaches the model OUR sensor's road/sky/building statistics so that at T1/T2 inference its prior already matches our domain (no NuScenes/landscape look, far less tendency to invent salient objects). The masked-loss path also lets us supervise ONLY the seam/band regions, i.e. a region-specialised seam-repair LoRA.",
+            "for_target": "both"
+          },
+          {
+            "name": "Cube-loss consistency as an inference-time structure rein (cube_map_from_equirectangular)",
+            "category": "structure conditioning (geometric)",
+            "paper_basis": "external/DiT360/src/cube_map.py cube_map_from_equirectangular + dit360_mix_staged.py loss_cube: ERP is projected to 6 perspective cube faces; supervision on the faces enforces undistorted, perspective-correct structure especially near poles/ground. Purely training-side today.",
+            "already_used": "no",
+            "how_to_exploit": "Add a per-step callback (we already use callback_on_step_end in run_dit360_trimap_clamp.py) that decodes the current ground/seam region, cube-projects it, and nudges latents toward cube-face consistency with the REAL evidence (neighbor-cam cube face or LiDAR cube face). For T2 ground especially, the down (-Y) cube face is where ERP smears road into curved garbage; constraining that face to the LiDAR/BEV road keeps lane lines straight and stops invented road furniture. Cheap, training-free, and directly attacks the 'wavy near-ground seam' physical floor noted in memory.",
+            "for_target": "both"
+          },
+          {
+            "name": "RoPE position-id offset for reference tokens (_prepare_latent_image_ids_offset)",
+            "category": "structure conditioning (positional)",
+            "paper_basis": "external/DiT360/pa_src/pipeline.py _prepare_latent_image_ids_offset(..., x_offset=0, y_offset=32) and the circular-padding wrap in invert()/__call__ (last_col/first_col concat). Position ids are explicit and editable; the attn processor's get_concept_rotary_emb already reassigns rotary positions to relocated reference tokens.",
+            "already_used": "no",
+            "how_to_exploit": "When relocating neighbor-cam tokens across a seam (lever 1) or extending the ground band (lever 2), the donor pixels come from a slightly different yaw/pitch. Give the relocated reference tokens position-ids matching their TARGET panoramic location (and the correct parallax-shifted column) via the offset helper, so RoPE tells FLUX 'this evidence belongs HERE'. This makes the relocated real evidence blend geometrically instead of appearing as a misplaced patch, and exploits the existing circular-padding columns so the wrap-around 0/360 seam is also covered.",
+            "for_target": "T1-seam"
+          },
+          {
+            "name": "Anti-hallucination prompt + Cube-Composer coverage/future-fragment context",
+            "category": "prompt engineering + context reins",
+            "paper_basis": "Our DEFAULT_PROMPT in run_dit360_trimap_clamp.py literally enumerates 'cars, lane markings, signs, buildings' (invites salient objects). DiT360 outpaint is text-conditioned (pipeline encode_prompt). Cube Composer (paper_reading/02_Cube Composer.md sec 6-8) adds the 'context mechanism': coverage-guided order (generate the most-observed region first) and future-fragment tokens (use frames where the camera LATER saw the region as real evidence).",
+            "already_used": "partial",
+            "how_to_exploit": "T1/T2 prompt: drop the object list; use 'continue the existing road, sky and building surfaces; smooth seam; invent no new vehicles, people, signs or objects; empty scene'. This biases the text prior away from net-new salient objects (which our torchvision object-gate rejects anyway -> fewer wasted gens). Borrow Cube-Composer's reins without its model: (a) coverage order — fill the seam/band region that has the MOST adjacent real evidence first, then condition later regions on it; (b) future-fragment — for AV2 we have neighboring TIMESTAMPS where a camera panned over the now-occluded ground/seam; warp that real frame in as the donor (lever 2) so even 'unseen at t' regions are filled from real pixels seen at t±k, not hallucinated.",
+            "for_target": "both"
+          }
+        ],
+        "notes": "Strongest under-exploited lever by far is the donor/shift_mask split inside PersonalizeAnythingAttnProcessor (levers 1-4): the code already supports reading reference tokens from one place/image and writing them somewhere else, and running a 2-element batch where batch[0] is an arbitrary inverted donor image. Today editing.py and our run_dit360_trimap_clamp.py only use SELF-reference (shift_mask=mask, donor=the same panorama), so DiT360 is currently a self-consistency clamp, NOT an evidence rein. Pointing the donor at real neighbor-cam pixels or LiDAR-rendered ground converts it into exactly the 'real evidence bounds hallucination' mechanism the project wants — and it is training-free (just new mask construction + a second invert()). \n\nCaveats: (1) FLUX VAE latent is 16x downsampled and packed, so a 'few-px parallax shift' across the seam is sub-latent-pixel; relocation works at the granularity of ~16px ERP blocks, fine for the wavy seam/ground band but not for hairline alignment. (2) Hard token-replacement (shift_mask) can itself create a new mini-seam at the donor/target boundary — that's what the halo zone + concept_process (additive, lever 3) is for; prefer additive conditioning when a hard paste edge appears. (3) Memory says learned single-centre stitching tested WORSE and seam-completion DiT360 INVENTS cars; both are consistent with the model running in self/text-prior mode — the fix here (real-evidence donor + anti-object prompt + object-gate) is the untested variant, not a re-run of the negative. (4) The mix-training LoRA (lever 5) needs GPU + a few hundred steps but is the only lever that fixes the DOMAIN prior (NuScenes/landscape look) at the root; everything else is inference-time. (5) DiT360 ships NO ControlNet; structure conditioning (edges/lines/depth) would require an external FLUX.1-dev ControlNet — viable but out-of-repo, so I encoded the in-repo structure rein as cube-loss consistency (lever 6) instead. I verified every claim against the actual source files (attn_processor.py, pipeline.py, editing.py, cube_map.py, dit360_mix_staged.py, dynamic_dataset.py, run_dit360_trimap_clamp.py, _outpaint_mask.py); the self_learning/DiT 360.md note is empty (1 line)."
+      },
+      {
+        "lens": "read:done-list-auditor",
+        "levers": [
+          {
+            "name": "v3 wide seam-strip completion (r040, tau20) — the first faithful-masked seam fill",
+            "category": "T1-seam / DiT inpaint with wide seam mask",
+            "paper_basis": "progress.md 2026-05-27 ~14:55 UTC; runner run_dit360_seam_completion.py; results runs_v3/02a00399_a000_r040_tau20_tiled/",
+            "already_used": "yes",
+            "how_to_exploit": "DO NOT REPEAT. Wide seam strip (r040) + tau20 on hard_select: DiT fills the red seam strips but REWRITES scene content instead of preserving AV evidence. Visual NEG for faithful data. This is the first proof that a wide mask = the model rewrites real content. Any new T1 idea must NOT use a wide seam ribbon.",
+            "for_target": "T1-seam"
+          },
+          {
+            "name": "v4/v5 small seam masks + tau sweep + hard post-compose + invalid-region outpaint",
+            "category": "T1-seam / small-mask inpaint + post-compose; also early T2 outpaint",
+            "paper_basis": "progress.md 2026-05-27 ~15:20 UTC; prepare_dit360_seam_inputs.py / run_dit360_mask_batch.py / postcompose_dit360_masks.py; runs_v4_bmw_outpaint_small_tau5 + runs_v5_bmw_tiny_tau1",
+            "already_used": "yes",
+            "how_to_exploit": "DO NOT REPEAT. Established the core dilemma: tiny masks (r004/r008 tau1) ≈ identical to hard_select (no-op, doesn't fix seam geometry); wider (r012/r020 tau5) = vertical strips/block artifacts at SUV seam. invalid_outpaint (72.58% generate) hallucinates huge unobserved sky/road. Post-compose forces evidence preservation but then = hard_select geometry. The no-op-vs-hallucination trade-off was nailed here.",
+            "for_target": "both"
+          },
+          {
+            "name": "v6/v7/v8/v9 soft-compose halo + evidence-gated compose + multi-seed",
+            "category": "T1-seam / bounded soft composition, evidence gating, seed variation",
+            "paper_basis": "progress.md 2026-05-27 ~16:10 / ~23:45 / ~23:58 UTC; evidence_gate_dit360_masks.py; runs_v6_bmw_softcompose_tau5, runs_v7..rsmall_tau_sweep, runs_v8_bmw_evidence_gate, runs_v9_bmw_multiseed_tau5",
+            "already_used": "yes",
+            "how_to_exploit": "DO NOT REPEAT the family. v6: raw looks smoother ONLY because DiT edits the halo just outside the mask (h004..h024) — fixes the composition artifact, not the seam geometry. v7/v8: evidence-gated compose (downweight edits near strong source edges / where raw diverges) suppresses suspicious edits but collapses back toward hard_select. v9: seeds 1/2 at r008/r010 tau5 do NOT rescue it (generate ~1.6-2.0%, preserve PSNR ~30 dB, ≈ no-op). Seed variation is a closed loophole.",
+            "for_target": "T1-seam"
+          },
+          {
+            "name": "v10/v11 adaptive masks + fidelity-budget / low-frequency-residual compose (BMW + fbee + 0bae generalize)",
+            "category": "T1-seam / low-freq-only DiT residual under a measured fidelity budget",
+            "paper_basis": "progress.md 2026-05-28 ~02:05 / ~02:45 UTC; runs_v10_adaptive_tau5, runs_v11_adaptive_tau5_generalize/{fbee355f_a095,0bae3b5e_a030}",
+            "already_used": "yes",
+            "how_to_exploit": "DO NOT REPEAT. Hypothesis (raw is better because DiT edits context outside the mask, keep it under a budget) tested and CONFIRMED NEG, and generalized to 3 anchors. Low-frequency-only residual (blur(raw)-blur(source)) is SAFE but purely cosmetic color/HDR — copies no high-freq detail, fixes no geometry. Expanding high-structure masks just invents/smears. Verdict: DiT = low-freq color prior at best, not a seam solver. Not BMW-specific.",
+            "for_target": "T1-seam"
+          },
+          {
+            "name": "v12/v13 residual-multiband compose + Poisson-gate compose (y-safe / rgb-balanced / mixed-loose)",
+            "category": "T1-seam / final composition operators on existing DiT samples (no re-gen)",
+            "paper_basis": "progress.md 2026-05-28 ~03:35 UTC; dit360_residual_multiband_compose.py + dit360_poisson_gate_compose.py; runs_v12_residual_multiband, runs_v13_poisson_gate",
+            "already_used": "yes",
+            "how_to_exploit": "DO NOT REPEAT. Pushed composition to the limit on r008/tau5 raw samples. poisson_y_safe = safest (preserve MAE ~0.08-0.12) but visually ≈ hard_select; rgb_balanced / mixed_loose keep more smoothing but the gain shows as blur/smear around BMW, pillars, road markings, building edges. Confirms: any composition that keeps the smoothing also keeps a generative patch — cannot get faithful geometry out of post-compose. (Note: the project's own non-DiT DB-15/16/17 Poisson/line-snap reroute later also CLOSED.)",
+            "for_target": "T1-seam"
+          },
+          {
+            "name": "v14 tri-map latent clamp THIN seam (r008/h016/w025, tau5) — core=generate/halo=soft/far=byte-exact; + DiT-oracle source-selection",
+            "category": "T1-seam / 3-zone latent-clamp thin-mask (the method-of-record for THIN seam)",
+            "paper_basis": "progress.md 2026-05-28 ~05:45 UTC + ~04:xx DiT-oracle; run_dit360_trimap_clamp.py; runs_v14_trimap_clamp_bmw/trimap_r008_h016_w025_tau5/..._raw_fullres_1024x2048.png (user judged '其实也可以'); generalize on fbee/0bae",
+            "already_used": "yes",
+            "how_to_exploit": "PARTIALLY DONE — the one image the user liked, but tau5 on the thin r008 core was verified ≈ no-op (raw ≈ hard_select; core/halo/far MAE 30/17/3.5). The ONLY genuinely under-explored cell is THIN-mask × MODERATE-tau (r008 × tau{8,12}) per DB-14 — but D2 (2026-06-03) showed that pushing tau/mask to get real change INVENTS objects, so this cell is bracketed: if DB-14 thin×moderate-tau still under-changes → CLOSE T1 as cosmetic-only. DiT-oracle (use raw only as appearance target, final pixels from source) also FAILED — safe changes too small, loose changes select patches around cars/trees/lines = blocky. Do not re-run DiT-oracle.",
+            "for_target": "T1-seam"
+          },
+          {
+            "name": "v15/v16/v17/v18 invalid-region outpaint / boundary-collar / FoV-band crop / reference-canvas cooperative-stitch",
+            "category": "T2-outpaint + T1 cooperative-stitch variants (controlled-region generation)",
+            "paper_basis": "progress.md 2026-05-28 ~10:05/~10:55/~11:45/~12:10 UTC; runs_v15_trimap_raw_invalid_outpaint, runs_v16_boundary_collar, runs_v17_fov_crop_completion, runs_v18_reference_canvas",
+            "already_used": "yes",
+            "how_to_exploit": "DO NOT REPEAT this family. v15 (outpaint black invalid regions from v14 raw, tau5): fills a complete-looking 360 but bottom/sky are HALLUCINATED + boundaries visible — MIXED, not faithful. v16 (thin boundary-collar i008/o032 tau50): more controlled but still a generative repaint of the footprint edge. v17 (crop a compact horizontal 360 band, complete only holes inside): visually plausible DEMO, not source-faithful. v18 (encode L1 camera evidence as masked reference canvases, ask DiT to fill only seams / alternating missing cameras): NEG as a cooperative stitcher. Lesson: 'use DiT during stitching' and 'collar/band/canvas tricks' are all explored dead ends.",
+            "for_target": "both"
+          },
+          {
+            "name": "2026-05-30 full-frame CENTER outpaint (keep ~5% center, generate ~95%) + 2026-06-03 D2 wide ground-risk seam mask (tau20/50) — the two NEG poles",
+            "category": "T1+T2 / extreme generation poles that DEFINE the boundaries",
+            "paper_basis": "progress.md 2026-05-30 (DONE) koi_outpaint_center; 2026-06-03 D2 ground-risk mask 5.56% tau{20,50}×guid{2.0,2.8}; results dit360_seam_v2/gr_tau*, deliverables koi_outpaint_center + dit360_v2/gr_tau*; object gate _object_gate.py",
+            "already_used": "yes",
+            "how_to_exploit": "DO NOT REPEAT either pole. Center-outpaint (keep 5%): coherent photoreal full-sphere but ENTIRELY FICTIONAL, hallucinates objects, preserved center = visible boxy lighting-mismatch seam (Miami blue vs generated grey) — great demo, NOT faithful AV data. D2 wide ground-risk seam mask (5.56% core + 15% halo, tau20/50): object gate FAIL on ALL 4 — invents the SAME 1-2 small 'car' blobs (conf 0.70-0.81) on the road + MELTS textureless cuts to grey/blotchy. Together these two pin the wide-mask/high-tau end as hallucination. The object gate (box-AREA-overlap, fail-safe asserts) is the reliable judge to reuse.",
+            "for_target": "both"
+          }
+        ],
+        "notes": "Synthesizer guidance — DiT360 directions are now nearly fully mapped; do NOT re-propose any of the below.\n\nT1 (HIDE the wavy near-ground seam) = effectively CLOSED as faithful. The whole space is bracketed: thin mask / low tau = no-op (v5,v9,v10,v14 tau5 ≈ hard_select, user's liked v14 image is a no-op); wide mask / high tau = hallucination (v3 r040, D2 ground-risk tau20/50 invents cars + melts cuts, object-gate FAIL). Soft-compose (v6), evidence-gate (v7/v8), low-freq residual (v10/v11), residual-multiband + Poisson-gate (v12/v13), DiT-oracle source-select, and multi-seed (v9) are ALL explored NEG. The ONLY cell left technically un-run is THIN r008 × MODERATE tau{8,12} (DB-20260603-14, still 'proposed', needs A100) — and the prior says it will likely either under-change (close T1) or start inventing. Treat T1-DiT as cosmetic-only; the seam itself is a confirmed PHYSICAL floor (non-generative BEV ground atlas is the source-faithful ceiling; near-ground kink/curb = hardware floor).\n\nT2 (OUTPAINT the black band) = the productive surviving direction, but only the SKY half: D4 SKY-ONLY outpaint (opmask_sky ~37% band above the content horizon, tau50, guid2.8, halo32, prompt 'continuous sky + existing building tops, no new vehicles/people/signs', corecompose far/halo byte-exact) = POSITIVE / object-gate PASS (netnew=0) / rooflines byte-exact / vision-clean. This is GENERATED sky (label honestly), and it is the session WIN. The win is the CONSTRAINT (sky-only region has no objects to invent + object gate), NOT free generation. Still-OPEN / un-judged (not dead, just pending GPU): (a) D4b GROUND + FULL outpaint already RAN (ground 35% / full 72% core) but re-gate+vision PENDING — codex predicts ground = high-risk (invents lane/curb/cars), likely REJECTED; (b) multi-anchor sky-outpaint on 0bae+2c65 (bevfinal+masks PREPPED) to confirm the sky win generalizes; (c) tiny RF/PA knob sweep (gamma/eta) and yaw-SELECT (not average) flagged as unexploited paper levers but LOW priority.\n\nBest current deliverable pano = SR_bmw_bevfinal_1024x2048.png (non-generative source-faithful base) + sky-only outpaint. Hard constraint reminder for any new proposal: torchvision fasterrcnn object gate (box-AREA-overlap >30%, fail-safe asserts) + vision on every output; net-new salient objects = reject. INFRA to reuse: local FLUX cache (/content/hf_cache, HF_HOME, ~18-100s load vs Drive-FUSE timeout), pip uninstall torchao (fixes LoRA-load crash), tau scale 0-100 default 50 (tau<=5 ~= no-op), border flood-fill for outpaint masks (interior dark wall stays preserve). All on A100 (FLUX ~34GB; L4 insufficient). Code: scripts/phase3/run_dit360_trimap_clamp.py, _object_gate.py, _outpaint_mask.py (opmask_sky/ground/full/band), _seamroute.py (exports SR_<tag>_seamcore.png ground-risk mask)."
+      }
+    ]
+  }
+}
