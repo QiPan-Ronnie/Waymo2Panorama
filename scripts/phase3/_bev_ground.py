@@ -89,7 +89,7 @@ def main():
     ix = (pt[..., 0] + R) / res; iy = (pt[..., 1] + R) / res
     inb = ground_hit & (ix >= 0) & (ix < NB - 1) & (iy >= 0) & (iy < NB - 1)
     erp_g = cv2.remap(bev, ix.astype(np.float32), iy.astype(np.float32), cv2.INTER_LINEAR)
-    covmap = cv2.remap(cov.astype(np.float32), ix.astype(np.float32), iy.astype(np.float32), cv2.INTER_LINEAR)
+    covmap = cv2.remap(cov.astype(np.float32), ix.astype(np.float32), iy.astype(np.float32), cv2.INTER_NEAREST)  # hard coverage (no soft 0..1 ramp)
 
     # tall LiDAR mask (cars/poles >0.5m above plane) -> exclude from the ground composite
     hh = pts @ n - d; rr = np.linalg.norm(pts, axis=1); tp = pts[(hh > 0.5) & (rr < 45.0)]
@@ -102,7 +102,10 @@ def main():
     tall = cv2.dilate(tall, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (21, 21))).astype(bool)
     rows = np.arange(H)[:, None] * np.ones((1, W))
     gmask = inb & (covmap > 0.5) & (~tall) & (rows > H * 0.50)
-    print(f"[erp] ground composite mask = {100*gmask.mean():.2f}% of pano", flush=True)
+    # erode a few px: drop boundary pixels whose bilinear erp_g sample blended with the black (uncovered)
+    # atlas cells -> kills the dark fringe along the BEV coverage edge.
+    gmask = cv2.erode(gmask.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))).astype(bool)
+    print(f"[erp] ground composite mask = {100*gmask.mean():.2f}% of pano (tall-excluded={100*tall.mean():.1f}%)", flush=True)
 
     cur = cv2.cvtColor(cv2.imread(str(OUT / "SR_bmw_final_1024x2048.png")), cv2.COLOR_BGR2RGB).astype(np.float32)
     m = cv2.GaussianBlur(gmask.astype(np.float32), (0, 0), 2.0)[..., None]

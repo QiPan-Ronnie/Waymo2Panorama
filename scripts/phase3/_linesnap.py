@@ -31,6 +31,18 @@ def lab(im, t, h=26):
     return np.vstack([b, im])
 
 
+def poisson_tone(img, band, sigma_lf=2.0, sigma_smooth=35.0):
+    """DB-16 Poisson/gradient-domain TONE blend: smooth the LOW-FREQ (colour/tone) ACROSS the seam band
+    so the colour STEP dissolves, while keeping HIGH-FREQ (structure) hard-selected -> no ghost (blends
+    tone, not pixels). Does NOT fix geometric line kinks (those need DB-15/17)."""
+    f = img.astype(np.float32)
+    lf = cv2.GaussianBlur(f, (0, 0), sigma_lf); hf = f - lf
+    lf_s = cv2.GaussianBlur(lf, (0, 0), sigma_smooth)
+    bd = cv2.dilate(band.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))).astype(np.float32)
+    bw = cv2.GaussianBlur(bd, (0, 0), 6.0)[..., None]
+    return np.clip(lf * (1 - bw) + lf_s * bw + hf, 0, 255).astype(np.uint8)
+
+
 def snap_pair(si, sj, overlap, gband, dis, grad_thr, fb_thresh, prop_sigma, max_disp):
     """Warp sj to AGREE with si, displacement driven by si's high-gradient structure, propagated."""
     gi = cv2.cvtColor(np.clip(si, 0, 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
@@ -58,6 +70,7 @@ def main():
     ap.add_argument("--grad-thr", type=float, default=0.10); ap.add_argument("--prop-sigma", type=float, default=25.0)
     ap.add_argument("--band-hw", type=int, default=90); ap.add_argument("--max-disp", type=float, default=60.0)
     ap.add_argument("--fb-thresh", type=float, default=2.5)
+    ap.add_argument("--poisson", action="store_true", help="DB-16: gradient-domain seam TONE blend (combo)")
     ap.add_argument("--base", default="SR_bmw_final_1024x2048.png", help="deliverable to composite onto + compare")
     a = ap.parse_args(); t0 = time.time(); erp_hw = (H, W)
 
@@ -80,7 +93,7 @@ def main():
     rows = np.arange(H)[:, None] * np.ones((1, W))
     gband_glob = (rows > H * 0.50) & (~tall)
 
-    dis = a1._make_dis(); snapped = [s.copy().astype(np.float32) for s in l1]; fired = 0.0
+    dis = a1._make_dis(); snapped = [s.copy().astype(np.float32) for s in l1]; fired = 0.0; bandU = np.zeros((H, W), bool)
     for (i, j) in a1.RING_PAIRS:
         ov = (l1w[i] > 1e-6) & (l1w[j] > 1e-6)
         if int(ov.sum()) < 200: continue
@@ -88,6 +101,7 @@ def main():
         si = np.roll(l1[i], roll, 1).astype(np.float32); sj = np.roll(l1[j], roll, 1).astype(np.float32)
         ovr = np.roll(ov, roll, 1); gb = np.roll(gband_glob, roll, 1)
         band, signed = a1.build_voronoi_seam_band(np.roll(l1w[i], roll, 1).astype(np.float32), np.roll(l1w[j], roll, 1).astype(np.float32), band_half_width=a.band_hw, threshold=1e-6)
+        bandU |= np.roll(band, -roll, 1)
         sj_snap, fr = snap_pair(si, sj, ovr, gb & band, dis, a.grad_thr, a.fb_thresh, a.prop_sigma, a.max_disp)
         # feather the snap into slab j only in the ground band
         dd = np.clip(np.abs(signed) / a.band_hw, 0, 1); feather = np.where(band & gb, 0.5 * (1 + np.cos(np.pi * dd)), 0).astype(np.float32)
@@ -98,7 +112,9 @@ def main():
     base = cv2.cvtColor(cv2.imread(str(OUT / a.base)), cv2.COLOR_BGR2RGB)
     gm = cv2.GaussianBlur((gband_glob & (np.stack(l1w, 0).max(0) > 0)).astype(np.float32), (0, 0), 2.0)[..., None]
     out = (base.astype(np.float32) * (1 - gm) + ls.astype(np.float32) * gm).astype(np.uint8)
-    print(f"[{a.tag}] linesnap anchor-fired avg={fired/len(a1.RING_PAIRS):.2f}% rt={time.time()-t0:.0f}s", flush=True)
+    if a.poisson:
+        out = poisson_tone(out, bandU)
+    print(f"[{a.tag}] linesnap anchor-fired avg={fired/len(a1.RING_PAIRS):.2f}% poisson={a.poisson} rt={time.time()-t0:.0f}s", flush=True)
 
     cv2.imwrite(str(OUT / f"LS_{a.tag}_pano.jpg"), cv2.cvtColor(out, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 95])
     for name, (u0, v0, vh, hw) in SPOTS.items():

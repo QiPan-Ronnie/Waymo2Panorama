@@ -75,6 +75,8 @@ def fit_planes_p3(pts, seed=0):
         n = np.array(eq[:3], float); nn = np.linalg.norm(n)
         if nn > 1e-6:
             n /= nn; d = -eq[3] / nn  # plane n·X = d
+            if n[2] < 0:               # canonicalize: ground normal points UP, so hh=pts@n-d>0 == ABOVE ground
+                n, d = -n, -d          # (pyransac3d returns arbitrary sign; tall-object masks rely on this)
             if abs(n[2]) > 0.85:
                 resid = float(np.abs(pts[gsel] @ n - d)[inl].std()) if len(inl) else 0.0
                 ground = {"n": n, "d": float(d), "n_inl": int(len(inl)), "resid_m": resid}
