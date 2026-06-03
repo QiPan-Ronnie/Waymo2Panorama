@@ -43,7 +43,7 @@ sys.path.insert(0, str(HERE))
 
 from waymo2panorama.data_io.av2_loader import AV2RingLoader, RING_CAMS_7  # noqa: E402
 from waymo2panorama.projection.sphere_projection import render_camera_to_erp  # noqa: E402
-from waymo2panorama.blending.hard_hdr_of import RING_PAIRS, hard_select  # noqa: E402
+from waymo2panorama.blending.hard_hdr_of import RING_PAIRS, hard_select, compute_hdr_gains, apply_hdr  # noqa: E402
 from waymo2panorama.blending.seam_local_align import build_voronoi_seam_band  # noqa: E402
 from waymo2panorama.blending.seam_confined import _label_and_base, _seam_alpha  # noqa: E402 (reviewed)
 from waymo2panorama.blending.seam_confined import multiband_lowfreq_blend, blend_seam_confined  # noqa: E402 (reviewed)
@@ -446,6 +446,45 @@ def _align_cur_to_prev(cur, prev, w_cur, w_prev, dis, band_hw=80, max_disp=40.0,
     return np.roll(out, -roll, axis=1)
 
 
+def graphcut_label(slabs, weights, scale=0.45):
+    """SINGLE-SOURCE seam ROUTING via cv2.detail GraphCutSeamFinder (Google/Zhang&Liu paradigm):
+    route the cut through pixels where the two cameras AGREE (low colour+gradient cost) and AROUND
+    disagreeing near objects, instead of the geometry-only cos²-argmax bisector. Returns a per-pixel
+    camera LABEL; the caller hard_selects by it (still ONE camera per pixel → no ghost/wash). Runs
+    the finder at reduced scale for speed, then assigns at FULL res with an argmax-weight COVERAGE
+    FILL so there are NO uncovered/black pixels (the old #7 bug)."""
+    K = len(slabs); H, W = slabs[0].shape[:2]
+    hs, ws = max(8, int(H * scale)), max(8, int(W * scale))
+    imgs_s = [cv2.resize(np.clip(s, 0, 255).astype(np.float32), (ws, hs), interpolation=cv2.INTER_AREA) for s in slabs]
+    masks_s = [cv2.resize((w > 1e-6).astype(np.uint8) * 255, (ws, hs), interpolation=cv2.INTER_NEAREST) for w in weights]
+    corners = [(0, 0)] * K
+    try:
+        sf = cv2.detail_GraphCutSeamFinder("COST_COLOR_GRAD")
+        seam_s = sf.find(imgs_s, corners, [m.copy() for m in masks_s])
+        seam_s = [np.asarray(m.get() if hasattr(m, "get") else m) for m in seam_s]
+    except Exception as e:
+        print(f"[graphcut] finder failed ({e}); falling back to argmax label", flush=True)
+        seam_s = None
+    wstack = np.stack([w.astype(np.float32) for w in weights], axis=0)
+    argmax_w = wstack.argmax(axis=0)
+    anyvalid = (wstack.max(axis=0) > 1e-6)
+    if seam_s is None:
+        label = argmax_w
+    else:
+        valid = [(w > 1e-6) for w in weights]
+        seam_full = [cv2.resize(ms, (W, H), interpolation=cv2.INTER_NEAREST) for ms in seam_s]
+        sel = np.stack([(seam_full[k] > 0) & valid[k] for k in range(K)], axis=0)  # (K,H,W)
+        wsel = np.where(sel, wstack, -1.0)
+        label = wsel.argmax(axis=0)              # among seam-selected cams, the highest-weight one
+        nosel = (~sel.any(axis=0)) & anyvalid    # GraphCut didn't cover (rounding) → argmax-weight fill
+        label[nosel] = argmax_w[nosel]
+    label[~anyvalid] = 0
+    rgb = np.stack([s.astype(np.float32) for s in slabs], axis=0)
+    res = np.take_along_axis(rgb, label[None, ..., None], axis=0)[0]
+    res[~anyvalid] = 0
+    return res.astype(np.uint8), label
+
+
 def flow_align_chain(slabs, weights, band_hw=80, max_disp=40.0, fb_thresh=2.0):
     """Chain-warp each ring slab to AGREE with its anchor-side neighbour in the seam band; caller
     hard_selects (single source). front_center=anchor; CCW 0→1→2→3, CW 0→6→5→4, back seam 3-4.
@@ -512,8 +551,14 @@ def main():
                          "base, so the band is photometrically clean even where view-interp abstains "
                          "(textureless wall); view-interp adds the geometric singling on top")
     ap.add_argument("--obj-route", action="store_true",
-                    help="(view mode) route the L1 seam AROUND compact near objects (cars/poles) so "
+                    help="(view/align) route the L1 seam AROUND compact near objects (cars/poles) so "
                          "they come from one camera and aren't sliced — fixes object frame-parallax")
+    ap.add_argument("--color", choices=["none", "gain", "lowfreq"], default="none",
+                    help="(align) seam colour: none (byte-exact, AV2 exposure-matched), gain (global "
+                         "per-cam exposure match, no spatial wash), lowfreq (OLD E1.5, white-spot bug)")
+    ap.add_argument("--seam", choices=["argmax", "graphcut"], default="argmax",
+                    help="(align) seam routing: argmax (cos² bisector) or graphcut (route the cut "
+                         "through agreeing regions / around objects — single-source, invisible seam)")
     ap.add_argument("--review-w", type=int, default=1300)
     args = ap.parse_args()
     erp_hw = (args.erp_h, args.erp_w); out = args.out_dir; out.mkdir(parents=True, exist_ok=True)
@@ -599,19 +644,32 @@ def main():
               f"reliable_mean_alpha={float(touched[touched>0].mean()) if (touched>0).any() else 0:.3f}", flush=True)
     elif args.mode == "align":
         # ★ SINGLE-SOURCE (research-grounded): warp each slab to AGREE with its neighbour in the band
-        # (flow, FB-gated, tapered) → hard_select (NEVER average → cannot ghost) → E1.5 low-freq
-        # colour only across the thin seam. This replaces the view-interp ALPHA-BLEND that the user
-        # caught reintroducing translucent overlap.
+        # (flow, FB-gated, tapered) → hard_select (NEVER average → cannot ghost). Colour handling:
+        #   none    = no colour correction (AV2 is exposure-matched → minor step; far field byte-exact).
+        #   gain    = GLOBAL per-camera exposure gain (compute_hdr_gains/apply_hdr) — matches exposure
+        #             with NO spatial wash (fixes the white-spot the wide multiband low-freq caused).
+        #   lowfreq = the OLD E1.5 wide multiband (DEPRECATED — white-spot wash on near-black walls).
         warped = flow_align_chain(l1_slabs, l1_w, band_hw=args.band_hw, max_disp=args.max_disp,
                                   fb_thresh=args.fb_thresh)
-        # hard_select uses w_base (optionally obj-routed so the cut goes AROUND near objects → the
-        # car comes from one camera, not sliced). Single-source throughout (no blend → no ghost).
-        sc = blend_seam_confined(warped, w_base, band_half_width=args.band_hw, lowfreq_cutoff=5)
-        res = sc["out"]; touched = sc["alpha"]
         if args.obj_route:
             tag += "_route"
+        tag += f"_{args.seam}_{args.color}"
+        # colour: global exposure gain (no spatial wash) applied to the warped slabs first
+        slabs_c = warped
+        if args.color == "gain":
+            gains = compute_hdr_gains([w.astype(np.float32) for w in warped], w_base)
+            slabs_c = apply_hdr(warped, gains)
+        # seam: graph-cut single-source routing (around objects / through agreeing) OR cos²-argmax
+        if args.seam == "graphcut":
+            res, _ = graphcut_label(slabs_c, w_base, scale=0.45)
+        elif args.color == "lowfreq":  # argmax + OLD wide multiband (white-spot; kept as ablation)
+            res = blend_seam_confined(warped, w_base, band_half_width=args.band_hw, lowfreq_cutoff=5)["out"]
+        else:                          # argmax single-source
+            res = hard_select(slabs_c, w_base)
+        touched = (np.abs(res.astype(np.int16) - L1.astype(np.int16)).sum(2) > 3).astype(np.float32)
         edit_frac = float((touched > 0).mean())
-        print(f"[align] warp+hard_select+lowfreq, edited_frac={edit_frac*100:.2f}%", flush=True)
+        print(f"[align] seam={args.seam} color={args.color} obj_route={args.obj_route} "
+              f"edited_frac={edit_frac*100:.2f}%", flush=True)
     else:
         res, touched = core_plane_blend(pl_slabs, l1_slabs, l1_w, obj_mask, base,
                                         band_half_width=args.band_hw)
