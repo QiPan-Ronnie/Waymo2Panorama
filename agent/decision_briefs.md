@@ -66,7 +66,7 @@ Shared hard constraints for all briefs below:
 - If any brief hits its kill criteria, stop that direction, write the result to `progress.md`, and do not continue patch-on-patch under the same direction.
 
 # DB-45: Geometry foundation evidence audit
-Status: paused
+Status: running (DB45k coordinate/reflection evidence audit open)
 Route: A (geometry) / evidence-only
 
 Question: Can VGGT/Fast3R/CUT3R/DAC/DAP/PriOr-Flow/FlowSeek-style evidence turn any currently RED seam into YELLOW/GREEN, or improve the confidence calibration for layer-aware routing?
@@ -147,12 +147,22 @@ Max scope:
   - Required vision check: DB45d setup board if changed plus DB45i residual board; DB45i board must show import/inference/decode/Sim(3)/ROI residual status, DB41 lower-right zero-LiDAR boundary, generated-control rejection, and `no repair/no generation/no RED promotion` labels.
   - Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
   - Result (accepted diagnostic-only): DB45j ran exactly the allowed setup replay plus one DB45i retry. Setup/load replay succeeded (`setup_ready=true`), and DB45i official VGGT inference succeeded with `pose_enc_shape=[7,9]`, decoded extrinsics `[7,3,4]`, and preprocessing mapping count `7`. The residual route remains non-admissible for permission promotion: `sim3_contract_thresholds_pass=false` because `reflection_detected=true` despite mean/max center residuals `0.217991/0.319168 m`; DB25/DB41 target residuals are large and all ROI rows keep `permission_promotion_allowed=false`; DB41 lower-right preserves known LiDAR support `0.000`. Accepted evidence type is `vggt-calibrated-residual-diagnostic-only`; `accepted_db45_geometry_evidence=false`, `permission_state_changes=none`, `red_promotions=[]`, no repair/generation/source replacement/renderer occurred. Detail archived at top of `progress.md`.
+- Phase11 sub-scope / DB45k (2026-06-04): VGGT pose/reflection coordinate audit from existing outputs only.
+  - Question: Is the DB45j Sim(3) reflection failure caused by a documented coordinate/order/extrinsic-convention issue in the saved DB45i outputs, or should the VGGT residual route remain diagnostic-only/paused under the current evidence gates?
+  - Hypothesis: A bounded saved-artifact audit may identify whether the reflection flag is a bookkeeping/convention artifact, but the pairwise rig-shape and target-surface residual evidence will likely keep VGGT residuals non-admissible for geometry promotion.
+  - Why now: DB45j finally produced real official VGGT pose/decode/preprocess/residual outputs, and the single hard alignment blocker is concrete (`reflection_detected=true`). Before abandoning or rerunning VGGT, the project needs one falsifiable audit of extractor/coordinate assumptions that does not consume A100 time or turn into patch-on-patch.
+  - Expected evidence: one CPU/local script, manifest, and board using only existing DB45i/DB45h outputs plus local code inspection. Report documented camera order, decoded extrinsic convention, saved VGGT/Waymo centers, pairwise-distance consistency, non-reflective and reflected similarity fits, documented axis/order hypotheses, target ROI residual boundary, and a final route recommendation.
+  - Kill criteria: requires arbitrary axis flips, reflection, camera permutations, or threshold changes not derived from code/docs; pairwise rig-shape inconsistency remains material; non-reflective Sim(3) still fails DB45h/DB45i thresholds; ROI residuals remain no-promotion; any DB25/DB41 RED promotion relies on VGGT confidence/pointmaps without raw/LiDAR target-surface support; DB41 lower-right is promoted despite known LiDAR support `0.000`; any A100/executor/model inference/download, renderer, ERP repair, source replacement, generated pixels, diffusion/refiner, or prompt-only seam repair is attempted; DB32/G claims are overstated; token/endpoint strings appear in artifacts.
+  - Max scope: CPU/local saved-artifact audit only. Inputs are existing `db45i_vggt_calibrated_residual_remote_result.json`, `db45i_vggt_calibrated_residual_manifest.json`, `db45h_vggt_residual_job_contract_manifest.json`, and local source files. No network, no A100, no executor, no model load, no HF access, no new raw-data scan, no new VGGT inference, no pointmap rerun, no repair/generation/source replacement, no permission change, no RED promotion.
+  - Required vision check: DB45k board must show the reflection/non-reflection verdict, pairwise rig-shape audit, best admissible documented hypothesis, ROI no-promotion table, DB41 lower-right zero-LiDAR boundary, and explicit `diagnostic-only/no repair/no generation/no RED promotion` labels.
+  - Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
+  - Result: TBD -> archive to `progress.md` when done.
 
 Required vision check:
 - Board must include raw-camera support crop, LiDAR/depth/flow evidence overlays if available, model confidence overlay, and final permission-state label.
 - Mandatory visual check on DB41 lower-right and DB36/DB40 fake-geometry negatives.
 
-Result summary: DB45 is paused after DB45j accepted VGGT calibrated residual **diagnostic-only** evidence. The route now has real official inference/pose/decode/preprocess/residual outputs, but Sim(3) reflection and target-surface residual gates block geometry evidence and all permission changes. Do not continue VGGT residual patch-on-patch unless a new bounded brief directly addresses the reflection/coordinate failure as an evidence audit and preserves DB25/DB41 no-promotion boundaries.
+Result summary: DB45 is running only for DB45k saved-output coordinate/reflection audit. DB45j accepted VGGT calibrated residual **diagnostic-only** evidence; the route has real official inference/pose/decode/preprocess/residual outputs, but Sim(3) reflection and target-surface residual gates block geometry evidence and all permission changes. DB45k may only audit whether the reflection/coordinate failure is documented and decisive; it must not continue VGGT residual patch-on-patch, rerun inference, or reinterpret residuals as permission.
 
 # DB-46: BMW meeting presentation-only micro cleanup
 Status: proposed
