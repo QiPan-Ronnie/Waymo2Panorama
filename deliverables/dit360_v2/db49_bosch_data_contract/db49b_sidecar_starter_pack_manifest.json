@@ -1,0 +1,224 @@
+{
+  "db": "DB-49b",
+  "status": "sidecar_starter_pack_partial_only",
+  "created_utc": "2026-06-04T18:25:10.118527+00:00",
+  "accepted_evidence_type": "sidecar-starter-pack-partial-only",
+  "purpose": "Package only sidecars derivable from existing DB32/DB34/DB41 evidence, while keeping source_id_map missing/blocking.",
+  "scope": {
+    "cpu_local_only": true,
+    "existing_artifacts_only": true,
+    "candidate_pixels_modified": false,
+    "new_panorama_repair": false,
+    "new_generated_pixels": false,
+    "new_image_generation": false,
+    "new_dataset_scan": false,
+    "a100_used": false,
+    "executor_used": false,
+    "network_used": false,
+    "model_inference": false,
+    "source_replacement": false,
+    "permission_change": false,
+    "red_promotions": [],
+    "output_location": "deliverables/dit360_v2/db49_bosch_data_contract"
+  },
+  "current_handoff_candidate": {
+    "path": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+    "claim_label": "caveated-handoff",
+    "ready_for_uncaveated_bosch_training_data": false,
+    "accepted_source_faithful_repair": false,
+    "source_faithful_ceiling": false,
+    "description": "DB32 s40 remains a Bosch-facing presentation/handoff candidate with source-sidestep and generated-sky caveats."
+  },
+  "image_size": {
+    "width": 2048,
+    "height": 1024,
+    "total_pixels": 2097152
+  },
+  "inputs": {
+    "candidate_image": {
+      "path": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+      "path_resolved": "D:\\BaiduSyncdisk\\2024 to future\\koi chen\\experiments\\Waymo2Panorama\\deliverables\\dit360_v2\\db32_generated_sky_harmonize_v2\\db32_generated_sky_harmonize_s40.png"
+    },
+    "sky_core_mask": {
+      "path": "deliverables/dit360_v2/db29_sky_clean_a200/SR_bmw_db28_a200_opmask_sky.png",
+      "path_resolved": "D:\\BaiduSyncdisk\\2024 to future\\koi chen\\experiments\\Waymo2Panorama\\deliverables\\dit360_v2\\db29_sky_clean_a200\\SR_bmw_db28_a200_opmask_sky.png",
+      "mask_convention": "white/255 preserves source; black/0 generated sky core"
+    },
+    "db41_manifest": {
+      "path": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+      "path_resolved": "D:\\BaiduSyncdisk\\2024 to future\\koi chen\\experiments\\Waymo2Panorama\\deliverables\\dit360_v2\\db41_rightline_evidence_gate\\db41_rightline_evidence_manifest.json"
+    },
+    "db41_board": {
+      "path": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_board.jpg",
+      "path_resolved": "D:\\BaiduSyncdisk\\2024 to future\\koi chen\\experiments\\Waymo2Panorama\\deliverables\\dit360_v2\\db41_rightline_evidence_gate\\db41_rightline_evidence_board.jpg"
+    },
+    "db49a_manifest": {
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49a_bosch_data_contract_inventory_manifest.json",
+      "path_resolved": "D:\\BaiduSyncdisk\\2024 to future\\koi chen\\experiments\\Waymo2Panorama\\deliverables\\dit360_v2\\db49_bosch_data_contract\\db49a_bosch_data_contract_inventory_manifest.json"
+    }
+  },
+  "candidate_integrity": {
+    "sha256_before": "ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930",
+    "sha256_after": "ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930",
+    "unchanged": true
+  },
+  "source_id_map_created": false,
+  "source_id_map_status": "missing_blocking_not_fabricated",
+  "sidecars": {
+    "generated_mask": {
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_generated_mask_sky_core_only.png",
+      "status": "partial_generated_mask_sky_core_only",
+      "derivation": "255 where existing DB34/DB32 sky opmask is black/0 generated core; 0 elsewhere.",
+      "pixel_count": 781491,
+      "fraction": 0.37264394760131836,
+      "db32_reported_core_fraction": 0.37264394760131836
+    },
+    "unknown_or_abstain_mask": {
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_unknown_or_abstain_mask_partial.png",
+      "status": "partial_unknown_or_abstain_mask",
+      "derivation": "Union of candidate rows with >=0.75 near-black pixels and DB41 right/lower-right abstain ROIs.",
+      "pixel_count": 912032,
+      "fraction": 0.4348907470703125,
+      "out_of_fov_black_rows": [
+        [
+          671,
+          1024
+        ]
+      ],
+      "row_dark_threshold": 0.75,
+      "dark_pixel_rule": "max_rgb <= 5",
+      "db41_rois": {
+        "right_roi": [
+          1440,
+          360,
+          2048,
+          720
+        ],
+        "lower_right_roi": [
+          1580,
+          560,
+          2048,
+          790
+        ],
+        "right_roi_new_pixels_or_overwrites": 189088,
+        "lower_right_roi_new_pixels_or_overwrites": 0,
+        "right_roi_unknown_mask_pixels": 218880,
+        "right_roi_area": 218880,
+        "lower_right_roi_unknown_mask_pixels": 107640,
+        "lower_right_roi_area": 107640,
+        "right_roi_lidar_support_frac": 0.08416027046783625,
+        "lower_right_roi_lidar_support_frac": 0.0,
+        "recommendation": "abstain; rectangles are evidence boundaries, not repair permission."
+      }
+    },
+    "risk_map": {
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_risk_map_partial.png",
+      "status": "partial_contract_risk_map",
+      "derivation": "Per-pixel max of generated sky risk, out-of-FOV black-row risk, and DB41 abstain ROI risks.",
+      "risk_levels": {
+        "generated_sky_core": 96,
+        "out_of_fov_black_rows": 180,
+        "db41_right_roi_abstain": 220,
+        "db41_lower_right_roi_zero_lidar_abstain": 255
+      },
+      "nonzero_pixel_count": 1677414,
+      "fraction": 0.7998533248901367,
+      "unique_values": [
+        0,
+        96,
+        180,
+        220,
+        255
+      ]
+    },
+    "overlay": {
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_sidecar_overlay_on_db32.jpg",
+      "status": "visual_review_only"
+    }
+  },
+  "db49a_boundary": {
+    "accepted_evidence_type": "bosch-data-contract-inventory-only",
+    "ready_for_bosch_dataset_contract": false,
+    "blocking_fields_preserved": [
+      "source_id_map",
+      "full_unknown_or_abstain_mask",
+      "full_risk_map",
+      "license_generation_caveat"
+    ]
+  },
+  "claim_boundary": [
+    "DB49b creates partial sidecars only; it does not create or repair a panorama.",
+    "DB32 s40 remains caveated handoff candidate, not fully source-faithful and not an original-G/A1/BEST repair.",
+    "generated_mask is limited to the existing sky core and is not a full generated-region ontology.",
+    "unknown_or_abstain_mask is partial: out-of-FOV black rows plus DB41 right/lower-right abstain ROIs.",
+    "risk_map is partial contract risk, not a complete Waymo/Bosch per-pixel risk truth map.",
+    "source_id_map remains missing/blocking and was not fabricated.",
+    "DB41 rectangles are no-evidence/abstain boundaries, not source-faithful repair permission.",
+    "ready_for_uncaveated_bosch_training_data=false."
+  ],
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_sidecar_starter_pack_manifest.json",
+    "board": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_sidecar_starter_pack_board.jpg",
+    "generated_mask": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_generated_mask_sky_core_only.png",
+    "unknown_or_abstain_mask": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_unknown_or_abstain_mask_partial.png",
+    "risk_map": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_risk_map_partial.png",
+    "overlay": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_sidecar_overlay_on_db32.jpg"
+  },
+  "checks": [
+    {
+      "id": "brief_scope_is_db49b",
+      "pass": true,
+      "evidence": "DB49b sub-scope exists in decision_briefs.md before execution."
+    },
+    {
+      "id": "db49a_precondition_exists",
+      "pass": true,
+      "evidence": "DB49a inventory manifest exists and is inventory-only."
+    },
+    {
+      "id": "uses_existing_artifacts_only",
+      "pass": true,
+      "evidence": "Inputs are existing DB49a/DB34/DB32/DB41 artifacts only."
+    },
+    {
+      "id": "candidate_not_modified",
+      "pass": true,
+      "evidence": "Candidate sha256 before and after sidecar derivation are identical."
+    },
+    {
+      "id": "source_id_map_not_fabricated",
+      "pass": true,
+      "evidence": "No source_id_map output exists in DB49b."
+    },
+    {
+      "id": "generated_mask_matches_existing_core",
+      "pass": true,
+      "evidence": "generated_count=781491, fraction=0.3726439476."
+    },
+    {
+      "id": "db41_abstain_rois_encoded",
+      "pass": true,
+      "evidence": "Both DB41 ROIs are fully encoded in unknown/risk sidecars (right=218880/218880, lower_right=107640/107640)."
+    },
+    {
+      "id": "out_of_fov_black_rows_encoded",
+      "pass": true,
+      "evidence": "black_row_ranges=[[671, 1024]]."
+    },
+    {
+      "id": "training_ready_false",
+      "pass": true,
+      "evidence": "DB49b keeps Bosch training-data readiness false."
+    },
+    {
+      "id": "no_repair_generation_model_or_executor",
+      "pass": true,
+      "evidence": "Scope flags show no repair, generation, A100, executor, network, or model inference."
+    },
+    {
+      "id": "no_secret_like_strings",
+      "pass": true,
+      "evidence": "Manifest text contains no HF token, bearer marker, or tunnel URL marker."
+    }
+  ]
+}

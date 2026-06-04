@@ -53,6 +53,8 @@ DB47b is completed and accepted as **source-selection-threshold-replay-only** ev
 
 DB49a Bosch data-contract inventory is completed and accepted as **bosch-data-contract-inventory-only** evidence. Outputs are under `deliverables/dit360_v2/db49_bosch_data_contract/`, with script `scripts/phase3/db49a_bosch_data_contract_inventory.py`. DB49a reads existing DB32/DB34/DB38/DB41/DB42/DB43/DB45i/DB47d artifacts only and creates no candidate image, repair, generated mask, abstain mask, risk map, dataset scan, model run, permission change, or RED promotion. It confirms DB32 `s40` is only a caveated Bosch-facing handoff candidate and that uncaveated Bosch training-data use is blocked until at least per-pixel `source_id_map`, `unknown_or_abstain_mask`, `risk_map`, and generation-model/license review are packaged. `generated_mask` is only partial via the existing sky-core mask/overlay; DB47d remains not-final and DB41 lower-right/right-line remains no-evidence/abstain.
 
+DB49b sidecar starter pack is completed and accepted as **sidecar-starter-pack-partial-only** evidence. Outputs are under `deliverables/dit360_v2/db49_bosch_data_contract/`, with script `scripts/phase3/db49b_sidecar_starter_pack.py`. DB49b creates only three partial DB32 sidecars from existing evidence: sky-core `generated_mask`, out-of-FOV-plus-DB41 `unknown_or_abstain_mask`, and a partial contract `risk_map`. It keeps `source_id_map_created=false`, candidate pixels unchanged, `ready_for_uncaveated_bosch_training_data=false`, DB41 right/lower-right abstain, and no repair/generation/model/executor/network/permission change/RED promotion. Future DB49 work must not treat these partial sidecars as a complete Bosch data contract.
+
 ---
 
 ## 0.2 Strategic Framing: Data Product / Data Contract
@@ -79,7 +81,7 @@ The practical data contract should include:
 
 This data-contract framing does not replace seam repair. It prevents seam repair from being accepted for the wrong reason.
 
-DB49a is the current inventory baseline for this section: it reports which fields are available, partial, missing, or manually required, but it does not create the missing sidecars. Future DB49 work must not convert missing sidecars into narrative claims.
+DB49a is the current inventory baseline for this section: it reports which fields are available, partial, missing, or manually required. DB49b is the current partial sidecar starter pack: it materializes only the sky-core generated mask, out-of-FOV/DB41 abstain mask, and partial risk map that can be derived from existing evidence. Future DB49 work must not convert the still-missing `source_id_map` or full sidecars into narrative claims.
 
 ---
 
@@ -373,7 +375,7 @@ These are roadmap items, not direct execution commands. DB43 and DB44 are comple
 
 **Question:** How should the final Bosch-facing output expose caveats, generated regions, abstain masks, and current-best image selection?
 
-**Scope:** packaging/reporting only after candidate outputs exist.
+**Scope:** packaging/reporting only after candidate outputs exist. DB49a inventory and DB49b partial sidecar starter pack are complete; any next DB49 step needs a bounded sub-brief and must keep `source_id_map` missing unless real source-ownership evidence is available.
 
 **Required language:** DB32 `s40` is the current defensible handoff candidate; it avoids the worst seam through source-sidestep and sky completion, but is not an original-G seam repair. Ground/object/lane/curb generation is not training data. No-evidence ROI is abstained. Generated sky/out-of-FOV is explicitly masked.
 

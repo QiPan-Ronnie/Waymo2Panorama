@@ -281,7 +281,7 @@ Required vision check:
 Result summary: TBD -> archive to `progress.md` when done, then delete this brief.
 
 # DB-49: Bosch-facing data contract / handoff packet
-Status: running (DB49a accepted inventory-only; any further packaging needs bounded scope)
+Status: running (DB49a accepted inventory-only; DB49b accepted partial sidecar starter pack; any further packaging needs bounded scope)
 Route: infra / handoff / data contract
 
 Question: How should the final Bosch-facing output expose caveats, generated regions, abstain masks, risk maps, and current-best image selection?
@@ -330,9 +330,18 @@ Max scope:
   - Max scope: CPU/local reporting only, existing artifacts only, no new image generation/repair/mask generation, no new dataset scan, no permission change, no RED promotion. Output location: `deliverables/dit360_v2/db49_bosch_data_contract/`.
   - Required vision check: board must show current handoff candidate reference, generated/abstain/risk/eval contract status, DB47 review-only status, DB41 abstain, DB32 source-sidestep/generated-sky caveats, and explicit `not source-faithful / not original-G repair / no final candidate from DB47d alone` labels.
   - Result (accepted inventory-only): `scripts/phase3/db49a_bosch_data_contract_inventory.py` produced `db49a_bosch_data_contract_inventory_manifest.json` and `db49a_bosch_data_contract_inventory_board.jpg` using existing artifacts only. `candidate_image`, `eval_report`, `caveat_table`, and `presentation_flag` are available; `generated_mask` is partial from the existing sky-core mask; per-pixel `source_id_map`, `unknown_or_abstain_mask`, and `risk_map` remain missing/blocking; generation-model/license review remains required. DB32 `s40` stays caveated handoff only; DB47d stays not-final; DB41 lower-right/right-line stays no-evidence/abstain; `ready_for_uncaveated_bosch_training_data=false`.
+- Phase1 / DB49b (2026-06-04): DB32 sidecar starter pack from existing masks/evidence only.
+  - Question: Can DB49 package real available sidecars for DB32 (`generated_mask`, partial `unknown_or_abstain_mask`, partial `risk_map`) while explicitly refusing to fabricate the missing `source_id_map`?
+  - Hypothesis: The existing DB34 sky-core mask, DB32 candidate image, and DB41 abstain ROIs are sufficient to create a truthful starter sidecar pack: generated sky core, out-of-FOV/DB41 abstain regions, and a conservative risk map. This will make DB49a's contract gaps concrete without pretending the sidecars are complete Bosch training-data metadata.
+  - Why now: DB49a identified missing/partial contract fields. The next useful CPU-local step is to package the fields that are genuinely derivable from current evidence, while keeping `source_id_map` and full per-pixel risk as blocking gaps.
+  - Expected evidence: one CPU/local script/manifest/board plus three sidecar PNGs: sky-core generated mask, partial unknown-or-abstain mask, partial risk map. Manifest must report derivation rules, pixel counts/fractions, DB41 ROI inclusion, out-of-FOV detection, incomplete fields, and `ready_for_uncaveated_bosch_training_data=false`.
+  - Kill criteria: modifies DB32 candidate image; creates a source_id_map by guesswork; treats DB41 rectangles as source-faithful repair evidence; hides lower out-of-FOV black band; claims a complete Bosch dataset contract; runs renderer/model/executor/A100/generation/repair/source replacement; changes permission state or RED promotion; includes current endpoint/HF/Colab token strings.
+  - Max scope: CPU/local packaging only, existing DB32/DB34/DB41/DB43/DB49a artifacts only, no model/network/A100, no new repair, no generated pixels, no dataset scan. Output location: `deliverables/dit360_v2/db49_bosch_data_contract/`.
+  - Required vision check: board must show DB32 candidate, generated sky-core mask, unknown/abstain mask, risk map, DB41 lower-right/right-line labels, source_id_map missing, and explicit `not training-ready / not source-faithful repair / not original-G repair`.
+  - Result (accepted partial sidecars only): `scripts/phase3/db49b_sidecar_starter_pack.py` produced `db49b_generated_mask_sky_core_only.png`, `db49b_unknown_or_abstain_mask_partial.png`, `db49b_risk_map_partial.png`, `db49b_sidecar_overlay_on_db32.jpg`, `db49b_sidecar_starter_pack_manifest.json`, and `db49b_sidecar_starter_pack_board.jpg`. Hard checks pass; DB32 candidate sha256 is unchanged; `source_id_map_created=false`; `ready_for_uncaveated_bosch_training_data=false`; DB41 right/lower-right remains abstain; no repair/generation/model/executor/network/permission change/RED promotion occurred.
 
 Required vision check:
 - Final board must include the image, masks, risk/abstain overlays, and same-ROI caveat crops.
 - Manual claim-language review before any Bosch/Koi-facing use.
 
-Result summary: DB49a accepted as `bosch-data-contract-inventory-only`; see the 2026-06-04 DB49a block at the top of `agent/progress.md`. Further DB49 work must package real sidecars or keep missing fields explicit; no narrative fill-in.
+Result summary: DB49a accepted as `bosch-data-contract-inventory-only`; DB49b accepted as `sidecar-starter-pack-partial-only`; see the 2026-06-04 DB49a and DB49b blocks at the top of `agent/progress.md`. Further DB49 work must package real sidecars or keep missing fields explicit; no narrative fill-in.
