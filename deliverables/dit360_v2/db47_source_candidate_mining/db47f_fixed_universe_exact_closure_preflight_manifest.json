@@ -1,0 +1,374 @@
+{
+  "db": "DB-47f",
+  "status": "preflight_paused",
+  "created_utc": "2026-06-04T23:16:15.085487+00:00",
+  "accepted_evidence_type": "fixed-universe-exact-closure-preflight-only",
+  "purpose": "Gate exact closure for the fixed DB47/DB51 source-selection gaps without expanding the universe or leaking secrets.",
+  "scope": {
+    "cpu_local_preflight": true,
+    "fixed_target_count": 8,
+    "new_dataset_scan": false,
+    "exact_asset_fetch_or_rerun_executed": false,
+    "remote_or_executor_used": false,
+    "a100_used": false,
+    "hf_or_vggt_used": false,
+    "model_inference": false,
+    "seamroute_or_renderer_executed": false,
+    "panorama_repair": false,
+    "generation": false,
+    "source_replacement": false,
+    "source_id_map_created": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "output_location": "deliverables/dit360_v2/db47_source_candidate_mining"
+  },
+  "inputs": {
+    "decision_brief": "agent/decision_briefs.md",
+    "db47d_manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47d_exact_same_log_review_manifest.json",
+    "db47e_manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47e_final_candidate_review_manifest.json",
+    "db51_manifest": "deliverables/dit360_v2/db51_egsr_target_acquisition/db51_egsr_target_acquisition_manifest.json",
+    "db41_manifest": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+    "db25_summary": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_summary.json"
+  },
+  "fixed_target_contract": {
+    "target_uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+    "targets": [
+      {
+        "candidate_id": "02a00399_a0201",
+        "anchor": 201,
+        "bucket": "strict_review_bucket",
+        "required": [
+          "compare",
+          "final"
+        ],
+        "exact_assets": {
+          "compare": null,
+          "final": null
+        },
+        "asset_stats": {
+          "compare": {
+            "exists": false
+          },
+          "final": {
+            "exists": false
+          }
+        },
+        "available_required": [],
+        "missing_required": [
+          "compare",
+          "final"
+        ],
+        "closure_status": "open_missing_exact_assets",
+        "claim_boundary": "source-selection exact evidence only; not local seam repair and not original-G repair"
+      },
+      {
+        "candidate_id": "02a00399_a0209",
+        "anchor": 209,
+        "bucket": "strict_review_bucket",
+        "required": [
+          "compare",
+          "final"
+        ],
+        "exact_assets": {
+          "compare": null,
+          "final": null
+        },
+        "asset_stats": {
+          "compare": {
+            "exists": false
+          },
+          "final": {
+            "exists": false
+          }
+        },
+        "available_required": [],
+        "missing_required": [
+          "compare",
+          "final"
+        ],
+        "closure_status": "open_missing_exact_assets",
+        "claim_boundary": "source-selection exact evidence only; not local seam repair and not original-G repair"
+      },
+      {
+        "candidate_id": "02a00399_a0210",
+        "anchor": 210,
+        "bucket": "strict_review_bucket",
+        "required": [
+          "compare",
+          "final"
+        ],
+        "exact_assets": {
+          "compare": null,
+          "final": null
+        },
+        "asset_stats": {
+          "compare": {
+            "exists": false
+          },
+          "final": {
+            "exists": false
+          }
+        },
+        "available_required": [],
+        "missing_required": [
+          "compare",
+          "final"
+        ],
+        "closure_status": "open_missing_exact_assets",
+        "claim_boundary": "source-selection exact evidence only; not local seam repair and not original-G repair"
+      },
+      {
+        "candidate_id": "02a00399_a0211",
+        "anchor": 211,
+        "bucket": "strict_review_bucket",
+        "required": [
+          "compare",
+          "final"
+        ],
+        "exact_assets": {
+          "compare": null,
+          "final": null
+        },
+        "asset_stats": {
+          "compare": {
+            "exists": false
+          },
+          "final": {
+            "exists": false
+          }
+        },
+        "available_required": [],
+        "missing_required": [
+          "compare",
+          "final"
+        ],
+        "closure_status": "open_missing_exact_assets",
+        "claim_boundary": "source-selection exact evidence only; not local seam repair and not original-G repair"
+      },
+      {
+        "candidate_id": "02a00399_a0031",
+        "anchor": 31,
+        "bucket": "relaxed_review_bucket",
+        "required": [
+          "compare",
+          "final"
+        ],
+        "exact_assets": {
+          "compare": null,
+          "final": null
+        },
+        "asset_stats": {
+          "compare": {
+            "exists": false
+          },
+          "final": {
+            "exists": false
+          }
+        },
+        "available_required": [],
+        "missing_required": [
+          "compare",
+          "final"
+        ],
+        "closure_status": "open_missing_exact_assets",
+        "claim_boundary": "source-selection exact evidence only; not local seam repair and not original-G repair"
+      },
+      {
+        "candidate_id": "02a00399_a0038",
+        "anchor": 38,
+        "bucket": "relaxed_review_bucket",
+        "required": [
+          "compare",
+          "final"
+        ],
+        "exact_assets": {
+          "compare": null,
+          "final": null
+        },
+        "asset_stats": {
+          "compare": {
+            "exists": false
+          },
+          "final": {
+            "exists": false
+          }
+        },
+        "available_required": [],
+        "missing_required": [
+          "compare",
+          "final"
+        ],
+        "closure_status": "open_missing_exact_assets",
+        "claim_boundary": "source-selection exact evidence only; not local seam repair and not original-G repair"
+      },
+      {
+        "candidate_id": "02a00399_a0040",
+        "anchor": 40,
+        "bucket": "relaxed_review_bucket",
+        "required": [
+          "compare",
+          "final"
+        ],
+        "exact_assets": {
+          "compare": null,
+          "final": null
+        },
+        "asset_stats": {
+          "compare": {
+            "exists": false
+          },
+          "final": {
+            "exists": false
+          }
+        },
+        "available_required": [],
+        "missing_required": [
+          "compare",
+          "final"
+        ],
+        "closure_status": "open_missing_exact_assets",
+        "claim_boundary": "source-selection exact evidence only; not local seam repair and not original-G repair"
+      },
+      {
+        "candidate_id": "02a00399_a0105",
+        "anchor": 105,
+        "bucket": "strict_review_bucket",
+        "required": [
+          "final"
+        ],
+        "exact_assets": {
+          "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_compare.jpg",
+          "final": null
+        },
+        "asset_stats": {
+          "compare": {
+            "exists": true,
+            "size": [
+              1900,
+              2940
+            ],
+            "bytes": 619445
+          },
+          "final": {
+            "exists": false
+          }
+        },
+        "available_required": [],
+        "missing_required": [
+          "final"
+        ],
+        "closure_status": "open_missing_exact_assets",
+        "claim_boundary": "source-selection exact evidence only; not local seam repair and not original-G repair"
+      }
+    ],
+    "unresolved_target_count": 8,
+    "missing_required_counts": {
+      "compare": 7,
+      "final": 8
+    },
+    "closure_inputs_available_locally": false,
+    "max_anchors": 8,
+    "universe_locked_to_db51_gaps": true
+  },
+  "preconditions": {
+    "local_target_data_present": false,
+    "env_colab_url_and_token_present": false,
+    "runtime_secret_file_present": false,
+    "secure_runtime_secret_source_present": false,
+    "closure_can_run_without_chat_pasted_token": false,
+    "pause_reason": "secure_runtime_or_local_data_precondition_missing"
+  },
+  "redacted_exact_closure_contract": {
+    "allowed_only_if_preconditions_pass": true,
+    "allowed_anchor_count_max": 8,
+    "allowed_anchors": [
+      201,
+      209,
+      210,
+      211,
+      31,
+      38,
+      40,
+      105
+    ],
+    "expected_outputs_per_anchor": [
+      "compare",
+      "final"
+    ],
+    "remote_secret_policy": "Use only COLAB_URL/COLAB_TOKEN env vars or approved non-repo runtime secret source; never chat-pasted token command/artifact use.",
+    "claim_policy": "Source-selection sidestep evidence only; not original-G repair, not source-faithful local repair, not source_id_map evidence."
+  },
+  "hard_checks": [
+    {
+      "id": "db47f_brief_exists",
+      "pass": true,
+      "evidence": "DB47f brief exists before execution."
+    },
+    {
+      "id": "db51_recommends_db47f",
+      "pass": true,
+      "evidence": "DB51 ranked DB47f as the next single brief if secure runtime/data preconditions pass."
+    },
+    {
+      "id": "fixed_universe_is_eight_targets",
+      "pass": true,
+      "evidence": "targets=['02a00399_a0201', '02a00399_a0209', '02a00399_a0210', '02a00399_a0211', '02a00399_a0031', '02a00399_a0038', '02a00399_a0040', '02a00399_a0105']."
+    },
+    {
+      "id": "inherits_db47_missing_holds",
+      "pass": true,
+      "evidence": "Seven DB47e missing-exact holds plus a105 final gap are the only closure targets."
+    },
+    {
+      "id": "stops_without_secure_runtime_or_local_data",
+      "pass": true,
+      "evidence": "local_target_data=False; secure_runtime_secret_source=False; no remote job submitted."
+    },
+    {
+      "id": "db41_db25_not_promoted",
+      "pass": true,
+      "evidence": "DB41 lower-right gate remains false and DB25 remains abstain."
+    },
+    {
+      "id": "no_repair_generation_or_source_replacement",
+      "pass": true,
+      "evidence": "DB47f preflight creates only a manifest/board; no exact fetch/rerun/repair/generation/source replacement."
+    },
+    {
+      "id": "strict_secret_scan_pass",
+      "pass": true,
+      "evidence": "Strict token/endpoint scan found no secret-like strings in DB47f inputs or manifest preview."
+    }
+  ],
+  "strict_secret_scan": {
+    "checked_paths": [
+      "scripts/phase3/db47f_fixed_universe_exact_closure_preflight.py",
+      "agent/decision_briefs.md",
+      "deliverables/dit360_v2/db47_source_candidate_mining/db47d_exact_same_log_review_manifest.json",
+      "deliverables/dit360_v2/db47_source_candidate_mining/db47e_final_candidate_review_manifest.json",
+      "deliverables/dit360_v2/db51_egsr_target_acquisition/db51_egsr_target_acquisition_manifest.json",
+      "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+      "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_summary.json"
+    ],
+    "hits": [],
+    "manifest_preview_has_secret_pattern": false
+  },
+  "decision": {
+    "db47f_status": "preflight_paused",
+    "accepted_source_selection_preflight": true,
+    "accepted_exact_closure": false,
+    "selected_new_candidate": false,
+    "candidate_image_selection_changed": false,
+    "accepted_source_faithful_repair": false,
+    "accepted_original_g_repair": false,
+    "accepted_source_id_map_evidence": false,
+    "ready_for_uncaveated_bosch_training_data": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "recommended_next": "Provide secure runtime/data through env or approved non-repo secret source, then run one bounded DB47f exact closure batch; otherwise keep DB47f paused and do not run operators."
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47f_fixed_universe_exact_closure_preflight_manifest.json",
+    "board": "deliverables/dit360_v2/db47_source_candidate_mining/db47f_fixed_universe_exact_closure_preflight_board.jpg"
+  }
+}
