@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-03 (DB-28 clean-subset source-boundary candidate mining - accepted source candidate)
+> **Goal:** stop forcing the bad BMW anchor-0 red-line frame and test whether the historical Bosch strict-clean anchors provide a better source panorama candidate before any DiT360 sky completion.
+> **What ran:** reused the CPU-only source-boundary scanner on strict YOLO-clean BMW anchors `[105,200,201,204,209,210,211]`, then ran exact `_seamroute.py` for anchors `105`, `200`, and `204`. No generation and no model weights were used.
+> **Metrics:** strict-clean scan kept active source-label count `4` and max horizontal label-edge fraction `0.10375` across all candidates, but LiDAR support improved from anchor-0 DB27 `0.2308` to `0.3157` for anchors `200/201`. Exact seamroute risk: `a105=5.54%`, `a200=5.05%`, `a204=5.14%` versus anchor-0 DB24 `5.56%`.
+> **Vision verdict:** **ACCEPTED as a better source candidate, not final output.** Anchor `200` removes the specific anchor-0 failure mode: there is no long horizontal dark-wall/road slab line across the middle. The black car on the right is a single visible object, not an obvious ghost, though it remains a foreground object and the panorama still has black upper/lower out-of-FoV bands. Anchor `204` is close but has the black car larger/more dominant; anchor `105` is a different open scene but does not improve seamcore risk enough.
+> **Locations:** Drive `results/db28_clean_subset_refine/` and `results/seamroute/SR_bmw_db28_a{105,200,204}_*`; local `deliverables/dit360_v2/db28_clean_subset_refine/` including `db28_strict_clean_source_scan_montage.jpg`, `db28_strict_clean_source_scan_summary.json`, `SR_bmw_db28_a{105,200,204}_compare.jpg`, `SR_bmw_db28_a200_b.png`, and `SR_bmw_db28_a{200,204}_final_1024x2048.png`.
+> **Conclusion:** dataset/frame selection is useful when applied beyond the local 0..40 window. DB-28 identifies `SR_bmw_db28_a200_final_1024x2048.png` as the next source base for DiT360 sky-only completion. Follow-up must remain sky-only/object-gated; do not attempt ground/full outpaint or red-line repair.
+> ---
+
 > ### 2026-06-03 (DB-27 temporal/frame-selection scan for long-line seam risk - explored / rejected for current BMW window)
 > **Goal:** test the practical Bosch/data route after DB-23..26 rejected patching the user-marked red-line defect: use nearby temporal anchors instead of forcing a bad anchor repair.
 > **What ran:** added and ran CPU-only `scripts/phase3/db27_temporal_frame_scan.py` on BMW anchors `[0,5,10,15,20,30,40]`, ROI `[850,420,1650,720]`. The scan rendered per-anchor ROI, camera-id overlay, horizontal source-label edge overlay, LiDAR support overlay, and JSON risk metrics. Then exact `_seamroute.py` renders were run only for the two metric-favored/visually plausible candidates, anchors 20 and 40.

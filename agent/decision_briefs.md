@@ -20,6 +20,7 @@ Result summary: TBD → archive to progress.md when done, then delete here.
 ```
 
 > **DONE THIS SESSION (2026-06-03, A100) — full record in `progress.md` (top "DiT360 SESSION SYNTHESIS" entry); kept here only as pointers so this queue stays short:**
+> - **DB-28 clean-subset source-boundary candidate mining** = **ACCEPTED source candidate**: strict-clean anchor `200` is a better base than BMW anchor 0 for follow-up sky-only completion; no long mid-frame red-line defect, seamcore risk `5.05%`. Results: `deliverables/dit360_v2/db28_clean_subset_refine/`. Detail in progress.md.
 > - **DB-27 temporal/frame-selection scan** = **EXPLORED / REJECTED for current BMW window**: nearby anchors 20/40 modestly improve LiDAR/risk metrics but remain the same source-label partition and are not clean same-scene replacements. Results: `deliverables/dit360_v2/db27_temporal_frame_scan/`. Detail in progress.md.
 > - **D2 DiT360 seam-completion, WIDE ground-risk mask (5.56%) + tau{20,50}** = **NEG** (object-gate FAIL: invents small cars + melts textureless cuts). → superseded by DB-14 (thin mask). Results: `deliverables/dit360_v2/gr_tau*`.
 > - **D4 DiT360 SKY-ONLY outpaint** = **POSITIVE** (gate-clean upper-hemisphere fill; rooflines byte-exact). → folded into DB-19. Results: `deliverables/dit360_v2/op_sky_t50_s0.png`, `sky_roofline_cmp.jpg`.
