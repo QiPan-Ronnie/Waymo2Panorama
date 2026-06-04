@@ -9,6 +9,17 @@ This file is the **direction/decision gate**, and it holds ONLY **active / pendi
 
 Status values: `proposed` / `running` / `explored` / `accepted` / `rejected` / `paused`.
 
+# DB-20260604-40: A1/G v14 mask-alignment and prompt root-cause replay
+Status: running
+Route: B (generative, constrained seam replay) + A (mask/source evidence)
+Question: The user observed that the old v14 trimap-clamp reference has a clean right white BMW region, while the newer A1/G v14-style outputs show a right-side white BMW ghost/vertical slice or a pole-like seam artifact. Was DB39 too broad because it reused the old hard-select seam mask on A1/G without proving the mask aligns to each candidate's actual seam? Can a candidate-specific trimap and prompt avoid the right-BMW artifact while repairing only the seam?
+Hypothesis: The old v14 method itself may not be the only issue; the replay inputs differ. The old reference used `02a00399_a000_hard_select_1024x2048.png` with its matching seam mask, while A1/G replay used different init images but the same old hard-select mask. That can cut across the white BMW/sidewalk region and cause generated vertical slabs. A candidate-specific seam mask plus a prompt that explicitly preserves the white BMW/building edge may be a valid small A100 test.
+Why now: The user's image review identifies a local artifact that DB39's broad rejection did not fully root-cause. Before declaring v14 dead, we need to separate method failure from input/mask mismatch.
+Expected evidence: CPU forensic board comparing old reference, A1/G init, old mask overlay on each init, candidate-specific seam/mask proposal, and right-BMW crops. If A100 is used, one bounded replay matrix on A1 first: old-mask control vs candidate-specific mask, with two prompts at most, raw/soft/core outputs, object gate, and vision review.
+Kill criteria: Reject if the white BMW gets ghosted, sliced, covered, or shape-shifted; reject if a pole/vertical slab remains in G right seam; reject if prompt changes broad source content or invents road/curb/sidewalk geometry; reject if improvement is only numeric and not visible in right-BMW/long seam crops.
+Max scope: A1 first, then G only if A1 root cause is supported. At most 4 A100 cases total in this DB: 2 masks x 2 prompts or fewer. Use existing Drive/Colab cache only; no local model-weight downloads; no new model family.
+Required vision check: Yes, including the two user-marked screenshots' right-BMW/pole ROI plus full ERP.
+
 ### Template
 ```markdown
 # DB-YYYYMMDD-NN: <short title>

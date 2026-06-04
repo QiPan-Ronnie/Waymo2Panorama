@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-40 A1/G v14 mask-alignment root-cause prep - in progress)
+> **Goal:** investigate the user's new observation that the old v14 trimap-clamp reference keeps the right white BMW clean, while the newer A1/G v14-style outputs create a right-side white ghost/vertical slice or pole-like artifact.
+> **What ran locally:** opened DB-40 in `agent/decision_briefs.md`; spawned two read-only subagents. Both converged on the same root-cause hypothesis: method parameters match, but the init image changed while the same old hard-select v14 seam mask was reused. Added CPU-only `scripts/phase3/db40_v14_mask_alignment_forensic.py`, producing a board/manifest comparing old reference, A1, and G mask/trimap/raw behavior. Added `scripts/phase3/db40_build_keepout_masks.py` to derive right-BMW hard-preserve masks from the old v14 model mask by eroding the model mask to the approximate core and removing an expanded white-BMW/lower-right keepout.
+> **Evidence so far:** A1/G replay use the same r008/h016/w025/tau5 tri-map parameters as the old reference, but over different init images. The DB-40 forensic board shows the right-side generate strip intersects the white BMW/building/sidewalk region in A1/G, explaining the slice/ghost/pole artifact. The keepout masks remove about `0.00514` of pano core area from the old v14 core (`old_core_fraction=0.01642`, `new_core_fraction=0.01128`) and force preserve over the user-marked right BMW/lower-right risk region.
+> **A100 next step if resumed:** run A1 first only, with at most two cases: right-BMW keepout mask + old/default prompt, and right-BMW keepout mask + stricter right-BMW-preserve prompt. Proceed to G only if A1 visibly improves without BMW ghost/slice/fake ground. No local model-weight download.
+> **Locations:** `deliverables/dit360_v2/db40_v14_mask_alignment/db40_mask_alignment_forensic_board.jpg`, `deliverables/dit360_v2/db40_v14_mask_alignment/masks/db40_keepout_mask_preview_board.jpg`, `deliverables/dit360_v2/db40_v14_mask_alignment/masks/db40_keepout_mask_manifest.json`.
+> **Status:** DB-40 remains active/running; no final accept/reject yet.
+> ---
+
 > ### 2026-06-04 (DB-39 v14 trimap-clamp replay audit - rejected as G-family seam solution)
 > **Goal:** answer the user's specific correction that the seam work should follow the older `runs_v14_trimap_clamp_bmw/trimap_r008_h016_w025_tau5/..._raw_fullres_1024x2048.png` method, not only DB36's ultra-narrow red-line core compose.
 > **What ran:** added CPU-only `scripts/phase3/db39_v14_trimap_replay_audit.py`, which builds a same-ROI board and manifest from existing fetched v14 trimap-clamp results. No A100 rerun and no model weights were used locally. The manifest records that the exact r008/h016/w025 trimap-clamp family already exists locally for `G_bmw_pano` tau5/8/12, `BEST_bmw_pano` tau5, and `A1_view_none` tau5/8/12.

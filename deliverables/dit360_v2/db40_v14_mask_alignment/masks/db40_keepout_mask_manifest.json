@@ -1,0 +1,58 @@
+{
+  "db": "DB-20260604-40",
+  "purpose": "Candidate-specific right-BMW hard-preserve masks for bounded A100 test.",
+  "mask_convention": "white/255 preserve source; black/0 generate core",
+  "rows": [
+    {
+      "case": "A1_view_none_bmw",
+      "mask": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\a1keep_r008_h016_w025_tau5_rightbmw_keepout_preserve_nonseam.png",
+      "preview": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\a1keep_r008_h016_w025_tau5_rightbmw_keepout_preview.jpg",
+      "old_core_fraction": 0.01642131805419922,
+      "new_core_fraction": 0.011279106140136719,
+      "removed_core_fraction": 0.0051422119140625,
+      "keepout_fraction": 0.138702392578125,
+      "keepout_expanded_fraction": 0.1556549072265625,
+      "right_bmw_keepout": [
+        1340,
+        305,
+        1868,
+        705
+      ],
+      "lower_right_ground_keepout": [
+        1520,
+        585,
+        2048,
+        815
+      ],
+      "halo_px": 16,
+      "derivation": "old model_mask black region eroded by halo_px to approximate v14 core, then right-BMW/lower-right keepout expanded by halo_px is removed from core"
+    },
+    {
+      "case": "G_bmw_pano",
+      "mask": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\gkeep_r008_h016_w025_tau5_rightbmw_keepout_preserve_nonseam.png",
+      "preview": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\gkeep_r008_h016_w025_tau5_rightbmw_keepout_preview.jpg",
+      "old_core_fraction": 0.01642131805419922,
+      "new_core_fraction": 0.011279106140136719,
+      "removed_core_fraction": 0.0051422119140625,
+      "keepout_fraction": 0.138702392578125,
+      "keepout_expanded_fraction": 0.1556549072265625,
+      "right_bmw_keepout": [
+        1340,
+        305,
+        1868,
+        705
+      ],
+      "lower_right_ground_keepout": [
+        1520,
+        585,
+        2048,
+        815
+      ],
+      "halo_px": 16,
+      "derivation": "old model_mask black region eroded by halo_px to approximate v14 core, then right-BMW/lower-right keepout expanded by halo_px is removed from core"
+    }
+  ],
+  "a100_candidate_cases": [
+    "A1 first: run the keepout mask with old v14 tau5/guidance2.8 prompt and a stricter prompt; proceed to G only if A1 improves visibly."
+  ]
+}

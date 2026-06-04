@@ -1,0 +1,85 @@
+{
+  "db": "DB-20260604-40",
+  "purpose": "Forensic check: whether v14 trimap/model mask overlays the same semantic right-BMW seam area for old reference, A1, and G.",
+  "rois_2048x1024": {
+    "right_bmw": [
+      1320,
+      300,
+      1960,
+      735
+    ],
+    "right_seam": [
+      1530,
+      300,
+      1900,
+      735
+    ],
+    "lower_right": [
+      1500,
+      555,
+      2048,
+      820
+    ],
+    "long_source": [
+      820,
+      360,
+      1680,
+      735
+    ]
+  },
+  "preliminary_hypothesis": "A1/G replay reused the old hard-select seam mask coordinates on different candidate images; this can put the generate strip through the white BMW/building/sidewalk seam context and create vertical slice artifacts.",
+  "rows": [
+    {
+      "label": "old_v14_reference",
+      "input": "deliverables\\dit360_seam_completion\\runs_v14_trimap_clamp_bmw\\trimap_r008_h016_w025_tau5\\trimap_r008_h016_w025_tau5_hard_select_fullres_1024x2048.png",
+      "raw": "deliverables\\dit360_seam_completion\\runs_v14_trimap_clamp_bmw\\trimap_r008_h016_w025_tau5\\trimap_r008_h016_w025_tau5_raw_fullres_1024x2048.png",
+      "trimap": "deliverables\\dit360_seam_completion\\runs_v14_trimap_clamp_bmw\\trimap_r008_h016_w025_tau5\\trimap_r008_h016_w025_tau5_trimap_preview.jpg",
+      "model_mask": null,
+      "mask_stats": null,
+      "roi_mae_raw_vs_input": {
+        "right_bmw": 6.4047040939331055,
+        "right_seam": 7.675499439239502,
+        "lower_right": 6.319040298461914,
+        "long_source": 7.084086894989014
+      }
+    },
+    {
+      "label": "A1_view_none_v14_tau5",
+      "input": "deliverables\\a1_streetview_pipeline\\A1_view_none_L1_vs_result.jpg",
+      "raw": "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau5\\a1view_r008_h016_w025_tau5_raw.png",
+      "trimap": "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau5\\a1view_r008_h016_w025_tau5_trimap_preview.jpg",
+      "model_mask": "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau5\\a1view_r008_h016_w025_tau5_model_mask_far_preserve.png",
+      "mask_stats": {
+        "right_bmw_generate_fraction": 0.10876795977011494,
+        "right_seam_generate_fraction": 0.0976390183286735,
+        "lower_right_generate_fraction": 0.06113482991323509,
+        "long_source_generate_fraction": 0.14303875968992247
+      },
+      "roi_mae_raw_vs_input": {
+        "right_bmw": 7.656306266784668,
+        "right_seam": 9.183767318725586,
+        "lower_right": 7.207083702087402,
+        "long_source": 7.503262996673584
+      }
+    },
+    {
+      "label": "G_bmw_pano_v14_tau5",
+      "input": "deliverables\\ghostkill\\G_bmw_pano.jpg",
+      "raw": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_raw.png",
+      "trimap": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_trimap_preview.jpg",
+      "model_mask": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_model_mask_far_preserve.png",
+      "mask_stats": {
+        "right_bmw_generate_fraction": 0.10876795977011494,
+        "right_seam_generate_fraction": 0.0976390183286735,
+        "lower_right_generate_fraction": 0.06113482991323509,
+        "long_source_generate_fraction": 0.14303875968992247
+      },
+      "roi_mae_raw_vs_input": {
+        "right_bmw": 6.947418689727783,
+        "right_seam": 8.070877075195312,
+        "lower_right": 6.6391706466674805,
+        "long_source": 7.302818775177002
+      }
+    }
+  ]
+}
