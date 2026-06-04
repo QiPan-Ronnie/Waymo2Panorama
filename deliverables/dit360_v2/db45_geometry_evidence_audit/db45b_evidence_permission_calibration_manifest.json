@@ -1,0 +1,401 @@
+{
+  "db": "DB-45b",
+  "status": "existing_evidence_permission_calibration",
+  "purpose": "Convert existing LiDAR/flow/depth/parallax/fake-geometry evidence into explicit EGSR permission rules.",
+  "scope": {
+    "existing_artifacts_only": true,
+    "cpu_local_only": true,
+    "a100_used": false,
+    "network_used": false,
+    "model_download": false,
+    "model_inference": false,
+    "panorama_generation": false,
+    "panorama_repair": false,
+    "source_replacement": false,
+    "fixed_controls": 8
+  },
+  "thresholds": {
+    "min_lidar_support_frac": 0.2,
+    "min_flow_reliable_frac": 0.5,
+    "flow_only_can_promote": false,
+    "detector_clean_can_promote": false,
+    "case_level_depth_can_promote": false
+  },
+  "context": {
+    "db45_status": "running_phase0_output",
+    "db45a_route_state": "no_go_current_runtime",
+    "db45a_hf_head_config_status": 403,
+    "case_level_depth": {
+      "depth_visibility_lidar_supported_frac": 0.4496674260724221,
+      "depth_visibility_parallax_p90_px": 18.162599563598633,
+      "parallax_budget_supported_frac": 0.46042415396126435,
+      "parallax_budget_p90_px": 20.03952980041504,
+      "case_level_only": true
+    }
+  },
+  "refs": {
+    "db45_v0_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45_geometry_evidence_audit_manifest.json",
+    "db45a_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45a_vggt_feasibility_manifest.json",
+    "db25_summary": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_summary.json",
+    "db41_manifest": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+    "db36_manifest": "deliverables/dit360_v2/db36_user_redline_mask/db36_reject_review_manifest.json",
+    "db40_manifest": "deliverables/dit360_v2/db40_v14_mask_alignment/db40_a1_longsrc_review_manifest.json",
+    "depth_visibility_summary": "deliverables/depth_visibility_seam_probe/batch_summary.json",
+    "parallax_budget_summary": "deliverables/parallax_budget_map/batch_summary.json"
+  },
+  "calibration_rules": [
+    {
+      "rule_id": "target_surface_support_required",
+      "text": "Geometry repair permission requires target-surface evidence, not only a case-level seam-band metric."
+    },
+    {
+      "rule_id": "flow_only_no_promotion",
+      "text": "High forward/backward flow reliability may support a candidate, but cannot promote RED without LiDAR/raw target-surface support and visual continuity."
+    },
+    {
+      "rule_id": "detector_clean_no_promotion",
+      "text": "Object-gate PASS or netnew=0 cannot promote generated seam geometry if the seam-local surface is visually fake."
+    },
+    {
+      "rule_id": "source_sidestep_not_repair",
+      "text": "A cleaner source-selected candidate is labeled source-sidestep/handoff unless it repairs the original source seam with evidence."
+    },
+    {
+      "rule_id": "case_level_depth_no_roi_transfer",
+      "text": "Case-level depth/parallax metadata can calibrate risk, but cannot promote a DB41-like target ROI by itself."
+    },
+    {
+      "rule_id": "target_pair_required",
+      "text": "A best-flow pair cannot launder a weak target pair; target ROI and target pair support must be reported."
+    }
+  ],
+  "rows": [
+    {
+      "segment_id": "db45_clean_source_preservation",
+      "label": "DB34 source preservation positive",
+      "role": "positive-control",
+      "layer": "low-risk source boundary",
+      "claim_after_db45_v0": "source-faithful",
+      "evidence_state_db45_v0": "GREEN",
+      "calibrated_evidence_state": "GREEN",
+      "permission_delta": "unchanged",
+      "signal_summary": {
+        "source_preservation": true,
+        "noncore_byte_exact": true,
+        "generated_mask_excluded": true
+      },
+      "blocker_codes": [],
+      "false_positive_modes": [],
+      "calibration_note": "GREEN control remains GREEN because the claim is only byte-exact source preservation outside generated sky.",
+      "artifact": "deliverables/dit360_v2/db34_current_best_qa/db34_current_best_review_board.jpg"
+    },
+    {
+      "segment_id": "db45_bev_planar_road_control",
+      "label": "BEV planar-road source-faithful control",
+      "role": "positive-caveated-control",
+      "layer": "planar road + curb floor",
+      "claim_after_db45_v0": "source-faithful",
+      "evidence_state_db45_v0": "YELLOW",
+      "calibrated_evidence_state": "YELLOW",
+      "permission_delta": "unchanged",
+      "signal_summary": {
+        "planar_road_only": true,
+        "curb_or_right_line_promoted": false,
+        "case_level_depth": {
+          "depth_visibility_lidar_supported_frac": 0.4496674260724221,
+          "depth_visibility_parallax_p90_px": 18.162599563598633,
+          "parallax_budget_supported_frac": 0.46042415396126435,
+          "parallax_budget_p90_px": 20.03952980041504,
+          "case_level_only": true
+        }
+      },
+      "blocker_codes": [
+        "curb_floor_not_solved",
+        "case_level_depth_cannot_promote_target_roi"
+      ],
+      "false_positive_modes": [
+        "case_level_depth_overgeneralization"
+      ],
+      "calibration_note": "YELLOW remains YELLOW: planar-road evidence does not transfer to off-plane curb/right-line repair.",
+      "artifact": "deliverables/dit360_v2/db23_gate_fetch/seamroute/SR_bmw_bevfinal_1024x2048.png"
+    },
+    {
+      "segment_id": "db45_db32_source_sidestep_control",
+      "label": "DB32 source-sidestep handoff",
+      "role": "claim-control",
+      "layer": "source/frame selection",
+      "claim_after_db45_v0": "source-sidestep",
+      "evidence_state_db45_v0": "YELLOW",
+      "calibrated_evidence_state": "YELLOW",
+      "permission_delta": "unchanged",
+      "signal_summary": {
+        "source_sidestep": true,
+        "generated_sky_caveat": true,
+        "original_g_repair": false
+      },
+      "blocker_codes": [
+        "not_original_g_repair",
+        "not_fully_source_faithful"
+      ],
+      "false_positive_modes": [
+        "source_sidestep_overclaim"
+      ],
+      "calibration_note": "YELLOW remains YELLOW: useful Bosch-facing handoff, not a source-faithful ceiling or G repair.",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/DB32_s40_current_long_roi.jpg"
+    },
+    {
+      "segment_id": "db45_db25_longline_abstain",
+      "label": "DB25 long-line low-support ROI",
+      "role": "negative-evidence-control",
+      "layer": "low-support long-line evidence",
+      "claim_after_db45_v0": "abstain",
+      "evidence_state_db45_v0": "RED",
+      "calibrated_evidence_state": "RED",
+      "permission_delta": "unchanged",
+      "signal_summary": {
+        "near_ground_frac": 0.6233333333333333,
+        "lidar_support_frac": 0.09380416666666666,
+        "best_flow_pair": "0-1",
+        "best_flow_reliable_frac": 0.6823972206137812,
+        "key_pair_6_5_flow_frac": 0.10466278101582015,
+        "passes_lidar_threshold": false,
+        "case_level_depth": {
+          "depth_visibility_lidar_supported_frac": 0.4496674260724221,
+          "depth_visibility_parallax_p90_px": 18.162599563598633,
+          "parallax_budget_supported_frac": 0.46042415396126435,
+          "parallax_budget_p90_px": 20.03952980041504,
+          "case_level_only": true
+        }
+      },
+      "blocker_codes": [
+        "low_lidar_support",
+        "low_key_pair_flow",
+        "flow_only_cannot_promote"
+      ],
+      "false_positive_modes": [
+        "best_flow_pair_overclaim",
+        "case_level_depth_overgeneralization"
+      ],
+      "calibration_note": "RED abstain holds: best flow is not the target surface, and key-pair flow plus LiDAR support are weak.",
+      "artifact": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_evidence_montage.jpg"
+    },
+    {
+      "segment_id": "db45_db41_right_roi_abstain",
+      "label": "DB41 right ROI",
+      "role": "negative-evidence-control",
+      "layer": "right-line/curb no-evidence",
+      "claim_after_db45_v0": "abstain",
+      "evidence_state_db45_v0": "RED",
+      "calibrated_evidence_state": "RED",
+      "permission_delta": "unchanged",
+      "signal_summary": {
+        "near_ground_frac": 0.5194444444444445,
+        "lidar_support_frac": 0.08416027046783625,
+        "best_flow_pair": "3-4",
+        "best_flow_reliable_frac": 0.8625666771258237,
+        "target_pair_5_4_flow_frac": 0.6853627492575307,
+        "right_pair_6_5_flow_frac": 0.050496688741721855,
+        "passes_flow_threshold": true,
+        "passes_lidar_threshold": false,
+        "passes_db41_gate": false
+      },
+      "blocker_codes": [
+        "low_lidar_support",
+        "flow_only_cannot_promote",
+        "target_surface_not_continuous"
+      ],
+      "false_positive_modes": [
+        "flow_only_false_positive"
+      ],
+      "calibration_note": "RED abstain holds even though best-flow passes; sparse LiDAR and visual support do not establish a continuous right-line/curb surface.",
+      "artifact": "deliverables/dit360_v2/db41_rightline_evidence_gate/right_roi/db25_longline_evidence_montage.jpg"
+    },
+    {
+      "segment_id": "db45_db41_lower_right_abstain",
+      "label": "DB41 lower-right ROI",
+      "role": "hard-negative-evidence-control",
+      "layer": "lower-right no-evidence near-ground",
+      "claim_after_db45_v0": "abstain",
+      "evidence_state_db45_v0": "RED",
+      "calibrated_evidence_state": "RED",
+      "permission_delta": "unchanged",
+      "signal_summary": {
+        "near_ground_frac": 1.0,
+        "lidar_support_frac": 0.0,
+        "best_flow_pair": "3-4",
+        "best_flow_reliable_frac": 0.7306889352818372,
+        "target_pair_5_4_flow_frac": 0.5047528517110266,
+        "passes_flow_threshold": true,
+        "passes_lidar_threshold": false,
+        "passes_db41_gate": false
+      },
+      "blocker_codes": [
+        "zero_lidar_support",
+        "near_ground_no_target_surface",
+        "flow_only_cannot_promote"
+      ],
+      "false_positive_modes": [
+        "flow_only_false_positive"
+      ],
+      "calibration_note": "RED abstain is locked: all-near-ground ROI has zero LiDAR support despite flow patches.",
+      "artifact": "deliverables/dit360_v2/db41_rightline_evidence_gate/lower_right_roi/db25_longline_evidence_montage.jpg"
+    },
+    {
+      "segment_id": "db45_db36_fake_redline_reject",
+      "label": "DB36 fake right-line DiT control",
+      "role": "fake-geometry-negative",
+      "layer": "right-line/curb generated seam",
+      "claim_after_db45_v0": "reject",
+      "evidence_state_db45_v0": "RED",
+      "calibrated_evidence_state": "RED",
+      "permission_delta": "unchanged",
+      "signal_summary": {
+        "outside_mask_max_abs_diff": 0,
+        "core_fraction": 0.008163928985595703,
+        "core_mean_abs_diff": 96.83523158694001,
+        "vision_verdict": "reject: fake ground slabs/holes in corecompose; seam not cleanly solved"
+      },
+      "blocker_codes": [
+        "fake_ground_slab",
+        "fake_hole",
+        "detector_clean_cannot_promote",
+        "generated_core_not_source_truth"
+      ],
+      "false_positive_modes": [
+        "detector_clean_false_positive",
+        "mask_preservation_overclaim"
+      ],
+      "calibration_note": "RED reject holds: outside-mask preservation does not make fake generated ground source-faithful.",
+      "artifact": "deliverables/dit360_v2/db36_user_redline_mask/G_bmw_pano_user_redline_tau5_fetch/G_bmw_pano_user_redline_tau5/db36_user_redline_tau5/db36_user_redline_tau5_corecompose.png"
+    },
+    {
+      "segment_id": "db45_db40_longsrc_fake_pole_reject",
+      "label": "DB40 detector-clean fake-pole control",
+      "role": "fake-geometry-negative",
+      "layer": "long-source generated seam",
+      "claim_after_db45_v0": "reject",
+      "evidence_state_db45_v0": "RED",
+      "calibrated_evidence_state": "RED",
+      "permission_delta": "unchanged",
+      "signal_summary": {
+        "object_gate_pass": true,
+        "netnew_count": 0,
+        "selected_core_fraction": 0.0050487518310546875,
+        "vision_long_source": "FAIL: the narrower mask causes a conspicuous pole-like vertical object in raw/soft/core, so the seam edit is not source-faithful.",
+        "vision_decision": "Reject DB40 long_source-only rerun. Mask shrinking removed unrelated edit strips but DiT still hallucinates structure inside the remaining seam core."
+      },
+      "blocker_codes": [
+        "pole_like_artifact",
+        "vertical_slice",
+        "detector_clean_cannot_promote",
+        "object_gate_pass_insufficient"
+      ],
+      "false_positive_modes": [
+        "detector_clean_false_positive"
+      ],
+      "calibration_note": "RED reject holds: object-gate PASS with netnew=0 still generated a pole-like seam artifact.",
+      "artifact": "deliverables/dit360_v2/db40_v14_mask_alignment/a1_longsrc_only_fetch/a1_longsrc_only_tau5/a1_longsrc_only_tau5_raw.png"
+    }
+  ],
+  "checks": [
+    {
+      "id": "no_model_or_repair",
+      "pass": true,
+      "evidence": "DB45b uses existing JSON/images only: no A100, no model download/inference, no panorama repair."
+    },
+    {
+      "id": "no_permission_delta",
+      "pass": true,
+      "evidence": "All 8 frozen controls keep their DB45 v0 permission state."
+    },
+    {
+      "id": "no_red_promotion",
+      "pass": true,
+      "evidence": "DB25/DB41/DB36/DB40 RED controls remain RED."
+    },
+    {
+      "id": "flow_only_cannot_promote_db41_right",
+      "pass": true,
+      "evidence": "DB41 right ROI has best-flow pass but low LiDAR support, so flow-only is a false-positive mode."
+    },
+    {
+      "id": "db41_gate_required",
+      "pass": true,
+      "evidence": "DB41 ROIs can only pass through the DB41 gate; current right/lower-right thresholds both fail."
+    },
+    {
+      "id": "target_pair_required",
+      "pass": true,
+      "evidence": "Best-pair flow cannot override weak target-pair support in DB25/DB41."
+    },
+    {
+      "id": "lidar_floor_required",
+      "pass": true,
+      "evidence": "ROIs below the 0.20 LiDAR support floor remain abstain/reject."
+    },
+    {
+      "id": "db41_lower_right_zero_lidar_locked",
+      "pass": true,
+      "evidence": "DB41 lower-right remains all-near-ground with zero LiDAR target support."
+    },
+    {
+      "id": "zero_lidar_hard_fail",
+      "pass": true,
+      "evidence": "Zero-LiDAR target support is a hard fail for source-faithful geometry repair."
+    },
+    {
+      "id": "db25_key_pair_low_flow_locked",
+      "pass": true,
+      "evidence": "DB25 key right/dark-wall pair 6-5 remains low-flow despite another pair having higher flow."
+    },
+    {
+      "id": "db36_fake_geometry_rejected",
+      "pass": true,
+      "evidence": "DB36 fake slabs/holes are rejected even with outside-mask preservation."
+    },
+    {
+      "id": "outside_mask_not_core_evidence",
+      "pass": true,
+      "evidence": "Outside-mask byte-exact preservation proves containment only, not generated-core geometry."
+    },
+    {
+      "id": "generated_core_reject",
+      "pass": true,
+      "evidence": "Generated fake seam cores remain rejected instead of becoming source truth."
+    },
+    {
+      "id": "db40_detector_clean_rejected",
+      "pass": true,
+      "evidence": "DB40 object-gate PASS remains a fake-geometry reject."
+    },
+    {
+      "id": "detector_clean_not_geometry",
+      "pass": true,
+      "evidence": "Detector clean means no new detected salient object, not source-faithful geometry."
+    },
+    {
+      "id": "case_depth_diagnostic_only",
+      "pass": true,
+      "evidence": "Case-level depth/parallax remains diagnostic unless ROI-specific target-surface evidence exists."
+    },
+    {
+      "id": "db32_not_promoted",
+      "pass": true,
+      "evidence": "DB32 remains source-sidestep/handoff, not fully source-faithful or original-G repair."
+    }
+  ],
+  "decision": {
+    "gate_pass": true,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "accepted_db45_evidence": true,
+    "accepted_evidence_type": "permission-calibration-only",
+    "db45_remains_running": true,
+    "why": "Existing evidence is sufficient to formalize RED-preserving kill checks, but not sufficient to promote any RED seam."
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45b_evidence_permission_calibration_manifest.json",
+    "permission_board": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45b_permission_calibration_board.jpg",
+    "false_positive_board": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45b_false_positive_controls_board.jpg"
+  }
+}
