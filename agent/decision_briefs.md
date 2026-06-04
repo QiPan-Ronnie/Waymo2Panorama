@@ -483,3 +483,40 @@ Required vision check:
 - Board must show the acquisition queue, DB47 missing-exact holds, DB50 no-target result, DB41/DB25 abstain evidence, DB32/G claim boundary, and explicit `no repair / no remote / no token use / no RED promotion`.
 
 Result summary: DB51 accepted only `egsr-target-source-pair-acquisition-queue-only`; see the 2026-06-04 DB51 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db51_egsr_target_acquisition_queue.py` produced `deliverables/dit360_v2/db51_egsr_target_acquisition/db51_egsr_target_acquisition_manifest.json` plus board. It created no repair, no generation, no source replacement, no exact asset fetch, no remote/executor/model/HF/A100 action, no DB49e rerun, no permission change, and no RED promotion. The ranked queue is: (1) DB47f fixed-universe exact source-selection closure if secure runtime/data preconditions are satisfied; (2) DB50b LPAM/local-alignment target evidence only after a fixed segment has raw/source-pair support and protected-structure checks; (3) DB49e provenance, not seam-quality; (4) fixed-target geometry evidence only if it serves a selected DB51/DB50 target; (5) DB46/DB48 presentation-only only after explicit priority switch. DB47 has 8 exact/final gaps (seven missing exact holds plus `a105` final gap). DB25/DB41 remain acquisition blockers and repair abstains. Chat-pasted runtime/HF tokens are still not authorized as command/artifact secrets.
+
+# DB-52: DB47f secure-runtime/data intake contract
+Status: accepted / paused pending safe runtime/data path
+Route: infra / source-selection precondition
+
+Question: Can the project convert the newly available A100/HF situation into a token-safe, auditable launch contract for the next DB47f fixed-universe exact closure batch, without using chat-pasted secrets in commands or artifacts?
+
+Hypothesis: DB47f is the right next seam-quality route only after secure runtime/data preconditions are satisfied. A CPU/local contract pass can materially advance the route by freezing allowed secret sources, target data checks, launch preconditions, and kill gates so the next closure batch can run once env or a non-repo runtime secret source is available, while still stopping under the current in-process state.
+
+Why now: DB51 ranked DB47f as the next route, DB47f preflight stopped only because secure runtime/data was absent, HF gated access is now reachable, and the user has an A100 tunnel. The remaining risk is not model access; it is accidentally turning a pasted token into command/artifact state or launching an unbounded closure/fetch run.
+
+Expected evidence:
+- One CPU/local script, manifest, and board under `deliverables/dit360_v2/db52_secure_runtime_contract/`.
+- Boolean-only checks for approved secret sources: `COLAB_URL`/`COLAB_TOKEN` env, `HF_TOKEN`/configured HF auth, and optional non-repo runtime secret file path.
+- Fixed 8-anchor DB47f closure target list and required compare/final assets, inherited from DB47f/DB51.
+- A token-free launch contract that states exactly when DB47f closure may run and exactly what remains forbidden.
+- Explicit `no remote / no exec / no exact fetch / no repair / no generation / no source replacement / no source_id_map / no RED promotion` status if the safe preconditions are not available.
+
+Kill criteria:
+- Uses, echoes, stores, commits, or embeds a chat-pasted tunnel/HF token, endpoint URL, or bearer token in commands/artifacts.
+- Reads secret values when only boolean availability is needed.
+- Treats the pasted JSON as a secure runtime secret source.
+- Runs `/status`, `/exec`, A100, HF/VGGT, model inference, renderer, exact asset fetch, dataset scan, or panorama repair under this contract scope.
+- Expands beyond the fixed 8 DB47f targets.
+- Calls the contract an exact closure, source-faithful repair, original-G repair, source map, or uncaveated Bosch training-data step.
+- Promotes DB25/DB41 RED/no-evidence regions or changes DB32/G claim boundaries.
+
+Max scope:
+- CPU/local contract and readiness audit only.
+- One script, one manifest, one board.
+- No remote/network/model/data fetch, no candidate image modification, no generated pixels, no permission change, no RED promotion.
+- Output location: `deliverables/dit360_v2/db52_secure_runtime_contract/`.
+
+Required vision check:
+- Board must show the approved secret-source policy, current precondition booleans, fixed 8 DB47f targets, stop/launch decision, DB32/G/DB41 claim boundaries, and explicit no-token/no-remote/no-repair/no-RED status.
+
+Result summary: DB52 accepted only `secure-runtime-contract-only`; see the 2026-06-04 DB52 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db52_secure_runtime_contract.py` produced `deliverables/dit360_v2/db52_secure_runtime_contract/db52_secure_runtime_contract_manifest.json` plus board. Current in-process preconditions remain false: no `COLAB_URL`/`COLAB_TOKEN` env pair, no approved non-repo runtime secret file, no local target log data, and `closure_batch_allowed_now=false`. A configured local HF auth file exists, but no HF/network recheck was run under this CPU/local contract scope. DB52 ran no remote/status/exec/A100/HF/VGGT/model/renderer/exact fetch/repair/generation/source replacement/source_id_map/permission change/RED promotion. Future DB47f closure may run only after env or non-repo runtime secret source, or local target data, is available; chat-pasted JSON/token values remain rejected as command/artifact secrets.

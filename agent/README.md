@@ -6,6 +6,8 @@
 
 > **DB47f update (2026-06-04):** DB47f is now accepted only as `fixed-universe-exact-closure-preflight-only` and paused. It confirmed the fixed 8 exact/final gaps remain unresolved, local target data is absent, and no secure runtime secret source is available in-process. No exact fetch/rerun, remote/executor/A100, repair, generation, source replacement, `source_id_map`, permission change, or RED promotion occurred. The next DB47f action is exactly one bounded 8-anchor closure batch only after secure runtime/data preconditions are satisfied; do not use chat-pasted tokens in commands or artifacts.
 
+> **DB52 update (2026-06-04):** DB52 is accepted only as `secure-runtime-contract-only` and paused. It converts the DB47f unblocker into a token-safe launch contract: approved inputs are `COLAB_URL`/`COLAB_TOKEN` env vars or a non-repo runtime secret file, or replicated local target data. The current in-process state still has no env runtime pair, no approved non-repo runtime secret file, and no local target log, so `closure_batch_allowed_now=false`. Chat-pasted tunnel/HF token values remain rejected as command/artifact secrets. DB52 ran no remote/status/exec/A100/HF/VGGT/model/exact fetch/repair/generation/source replacement/`source_id_map`/RED promotion.
+
 ---
 
 ## Current Seam State (2026-05-28)

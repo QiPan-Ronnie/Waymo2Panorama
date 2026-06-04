@@ -1,0 +1,277 @@
+{
+  "db": "DB52",
+  "created_utc": "2026-06-04T23:33:28.954528+00:00",
+  "status": "accepted_contract_paused_for_safe_data_path",
+  "evidence_type": "secure-runtime-contract-only",
+  "route": "infra/source-selection-precondition",
+  "claim_boundaries": {
+    "db32_s40": "Bosch-facing handoff candidate with source-sidestep + generated-sky caveats; not fully source-faithful.",
+    "g_bmw_pano": "classic BMW failure / diagnostic reference only; not default repair base.",
+    "db41_lower_right": "no-evidence/abstain remains; known zero-LiDAR boundary is not promoted.",
+    "db47f": "fixed-universe exact source-selection closure evidence only; not original-G repair."
+  },
+  "approved_secret_source_policy": {
+    "accepted_sources": [
+      "COLAB_URL and COLAB_TOKEN process environment variables",
+      "W2P_RUNTIME_SECRET_FILE pointing to a non-repo runtime secret file",
+      "default non-repo user runtime secret file locations, existence only"
+    ],
+    "rejected_sources": [
+      "chat-pasted tunnel JSON",
+      "chat-pasted HF token",
+      "repo-local runtime/active_url.json",
+      "any command/artifact containing endpoint URLs or token values"
+    ],
+    "secret_values_read": false
+  },
+  "runtime_preconditions": {
+    "env_runtime_pair_present": false,
+    "runtime_secret_file_candidates": [
+      {
+        "source": "default_user_home",
+        "path": "C:/Users/14294/.waymo2panorama/runtime/active_url.json",
+        "exists": false,
+        "inside_repo": false,
+        "approved_as_secret_source": false,
+        "value_read": false,
+        "notes": "file existence only; content not read"
+      },
+      {
+        "source": "default_localappdata",
+        "path": "C:/Users/14294/AppData/Local/Waymo2Panorama/runtime/active_url.json",
+        "exists": false,
+        "inside_repo": false,
+        "approved_as_secret_source": false,
+        "value_read": false,
+        "notes": "file existence only; content not read"
+      },
+      {
+        "source": "repo_runtime_rejected",
+        "path": "runtime/active_url.json",
+        "exists": false,
+        "inside_repo": true,
+        "approved_as_secret_source": false,
+        "value_read": false,
+        "notes": "repo-local runtime secrets are rejected"
+      }
+    ],
+    "approved_runtime_secret_source_present": false,
+    "local_target_data_path": "data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+    "local_target_data_present": false,
+    "safe_data_path_available": false
+  },
+  "hf_preconditions": {
+    "HF_TOKEN_env_present": false,
+    "configured_hf_token_file_present": true,
+    "token_value_read": false,
+    "network_rechecked": false,
+    "notes": "HF access was not rechecked in DB52; this contract is CPU/local and network-free."
+  },
+  "fixed_db47f_targets": [
+    {
+      "candidate_id": "02a00399_a0201",
+      "anchor": 201,
+      "required": [
+        "compare",
+        "final"
+      ],
+      "missing_required_as_of_db47f": [
+        "compare",
+        "final"
+      ],
+      "db47f_closure_status": "unknown",
+      "allowed_next_action": "exact compare/final closure evidence only",
+      "claim_boundary": "source-selection/sidestep evidence only; not local seam repair"
+    },
+    {
+      "candidate_id": "02a00399_a0209",
+      "anchor": 209,
+      "required": [
+        "compare",
+        "final"
+      ],
+      "missing_required_as_of_db47f": [
+        "compare",
+        "final"
+      ],
+      "db47f_closure_status": "unknown",
+      "allowed_next_action": "exact compare/final closure evidence only",
+      "claim_boundary": "source-selection/sidestep evidence only; not local seam repair"
+    },
+    {
+      "candidate_id": "02a00399_a0210",
+      "anchor": 210,
+      "required": [
+        "compare",
+        "final"
+      ],
+      "missing_required_as_of_db47f": [
+        "compare",
+        "final"
+      ],
+      "db47f_closure_status": "unknown",
+      "allowed_next_action": "exact compare/final closure evidence only",
+      "claim_boundary": "source-selection/sidestep evidence only; not local seam repair"
+    },
+    {
+      "candidate_id": "02a00399_a0211",
+      "anchor": 211,
+      "required": [
+        "compare",
+        "final"
+      ],
+      "missing_required_as_of_db47f": [
+        "compare",
+        "final"
+      ],
+      "db47f_closure_status": "unknown",
+      "allowed_next_action": "exact compare/final closure evidence only",
+      "claim_boundary": "source-selection/sidestep evidence only; not local seam repair"
+    },
+    {
+      "candidate_id": "02a00399_a0031",
+      "anchor": 31,
+      "required": [
+        "compare",
+        "final"
+      ],
+      "missing_required_as_of_db47f": [
+        "compare",
+        "final"
+      ],
+      "db47f_closure_status": "unknown",
+      "allowed_next_action": "exact compare/final closure evidence only",
+      "claim_boundary": "source-selection/sidestep evidence only; not local seam repair"
+    },
+    {
+      "candidate_id": "02a00399_a0038",
+      "anchor": 38,
+      "required": [
+        "compare",
+        "final"
+      ],
+      "missing_required_as_of_db47f": [
+        "compare",
+        "final"
+      ],
+      "db47f_closure_status": "unknown",
+      "allowed_next_action": "exact compare/final closure evidence only",
+      "claim_boundary": "source-selection/sidestep evidence only; not local seam repair"
+    },
+    {
+      "candidate_id": "02a00399_a0040",
+      "anchor": 40,
+      "required": [
+        "compare",
+        "final"
+      ],
+      "missing_required_as_of_db47f": [
+        "compare",
+        "final"
+      ],
+      "db47f_closure_status": "unknown",
+      "allowed_next_action": "exact compare/final closure evidence only",
+      "claim_boundary": "source-selection/sidestep evidence only; not local seam repair"
+    },
+    {
+      "candidate_id": "02a00399_a0105",
+      "anchor": 105,
+      "required": [
+        "final"
+      ],
+      "missing_required_as_of_db47f": [
+        "final"
+      ],
+      "db47f_closure_status": "unknown",
+      "allowed_next_action": "exact compare/final closure evidence only",
+      "claim_boundary": "source-selection/sidestep evidence only; not local seam repair"
+    }
+  ],
+  "launch_contract": {
+    "closure_batch_allowed_now": false,
+    "if_allowed": "Run exactly one DB47f fixed-universe closure batch over the 8 listed targets, producing exact compare/final source-selection evidence only.",
+    "if_not_allowed": "Keep DB47f paused; request env or non-repo runtime secret source, or replicate target data locally.",
+    "max_scope": {
+      "target_count": 8,
+      "remote_jobs": 1,
+      "allowed_outputs": [
+        "exact compare/final assets",
+        "closure manifest",
+        "closure review board"
+      ],
+      "forbidden_outputs": [
+        "repaired ERP",
+        "generated pixels",
+        "source replacement",
+        "source_id_map",
+        "permission change",
+        "RED promotion"
+      ]
+    }
+  },
+  "actions_executed": {
+    "remote_status": false,
+    "remote_exec": false,
+    "a100": false,
+    "network": false,
+    "hf_or_vggt": false,
+    "model_inference": false,
+    "renderer_or_dataset_scan": false,
+    "exact_asset_fetch": false,
+    "repair_or_generation": false,
+    "source_replacement": false,
+    "source_id_map": false,
+    "permission_change": false,
+    "red_promotion": false
+  },
+  "hard_checks": [
+    {
+      "id": "db52_brief_exists",
+      "pass": true,
+      "evidence": "DB52 brief exists with running or accepted/paused status."
+    },
+    {
+      "id": "db51_ranked_db47f",
+      "pass": true,
+      "evidence": "DB51 recommends DB47f as the next seam-quality route if secure runtime/data is satisfied."
+    },
+    {
+      "id": "fixed_universe_eight_only",
+      "pass": true,
+      "evidence": "fixed_targets=['02a00399_a0201', '02a00399_a0209', '02a00399_a0210', '02a00399_a0211', '02a00399_a0031', '02a00399_a0038', '02a00399_a0040', '02a00399_a0105']"
+    },
+    {
+      "id": "does_not_accept_chat_pasted_json",
+      "pass": true,
+      "evidence": "DB52 accepts only env pair or non-repo runtime secret file existence; pasted JSON is not read or stored."
+    },
+    {
+      "id": "no_secret_values_read",
+      "pass": true,
+      "evidence": "Only boolean presence/path metadata was inspected."
+    },
+    {
+      "id": "stops_without_safe_data_path",
+      "pass": true,
+      "evidence": "local_target_data_present=False; approved_runtime_secret_source_present=False"
+    },
+    {
+      "id": "no_remote_or_model_action",
+      "pass": true,
+      "evidence": "No /status, /exec, A100, HF network, VGGT, renderer, exact fetch, repair, generation, or source replacement was run."
+    },
+    {
+      "id": "strict_secret_scan_zero",
+      "pass": true,
+      "evidence": "hits=0 across DB52 script, brief, and manifest."
+    }
+  ],
+  "hard_checks_pass": true,
+  "token_scan_hits": [],
+  "dependencies": {
+    "db47f_manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47f_fixed_universe_exact_closure_preflight_manifest.json",
+    "db51_manifest": "deliverables/dit360_v2/db51_egsr_target_acquisition/db51_egsr_target_acquisition_manifest.json",
+    "db47f_board": "deliverables/dit360_v2/db47_source_candidate_mining/db47f_fixed_universe_exact_closure_preflight_board.jpg",
+    "db51_board": "deliverables/dit360_v2/db51_egsr_target_acquisition/db51_egsr_target_acquisition_board.jpg"
+  }
+}
