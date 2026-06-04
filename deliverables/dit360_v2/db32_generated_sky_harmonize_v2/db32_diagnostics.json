@@ -1,0 +1,33 @@
+{
+  "db29": "deliverables\\dit360_v2\\db29_sky_clean_a200\\SR_bmw_db28_a200_sky_t50_s0_corecompose.png",
+  "mask": "deliverables\\dit360_v2\\db29_sky_clean_a200\\SR_bmw_db28_a200_opmask_sky.png",
+  "mask_convention": "white/255 preserves source; black/0 generated sky core",
+  "core_fraction": 0.37264394760131836,
+  "target_source_sky_fraction": 0.01146697998046875,
+  "target_source_sky_pixels": 24048,
+  "strengths": [
+    0.25,
+    0.4,
+    0.55
+  ],
+  "outputs": [
+    {
+      "strength": 0.25,
+      "path": "deliverables\\dit360_v2\\db32_generated_sky_harmonize_v2\\db32_generated_sky_harmonize_s25.png",
+      "noncore_max_abs_diff": 0,
+      "core_mae": 11.23638531985653
+    },
+    {
+      "strength": 0.4,
+      "path": "deliverables\\dit360_v2\\db32_generated_sky_harmonize_v2\\db32_generated_sky_harmonize_s40.png",
+      "noncore_max_abs_diff": 0,
+      "core_mae": 18.265825198242847
+    },
+    {
+      "strength": 0.55,
+      "path": "deliverables\\dit360_v2\\db32_generated_sky_harmonize_v2\\db32_generated_sky_harmonize_s55.png",
+      "noncore_max_abs_diff": 0,
+      "core_mae": 24.389015356542814
+    }
+  ]
+}
