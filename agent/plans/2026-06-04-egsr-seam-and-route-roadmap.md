@@ -55,6 +55,8 @@ DB49a Bosch data-contract inventory is completed and accepted as **bosch-data-co
 
 DB49b sidecar starter pack is completed and accepted as **sidecar-starter-pack-partial-only** evidence. Outputs are under `deliverables/dit360_v2/db49_bosch_data_contract/`, with script `scripts/phase3/db49b_sidecar_starter_pack.py`. DB49b creates only three partial DB32 sidecars from existing evidence: sky-core `generated_mask`, out-of-FOV-plus-DB41 `unknown_or_abstain_mask`, and a partial contract `risk_map`. It keeps `source_id_map_created=false`, candidate pixels unchanged, `ready_for_uncaveated_bosch_training_data=false`, DB41 right/lower-right abstain, and no repair/generation/model/executor/network/permission change/RED promotion. Future DB49 work must not treat these partial sidecars as a complete Bosch data contract.
 
+DB49c `source_id_map` feasibility and ownership-evidence inventory is completed and accepted as **source-id-map-feasibility-inventory-only** evidence. Outputs are under `deliverables/dit360_v2/db49_bosch_data_contract/`, with script `scripts/phase3/db49c_source_id_map_feasibility.py`. DB49c finds no complete per-pixel `source_id_map` artifact for the exact DB32 lineage and creates no map. DB28 and DB41 camera labels remain ROI-level diagnostic/count evidence only; DB34 source preservation is not an owner map; DB49b sidecars are not owner maps; `_seamroute.py`'s internal routed label is only a future reproducible path candidate unless a fresh bounded brief instruments/reruns the exact lineage and saves an owner artifact. `source_id_map_status=missing_blocking_not_fabricated`, `ready_for_uncaveated_bosch_training_data=false`, and no repair/generation/model/executor/network/permission change/RED promotion occurred.
+
 ---
 
 ## 0.2 Strategic Framing: Data Product / Data Contract
@@ -81,7 +83,7 @@ The practical data contract should include:
 
 This data-contract framing does not replace seam repair. It prevents seam repair from being accepted for the wrong reason.
 
-DB49a is the current inventory baseline for this section: it reports which fields are available, partial, missing, or manually required. DB49b is the current partial sidecar starter pack: it materializes only the sky-core generated mask, out-of-FOV/DB41 abstain mask, and partial risk map that can be derived from existing evidence. Future DB49 work must not convert the still-missing `source_id_map` or full sidecars into narrative claims.
+DB49a is the current inventory baseline for this section: it reports which fields are available, partial, missing, or manually required. DB49b is the current partial sidecar starter pack: it materializes only the sky-core generated mask, out-of-FOV/DB41 abstain mask, and partial risk map that can be derived from existing evidence. DB49c is the current source-ownership boundary: no complete per-pixel `source_id_map` exists in current artifacts for the exact DB32 lineage, and ROI camera-label diagnostics cannot be promoted into ownership truth. Future DB49 work must not convert the still-missing `source_id_map` or full sidecars into narrative claims.
 
 ---
 

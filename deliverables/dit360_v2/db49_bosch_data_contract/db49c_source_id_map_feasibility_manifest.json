@@ -1,0 +1,362 @@
+{
+  "db": "DB-49c",
+  "status": "source_id_map_feasibility_inventory_only",
+  "created_utc": "2026-06-04T18:48:01.594438+00:00",
+  "accepted_evidence_type": "source-id-map-feasibility-inventory-only",
+  "purpose": "Inventory existing source-ownership evidence for DB32 and preserve the source_id_map blocker without fabricating ownership.",
+  "scope": {
+    "cpu_local_only": true,
+    "existing_artifacts_only": true,
+    "candidate_pixels_modified": false,
+    "source_id_map_created": false,
+    "new_panorama_repair": false,
+    "new_generated_pixels": false,
+    "new_image_generation": false,
+    "new_dataset_scan": false,
+    "renderer_ran": false,
+    "a100_used": false,
+    "executor_used": false,
+    "network_used": false,
+    "model_inference": false,
+    "source_replacement": false,
+    "permission_change": false,
+    "red_promotions": [],
+    "output_location": "deliverables/dit360_v2/db49_bosch_data_contract"
+  },
+  "current_handoff_candidate": {
+    "path": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+    "claim_label": "caveated-handoff",
+    "ready_for_uncaveated_bosch_training_data": false,
+    "accepted_source_faithful_repair": false,
+    "source_faithful_ceiling": false,
+    "description": "DB32 s40 remains a Bosch-facing presentation/handoff candidate with source-sidestep and generated-sky caveats."
+  },
+  "source_id_map": {
+    "created": false,
+    "status": "missing_blocking_not_fabricated",
+    "complete_source_id_map_found": false,
+    "name_matched_source_id_map_candidates": [],
+    "name_matched_source_id_map_candidate_count": 0,
+    "not_created_reason": [
+      "No existing complete per-pixel source-owner map was found for the exact DB32 candidate lineage.",
+      "DB28 and DB41 camera-label evidence is ROI-level diagnostic evidence, not full-panorama source ownership.",
+      "DB34 source preservation proves unchanged pixels versus a source/mask, not per-pixel camera ownership.",
+      "_seamroute.py computes a routed label internally, but the inspected path does not save a source_id_map artifact for DB32.",
+      "RGB similarity, overlay color, and ROI rectangles are explicitly inadmissible for ownership inference."
+    ],
+    "future_admissible_route": "Under a new bounded brief, instrument or rerun the exact DB28/a200 -> DB29 -> DB32 lineage to save the routed label/source owner map alongside the candidate, then validate it against source-preservation and sidecar masks."
+  },
+  "candidate_integrity": {
+    "sha256_before": "ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930",
+    "sha256_after": "ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930",
+    "unchanged": true
+  },
+  "candidate_lineage": [
+    {
+      "stage": "DB28_source_base",
+      "path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_final_1024x2048.png",
+      "status": "source_sidestep_base"
+    },
+    {
+      "stage": "DB29_sky_completion",
+      "path": "deliverables/dit360_v2/db29_sky_clean_a200/SR_bmw_db28_a200_sky_t50_s0_corecompose.png",
+      "mask": "deliverables/dit360_v2/db29_sky_clean_a200/SR_bmw_db28_a200_opmask_sky.png",
+      "status": "generated_sky_core_with_source_preservation_caveat"
+    },
+    {
+      "stage": "DB32_s40_harmonization",
+      "path": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+      "status": "current_caveated_bosch_handoff_candidate"
+    },
+    {
+      "stage": "DB34_QA",
+      "path": "deliverables/dit360_v2/db34_current_best_qa/db34_current_best_manifest.json",
+      "status": "noncore_byte_exact_source_preservation_not_owner_map",
+      "source_preservation": {
+        "db29_noncore_vs_source": {
+          "max": 0,
+          "mae": 0.0,
+          "pixels": 1315661
+        },
+        "db32_noncore_vs_source": {
+          "max": 0,
+          "mae": 0.0,
+          "pixels": 1315661
+        },
+        "db32_noncore_vs_db29": {
+          "max": 0,
+          "mae": 0.0,
+          "pixels": 1315661
+        },
+        "db32_core_vs_db29": {
+          "max": 47,
+          "mae": 18.265825198242847,
+          "pixels": 781491
+        }
+      }
+    },
+    {
+      "stage": "DB49b_sidecars",
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_sidecar_starter_pack_manifest.json",
+      "status": "partial_sidecars_source_id_map_missing"
+    }
+  ],
+  "evidence_inventory": [
+    {
+      "id": "db28_anchor_200_roi_camera_label_counts",
+      "path": "deliverables/dit360_v2/db28_clean_subset_refine/db28_strict_clean_source_scan_summary.json",
+      "status": "partial_roi_counts_only_insufficient",
+      "evidence": {
+        "anchor": 200,
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "lidar_support_frac": 0.31566666666666665,
+        "valid_frac": 0.8400916666666667
+      },
+      "why_insufficient": "ROI aggregate camera-label counts are not a full-panorama per-pixel owner map and do not encode DB32 post-sky-completion lineage."
+    },
+    {
+      "id": "db41_right_roi_camera_label_counts",
+      "path": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+      "status": "partial_roi_counts_only_insufficient_abstain_boundary",
+      "evidence": {
+        "roi": [
+          1440,
+          360,
+          2048,
+          720
+        ],
+        "camera_label_counts": {
+          "3": 200,
+          "4": 83586,
+          "5": 82251
+        },
+        "lidar_support_frac": 0.08416027046783625,
+        "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence"
+      },
+      "why_insufficient": "DB41 labels are evidence-boundary diagnostics for a rejected/no-evidence region, not source ownership for the candidate."
+    },
+    {
+      "id": "db41_lower_right_roi_camera_label_counts",
+      "path": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+      "status": "partial_roi_counts_only_insufficient_zero_lidar_abstain",
+      "evidence": {
+        "roi": [
+          1580,
+          560,
+          2048,
+          790
+        ],
+        "camera_label_counts": {
+          "4": 27017,
+          "5": 18332
+        },
+        "lidar_support_frac": 0.0,
+        "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence"
+      },
+      "why_insufficient": "Lower-right remains zero-LiDAR abstain. Camera labels here cannot be promoted into repair permission or full source_id_map truth."
+    },
+    {
+      "id": "db34_source_preservation_manifest",
+      "path": "deliverables/dit360_v2/db34_current_best_qa/db34_current_best_manifest.json",
+      "status": "source_preservation_available_not_owner_map",
+      "evidence": {
+        "db29_noncore_vs_source": {
+          "max": 0,
+          "mae": 0.0,
+          "pixels": 1315661
+        },
+        "db32_noncore_vs_source": {
+          "max": 0,
+          "mae": 0.0,
+          "pixels": 1315661
+        },
+        "db32_noncore_vs_db29": {
+          "max": 0,
+          "mae": 0.0,
+          "pixels": 1315661
+        },
+        "db32_core_vs_db29": {
+          "max": 47,
+          "mae": 18.265825198242847,
+          "pixels": 781491
+        }
+      },
+      "why_insufficient": "Byte-exact noncore preservation proves what pixels changed versus source masks; it does not name the per-pixel camera/source owner."
+    },
+    {
+      "id": "db49b_partial_sidecars",
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_sidecar_starter_pack_manifest.json",
+      "status": "partial_sidecars_available_not_owner_map",
+      "evidence": {
+        "generated_mask": "partial_generated_mask_sky_core_only",
+        "unknown_or_abstain_mask": "partial_unknown_or_abstain_mask",
+        "risk_map": "partial_contract_risk_map",
+        "source_id_map_status": "missing_blocking_not_fabricated"
+      },
+      "why_insufficient": "Generated, unknown, and risk sidecars are not a source-owner sidecar."
+    },
+    {
+      "id": "seamroute_internal_label_path",
+      "path": "scripts/phase3/_seamroute.py",
+      "status": "future_reproducible_path_candidate_not_existing_artifact",
+      "evidence": {
+        "label_snippet_count": 4,
+        "snippets": [
+          {
+            "line": 172,
+            "snippet": "171: \n172:     label = np.stack([w.astype(np.float32) for w in w_base], 0).argmax(0)  # global base label\n173:     routed = 0"
+          },
+          {
+            "line": 209,
+            "snippet": "208:         m = lab_full >= 0\n209:         label[m] = lab_full[m]; routed += 1\n210: "
+          },
+          {
+            "line": 266,
+            "snippet": "265:                             for cam in a1.RING_CAMS_7], 0)\n266:         ground_pano = np.take_along_axis(g_stack, label[None, ..., None], axis=0)[0]   # same routed cam, ground depth\n267:         # confine to the SEAM BAND (away-from-seam road stays the clean current deliverable) AND to the"
+          },
+          {
+            "line": 296,
+            "snippet": "295:     PAL = np.array([[60, 60, 210], [60, 210, 60], [210, 60, 60], [60, 210, 210], [210, 60, 210], [210, 210, 60], [210, 130, 60]], np.uint8)\n296:     labcol = PAL[np.clip(label, 0, 6)]               # BGR camera-id colour per pixel\n297:     ngc = L1.copy(); ngc[ng_global] = (0.45 * ngc[ng_global] + np.array([0, 255, 0]) * 0.55).astype(np.uint8)"
+          }
+        ]
+      },
+      "why_insufficient": "_seamroute.py computes a routed label internally, but the inspected path does not save a source_id_map artifact for the exact DB32 lineage."
+    }
+  ],
+  "artifact_scan": {
+    "complete_source_id_map_candidates": [],
+    "related_camera_or_source_artifacts_sample": [
+      {
+        "path": "deliverables/dit360_v2/db28_clean_subset_refine/db28_strict_clean_source_scan_montage.jpg",
+        "name": "db28_strict_clean_source_scan_montage.jpg",
+        "size_bytes": 533422
+      },
+      {
+        "path": "deliverables/dit360_v2/db28_clean_subset_refine/db28_strict_clean_source_scan_summary.json",
+        "name": "db28_strict_clean_source_scan_summary.json",
+        "size_bytes": 8378
+      },
+      {
+        "path": "deliverables/dit360_v2/db41_rightline_evidence_gate/lower_right_roi/roi_camid_overlay.jpg",
+        "name": "roi_camid_overlay.jpg",
+        "size_bytes": 17181
+      },
+      {
+        "path": "deliverables/dit360_v2/db41_rightline_evidence_gate/right_roi/roi_camid_overlay.jpg",
+        "name": "roi_camid_overlay.jpg",
+        "size_bytes": 53263
+      },
+      {
+        "path": "deliverables/dit360_v2/db43_source_faithfulness_gate/db43_source_faithfulness_gate_manifest.json",
+        "name": "db43_source_faithfulness_gate_manifest.json",
+        "size_bytes": 32288
+      },
+      {
+        "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_board.jpg",
+        "name": "db49c_source_id_map_feasibility_board.jpg",
+        "size_bytes": 542605
+      },
+      {
+        "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_manifest.json",
+        "name": "db49c_source_id_map_feasibility_manifest.json",
+        "size_bytes": 14972
+      }
+    ],
+    "related_camera_or_source_artifacts_count": 7,
+    "complete_source_id_map_candidate_count": 0
+  },
+  "preconditions": {
+    "db49a_evidence_type": "bosch-data-contract-inventory-only",
+    "db49b_evidence_type": "sidecar-starter-pack-partial-only",
+    "db49b_source_id_map_status": "missing_blocking_not_fabricated"
+  },
+  "claim_boundary": [
+    "DB49c is inventory-only and does not create a source_id_map.",
+    "DB32 s40 remains caveated handoff, not fully source-faithful and not original-G/A1/BEST repair.",
+    "G_bmw_pano remains a classic BMW failure / diagnostic reference, not the default repair base.",
+    "DB41 lower-right/right-line remains no-evidence/abstain.",
+    "DB28/DB41 camera-label counts are ROI diagnostics, not source ownership truth.",
+    "DB34 source preservation is not a source-owner map.",
+    "No repair, generation, renderer, A100, executor, network, permission change, or RED promotion occurred.",
+    "ready_for_uncaveated_bosch_training_data=false."
+  ],
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_manifest.json",
+    "board": "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_board.jpg",
+    "source_id_map_png": null
+  },
+  "checks": [
+    {
+      "id": "brief_scope_is_db49c",
+      "pass": true,
+      "evidence": "DB49c sub-scope exists in decision_briefs.md before execution."
+    },
+    {
+      "id": "uses_existing_artifacts_only",
+      "pass": true,
+      "evidence": "Inputs are existing DB28/DB29/DB32/DB34/DB41/DB43/DB49 artifacts and local scripts."
+    },
+    {
+      "id": "candidate_not_modified",
+      "pass": true,
+      "evidence": "Candidate sha256 before and after DB49c inventory are identical."
+    },
+    {
+      "id": "source_id_map_not_created",
+      "pass": true,
+      "evidence": "DB49c created no source_id_map artifact."
+    },
+    {
+      "id": "no_complete_source_id_map_found_or_not_promoted",
+      "pass": true,
+      "evidence": "complete_source_id_map_candidate_count=0."
+    },
+    {
+      "id": "db28_roi_counts_not_promoted",
+      "pass": true,
+      "evidence": "DB28 camera-label counts stay ROI-only and insufficient."
+    },
+    {
+      "id": "db41_roi_labels_not_promoted",
+      "pass": true,
+      "evidence": "DB41 ROI camera labels stay abstain-boundary diagnostics."
+    },
+    {
+      "id": "seamroute_label_not_claimed_without_artifact",
+      "pass": true,
+      "evidence": "_seamroute internal label is treated as a future path, not an existing map."
+    },
+    {
+      "id": "training_ready_false",
+      "pass": true,
+      "evidence": "DB49c keeps Bosch training-data readiness false."
+    },
+    {
+      "id": "no_repair_generation_model_executor_or_network",
+      "pass": true,
+      "evidence": "Scope flags show no repair, generation, renderer, A100, executor, network, model, source replacement, or permission change."
+    },
+    {
+      "id": "no_secret_like_strings",
+      "pass": true,
+      "evidence": "Manifest text contains no HF token, bearer marker, tunnel marker, or Colab endpoint marker."
+    }
+  ]
+}
