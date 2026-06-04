@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-42 seam decision and Bosch handoff synthesis - accepted)
+> **Goal:** after DB35-41 closed the original G/A1/BEST seam repair lanes and DB38 accepted DB32, package the current state into one Bosch-facing decision artifact: what to use, what not to claim, and what evidence would be needed to reopen seam repair.
+> **What ran:** CPU-only synthesis script `scripts/phase3/db42_seam_decision_handoff.py`. It created one board, one Markdown report, and one JSON manifest from existing artifacts: DB32 current image, DB38 Bosch handoff board/manifest, DB40 A1 keepout/longsrc boards, and DB41 right-line source-evidence board/manifest. No new panorama edit, no model inference, no A100.
+> **Decision:** **ACCEPT DB32 `s40` as the current Bosch handoff candidate**, with caveats. Do **not** claim that the original `G_bmw_pano` / `A1_view_none` / `BEST_bmw_pano` right-ground seam is fixed. Original G-family seam patching, v14/DiT360 ground seam repair, donor blending, and right-white-line micro-repair are closed under current evidence.
+> **Handoff caveats:** DB32 is a source-sidestep, not an original-G repair; the foreground black car remains; the lower out-of-FOV band remains; the sky panel discontinuity is reduced but not eliminated; fake generated ground/curb is worse for Bosch/world-model data than an honest capture caveat.
+> **Locations:** `deliverables/dit360_v2/db42_seam_decision_handoff/db42_seam_decision_handoff_board.jpg`, `deliverables/dit360_v2/db42_seam_decision_handoff/db42_seam_decision_handoff_report.md`, `deliverables/dit360_v2/db42_seam_decision_handoff/db42_seam_decision_handoff_manifest.json`.
+> **Conclusion:** DB42 is the current summary/handoff packet. Reopen seam repair only if a future brief brings new raw/depth/correspondence evidence that directly passes kill criteria; otherwise use DB32 for handoff and keep G/A1/BEST as diagnostics.
+> ---
+
 > ### 2026-06-04 (DB-41 right-white-line raw-camera evidence gate - closed / repair rejected)
 > **Goal:** test the one remaining non-redundant Google/Meta-style question after DB35-40: DB25 measured the long dark-wall/source-boundary ROI, but did not isolate the exact lower-right white-line/right-ground band the user keeps marking. If that narrower band had strong raw-camera/LiDAR/flow evidence, a future source-only micro-route might be justified.
 > **What ran:** CPU-only DB25-style evidence packs on Colab/Drive for two BMW anchor-0 ROIs: `right_roi=[1440,360,2048,720]` and `lower_right_roi=[1580,560,2048,790]`. No A100 repair, no DiT, no donor blend, no prompt tuning. Built a local DB41 evidence board/manifest combining G/A1/DB32 crops, raw-camera evidence montages, kill metrics, and the existing DB22 rectilinear/right-line diagnostic.
