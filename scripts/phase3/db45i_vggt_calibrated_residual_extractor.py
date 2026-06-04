@@ -871,7 +871,7 @@ def build_manifest() -> dict[str, Any]:
             "model_inference_ran": remote.get("vggt", {}).get("inference_ok") is True,
             "permission_state_changes": "none",
             "red_promotions": [],
-            "db45_status": "running",
+            "db45_status": "pending",
             "claim_boundary": "DB45i can accept decoded residual diagnostics only; geometry evidence and permission changes require DB45b/DB45h target-surface gates.",
         },
         "refs": {
@@ -900,8 +900,10 @@ def build_manifest() -> dict[str, Any]:
     temp["decision"]["accepted_db45_geometry_evidence"] = False
     if diagnostic_accepted:
         temp["decision"]["accepted_evidence_type"] = "vggt-calibrated-residual-diagnostic-only"
+        temp["decision"]["db45_status"] = "running"
     else:
         temp["decision"]["accepted_evidence_type"] = "blocked-or-paused"
+        temp["decision"]["db45_status"] = "paused_on_executor_dns"
     if geometry_accepted:
         temp["decision"]["geometry_candidate_note"] = "All extractor hard checks passed, but DB45i still records no permission promotion; a separate permission update would be required."
     temp["decision"]["permission_state_changes"] = "none"

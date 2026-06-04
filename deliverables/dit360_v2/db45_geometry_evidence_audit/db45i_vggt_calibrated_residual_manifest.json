@@ -1,7 +1,7 @@
 {
   "db": "DB-45i",
   "status": "vggt_calibrated_residual_extractor_gate",
-  "created_utc": "2026-06-04T16:39:28.091839+00:00",
+  "created_utc": "2026-06-04T17:35:08.989307+00:00",
   "purpose": "Run or prepare one bounded VGGT calibrated residual extractor without repair or RED promotion.",
   "scope": {
     "one_a100_job_if_reachable": true,
@@ -24,7 +24,7 @@
     "model_inference_ran": false,
     "permission_state_changes": "none",
     "red_promotions": [],
-    "db45_status": "running",
+    "db45_status": "paused_on_executor_dns",
     "claim_boundary": "DB45i can accept decoded residual diagnostics only; geometry evidence and permission changes require DB45b/DB45h target-surface gates."
   },
   "refs": {
