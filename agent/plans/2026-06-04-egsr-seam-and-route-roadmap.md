@@ -31,7 +31,9 @@ DB43 Source-Faithfulness Eval v2 / Fake-Geometry Gate + EGSR triage is completed
 
 DB43 locks these next-step constraints: DB32 `s40` is caveated handoff/source-sidestep, DB41 lower-right/right-line is abstain under current evidence, prompt-only ground/curb/lane/right-line repair remains blocked, and detector-clean fake road/curb/lane/slab/pole outputs must reject by reason code rather than scalar score.
 
-DB44 is therefore the recommended next running brief if the source-faithful EGSR mainline continues. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
+DB44 Layer-aware seam routing / EGSR dispatcher v0 is completed and accepted as a CPU-only dispatcher dry-run gate. Outputs are under `deliverables/dit360_v2/db44_layer_aware_dispatcher/`, with script `scripts/phase3/db44_layer_aware_dispatcher.py`. DB44 did not repair or generate a new ERP; it mapped 29 DB43 known cases into layer/evidence/operator/claim components, kept DB41 RED/abstain, and executed no operators.
+
+DB45 is therefore the recommended next running brief if the source-faithful EGSR mainline continues. It should be evidence-only and ask whether any currently RED seam can be legitimately promoted to YELLOW/GREEN with stronger geometry/depth/flow evidence. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
 
 ---
 
@@ -222,7 +224,7 @@ If a presentation-only classic BMW attempt is opened, base selection must be a b
 
 ## 4. Planned Decision Brief Sequence
 
-These are roadmap items, not direct execution commands. DB43 is completed and accepted; DB44 is the next recommended source-faithful EGSR brief. Any remaining item must become or remain a live decision brief before work starts.
+These are roadmap items, not direct execution commands. DB43 and DB44 are completed and accepted; DB45 is the next recommended source-faithful EGSR brief. Any remaining item must become or remain a live decision brief before work starts.
 
 ### DB-43: Source-Faithfulness Eval v2 / Fake-Geometry Gate + EGSR triage (completed / accepted 2026-06-04)
 
@@ -246,6 +248,8 @@ These are roadmap items, not direct execution commands. DB43 is completed and ac
 **Max scope:** 20-30 known cases/ROIs, all from existing artifacts. This is a gate and triage brief, not a repair brief.
 
 ### DB-44: Layer-aware seam routing / EGSR dispatcher v0
+
+**Status:** completed and archived in `agent/progress.md`; do not rerun or extend this direction unless a new brief opens a source-faithful operator implementation or an evidence-state update.
 
 **Question:** Can the project turn seam taxonomy into a reusable source-faithful dispatcher where road, curb, object, lane, sky, and unknown regions receive different actions?
 

@@ -1,0 +1,1252 @@
+{
+  "db": "DB-44",
+  "status": "accepted_dry_run_gate",
+  "purpose": "Layer-aware EGSR dispatcher dry run over DB43 known cases.",
+  "scope": {
+    "cpu_only": true,
+    "existing_artifacts_only": true,
+    "new_panorama_generation": false,
+    "diffusion_or_prompt_sweep": false,
+    "a100_used": false,
+    "component_count": 29
+  },
+  "outputs": {
+    "manifest": "deliverables\\dit360_v2\\db44_layer_aware_dispatcher\\db44_layer_aware_dispatcher_manifest.json",
+    "dispatcher_board": "deliverables\\dit360_v2\\db44_layer_aware_dispatcher\\db44_layer_dispatcher_board.jpg",
+    "bmw_roi_dispatch_board": "deliverables\\dit360_v2\\db44_layer_aware_dispatcher\\db44_bmw_roi_dispatch_board.jpg",
+    "layer_evidence_board": "deliverables\\dit360_v2\\db44_layer_aware_dispatcher\\db44_layer_evidence_board.jpg",
+    "negative_controls_board": "deliverables\\dit360_v2\\db44_layer_aware_dispatcher\\db44_negative_controls_board.jpg",
+    "operator_matrix_board": "deliverables\\dit360_v2\\db44_layer_aware_dispatcher\\db44_operator_matrix_board.jpg"
+  },
+  "refs": {
+    "db43_gate_ref": "deliverables\\dit360_v2\\db43_source_faithfulness_gate\\db43_source_faithfulness_gate_manifest.json",
+    "db41_evidence_ref": "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\db41_rightline_evidence_manifest.json",
+    "db42_handoff_ref": "deliverables/dit360_v2/db42_seam_decision_handoff/db42_seam_decision_handoff_manifest.json"
+  },
+  "dispatch_policy": {
+    "GREEN": "source-faithful keep/source-only actions allowed when raw/source evidence supports them",
+    "YELLOW": "caveated source-only/source-sidestep/photometric/sky actions only with explicit masks or caveats",
+    "RED": "abstain or reject in source-faithful branch; no repair in DB44",
+    "LPAM": "not executed in DB44; future use only as a gated GREEN far/static sub-operator",
+    "DiT_FLUX": "not allowed for ground/curb/lane/right-line source-faithful repair"
+  },
+  "components": [
+    {
+      "component_id": "db44_db32_s40_full",
+      "source_case_id": "db32_s40_full",
+      "title": "DB32 s40 current handoff",
+      "artifact": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+      "roi_xyxy": null,
+      "layer": "sky + source-selection handoff",
+      "segment_type": "T8 sky + T12 source-sidestep",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O9 sky-only + O10 source/frame selection",
+      "operator_executed": false,
+      "allowed_branch": "handoff-caveated",
+      "claim_level": "caveated-handoff",
+      "source_faithful_action": "keep as caveated handoff; do not call fully source-faithful",
+      "presentation_action": "allowed with generated-sky/source-sidestep caveats",
+      "protected_structures": [],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "db34_source_preservation",
+        "db42_seam_decision_handoff"
+      ],
+      "generated_mask_required": true,
+      "unknown_or_abstain_mask_required": false,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "db32_not_fully_source_faithful",
+        "no_diffusion_source_branch",
+        "no_ground_curb_lane_rightline_generation",
+        "clean_control_no_overedit"
+      ],
+      "reason_codes": [
+        "caveated_handoff",
+        "source_sidestep",
+        "sky_generated_caveat",
+        "generated_region",
+        "not_original_g_repair",
+        "DB32 cannot become source-faithful ceiling or original-G repair"
+      ],
+      "kill_guard": "DB32 cannot become source-faithful ceiling or original-G repair",
+      "vision_check": "Use as Bosch-facing presentation/handoff candidate with caveats; not fully source-faithful and not a G/A1/BEST repair."
+    },
+    {
+      "component_id": "db44_db34_source_preservation",
+      "source_case_id": "db34_source_preservation",
+      "title": "DB34 DB32 source preservation QA",
+      "artifact": "deliverables/dit360_v2/db34_current_best_qa/db34_current_best_review_board.jpg",
+      "roi_xyxy": null,
+      "layer": "low-risk source boundary",
+      "segment_type": "T0 non-core source preservation",
+      "evidence_state": "GREEN",
+      "dispatch_operator": "O0 keep source pixels",
+      "operator_executed": false,
+      "allowed_branch": "source-faithful",
+      "claim_level": "source-faithful",
+      "source_faithful_action": "positive control for byte-exact non-core source pixels",
+      "presentation_action": "not needed",
+      "protected_structures": [
+        "lane_or_right_line",
+        "road_topology",
+        "building"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": false,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "clean_control_no_overedit"
+      ],
+      "reason_codes": [
+        "source_preserved",
+        "noncore_byte_exact",
+        "positive_control",
+        "positive control does not upgrade full DB32 to source-faithful"
+      ],
+      "kill_guard": "positive control does not upgrade full DB32 to source-faithful",
+      "vision_check": "Positive control for DB32 non-core source pixels: buildings, road, vehicles, and skyline are byte-exact outside generated sky core."
+    },
+    {
+      "component_id": "db44_db32_top_sky",
+      "source_case_id": "db32_top_sky",
+      "title": "DB32 top sky generated/captured mix",
+      "artifact": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_top_montage.jpg",
+      "roi_xyxy": null,
+      "layer": "out-of-FOV sky",
+      "segment_type": "T8 generated sky",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O9 sky-only generated fill",
+      "operator_executed": false,
+      "allowed_branch": "presentation-only",
+      "claim_level": "presentation-only",
+      "source_faithful_action": "not source-faithful; expose generated mask",
+      "presentation_action": "allowed as sky-only generated region with mask",
+      "protected_structures": [],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": true,
+      "unknown_or_abstain_mask_required": false,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_diffusion_source_branch",
+        "no_ground_curb_lane_rightline_generation"
+      ],
+      "reason_codes": [
+        "generated_region",
+        "sky_generated_caveat",
+        "residual_sky_panel",
+        "not_ground_truth",
+        "sky-generation acceptance cannot transfer to ground/curb/lane"
+      ],
+      "kill_guard": "sky-generation acceptance cannot transfer to ground/curb/lane",
+      "vision_check": "Generated sky can be accepted only with explicit caveat and mask; residual captured-sky panel remains visible."
+    },
+    {
+      "component_id": "db44_db32_s40_long_roi",
+      "source_case_id": "db32_s40_long_roi",
+      "title": "DB32 long seam ROI",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/DB32_s40_current_long_roi.jpg",
+      "roi_xyxy": null,
+      "layer": "source/frame selection",
+      "segment_type": "T12 source/frame candidate",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O10 source/frame selection",
+      "operator_executed": false,
+      "allowed_branch": "source-sidestep",
+      "claim_level": "source-sidestep",
+      "source_faithful_action": "valid only as source-sidestep, not local repair",
+      "presentation_action": "show separately from classic-G diagnostics",
+      "protected_structures": [],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "g_bmw_long",
+        "db28_a200_source_long"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": false,
+      "kill_check_ids": [
+        "manifest_completeness"
+      ],
+      "reason_codes": [
+        "source_sidestep",
+        "not_original_g_repair",
+        "do not mix DB32 sidestep with original-G seam repair"
+      ],
+      "kill_guard": "do not mix DB32 sidestep with original-G seam repair",
+      "vision_check": "Cleaner than classic G because the source base changed; cannot be claimed as a repaired original-G seam."
+    },
+    {
+      "component_id": "db44_db28_a200_source_long",
+      "source_case_id": "db28_a200_source_long",
+      "title": "DB28 a200 source long ROI",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/DB28_a200_source_long_roi.jpg",
+      "roi_xyxy": null,
+      "layer": "source/frame selection",
+      "segment_type": "T12 source/frame candidate",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O10 source/frame selection",
+      "operator_executed": false,
+      "allowed_branch": "source-sidestep",
+      "claim_level": "source-sidestep",
+      "source_faithful_action": "candidate source base; no local seam repair claim",
+      "presentation_action": "may support handoff lineage",
+      "protected_structures": [],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "db32_s40_long_roi",
+        "db31_nonbmw_montage"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": false,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "clean_control_no_overedit"
+      ],
+      "reason_codes": [
+        "source_sidestep",
+        "candidate_not_final",
+        "source selection must not be described as repaired seam"
+      ],
+      "kill_guard": "source selection must not be described as repaired seam",
+      "vision_check": "Accepted as better source candidate; still not proof that a local seam was repaired."
+    },
+    {
+      "component_id": "db44_bevfinal_source_faithful",
+      "source_case_id": "bevfinal_source_faithful",
+      "title": "BEV/seamroute source-faithful ceiling",
+      "artifact": "deliverables/dit360_v2/db23_gate_fetch/seamroute/SR_bmw_bevfinal_1024x2048.png",
+      "roi_xyxy": null,
+      "layer": "planar road + curb floor",
+      "segment_type": "T3 planar road + T5 curb floor",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O4 BEV road atlas + O0 curb abstain",
+      "operator_executed": false,
+      "allowed_branch": "source-faithful",
+      "claim_level": "source-faithful",
+      "source_faithful_action": "allow BEV road only where planar-road evidence is valid",
+      "presentation_action": "not needed",
+      "protected_structures": [
+        "vehicle",
+        "curb",
+        "road_topology"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "g_bmw_long",
+        "db41_right_roi"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": false,
+      "kill_check_ids": [
+        "manifest_completeness"
+      ],
+      "reason_codes": [
+        "source_faithful",
+        "curb_floor",
+        "out_of_fov_caveat",
+        "BEV road does not make off-plane curb/right-line repairable"
+      ],
+      "kill_guard": "BEV road does not make off-plane curb/right-line repairable",
+      "vision_check": "Source-faithful ceiling for the current BMW-style route: road can improve, curb/out-of-FOV remains bounded."
+    },
+    {
+      "component_id": "db44_g_bmw_long",
+      "source_case_id": "g_bmw_long",
+      "title": "G_bmw_pano long seam",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/G_bmw_pano_long_roi.jpg",
+      "roi_xyxy": null,
+      "layer": "classic long source-boundary seam",
+      "segment_type": "T1/T2/T5 classic BMW seam",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 keep/mark risk",
+      "operator_executed": false,
+      "allowed_branch": "diagnostic-only",
+      "claim_level": "diagnostic",
+      "source_faithful_action": "abstain from repair under current evidence",
+      "presentation_action": "reference only; base choice requires separate brief",
+      "protected_structures": [
+        "vehicle"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "db32_s40_long_roi",
+        "db24_source_boundary",
+        "db25_longline_evidence"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "g_is_diagnostic_only"
+      ],
+      "reason_codes": [
+        "classic_bmw_failure_reference",
+        "not_default_repair_base",
+        "source_boundary",
+        "G is diagnostic failure reference, not default repair base"
+      ],
+      "kill_guard": "G is diagnostic failure reference, not default repair base",
+      "vision_check": "Classic BMW failure / diagnostic reference; visually judged unsuitable as default repair base."
+    },
+    {
+      "component_id": "db44_g_bmw_right",
+      "source_case_id": "g_bmw_right",
+      "title": "G_bmw_pano right-line",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/G_bmw_pano_right_roi.jpg",
+      "roi_xyxy": null,
+      "layer": "right-line/curb/no-evidence",
+      "segment_type": "T4/T5/T10 right line/curb",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 keep/abstain",
+      "operator_executed": false,
+      "allowed_branch": "abstain",
+      "claim_level": "diagnostic",
+      "source_faithful_action": "abstain unless new evidence changes DB41",
+      "presentation_action": "presentation cleanup requires separate brief and masks",
+      "protected_structures": [
+        "vehicle",
+        "lane_or_right_line",
+        "curb"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "db41_right_roi",
+        "db41_lower_right",
+        "a1_view_none_right",
+        "best_bmw_right"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "g_is_diagnostic_only"
+      ],
+      "reason_codes": [
+        "classic_bmw_failure_reference",
+        "right_line_failure",
+        "no_source_evidence_pending_db41",
+        "right-line/curb cannot be repaired from current DB41 evidence"
+      ],
+      "kill_guard": "right-line/curb cannot be repaired from current DB41 evidence",
+      "vision_check": "Right-line/curb region remains visibly wrong and is not repairable under current DB41 evidence."
+    },
+    {
+      "component_id": "db44_a1_view_none_right",
+      "source_case_id": "a1_view_none_right",
+      "title": "A1_view_none right ROI",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/A1_view_none_right_roi.jpg",
+      "roi_xyxy": null,
+      "layer": "object-adjacent seam",
+      "segment_type": "T6/T7 object-adjacent seam",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 keep/mark risk",
+      "operator_executed": false,
+      "allowed_branch": "diagnostic-only",
+      "claim_level": "diagnostic",
+      "source_faithful_action": "diagnostic only; no accepted seam repair",
+      "presentation_action": "possible base only after base-selection brief",
+      "protected_structures": [
+        "object"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "g_bmw_right",
+        "db40_keepout_core",
+        "db40_longsrc_raw"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair"
+      ],
+      "reason_codes": [
+        "diagnostic_only",
+        "parallax_residual",
+        "not_final",
+        "A1 smoother regions cannot override long/right seam failures"
+      ],
+      "kill_guard": "A1 smoother regions cannot override long/right seam failures",
+      "vision_check": "Smoother in places but still not accepted as long/right seam repair."
+    },
+    {
+      "component_id": "db44_best_bmw_right",
+      "source_case_id": "best_bmw_right",
+      "title": "BEST right ROI",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/BEST_bmw_pano_right_roi.jpg",
+      "roi_xyxy": null,
+      "layer": "object/building ghost",
+      "segment_type": "T6/T7 object/building ghost",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject as source repair/donor",
+      "presentation_action": "do not use unless future brief re-proves donor safety",
+      "protected_structures": [
+        "object",
+        "building"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "g_bmw_right",
+        "db35_best_donor"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair"
+      ],
+      "reason_codes": [
+        "ghosting",
+        "unsafe_donor",
+        "not_source_faithful",
+        "donor ghosting is not a source-faithful improvement"
+      ],
+      "kill_guard": "donor ghosting is not a source-faithful improvement",
+      "vision_check": "Ghosted source/donor candidate; unsafe as production repair source."
+    },
+    {
+      "component_id": "db44_db19_g_sky_only",
+      "source_case_id": "db19_g_sky_only",
+      "title": "DB19 G sky-only",
+      "artifact": "deliverables/dit360_v2/db19_G_bmw_pano_sky_t50_s0_postcompose_thr45.png",
+      "roi_xyxy": null,
+      "layer": "sky-only generated region",
+      "segment_type": "T8 generated sky",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O9 sky-only generated fill",
+      "operator_executed": false,
+      "allowed_branch": "presentation-only",
+      "claim_level": "presentation-only",
+      "source_faithful_action": "not source-faithful; ground seam unchanged",
+      "presentation_action": "allowed only with generated sky mask and ground caveat",
+      "protected_structures": [],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": true,
+      "unknown_or_abstain_mask_required": false,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_diffusion_source_branch",
+        "no_ground_curb_lane_rightline_generation"
+      ],
+      "reason_codes": [
+        "generated_region",
+        "sky_generated_caveat",
+        "ground_seam_unchanged",
+        "sky-only G output cannot become ground seam repair"
+      ],
+      "kill_guard": "sky-only G output cannot become ground seam repair",
+      "vision_check": "Sky-only generated output can be useful, but classic G ground/right seam remains."
+    },
+    {
+      "component_id": "db44_db23_ground_core",
+      "source_case_id": "db23_ground_core",
+      "title": "DB23 ground outpaint",
+      "artifact": "deliverables/dit360_v2/db23_d4b_fetch/ground_t50_s0/ground_t50_s0_corecompose.png",
+      "roi_xyxy": null,
+      "layer": "generated ground/curb/lane",
+      "segment_type": "T9 generated ground",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject fake generated ground geometry",
+      "presentation_action": "negative control only",
+      "protected_structures": [
+        "lane_marking",
+        "curb",
+        "road_topology"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "db36_user_redline",
+        "db39_g_v14_raw",
+        "db40_longsrc_raw"
+      ],
+      "generated_mask_required": true,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "fake_geometry_controls_reject",
+        "no_diffusion_source_branch",
+        "no_ground_curb_lane_rightline_generation"
+      ],
+      "reason_codes": [
+        "fake_road",
+        "fake_lane",
+        "fake_curb",
+        "generated_region",
+        "detector_clean_but_geometry_fake",
+        "prompt-only ground outpaint remains blocked"
+      ],
+      "kill_guard": "prompt-only ground outpaint remains blocked",
+      "vision_check": "Detector-clean output invents lower road/lane/curb geometry; not Bosch training data."
+    },
+    {
+      "component_id": "db44_db23_full_core",
+      "source_case_id": "db23_full_core",
+      "title": "DB23 full outpaint",
+      "artifact": "deliverables/dit360_v2/db23_d4b_fetch/full_t50_s0/full_t50_s0_corecompose.png",
+      "roi_xyxy": null,
+      "layer": "full generated scene",
+      "segment_type": "T8/T9 full generated out-of-FOV",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject net-new scene/object content",
+      "presentation_action": "negative generated-control only",
+      "protected_structures": [
+        "object",
+        "road_topology"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": true,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "no_diffusion_source_branch",
+        "no_ground_curb_lane_rightline_generation"
+      ],
+      "reason_codes": [
+        "generated_region",
+        "net_new_object",
+        "traffic_light",
+        "fake_scene",
+        "full outpaint cannot be Bosch training-data truth"
+      ],
+      "kill_guard": "full outpaint cannot be Bosch training-data truth",
+      "vision_check": "Full outpaint fails object gate and generates broad non-source scene content."
+    },
+    {
+      "component_id": "db44_db36_user_redline",
+      "source_case_id": "db36_user_redline",
+      "title": "DB36 user red-line DiT",
+      "artifact": "deliverables/dit360_v2/db36_user_redline_mask/G_bmw_pano_user_redline_tau5_fetch/G_bmw_pano_user_redline_tau5/db36_user_redline_tau5/db36_user_redline_tau5_corecompose.png",
+      "roi_xyxy": null,
+      "layer": "right-line/curb generated seam",
+      "segment_type": "T4/T5 ground/curb/right-line",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject detector-clean fake slabs/holes",
+      "presentation_action": "negative control only",
+      "protected_structures": [
+        "object",
+        "lane_or_right_line",
+        "curb",
+        "road_topology"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "db23_ground_core",
+        "db41_lower_right"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "fake_geometry_controls_reject"
+      ],
+      "reason_codes": [
+        "fake_road",
+        "fake_curb",
+        "fake_slab",
+        "black_hole_or_patchy_hole",
+        "detector_clean_but_geometry_fake",
+        "outside_mask_ok_but_core_fake",
+        "narrow prompt mask cannot bypass fake-geometry gate"
+      ],
+      "kill_guard": "narrow prompt mask cannot bypass fake-geometry gate",
+      "vision_check": "Ultra-narrow mask preserved outside pixels and passed object gate, but generated fake ground slabs/holes."
+    },
+    {
+      "component_id": "db44_db39_g_v14_raw",
+      "source_case_id": "db39_g_v14_raw",
+      "title": "DB39 G v14 raw",
+      "artifact": "deliverables/dit360_v2/db14_g_bmw_pano_fetch/G_bmw_pano/g_r008_h016_w025_tau5/g_r008_h016_w025_tau5_raw.png",
+      "roi_xyxy": null,
+      "layer": "v14 generated right seam",
+      "segment_type": "T4/T5 v14 seam",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject vertical slice/pole-like artifact",
+      "presentation_action": "negative v14 control only",
+      "protected_structures": [
+        "pole"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "g_bmw_right",
+        "db40_longsrc_raw"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "fake_geometry_controls_reject"
+      ],
+      "reason_codes": [
+        "vertical_slice",
+        "pole_like_artifact",
+        "detector_clean_but_geometry_fake",
+        "not_source_faithful",
+        "old v14 raw artifact cannot become default route"
+      ],
+      "kill_guard": "old v14 raw artifact cannot become default route",
+      "vision_check": "Existing exact v14 G replay introduces a right-side vertical generated slice/pole-like artifact."
+    },
+    {
+      "component_id": "db44_db39_best_v14_raw",
+      "source_case_id": "db39_best_v14_raw",
+      "title": "DB39 BEST v14 raw",
+      "artifact": "deliverables/dit360_v2/db14_best_bmw_pano_fetch/BEST_bmw_pano/best_r008_h016_w025_tau5/best_r008_h016_w025_tau5_raw.png",
+      "roi_xyxy": null,
+      "layer": "v14 generated donor seam",
+      "segment_type": "T6/T7 donor ghost + v14 seam",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject ghost/slice donor path",
+      "presentation_action": "negative v14 donor control only",
+      "protected_structures": [
+        "object"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "fake_geometry_controls_reject"
+      ],
+      "reason_codes": [
+        "ghosting",
+        "vertical_slice",
+        "fake_slab",
+        "net_new_object",
+        "BEST donor cannot hide fake slice artifacts"
+      ],
+      "kill_guard": "BEST donor cannot hide fake slice artifacts",
+      "vision_check": "Inherits BEST ghosting and adds slab/slice artifacts; object gate fails."
+    },
+    {
+      "component_id": "db44_db39_a1_v14_raw",
+      "source_case_id": "db39_a1_v14_raw",
+      "title": "DB39 A1 v14 raw",
+      "artifact": "deliverables/dit360_v2/db14_a1_view_none_fetch/A1_view_none_bmw/a1view_r008_h016_w025_tau5/a1view_r008_h016_w025_tau5_raw.png",
+      "roi_xyxy": null,
+      "layer": "v14 generated A1 seam",
+      "segment_type": "T6/T7 object-adjacent v14 seam",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject A1 vertical slice path",
+      "presentation_action": "negative v14 A1 control only",
+      "protected_structures": [
+        "object"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "a1_view_none_right",
+        "db40_keepout_core"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "fake_geometry_controls_reject"
+      ],
+      "reason_codes": [
+        "vertical_slice",
+        "object_shape_changed",
+        "mask_source_mismatch",
+        "A1 v14 cannot reopen prompt-only ground seam"
+      ],
+      "kill_guard": "A1 v14 cannot reopen prompt-only ground seam",
+      "vision_check": "Turns A1 right seam into a visible vertical slice; supports DB40 mask/source mismatch diagnosis."
+    },
+    {
+      "component_id": "db44_db40_keepout_core",
+      "source_case_id": "db40_keepout_core",
+      "title": "DB40 A1 keepout",
+      "artifact": "deliverables/dit360_v2/db40_v14_mask_alignment/a1_keepout_strict_fetch/a1_keepout_strict/a1_keepout_strict_tau5/a1_keepout_strict_tau5_corecompose.png",
+      "roi_xyxy": null,
+      "layer": "object keepout diagnostic",
+      "segment_type": "T6/T7 object keepout",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O7 object-aware ownership diagnostic",
+      "operator_executed": false,
+      "allowed_branch": "diagnostic-only",
+      "claim_level": "diagnostic",
+      "source_faithful_action": "use root-cause insight only; not final seam repair",
+      "presentation_action": "possible mask-design evidence only",
+      "protected_structures": [
+        "object",
+        "vehicle"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "a1_view_none_right",
+        "db40_longsrc_raw"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness"
+      ],
+      "reason_codes": [
+        "root_cause_supported",
+        "partial_pass",
+        "vertical_edit_bands",
+        "not_final",
+        "keepout removing BMW slab does not solve long-source seam"
+      ],
+      "kill_guard": "keepout removing BMW slab does not solve long-source seam",
+      "vision_check": "Explains and locally reduces the A1 right-BMW slab, but leaves visible vertical edit bands."
+    },
+    {
+      "component_id": "db44_db40_longsrc_raw",
+      "source_case_id": "db40_longsrc_raw",
+      "title": "DB40 A1 longsrc raw",
+      "artifact": "deliverables/dit360_v2/db40_v14_mask_alignment/a1_longsrc_only_fetch/a1_longsrc_only_tau5/a1_longsrc_only_tau5_raw.png",
+      "roi_xyxy": null,
+      "layer": "long-source generated seam",
+      "segment_type": "T1/T2 long-source seam",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject pole-like artifact despite object-gate pass",
+      "presentation_action": "negative control only",
+      "protected_structures": [
+        "object",
+        "pole"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "db40_keepout_core",
+        "db39_g_v14_raw"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "fake_geometry_controls_reject"
+      ],
+      "reason_codes": [
+        "pole_like_artifact",
+        "vertical_slice",
+        "detector_clean_but_geometry_fake",
+        "object gate pass is insufficient"
+      ],
+      "kill_guard": "object gate pass is insufficient",
+      "vision_check": "Narrower long-source mask produces a conspicuous pole-like vertical object despite object-gate PASS."
+    },
+    {
+      "component_id": "db44_db35_best_donor",
+      "source_case_id": "db35_best_donor",
+      "title": "DB35 BEST donor patch",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/db35_rightline_best_donor_patch.png",
+      "roi_xyxy": null,
+      "layer": "right-line donor patch",
+      "segment_type": "T4/T5 donor right-line",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject unsafe donor blend",
+      "presentation_action": "negative donor control only",
+      "protected_structures": [
+        "vehicle",
+        "lane_or_right_line"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair"
+      ],
+      "reason_codes": [
+        "unsafe_donor",
+        "ghosting",
+        "minimal_improvement",
+        "donor patch must not be patched-on-patch"
+      ],
+      "kill_guard": "donor patch must not be patched-on-patch",
+      "vision_check": "BEST donor barely changes the line and carries ghost risk."
+    },
+    {
+      "component_id": "db44_db35_a1_donor",
+      "source_case_id": "db35_a1_donor",
+      "title": "DB35 A1 donor patch",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/db35_rightline_a1_donor_patch.png",
+      "roi_xyxy": null,
+      "layer": "right-line donor patch",
+      "segment_type": "T4/T5 donor right-line",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject blur/slab donor blend",
+      "presentation_action": "negative donor control only",
+      "protected_structures": [
+        "lane_or_right_line"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair"
+      ],
+      "reason_codes": [
+        "blur",
+        "soft_ground",
+        "not_source_faithful",
+        "A1 donor softening is not line repair"
+      ],
+      "kill_guard": "A1 donor softening is not line repair",
+      "vision_check": "A1 donor softens/blurs lower-right ground and still does not straighten the seam."
+    },
+    {
+      "component_id": "db44_db25_longline_evidence",
+      "source_case_id": "db25_longline_evidence",
+      "title": "DB25 long-line evidence",
+      "artifact": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_evidence_montage.jpg",
+      "roi_xyxy": null,
+      "layer": "low-support long-line evidence",
+      "segment_type": "T10 low-support dark-wall/near-ground",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 evidence-only abstain",
+      "operator_executed": false,
+      "allowed_branch": "evidence-only",
+      "claim_level": "abstain",
+      "source_faithful_action": "keep/abstain; do not warp low-support dark-wall seam",
+      "presentation_action": "diagnostic evidence only",
+      "protected_structures": [
+        "lane_or_right_line"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair"
+      ],
+      "reason_codes": [
+        "no_source_evidence",
+        "low_lidar_support",
+        "low_key_pair_flow",
+        "low_flow_reliability",
+        "multi_camera_source_boundary",
+        "near_ground_low_texture",
+        "unknown_or_abstain",
+        "red_region_no_repair",
+        "flow/LiDAR weakness blocks geometry warp"
+      ],
+      "kill_guard": "flow/LiDAR weakness blocks geometry warp",
+      "vision_check": "Long-line ROI lacks reliable full-line correspondence; geometry warp should abstain."
+    },
+    {
+      "component_id": "db44_db24_source_boundary",
+      "source_case_id": "db24_source_boundary",
+      "title": "DB24 long-line source-boundary diagnosis",
+      "artifact": "deliverables/dit360_v2/db24_google_meta_line_diag/db24_longline_source_diag_montage.jpg",
+      "roi_xyxy": null,
+      "layer": "source/camera-id boundary",
+      "segment_type": "T10 source-boundary low-evidence seam",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 explain/mark risk",
+      "operator_executed": false,
+      "allowed_branch": "evidence-only",
+      "claim_level": "abstain",
+      "source_faithful_action": "mark source-boundary risk; no blind production-style warp",
+      "presentation_action": "diagnostic evidence only",
+      "protected_structures": [
+        "lane_or_right_line"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair"
+      ],
+      "reason_codes": [
+        "source_boundary",
+        "multi_camera_source_boundary",
+        "near_ground_low_texture",
+        "production_overlap_missing",
+        "unknown_or_abstain",
+        "red_region_no_repair",
+        "Google/Meta analogy requires evidence not present here"
+      ],
+      "kill_guard": "Google/Meta analogy requires evidence not present here",
+      "vision_check": "Explains why Google/Meta-style repair is blocked: the line is a source/camera-id boundary through near-ground/dark-wall low-texture content."
+    },
+    {
+      "component_id": "db44_db26_photometric_smudge",
+      "source_case_id": "db26_photometric_smudge",
+      "title": "DB26 photometric attenuation",
+      "artifact": "deliverables/dit360_v2/db26_photometric_fetch/db26_attenuated_roi_montage.jpg",
+      "roi_xyxy": null,
+      "layer": "photometric-only attempt",
+      "segment_type": "T1 photometric-only seam attempt",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject color wash/smudge path",
+      "presentation_action": "negative low-frequency control only",
+      "protected_structures": [
+        "lane_or_right_line"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": false,
+      "kill_check_ids": [
+        "manifest_completeness"
+      ],
+      "reason_codes": [
+        "low_frequency_smudge",
+        "donor_blur_or_smudge",
+        "geometry_unchanged",
+        "line_not_fixed",
+        "photometric polish cannot cross into smudge/no geometry fix"
+      ],
+      "kill_guard": "photometric polish cannot cross into smudge/no geometry fix",
+      "vision_check": "Even source-safe low-frequency attenuation fails the seam claim and risks dark-wall color wash/smudge."
+    },
+    {
+      "component_id": "db44_db41_right_roi",
+      "source_case_id": "db41_right_roi",
+      "title": "DB41 right ROI",
+      "artifact": "deliverables/dit360_v2/db41_rightline_evidence_gate/right_roi/db25_longline_evidence_montage.jpg",
+      "roi_xyxy": null,
+      "layer": "right-line/curb no-evidence",
+      "segment_type": "T4/T5 right-line/curb",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 abstain",
+      "operator_executed": false,
+      "allowed_branch": "abstain",
+      "claim_level": "abstain",
+      "source_faithful_action": "RED abstain; no source-faithful repair",
+      "presentation_action": "only a separately labeled presentation branch may edit",
+      "protected_structures": [
+        "lane_or_right_line",
+        "curb"
+      ],
+      "evidence_metrics": {
+        "roi_valid_frac": 0.7585754751461988,
+        "near_ground_frac": 0.5194444444444445,
+        "lidar_support_frac": 0.08416027046783625,
+        "best_flow_pair": "3-4",
+        "best_flow_reliable_frac": 0.8625666771258237,
+        "top_camera_labels": [
+          4,
+          5,
+          3
+        ],
+        "passes_db41_gate": false,
+        "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence"
+      },
+      "comparison_refs": [
+        "g_bmw_right",
+        "db41_lower_right"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "db41_right_roi_abstains",
+        "protected_topology_guard"
+      ],
+      "reason_codes": [
+        "no_source_evidence",
+        "low_lidar_support",
+        "right_line_boundary",
+        "unknown_or_abstain",
+        "red_region_no_repair",
+        "DB41 right ROI must remain abstain"
+      ],
+      "kill_guard": "DB41 right ROI must remain abstain",
+      "vision_check": "Flow has local reliable patches but LiDAR support is too sparse for continuous white-line/curb repair."
+    },
+    {
+      "component_id": "db44_db41_lower_right",
+      "source_case_id": "db41_lower_right",
+      "title": "DB41 lower-right ROI",
+      "artifact": "deliverables/dit360_v2/db41_rightline_evidence_gate/lower_right_roi/db25_longline_evidence_montage.jpg",
+      "roi_xyxy": null,
+      "layer": "lower-right no-evidence near-ground",
+      "segment_type": "T4/T5/T10 lower-right line/curb",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 abstain",
+      "operator_executed": false,
+      "allowed_branch": "abstain",
+      "claim_level": "abstain",
+      "source_faithful_action": "RED abstain; zero-LiDAR target support",
+      "presentation_action": "only a separately labeled presentation branch may edit",
+      "protected_structures": [
+        "lane_or_right_line",
+        "curb"
+      ],
+      "evidence_metrics": {
+        "roi_valid_frac": 0.42130248978075063,
+        "near_ground_frac": 1.0,
+        "lidar_support_frac": 0.0,
+        "best_flow_pair": "3-4",
+        "best_flow_reliable_frac": 0.7306889352818372,
+        "top_camera_labels": [
+          4,
+          5
+        ],
+        "passes_db41_gate": false,
+        "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence"
+      },
+      "comparison_refs": [
+        "g_bmw_right",
+        "db41_right_roi"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "db41_lower_right_abstains",
+        "protected_topology_guard"
+      ],
+      "reason_codes": [
+        "no_source_evidence",
+        "zero_lidar_support",
+        "near_ground",
+        "unknown_or_abstain",
+        "red_region_no_repair",
+        "DB41 lower-right must remain abstain"
+      ],
+      "kill_guard": "DB41 lower-right must remain abstain",
+      "vision_check": "All near-ground ROI has zero LiDAR support on the actual target surface; source-faithful repair must abstain."
+    },
+    {
+      "component_id": "db44_db30_sky_mask_preview",
+      "source_case_id": "db30_sky_mask_preview",
+      "title": "DB30 sky-panel mask",
+      "artifact": "deliverables/dit360_v2/db30_sky_panel_a200/opmask_sky_panel_preview.jpg",
+      "roi_xyxy": null,
+      "layer": "unsafe sky mask",
+      "segment_type": "T8 sky mask with foreground bleed",
+      "evidence_state": "RED",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject mask that touches non-sky content",
+      "presentation_action": "negative mask-control only",
+      "protected_structures": [
+        "object",
+        "road_topology",
+        "building"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "db32_top_sky",
+        "db33_s50_sky_halo"
+      ],
+      "generated_mask_required": true,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness",
+        "no_red_region_repair",
+        "no_diffusion_source_branch",
+        "no_ground_curb_lane_rightline_generation"
+      ],
+      "reason_codes": [
+        "mask_leaks_to_buildings",
+        "mask_leaks_to_objects",
+        "generated_region",
+        "sky branch must not touch buildings/vehicles/road"
+      ],
+      "kill_guard": "sky branch must not touch buildings/vehicles/road",
+      "vision_check": "Rejected before DiT because automatic sky-panel mask included buildings/vehicle/road-adjacent pixels."
+    },
+    {
+      "component_id": "db44_db33_s50_sky_halo",
+      "source_case_id": "db33_s50_sky_halo",
+      "title": "DB33 local sky s50",
+      "artifact": "deliverables/dit360_v2/db33_local_sky_boundary_harmonize/db33_local_sky_boundary_harmonize_s50.png",
+      "roi_xyxy": null,
+      "layer": "sky harmonization artifact",
+      "segment_type": "T8 sky harmonization",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O0 reject",
+      "operator_executed": false,
+      "allowed_branch": "rejected",
+      "claim_level": "reject",
+      "source_faithful_action": "reject source-safe but visually worse sky halo",
+      "presentation_action": "negative sky-polish control only",
+      "protected_structures": [],
+      "evidence_metrics": {},
+      "comparison_refs": [
+        "db32_top_sky",
+        "db32_s40_full"
+      ],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": false,
+      "kill_check_ids": [
+        "manifest_completeness"
+      ],
+      "reason_codes": [
+        "sky_halo",
+        "diagonal_color_band",
+        "source_safe_but_visual_fail",
+        "source-safe numerically still needs vision gate"
+      ],
+      "kill_guard": "source-safe numerically still needs vision gate",
+      "vision_check": "Source pixels are preserved, but local sky halos/diagonal bands make it worse than DB32."
+    },
+    {
+      "component_id": "db44_db31_nonbmw_montage",
+      "source_case_id": "db31_nonbmw_montage",
+      "title": "DB31 relaxed scan failures",
+      "artifact": "deliverables/dit360_v2/db31_multilog_candidate_scan/db31_full_montage.jpg",
+      "roi_xyxy": null,
+      "layer": "dataset/source selection failure",
+      "segment_type": "T12 dataset mining",
+      "evidence_state": "YELLOW",
+      "dispatch_operator": "O10 source/frame selection reject",
+      "operator_executed": false,
+      "allowed_branch": "evidence-only",
+      "claim_level": "diagnostic",
+      "source_faithful_action": "record rejected candidates; keep scan bounded",
+      "presentation_action": "not a presentation base",
+      "protected_structures": [
+        "vehicle"
+      ],
+      "evidence_metrics": {},
+      "comparison_refs": [],
+      "generated_mask_required": false,
+      "unknown_or_abstain_mask_required": true,
+      "kill_check_ids": [
+        "manifest_completeness"
+      ],
+      "reason_codes": [
+        "dataset_mining_control",
+        "no_successor_found",
+        "not_top10_only",
+        "dataset mining must report failures, not cherry-pick"
+      ],
+      "kill_guard": "dataset mining must report failures, not cherry-pick",
+      "vision_check": "Bounded scan did not find a better non-BMW successor; useful as source-selection accounting."
+    }
+  ],
+  "counts": {
+    "evidence_state": {
+      "YELLOW": 10,
+      "GREEN": 1,
+      "RED": 18
+    },
+    "allowed_branch": {
+      "handoff-caveated": 1,
+      "source-faithful": 2,
+      "presentation-only": 2,
+      "source-sidestep": 2,
+      "diagnostic-only": 3,
+      "abstain": 3,
+      "rejected": 13,
+      "evidence-only": 3
+    },
+    "claim_level": {
+      "caveated-handoff": 1,
+      "source-faithful": 2,
+      "presentation-only": 2,
+      "source-sidestep": 2,
+      "diagnostic": 5,
+      "reject": 13,
+      "abstain": 4
+    }
+  },
+  "kill_checks": [
+    {
+      "name": "DB41 right-line/lower-right remain RED abstain",
+      "pass": true
+    },
+    {
+      "name": "No RED component is assigned a repair operator",
+      "pass": true
+    },
+    {
+      "name": "DB32 full is caveated handoff, not fully source-faithful",
+      "pass": true
+    },
+    {
+      "name": "G_bmw_pano is diagnostic only, not default repair base",
+      "pass": true
+    },
+    {
+      "name": "Generated ground/curb/lane/right-line cases reject",
+      "pass": true
+    },
+    {
+      "name": "Sky generation is presentation-only or handoff-caveated",
+      "pass": true
+    },
+    {
+      "name": "LPAM is not executed in DB44 dry run",
+      "pass": true
+    },
+    {
+      "name": "No DB44 operator executes in dry run",
+      "pass": true
+    },
+    {
+      "name": "Manifest completeness for every component",
+      "pass": true
+    },
+    {
+      "name": "Component count is within DB44 max scope",
+      "pass": true
+    }
+  ],
+  "gate_pass": true,
+  "next_recommendation": "DB44 can be archived as dispatcher v0. A follow-up DB44 extension may implement a source-faithful operator only on GREEN/YELLOW non-RED segments with explicit raw/source evidence; DB45 evidence audit is the safer next main step if the question is whether any RED seam can become YELLOW/GREEN."
+}

@@ -20,6 +20,7 @@ Result summary: TBD → archive to progress.md when done, then delete here.
 ```
 
 > **DONE THIS SESSION (2026-06-03, A100) — full record in `progress.md` (top "DiT360 SESSION SYNTHESIS" entry); kept here only as pointers so this queue stays short:**
+> - **DB-44 Layer-aware seam routing / EGSR dispatcher v0** = **ACCEPTED dry-run gate**: mapped 29 DB43 known cases into layer/evidence/operator/claim components. No operator executed, no RED repair, DB41 right/lower-right abstain, DB32 caveated handoff, G diagnostic only. Results: `deliverables/dit360_v2/db44_layer_aware_dispatcher/`. Detail in progress.md.
 > - **DB-43 Source-Faithfulness Eval v2 / Fake-Geometry Gate + EGSR triage** = **ACCEPTED gate**: built reason-coded known-case manifest/boards and locked DB44 preconditions. DB32 is caveated handoff/source-sidestep, DB41 remains abstain, fake road/curb/lane/slab/pole outputs reject, and G remains diagnostic only. Results: `deliverables/dit360_v2/db43_source_faithfulness_gate/`. Detail in progress.md.
 > - **DB-42 seam decision and Bosch handoff synthesis** = **ACCEPTED**: packaged DB32 as current Bosch handoff candidate with explicit caveats and consolidated DB37-41 negative evidence. Results: `deliverables/dit360_v2/db42_seam_decision_handoff/`. Detail in progress.md.
 > - **DB-41 right-white-line raw-camera evidence gate** = **CLOSED / repair rejected**: exact right/lower-right white-line ROIs fail the source-evidence gate (`right_roi` LiDAR 0.084; `lower_right_roi` LiDAR 0.000), and vision shows no continuous source-faithful white-line/curb geometry. Results: `deliverables/dit360_v2/db41_rightline_evidence_gate/`. Detail in progress.md.
@@ -63,58 +64,6 @@ Shared hard constraints for all briefs below:
 - Keep source-faithful, evidence-only, and presentation-only outputs separate. Any generated/presentation output must carry explicit `generated_mask` / edit mask and must not be described as Bosch training-data truth.
 - `G_bmw_pano` is the classic BMW failure / diagnostic reference and has been visually rejected as the default repair base. Any classic BMW presentation attempt must choose its base from existing same-ROI boards before generation.
 - If any brief hits its kill criteria, stop that direction, write the result to `progress.md`, and do not continue patch-on-patch under the same direction.
-
-# DB-44: Layer-aware seam routing / EGSR dispatcher v0
-Status: proposed
-Route: A (geometry) / EGSR source-faithful dispatcher
-
-Question: Can the project turn seam taxonomy into a reusable source-faithful dispatcher where road, curb, object, lane, sky, and unknown regions receive different actions?
-
-Hypothesis: Prior DP/depth-aware/superpixel routes failed because they optimized local smoothness or source swaps without understanding layers. A layer-aware dispatcher can preserve source-faithfulness by sending planar road, far/static structure, object boundaries, curb/lane, sky, and no-evidence regions to different operators.
-
-Why now: DB35-42 closed the current G/A1/BEST prompt/donor/v14/right-line routes, and DB43 is now the accepted precondition gate. Together they define the layer boundaries we need: planar road can be helped by BEV; curb/off-plane ground often must abstain; objects need single-source ownership; sky can be generated only with masks.
-
-Expected evidence:
-- Layer map per seam component: `sky`, `planar_road`, `lane_marking`, `curb`, `object`, `object_adjacent`, `facade_or_far_static`, `out_of_fov`, `unknown_or_no_evidence`, `sensor_or_exposure`.
-- Evidence state per component: `GREEN`, `YELLOW`, or `RED`.
-- Operator map per component: `keep`, `abstain`, `source_only_hard_select`, `object_ownership`, `graph_cut_reroute`, `BEV_road`, `low_frequency_polish`, `LPAM_local_alignment_if_GREEN`.
-- Source-faithful output only; no diffusion in the training/source-faithful branch.
-- Comparison against L1/hard_select, current seamroute/BEV, DB32 source-sidestep where relevant, and known negative G/A1/BEST references.
-
-Candidate operators:
-- O0 keep/abstain.
-- O1 source-only hard select.
-- O2 graph-cut / seam routing through low-risk source boundary.
-- O3 low-frequency color/Y polish.
-- O4 BEV road atlas / planar road layer.
-- O5 LPAM-style local patch alignment only for evidence-GREEN far/static co-visible segments.
-- O7 object-aware seam ownership / object moat.
-
-Important sub-operator rule:
-- LPAM is **not** a first-wave standalone brief. It is only allowed inside DB-44 as a gated operator on evidence-GREEN far/static segments. It must not run on DB41 lower-right/right-line, curb/no-evidence, or object-interior seams.
-
-Kill criteria:
-- Dispatcher behaves like prior depth-aware DP/superpixel routing and creates blocky source swaps.
-- Cannot classify planar road versus curb/off-plane ground.
-- Cuts protected objects, wheels, people, lane markings, curb edges, signs, or poles.
-- Fails to abstain on DB41 lower-right/right-line.
-- Source NCC/raw consistency collapses versus hard_select/seamroute.
-- LPAM/local alignment bends object, curb, lane, or protected topology.
-- No visible improvement on easy far/static or planar GREEN/YELLOW segments.
-- Method improves BMW only and over-edits cleaner `a200`/DB32-like cases.
-
-Max scope:
-- 8-12 panoramas or 20-30 seam components maximum.
-- No RED-region repair.
-- No diffusion, no prompt sweep, no A100 unless a later sub-brief explicitly opens a GPU operator.
-- CPU-first if implemented as board/manifest/dispatcher dry run.
-
-Required vision check:
-- Same-ROI review for BMW classic seam segments: long seam, right BMW/object-adjacent, right white-line/curb, sky, lower out-of-FOV.
-- Include at least one clean/source-sidestep case to prove the dispatcher does not over-edit good candidates.
-- Include DB41 lower-right as mandatory abstain negative control.
-
-Result summary: TBD -> archive to `progress.md` when done, then delete this brief.
 
 # DB-45: Geometry foundation evidence audit
 Status: proposed
