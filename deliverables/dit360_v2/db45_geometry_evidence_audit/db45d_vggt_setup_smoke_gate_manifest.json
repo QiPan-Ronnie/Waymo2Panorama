@@ -1,7 +1,7 @@
 {
   "db": "DB-45d",
   "status": "vggt_setup_smoke_gate",
-  "created_utc": "2026-06-04T14:31:03.695370+00:00",
+  "created_utc": "2026-06-04T21:42:20.704944+00:00",
   "purpose": "Check whether the A100 runtime can load official VGGT Commercial and expose real confidence-capable API fields before any AV seam inference.",
   "scope": {
     "official_vggt_setup": true,
@@ -27,7 +27,7 @@
         "--depth",
         "..."
       ],
-      "duration_s": 5.55,
+      "duration_s": 1.83,
       "returncode": 0,
       "tail": "Cloning into '/content/vggt_db45d/vggt'...\n"
     },
@@ -74,12 +74,12 @@
       "torchvision": true
     },
     "disk_free_gb_after": {
-      "/content": 59.51,
-      "/content/drive/MyDrive/koi_waymo2pano_colab": 56.54
+      "/content": 59.53,
+      "/content/drive/MyDrive/koi_waymo2pano_colab": 56.55
     },
     "disk_free_gb_before": {
-      "/content": 64.35,
-      "/content/drive/MyDrive/koi_waymo2pano_colab": 61.13
+      "/content": 64.37,
+      "/content/drive/MyDrive/koi_waymo2pano_colab": 61.15
     },
     "editable_install_no_deps": {
       "cmd": [
@@ -88,11 +88,11 @@
         "pip",
         "..."
       ],
-      "duration_s": 6.0,
+      "duration_s": 6.17,
       "returncode": 0,
       "tail": ""
     },
-    "ended_utc": "2026-06-04T14:28:16Z",
+    "ended_utc": "2026-06-04T21:42:15Z",
     "hf_cache_sample": [
       {
         "rel": "hub/CACHEDIR.TAG",
@@ -125,7 +125,7 @@
     ],
     "model_load": {
       "class": "VGGT",
-      "duration_s": 39.74,
+      "duration_s": 133.99,
       "heads_present": {
         "aggregator": true,
         "camera_head": true,
@@ -182,7 +182,7 @@
       "returncode": 0,
       "tail": "all small deps already importable"
     },
-    "started_utc": "2026-06-04T14:27:13Z",
+    "started_utc": "2026-06-04T21:39:42Z",
     "torch": {
       "cuda_available": true,
       "cuda_device": "NVIDIA A100-SXM4-40GB",
@@ -192,10 +192,10 @@
       "version": "2.11.0+cu128"
     },
     "colab_job": {
-      "job_id": "6a83f5c518f84b0c9f6abd81eaf9f831",
+      "job_id": "4f2a42dd77b3400b9106eadc3c0921da",
       "state": "done",
       "exit_code": 0,
-      "duration_s": 66.51567459106445
+      "duration_s": 154.53688263893127
     }
   },
   "official_confidence_api": {
@@ -218,7 +218,7 @@
       "id": "remote_job_completed",
       "pass": true,
       "severity": "blocker",
-      "evidence": "Colab job 6a83f5c518f84b0c9f6abd81eaf9f831 exit=0 error=None."
+      "evidence": "Colab job 4f2a42dd77b3400b9106eadc3c0921da exit=0 error=None."
     },
     {
       "id": "official_repo_available",

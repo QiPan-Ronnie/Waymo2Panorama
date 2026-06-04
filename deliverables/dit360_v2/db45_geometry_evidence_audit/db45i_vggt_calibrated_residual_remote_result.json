@@ -14,23 +14,752 @@
     "diffusion_or_refiner": false,
     "red_promotion": false
   },
-  "started_utc": "2026-06-04T21:27:55Z",
+  "started_utc": "2026-06-04T21:42:45Z",
   "secret_policy": "HF token read from environment only; not written to output.",
-  "error": {
-    "type": "ModuleNotFoundError",
-    "message": "No module named 'vggt'",
-    "trace_tail": "Traceback (most recent call last):\n  File \"<string>\", line 256, in <module>\nModuleNotFoundError: No module named 'vggt'\n"
+  "vggt": {
+    "inference_ok": true,
+    "model_id": "facebook/VGGT-1B-Commercial",
+    "duration_s": 18.04,
+    "input_tensor_shape": [
+      7,
+      3,
+      518,
+      518
+    ],
+    "prediction_keys": [
+      "depth",
+      "depth_conf",
+      "images",
+      "pose_enc",
+      "pose_enc_list",
+      "world_points",
+      "world_points_conf"
+    ],
+    "world_points_shape": [
+      7,
+      518,
+      518,
+      3
+    ],
+    "pose_enc_shape": [
+      7,
+      9
+    ],
+    "decoded_extrinsics_shape": [
+      7,
+      3,
+      4
+    ],
+    "decoded_intrinsics_shape": [
+      7,
+      3,
+      3
+    ],
+    "cuda_free_gb_after": 26.77
+  },
+  "saved_outputs": {
+    "pose_enc_values": [
+      [
+        0.000107,
+        -0.000146,
+        -9.4e-05,
+        3.7e-05,
+        6.2e-05,
+        0.00014,
+        0.999984,
+        0.834899,
+        0.832062
+      ],
+      [
+        0.013983,
+        -0.002949,
+        0.014762,
+        0.016644,
+        0.365609,
+        0.01014,
+        0.93044,
+        1.031426,
+        1.026688
+      ],
+      [
+        0.010506,
+        -0.002553,
+        0.004622,
+        0.015871,
+        0.742538,
+        0.019518,
+        0.667432,
+        1.031536,
+        1.02665
+      ],
+      [
+        -0.00154,
+        -0.00602,
+        0.012926,
+        0.000527,
+        0.972964,
+        0.002944,
+        0.229762,
+        1.05285,
+        1.048683
+      ],
+      [
+        0.007411,
+        -0.007718,
+        -0.021043,
+        -0.0062,
+        -0.974367,
+        0.00331,
+        0.23283,
+        1.040131,
+        1.035407
+      ],
+      [
+        -0.021032,
+        -0.001901,
+        -0.011886,
+        0.010718,
+        -0.759181,
+        -0.013525,
+        0.647582,
+        1.034174,
+        1.026015
+      ],
+      [
+        -0.016602,
+        -0.002193,
+        0.013256,
+        0.018119,
+        -0.361413,
+        -0.007616,
+        0.93123,
+        0.975659,
+        0.968089
+      ]
+    ],
+    "decoded_extrinsics": [
+      [
+        [
+          1.0,
+          -0.00028,
+          0.000123,
+          0.000107
+        ],
+        [
+          0.00028,
+          1.0,
+          -7.3e-05,
+          -0.000146
+        ],
+        [
+          -0.000123,
+          7.3e-05,
+          1.0,
+          -9.4e-05
+        ]
+      ],
+      [
+        [
+          0.732392,
+          -0.006701,
+          0.68085,
+          0.013983
+        ],
+        [
+          0.031047,
+          0.99924,
+          -0.023563,
+          -0.002949
+        ],
+        [
+          -0.680175,
+          0.038396,
+          0.732044,
+          0.014762
+        ]
+      ],
+      [
+        [
+          -0.106296,
+          -0.002491,
+          0.994331,
+          0.010506
+        ],
+        [
+          0.04975,
+          0.998731,
+          0.00782,
+          -0.002553
+        ],
+        [
+          -0.993089,
+          0.050299,
+          -0.106037,
+          0.004622
+        ]
+      ],
+      [
+        [
+          -0.894361,
+          -0.000328,
+          0.447346,
+          -0.00154
+        ],
+        [
+          0.002379,
+          0.999982,
+          0.005489,
+          -0.00602
+        ],
+        [
+          -0.447339,
+          0.005974,
+          -0.894344,
+          0.012926
+        ]
+      ],
+      [
+        [
+          -0.891899,
+          0.010503,
+          -0.452114,
+          0.007411
+        ],
+        [
+          0.013575,
+          0.999902,
+          -0.003549,
+          -0.007718
+        ],
+        [
+          0.452032,
+          -0.009303,
+          -0.891953,
+          -0.021043
+        ]
+      ],
+      [
+        [
+          -0.157689,
+          0.001248,
+          -0.987488,
+          -0.021032
+        ],
+        [
+          -0.033926,
+          0.999402,
+          0.00668,
+          -0.001901
+        ],
+        [
+          0.986906,
+          0.034555,
+          -0.157552,
+          -0.011886
+        ]
+      ],
+      [
+        [
+          0.738173,
+          0.00109,
+          -0.674611,
+          -0.016602
+        ],
+        [
+          -0.027331,
+          0.999226,
+          -0.028292,
+          -0.002193
+        ],
+        [
+          0.674058,
+          0.039322,
+          0.737631,
+          0.013256
+        ]
+      ]
+    ],
+    "decoded_intrinsics": [
+      [
+        [
+          586.21106,
+          0.0,
+          259.0
+        ],
+        [
+          0.0,
+          583.968872,
+          259.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      [
+        [
+          459.417603,
+          0.0,
+          259.0
+        ],
+        [
+          0.0,
+          456.884308,
+          259.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      [
+        [
+          459.437866,
+          0.0,
+          259.0
+        ],
+        [
+          0.0,
+          456.825287,
+          259.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      [
+        [
+          447.832916,
+          0.0,
+          259.0
+        ],
+        [
+          0.0,
+          445.687347,
+          259.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      [
+        [
+          454.771667,
+          0.0,
+          259.0
+        ],
+        [
+          0.0,
+          452.284119,
+          259.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      [
+        [
+          459.779114,
+          0.0,
+          259.0
+        ],
+        [
+          0.0,
+          455.424286,
+          259.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      [
+        [
+          492.61792,
+          0.0,
+          259.0
+        ],
+        [
+          0.0,
+          488.123718,
+          259.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    ],
+    "preprocess_mapping": [
+      {
+        "mode": "crop",
+        "target_size": 518,
+        "raw_width": 1550,
+        "raw_height": 2048,
+        "new_width": 518,
+        "new_height": 686,
+        "crop_y": 84,
+        "post_crop_height": 518,
+        "post_crop_width": 518,
+        "final_height": 518,
+        "final_width": 518,
+        "pad_top": 0,
+        "pad_left": 0
+      },
+      {
+        "mode": "crop",
+        "target_size": 518,
+        "raw_width": 2048,
+        "raw_height": 1550,
+        "new_width": 518,
+        "new_height": 392,
+        "crop_y": 0,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "final_height": 518,
+        "final_width": 518,
+        "pad_top": 63,
+        "pad_left": 0
+      },
+      {
+        "mode": "crop",
+        "target_size": 518,
+        "raw_width": 2048,
+        "raw_height": 1550,
+        "new_width": 518,
+        "new_height": 392,
+        "crop_y": 0,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "final_height": 518,
+        "final_width": 518,
+        "pad_top": 63,
+        "pad_left": 0
+      },
+      {
+        "mode": "crop",
+        "target_size": 518,
+        "raw_width": 2048,
+        "raw_height": 1550,
+        "new_width": 518,
+        "new_height": 392,
+        "crop_y": 0,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "final_height": 518,
+        "final_width": 518,
+        "pad_top": 63,
+        "pad_left": 0
+      },
+      {
+        "mode": "crop",
+        "target_size": 518,
+        "raw_width": 2048,
+        "raw_height": 1550,
+        "new_width": 518,
+        "new_height": 392,
+        "crop_y": 0,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "final_height": 518,
+        "final_width": 518,
+        "pad_top": 63,
+        "pad_left": 0
+      },
+      {
+        "mode": "crop",
+        "target_size": 518,
+        "raw_width": 2048,
+        "raw_height": 1550,
+        "new_width": 518,
+        "new_height": 392,
+        "crop_y": 0,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "final_height": 518,
+        "final_width": 518,
+        "pad_top": 63,
+        "pad_left": 0
+      },
+      {
+        "mode": "crop",
+        "target_size": 518,
+        "raw_width": 2048,
+        "raw_height": 1550,
+        "new_width": 518,
+        "new_height": 392,
+        "crop_y": 0,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "final_height": 518,
+        "final_width": 518,
+        "pad_top": 63,
+        "pad_left": 0
+      }
+    ],
+    "vggt_camera_centers": {
+      "ring_front_center": [
+        -0.000107,
+        0.000147,
+        9.4e-05
+      ],
+      "ring_front_left": [
+        -0.000109,
+        0.002473,
+        -0.020397
+      ],
+      "ring_side_left": [
+        0.005834,
+        0.002344,
+        -0.009936
+      ],
+      "ring_rear_left": [
+        0.00442,
+        0.005942,
+        0.012282
+      ],
+      "ring_rear_right": [
+        0.016227,
+        0.007444,
+        -0.015446
+      ],
+      "ring_side_right": [
+        0.008349,
+        0.002336,
+        -0.022629
+      ],
+      "ring_front_right": [
+        0.00326,
+        0.001688,
+        -0.021039
+      ]
+    },
+    "waymo_rig_camera_centers": {
+      "ring_front_center": [
+        1.629104,
+        -0.01331,
+        1.45314
+      ],
+      "ring_front_left": [
+        1.54957,
+        0.2033,
+        1.438022
+      ],
+      "ring_side_left": [
+        1.305059,
+        0.274337,
+        1.448077
+      ],
+      "ring_rear_left": [
+        1.094272,
+        0.123661,
+        1.441953
+      ],
+      "ring_rear_right": [
+        1.097831,
+        -0.137142,
+        1.442177
+      ],
+      "ring_side_right": [
+        1.309692,
+        -0.278611,
+        1.447251
+      ],
+      "ring_front_right": [
+        1.554869,
+        -0.197736,
+        1.44426
+      ]
+    }
+  },
+  "sim3_alignment": {
+    "available": true,
+    "pass_contract_initial_thresholds": false,
+    "scale": 12.564328,
+    "reflection_detected": true,
+    "det_R": 1.0,
+    "mean_residual_m": 0.217991,
+    "max_residual_m": 0.319168,
+    "per_camera_residual_m": {
+      "ring_front_center": 0.319168,
+      "ring_front_left": 0.281944,
+      "ring_side_left": 0.273717,
+      "ring_rear_left": 0.170781,
+      "ring_rear_right": 0.168906,
+      "ring_side_right": 0.168018,
+      "ring_front_right": 0.143402
+    },
+    "thresholds": {
+      "max_center_rms_m": 0.5,
+      "max_center_residual_m": 1.0,
+      "reflection_allowed": false
+    }
+  },
+  "target_surface_residuals": {
+    "db25_longline": {
+      "roi_xyxy": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "known_lidar_support_frac": 0.094,
+      "coverage_valid_frac": 0.840092,
+      "owner_vggt_valid_frac_of_roi": 0.802392,
+      "sampled_point_count": 4938,
+      "sim3_applied": true,
+      "erp_reprojection_error_px": {
+        "valid": 1.0,
+        "n": 4938,
+        "mean": 649.952087,
+        "med": 607.328491,
+        "p10": 232.126114,
+        "p90": 1165.668945,
+        "std": 342.687195
+      },
+      "owner_raw_reprojection_error_px": {
+        "valid": 0.338599,
+        "n": 1672,
+        "mean": 2372.752441,
+        "med": 2309.346191,
+        "p10": 1100.222534,
+        "p90": 3700.071533,
+        "std": 1031.747559
+      },
+      "nearest_lidar_radius_px": 3,
+      "nearest_lidar_match_frac_of_samples": 0.251721,
+      "nearest_lidar_3d_residual_m": {
+        "valid": 0.251721,
+        "n": 1243,
+        "mean": 15.882721,
+        "med": 13.319297,
+        "p10": 2.168939,
+        "p90": 34.182594,
+        "std": 16.104097
+      },
+      "admissibility": {
+        "target_surface_lidar_gate_pass": false,
+        "permission_promotion_allowed": false,
+        "reason": "candidate residual diagnostic only; DB45b permission update must be decided locally and DB41 lower-right remains zero-LiDAR abstain"
+      }
+    },
+    "db41_right_roi": {
+      "roi_xyxy": [
+        1440,
+        360,
+        2048,
+        720
+      ],
+      "known_lidar_support_frac": 0.084,
+      "coverage_valid_frac": 0.758575,
+      "owner_vggt_valid_frac_of_roi": 0.758553,
+      "sampled_point_count": 4884,
+      "sim3_applied": true,
+      "erp_reprojection_error_px": {
+        "valid": 1.0,
+        "n": 4884,
+        "mean": 377.058624,
+        "med": 340.09552,
+        "p10": 175.970932,
+        "p90": 642.817322,
+        "std": 174.213379
+      },
+      "owner_raw_reprojection_error_px": {
+        "valid": 0.953112,
+        "n": 4655,
+        "mean": 7611.122559,
+        "med": 2401.202148,
+        "p10": 804.265869,
+        "p90": 10756.242188,
+        "std": 38707.824219
+      },
+      "nearest_lidar_radius_px": 3,
+      "nearest_lidar_match_frac_of_samples": 0.217445,
+      "nearest_lidar_3d_residual_m": {
+        "valid": 0.217445,
+        "n": 1062,
+        "mean": 6.874891,
+        "med": 3.850346,
+        "p10": 0.8222,
+        "p90": 14.664086,
+        "std": 9.063171
+      },
+      "admissibility": {
+        "target_surface_lidar_gate_pass": false,
+        "permission_promotion_allowed": false,
+        "reason": "candidate residual diagnostic only; DB45b permission update must be decided locally and DB41 lower-right remains zero-LiDAR abstain"
+      }
+    },
+    "db41_lower_right_roi": {
+      "roi_xyxy": [
+        1580,
+        560,
+        2048,
+        790
+      ],
+      "known_lidar_support_frac": 0.0,
+      "coverage_valid_frac": 0.421302,
+      "owner_vggt_valid_frac_of_roi": 0.421256,
+      "sampled_point_count": 4535,
+      "sim3_applied": true,
+      "erp_reprojection_error_px": {
+        "valid": 1.0,
+        "n": 4535,
+        "mean": 442.948944,
+        "med": 413.149994,
+        "p10": 215.951492,
+        "p90": 711.799683,
+        "std": 180.235382
+      },
+      "owner_raw_reprojection_error_px": {
+        "valid": 0.994928,
+        "n": 4512,
+        "mean": 17281.113281,
+        "med": 1547.436279,
+        "p10": 554.485779,
+        "p90": 10519.979492,
+        "std": 339407.5
+      },
+      "nearest_lidar_radius_px": 3,
+      "nearest_lidar_match_frac_of_samples": 0.153252,
+      "nearest_lidar_3d_residual_m": {
+        "valid": 0.153252,
+        "n": 695,
+        "mean": 4.254191,
+        "med": 1.390691,
+        "p10": 0.222048,
+        "p90": 14.024811,
+        "std": 5.478682
+      },
+      "admissibility": {
+        "target_surface_lidar_gate_pass": false,
+        "permission_promotion_allowed": false,
+        "reason": "candidate residual diagnostic only; DB45b permission update must be decided locally and DB41 lower-right remains zero-LiDAR abstain"
+      }
+    }
   },
   "db45b_permission_boundary": {
     "accepted_db45_geometry_evidence": false,
     "permission_state_changes": "none",
-    "red_promotions": []
+    "red_promotions": [],
+    "claim": "DB45i remote result is residual evidence candidate only until local DB45b/DB45h hard checks pass."
   },
+  "finished_utc": "2026-06-04T21:43:22Z",
   "colab_job": {
-    "job_id": "07381bc2c9d44811bf8717ffca5a1582",
+    "job_id": "c0d6d25edfcb48548c9dfd89d474c366",
     "state": "done",
     "exit_code": 0,
-    "duration_s": 7.001963376998901,
+    "duration_s": 38.509297370910645,
     "status_runtime_type": "colab-gpu",
     "status_gpu_name": "NVIDIA A100-SXM4-40GB"
   }
