@@ -1,7 +1,7 @@
 {
   "db": "DB-45i",
   "status": "vggt_calibrated_residual_extractor_gate",
-  "created_utc": "2026-06-04T17:35:08.989307+00:00",
+  "created_utc": "2026-06-04T21:30:50.679412+00:00",
   "purpose": "Run or prepare one bounded VGGT calibrated residual extractor without repair or RED promotion.",
   "scope": {
     "one_a100_job_if_reachable": true,
@@ -24,7 +24,7 @@
     "model_inference_ran": false,
     "permission_state_changes": "none",
     "red_promotions": [],
-    "db45_status": "paused_on_executor_dns",
+    "db45_status": "paused_on_runtime_vggt_import_missing",
     "claim_boundary": "DB45i can accept decoded residual diagnostics only; geometry evidence and permission changes require DB45b/DB45h target-surface gates."
   },
   "refs": {
@@ -37,24 +37,39 @@
   },
   "remote_result": {
     "db": "DB-45i",
-    "error": {
-      "type": "URLError",
-      "message": "<urlopen error [Errno 11001] getaddrinfo failed>",
-      "stage": "status_or_submit_exec"
-    },
+    "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+    "anchor": 0,
     "scope": {
-      "model_inference": false,
+      "one_log": true,
+      "one_anchor": true,
+      "raw_ring_cameras": 7,
+      "model_inference": true,
       "renderer": false,
       "erp_repair": false,
       "source_replacement": false,
       "generated_image": false,
+      "diffusion_or_refiner": false,
       "red_promotion": false
+    },
+    "started_utc": "2026-06-04T21:27:55Z",
+    "secret_policy": "HF token read from environment only; not written to output.",
+    "error": {
+      "type": "ModuleNotFoundError",
+      "message": "No module named 'vggt'",
+      "trace_tail": "Traceback (most recent call last):\n  File \"<string>\", line 256, in <module>\nModuleNotFoundError: No module named 'vggt'\n"
     },
     "db45b_permission_boundary": {
       "accepted_db45_geometry_evidence": false,
       "permission_state_changes": "none",
-      "red_promotions": [],
-      "claim": "Connectivity failed before model action; no permission state changed."
+      "red_promotions": []
+    },
+    "colab_job": {
+      "job_id": "07381bc2c9d44811bf8717ffca5a1582",
+      "state": "done",
+      "exit_code": 0,
+      "duration_s": 7.001963376998901,
+      "status_runtime_type": "colab-gpu",
+      "status_gpu_name": "NVIDIA A100-SXM4-40GB"
     }
   },
   "roi_policy": {
@@ -109,11 +124,11 @@
       "id": "remote_job_completed",
       "pass": false,
       "severity": "blocker",
-      "evidence": "job=None exit=None error={'type': 'URLError', 'message': '<urlopen error [Errno 11001] getaddrinfo failed>', 'stage': 'status_or_submit_exec'}"
+      "evidence": "job=07381bc2c9d44811bf8717ffca5a1582 exit=0 error={'type': 'ModuleNotFoundError', 'message': \"No module named 'vggt'\", 'trace_tail': 'Traceback (most recent call last):\\n  File \"<string>\", line 256, in <module>\\nModuleNotFoundError: No module named \\'vggt\\'\\n'}"
     },
     {
       "id": "one_log_anchor_scope",
-      "pass": false,
+      "pass": true,
       "severity": "scope",
       "evidence": "Remote result is constrained to BMW log anchor 0."
     },

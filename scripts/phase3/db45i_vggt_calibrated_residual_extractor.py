@@ -829,6 +829,20 @@ def build_checks(remote: dict[str, Any], secret_hits: list[dict[str, str]]) -> l
     ]
 
 
+def classify_blocked_status(remote: dict[str, Any]) -> str:
+    error = remote.get("error") or {}
+    err_type = str(error.get("type") or "")
+    message = str(error.get("message") or "")
+    stage = str(error.get("stage") or "")
+    if err_type in {"URLError", "WebException"} or stage == "status_or_submit_exec" or "getaddrinfo" in message:
+        return "paused_on_executor_dns_or_connectivity"
+    if err_type == "ModuleNotFoundError" and "vggt" in message.lower():
+        return "paused_on_runtime_vggt_import_missing"
+    if remote.get("colab_job", {}).get("state"):
+        return "paused_on_remote_runtime_or_extractor_blocker"
+    return "blocked_or_paused_no_remote_result"
+
+
 def build_manifest() -> dict[str, Any]:
     remote = read_json(REMOTE_RESULT) if REMOTE_RESULT.exists() else {
         "db": "DB-45i",
@@ -903,7 +917,7 @@ def build_manifest() -> dict[str, Any]:
         temp["decision"]["db45_status"] = "running"
     else:
         temp["decision"]["accepted_evidence_type"] = "blocked-or-paused"
-        temp["decision"]["db45_status"] = "paused_on_executor_dns"
+        temp["decision"]["db45_status"] = classify_blocked_status(remote)
     if geometry_accepted:
         temp["decision"]["geometry_candidate_note"] = "All extractor hard checks passed, but DB45i still records no permission promotion; a separate permission update would be required."
     temp["decision"]["permission_state_changes"] = "none"
@@ -968,7 +982,7 @@ def build_board(manifest: dict[str, Any]) -> None:
             draw.text((x, y), value, fill=color, font=font(13))
         y += 28
     if not rois:
-        y = draw_wrapped(draw, 32, y, "No residual table yet. Executor/tunnel is blocked or the remote run has not completed.", 120, (255, 225, 180), 14)
+        y = draw_wrapped(draw, 32, y, f"No residual table yet. Blocker: {decision.get('db45_status')}.", 120, (255, 225, 180), 14)
 
     x2, y2 = 1030, 135
     draw.text((x2, y2), "Hard checks", fill=(255, 255, 255), font=font(21))
@@ -989,7 +1003,7 @@ def build_board(manifest: dict[str, Any]) -> None:
         "DB45i is not a repair brief and produces no panorama output.",
         "Decoded VGGT pose plus Sim(3) is necessary but not sufficient for source-faithful geometry evidence.",
         "DB41 lower-right remains zero-LiDAR abstain; DB36/DB40 generated fake geometry remains rejected.",
-        "If executor DNS/status is unreachable, DB45i pauses as blocked-or-paused and must not continue patch-on-patch.",
+        "If executor/runtime/import gates fail, DB45i pauses as blocked-or-paused and must not continue patch-on-patch.",
     ]:
         y3 = draw_wrapped(draw, 32, y3, "- " + line, 128, (255, 235, 180), 14, 5)
 
