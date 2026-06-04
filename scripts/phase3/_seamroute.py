@@ -10,7 +10,7 @@ Run (CPU): python _seamroute.py --uuid <UUID> --tag <name>  ->  results/seamrout
 Outputs L1 | align(argmax seam) | moat-seam-route, full pano + LOSSLESS crops. Vision-judge: are near
 objects taken WHOLE from one camera (no split/step) where argmax cut through them?"""
 from __future__ import annotations
-import sys, time, argparse
+import sys, time, argparse, json
 from pathlib import Path
 import cv2
 import numpy as np
@@ -36,6 +36,81 @@ def lab(im, t, h=30):
 
 def rw(im, w):
     return cv2.resize(np.clip(im, 0, 255).astype(np.uint8), (w, round(im.shape[0] * w / im.shape[1])), interpolation=cv2.INTER_AREA)
+
+
+def write_source_sidecars(tag, label, valid, fired_vc, on_ground, out_dir):
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    source_map = np.full(label.shape, 255, np.uint8)
+    source_map[valid] = np.clip(label[valid], 0, 6).astype(np.uint8)
+    valid_mask = (valid.astype(np.uint8) * 255)
+    vc_mask = (np.clip(fired_vc, 0.0, 1.0) * 255.0).round().astype(np.uint8)
+    ground_mask = (on_ground.astype(np.uint8) * 255)
+
+    final_state = source_map.copy()
+    final_state[valid & (fired_vc > 1e-6)] = 250
+
+    pal_rgb = np.array(
+        [
+            [60, 60, 210],
+            [60, 210, 60],
+            [210, 60, 60],
+            [60, 210, 210],
+            [210, 60, 210],
+            [210, 210, 60],
+            [210, 130, 60],
+        ],
+        np.uint8,
+    )
+    overlay = np.zeros((*label.shape, 3), np.uint8)
+    overlay[valid] = pal_rgb[np.clip(label[valid], 0, 6)]
+    overlay[final_state == 250] = np.array([255, 0, 255], np.uint8)
+
+    paths = {
+        "routed_source_id_map": out_dir / f"SR_{tag}_routed_source_id_map.png",
+        "valid_mask": out_dir / f"SR_{tag}_valid_mask.png",
+        "virtual_center_effect_mask": out_dir / f"SR_{tag}_virtual_center_effect_mask.png",
+        "ground_reproject_effect_mask": out_dir / f"SR_{tag}_ground_reproject_effect_mask.png",
+        "final_source_state_map": out_dir / f"SR_{tag}_final_source_state_map.png",
+        "source_id_overlay": out_dir / f"SR_{tag}_source_id_overlay.png",
+        "legend": out_dir / f"SR_{tag}_source_id_sidecar_legend.json",
+    }
+    cv2.imwrite(str(paths["routed_source_id_map"]), source_map)
+    cv2.imwrite(str(paths["valid_mask"]), valid_mask)
+    cv2.imwrite(str(paths["virtual_center_effect_mask"]), vc_mask)
+    cv2.imwrite(str(paths["ground_reproject_effect_mask"]), ground_mask)
+    cv2.imwrite(str(paths["final_source_state_map"]), final_state)
+    cv2.imwrite(str(paths["source_id_overlay"]), cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR))
+
+    legend = {
+        "scope": "Future seamroute provenance sidecars only; not a DB32 source_id_map unless produced by an exact rerun.",
+        "map_convention": {
+            "routed_source_id_map": {
+                "0_to_6": {str(i): cam for i, cam in enumerate(a1.RING_CAMS_7)},
+                "255": "invalid_or_out_of_fov",
+            },
+            "final_source_state_map": {
+                "0_to_6": "single-source routed owner before final virtual-centre compositing",
+                "250": "virtual-centre composite_or_warped_source_effect; final pixel is not single-source owner truth",
+                "255": "invalid_or_out_of_fov",
+            },
+        },
+        "sidecars": {
+            "valid_mask": "255 valid, 0 invalid/out-of-FOV",
+            "virtual_center_effect_mask": "Nonzero means final may not be represented by a single source owner.",
+            "ground_reproject_effect_mask": "Diagnostic mask for the separate SR_<tag>_ground_pano.jpg output only.",
+            "source_id_overlay": "Color preview of source ids; magenta marks virtual-centre composite/effect pixels.",
+        },
+        "claim_boundary": {
+            "default_off": True,
+            "repair_or_generation": False,
+            "db32_source_id_map_created": False,
+            "training_ready_claim": False,
+        },
+    }
+    paths["legend"].write_text(json.dumps(legend, indent=2, sort_keys=True), encoding="utf-8")
+    print(f"[{tag}] source sidecars saved to {out_dir}", flush=True)
 
 
 def dp_seam(cost):
@@ -102,6 +177,8 @@ def main():
     ap.add_argument("--max-disp", type=float, default=60.0); ap.add_argument("--fb-thresh", type=float, default=2.0)
     ap.add_argument("--near-m", type=float, default=18.0, help="range below this = near -> moat")
     ap.add_argument("--line-w", type=float, default=10.0, help="DB-15: cost weight for cutting along ground lines (lane markings/curb)")
+    ap.add_argument("--save-source-id-map", action="store_true", help="Save optional provenance sidecars without changing default panorama outputs")
+    ap.add_argument("--sidecar-dir", type=Path, default=None, help="Directory for optional source/provenance sidecars; defaults to OUT")
     a = ap.parse_args(); t0 = time.time(); erp_hw = (H, W)
 
     loader = a1.AV2RingLoader(ROOT / a.uuid); ts = loader.anchor_timestamps_ns(); frame = loader.load_synced_frame(ts[a.anchor])
@@ -258,6 +335,7 @@ def main():
     # leave as rotation-only L1). Ground-ONLY (facades=[] -> no building distortion). The raised curb lip
     # (~0.15m off-plane) is the irreducible residual. Single-source (routed label) -> cannot ghost. ---
     final_ground = final.copy(); road_fired = 0.0
+    on_ground = np.zeros((H, W), bool)
     if ground is not None:
         conv_g = a1.build_plane_convergence(ground, [], erp_hw)        # ground hit-depth below horizon, FAR above
         g_stack = np.stack([a1.render_camera_to_erp(frame.images[cam], cams[cam].K, cams[cam].T_ego_cam,
@@ -273,6 +351,9 @@ def main():
         final_ground = np.where(valid[..., None], np.clip(final.astype(np.float32) * (1 - rm) + ground_pano * rm, 0, 255), 0).astype(np.uint8)
         road_fired = 100.0 * on_ground.mean()
     print(f"[{a.tag}] ground-road reproject fired={road_fired:.2f}%", flush=True)
+
+    if a.save_source_id_map:
+        write_source_sidecars(a.tag, label, valid, fired_vc, on_ground, a.sidecar_dir or OUT)
 
     res = {"L1": L1, "deliverable (current)": final, "+ground-road (NEW)": final_ground}
     cv2.imwrite(str(OUT / f"SR_{a.tag}_compare.jpg"), cv2.cvtColor(np.vstack([lab(rw(v, 1900), k) for k, v in res.items()]), cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 93])

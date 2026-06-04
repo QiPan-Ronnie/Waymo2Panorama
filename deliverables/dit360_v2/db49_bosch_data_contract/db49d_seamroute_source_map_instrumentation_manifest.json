@@ -1,0 +1,141 @@
+{
+  "accepted_evidence_type": "source-map-instrumentation-only",
+  "all_checks_passed": true,
+  "checks": [
+    {
+      "evidence": "DB49d brief present before implementation.",
+      "name": "decision_brief_exists",
+      "passed": true
+    },
+    {
+      "evidence": "write_source_sidecars helper exists in _seamroute.py.",
+      "name": "helper_present",
+      "passed": true
+    },
+    {
+      "evidence": "Optional flag is argparse store_true and therefore false unless explicitly set.",
+      "name": "flag_default_off",
+      "passed": true
+    },
+    {
+      "evidence": "Sidecar destination defaults to OUT only when optional export is requested.",
+      "name": "sidecar_dir_optional",
+      "passed": true
+    },
+    {
+      "evidence": "Sidecar writes are gated behind the default-off flag.",
+      "name": "sidecar_write_gated",
+      "passed": true
+    },
+    {
+      "evidence": "All expected sidecar filename templates are in _seamroute.py.",
+      "name": "all_sidecar_filenames_present",
+      "passed": true
+    },
+    {
+      "evidence": "Invalid/out-of-FOV pixels are explicitly coded instead of hidden.",
+      "name": "invalid_code_255_present",
+      "passed": true
+    },
+    {
+      "evidence": "Virtual-centre composite/effect pixels are marked as non-single-source truth.",
+      "name": "mixed_code_250_present",
+      "passed": true
+    },
+    {
+      "evidence": "Ground diagnostic effect is a separate mask, not fused into DB32 ownership.",
+      "name": "ground_effect_kept_separate",
+      "passed": true
+    },
+    {
+      "evidence": "This script reads files and writes DB49d manifest/board only; it does not invoke _seamroute.py.",
+      "name": "no_dataset_run_in_audit",
+      "passed": true
+    },
+    {
+      "evidence": "Fresh endpoint, HF, Bearer, and API-token patterns are absent from DB49d touched sources.",
+      "name": "no_token_like_strings_in_touched_sources",
+      "passed": true
+    }
+  ],
+  "claim_boundary": {
+    "a100_used": false,
+    "dataset_run": false,
+    "db32_fully_source_faithful": false,
+    "db32_training_ready": false,
+    "executor_used": false,
+    "generated_pixels": false,
+    "model_inference": false,
+    "network_used": false,
+    "permission_change": false,
+    "red_promotions": [],
+    "repair_created": false
+  },
+  "complete_source_id_map_for_db32_found": false,
+  "created_utc": "2026-06-04T19:10:40.329352+00:00",
+  "db49c_dependency": "DB49c remains binding: DB32 source_id_map is missing/blocking until an exact lineage rerun saves and validates a true owner artifact.",
+  "decision_id": "DB49d",
+  "final_composite_caveat": "The default final panorama can contain virtual-centre warped/composited pixels. Those pixels are marked with code 250/effect mask and are not claimed as single-source owner truth.",
+  "inputs": {
+    "decision_briefs": {
+      "path": "agent/decision_briefs.md",
+      "sha256": "773c112f3f685ac06faece0dced4a93abcf4483c3b7fc2dcdd81d067b45c32f7"
+    },
+    "seamroute_script": {
+      "path": "scripts/phase3/_seamroute.py",
+      "sha256": "3380e98edc9901f292a71affa5fe5030680bcd41f37773290102dd55d4d766f2"
+    }
+  },
+  "instrumented_sidecars": [
+    {
+      "caveat": "Future exact rerun only; not DB32 ownership until produced by that rerun.",
+      "codes": "0..6=a1.RING_CAMS_7 owner before final VC composite; 255=invalid/out-of-FOV",
+      "field": "routed_source_id_map",
+      "filename_template": "SR_<tag>_routed_source_id_map.png"
+    },
+    {
+      "caveat": "Separates valid source-id pixels from no-source pixels.",
+      "codes": "255=valid, 0=invalid/out-of-FOV",
+      "field": "valid_mask",
+      "filename_template": "SR_<tag>_valid_mask.png"
+    },
+    {
+      "caveat": "Nonzero means final pixels may not be single-source owner truth.",
+      "codes": "0..255 scaled effect alpha",
+      "field": "virtual_center_effect_mask",
+      "filename_template": "SR_<tag>_virtual_center_effect_mask.png"
+    },
+    {
+      "caveat": "Applies to separate ground_pano diagnostic, not the default final source map.",
+      "codes": "255=ground diagnostic effect, 0=no ground diagnostic effect",
+      "field": "ground_reproject_effect_mask",
+      "filename_template": "SR_<tag>_ground_reproject_effect_mask.png"
+    },
+    {
+      "caveat": "Preserves the composite/mixed-source boundary instead of overclaiming ownership.",
+      "codes": "0..6=single-source routed owner; 250=VC composite/effect; 255=invalid/out-of-FOV",
+      "field": "final_source_state_map",
+      "filename_template": "SR_<tag>_final_source_state_map.png"
+    },
+    {
+      "caveat": "Presentation preview only; not a machine-readable ownership substitute.",
+      "codes": "RGB preview; magenta=VC composite/effect, black=invalid",
+      "field": "source_id_overlay",
+      "filename_template": "SR_<tag>_source_id_overlay.png"
+    },
+    {
+      "caveat": "Must travel with future sidecars to avoid Bosch-facing overclaim.",
+      "codes": "JSON label convention and claim boundary",
+      "field": "source_id_sidecar_legend",
+      "filename_template": "SR_<tag>_source_id_sidecar_legend.json"
+    }
+  ],
+  "outputs": {
+    "board": "deliverables/dit360_v2/db49_bosch_data_contract/db49d_seamroute_source_map_instrumentation_board.jpg",
+    "manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49d_seamroute_source_map_instrumentation_manifest.json"
+  },
+  "seamroute_default_behavior_changed": false,
+  "source_id_map_for_db32_created": false,
+  "source_id_map_status": "missing_until_exact_seamroute_rerun_not_fabricated",
+  "status": "accepted"
+}
