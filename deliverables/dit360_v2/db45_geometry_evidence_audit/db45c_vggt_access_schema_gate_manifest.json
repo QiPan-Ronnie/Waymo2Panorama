@@ -1,0 +1,226 @@
+{
+  "db": "DB-45c",
+  "status": "vggt_access_schema_gate",
+  "created_utc": "2026-06-04T14:16:44.039238+00:00",
+  "purpose": "Record that VGGT Commercial file access is approved now, while keeping DB45 evidence admission blocked until runtime/cache/extractor/schema guardrails pass.",
+  "scope": {
+    "install_packages": false,
+    "download_models": false,
+    "model_inference": false,
+    "panorama_generation": false,
+    "panorama_repair": false,
+    "source_replacement": false,
+    "uses_hf_token_as_runtime_secret_only": true,
+    "uses_colab_direct_probe_only": true
+  },
+  "refs": {
+    "db45a_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45a_vggt_feasibility_manifest.json",
+    "db45b_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45b_evidence_permission_calibration_manifest.json",
+    "run_vggt_script": "scripts/phase3/run_vggt_multi_anchor.py"
+  },
+  "access_delta": {
+    "db45a_head_config_json_status": 403,
+    "db45c_head_config_json_status": 200,
+    "commercial_file_access_cleared": true,
+    "note": "This clears only the HF gated-file blocker. It does not create accepted geometry evidence."
+  },
+  "current_hf_check": {
+    "source": "local Hugging Face whoami/model metadata/config HEAD recheck; token used only as runtime secret",
+    "whoami_status": 200,
+    "model_api_status": 200,
+    "model": "facebook/VGGT-1B-Commercial",
+    "gated": "manual",
+    "has_config": true,
+    "large_files": [
+      "model.safetensors"
+    ],
+    "head_config_json_status": 200,
+    "download_attempted": false
+  },
+  "current_remote_probe": {
+    "source": "Colab Direct one-shot Python readiness probe",
+    "job_id": "434b5f311a2349b295eabf8b54c3c8b4",
+    "cwd": "/content/waymo2panorama",
+    "repo_head": "d544214",
+    "repo_dirty": false,
+    "imports": {
+      "torch": true,
+      "vggt": false,
+      "numpy": true,
+      "cv2": true,
+      "PIL": true,
+      "pandas": true,
+      "pyarrow": true,
+      "scipy": true
+    },
+    "cache": {
+      "/content/drive/MyDrive/koi_waymo2pano_colab/cache/new_f_vggt/vggt-repo.tar.zst": {
+        "exists": true,
+        "size": 0
+      },
+      "/content/drive/MyDrive/koi_waymo2pano_colab/cache/new_f_vggt/restore.sh": {
+        "exists": true,
+        "size": 1100
+      },
+      "/content/drive/MyDrive/koi_waymo2pano_colab/cache/new_f_vggt/tar_cache_log.txt": {
+        "exists": true,
+        "size": 2219
+      }
+    },
+    "disk_free_gb": {
+      "/content": 64.35,
+      "/content/drive/MyDrive/koi_waymo2pano_colab": 61.13
+    },
+    "install_attempted": false,
+    "model_download_attempted": false,
+    "model_inference_attempted": false
+  },
+  "db45b_guardrails": {
+    "accepted_evidence_type": "permission-calibration-only",
+    "gate_pass": true,
+    "rows": 8,
+    "red_control_count": 5,
+    "all_checks_pass": true,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "rules": [
+      "target-surface support is required",
+      "flow-only cannot promote RED",
+      "detector-clean cannot promote RED",
+      "case-level depth/parallax cannot promote target ROI",
+      "source-sidestep is not original-source repair",
+      "best-flow pair cannot launder weak target-pair evidence"
+    ],
+    "mandatory_negative_controls": [
+      "DB25",
+      "DB41 right",
+      "DB41 lower-right",
+      "DB36",
+      "DB40"
+    ]
+  },
+  "vggt_roi_evidence_schema": [
+    {
+      "field": "segment_id",
+      "required": true,
+      "purpose": "Join the VGGT reducer to the frozen DB45 8-control set."
+    },
+    {
+      "field": "roi_xyxy",
+      "required": true,
+      "purpose": "Target ROI only; case-level confidence cannot promote a target surface."
+    },
+    {
+      "field": "source_pair_or_cam_set",
+      "required": true,
+      "purpose": "Identify which raw cameras support the target surface."
+    },
+    {
+      "field": "valid_point_fraction",
+      "required": true,
+      "purpose": "Finite VGGT point/depth coverage inside the ROI; zero or sparse support cannot promote."
+    },
+    {
+      "field": "multi_view_consistency_score",
+      "required": true,
+      "purpose": "Evidence must come from agreement across source views, not a single hallucinated surface."
+    },
+    {
+      "field": "target_surface_overlap",
+      "required": true,
+      "purpose": "Support must overlap road/curb/line/object surface being routed."
+    },
+    {
+      "field": "occlusion_or_no_evidence_flag",
+      "required": true,
+      "purpose": "Explicit abstain flag for no-evidence or occluded regions."
+    },
+    {
+      "field": "raw_or_lidar_consistency",
+      "required": true,
+      "purpose": "VGGT cannot override raw-camera/LiDAR evidence conflicts."
+    },
+    {
+      "field": "confidence_source",
+      "required": true,
+      "purpose": "Must name real validity/consistency source; uniform constants are rejected."
+    },
+    {
+      "field": "db45b_guard_result",
+      "required": true,
+      "purpose": "Permission delta after DB45b guardrails; RED promotion requires target-surface support."
+    }
+  ],
+  "checks": [
+    {
+      "id": "hf_access_blocker_cleared",
+      "pass": true,
+      "severity": "info",
+      "evidence": "DB45a config HEAD=403; DB45c recheck config HEAD=200. Commercial file access is now approved."
+    },
+    {
+      "id": "token_not_stored",
+      "pass": true,
+      "severity": "scope",
+      "evidence": "HF token was used only as a runtime secret for the recheck and is not present in DB45c artifacts."
+    },
+    {
+      "id": "remote_repo_current",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Remote repo head is still d544214, older than local DB43-DB45c commits."
+    },
+    {
+      "id": "vggt_import_available",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Current Colab base Python still cannot import vggt."
+    },
+    {
+      "id": "vggt_repo_cache_nonzero",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "VGGT repo cache tarball exists but is 0 bytes, so cache restore is not valid."
+    },
+    {
+      "id": "verified_checkpoint_cache_present",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "No verified local VGGT checkpoint cache was recorded. HF access now permits a download, but DB45c forbids download/inference."
+    },
+    {
+      "id": "existing_wrapper_confidence_evidential",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Existing run_vggt_multi_anchor.py writes uniform np.ones confidence, which DB45b cannot accept as geometry evidence."
+    },
+    {
+      "id": "db45b_guardrails_available",
+      "pass": true,
+      "severity": "info",
+      "evidence": "DB45b guardrails are available and recorded no RED promotions."
+    },
+    {
+      "id": "no_model_action",
+      "pass": true,
+      "severity": "scope",
+      "evidence": "DB45c performed no install, model download, inference, renderer, or repaired ERP generation."
+    }
+  ],
+  "route_state": "access_cleared_but_not_evidence_ready",
+  "decision": {
+    "accepted_evidence_type": "readiness-and-schema-only",
+    "accepted_db45_geometry_evidence": false,
+    "vggt_model_negative": false,
+    "vggt_evidence_job_runnable_now": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "db45_remains_running": true,
+    "why": "Commercial file access is approved now, but the current runtime still has stale code, no vggt import, an invalid 0-byte VGGT repo cache, no verified checkpoint cache, and the existing wrapper emits uniform confidence rather than auditable target-ROI evidence.",
+    "next_allowed_step": "Open a new bounded DB45 sub-scope before any install/download/inference. That sub-scope must sync the extractor, prepare dependencies explicitly, avoid uniform confidence, run only the frozen controls first, and stop on DB45b kill criteria."
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45c_vggt_access_schema_gate_manifest.json",
+    "board": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45c_vggt_access_schema_gate_board.jpg"
+  }
+}

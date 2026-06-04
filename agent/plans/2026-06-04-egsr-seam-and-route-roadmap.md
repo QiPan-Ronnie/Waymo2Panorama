@@ -39,6 +39,8 @@ DB45a VGGT evidence feasibility gate is completed as a current-runtime **no-go**
 
 DB45b Existing-evidence permission calibration is completed and accepted as **permission-calibration-only** evidence. Outputs are under `deliverables/dit360_v2/db45_geometry_evidence_audit/`, with script `scripts/phase3/db45b_evidence_permission_calibrator.py`. DB45b uses only existing DB25/DB41/DB36/DB40/DB45/depth/parallax artifacts, no A100/model/repair. It keeps all 8 frozen controls unchanged (`permission_state_changes=none`, `red_promotions=[]`) and formalizes the next hard EGSR rules: target-surface support is required; flow-only, detector-clean, case-level depth/parallax, outside-mask preservation, generated-core confidence, and best-pair laundering cannot promote RED. DB41 lower-right/right-line remains no-evidence/abstain; DB36/DB40 remain fake-geometry rejects; DB32 remains caveated handoff/source-sidestep.
 
+DB45c VGGT Commercial access update + schema gate is completed and accepted as **readiness-and-schema-only** evidence. Outputs are under `deliverables/dit360_v2/db45_geometry_evidence_audit/`, with script `scripts/phase3/db45c_vggt_access_schema_gate.py`. HF Commercial file access is now cleared (`config.json` HEAD 403 -> 200), but this is not accepted VGGT geometry evidence. Current blockers remain: remote repo stale at `d544214`, `vggt` import missing, VGGT repo cache tarball 0 bytes, no verified checkpoint cache, and existing VGGT wrapper emits uniform `np.ones` confidence. No install/download/inference/repair was run, no DB45 permission state changed, and no RED control was promoted.
+
 DB45 is **not closed** by this phase0 pass. The next DB45 step, if continuing the source-faithful EGSR mainline, must be a scoped foundation-model evidence job with frozen ROI list, output schema, and promotion/kill thresholds. It must compare confidence/tracks/depth/flow against the same 8 controls and kill immediately if DB25/DB41/DB36/DB40 RED controls receive high confidence without target-surface raw/depth/flow support. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
 
 ---
@@ -280,12 +282,18 @@ These are roadmap items, not direct execution commands. DB43 and DB44 are comple
 
 **Scope:** evidence-only first. No repair until confidence is calibrated against raw/LiDAR/project evidence.
 
-**Parked subtracks under DB-45 unless split into separate briefs:**
+**Completed DB-45 substeps:**
 
-- DB-45a geometry foundation audit: VGGT / Fast3R / CUT3R-style pointmaps, tracks, confidence, and multi-view consistency as evidence only.
-- DB-45b depth risk upgrade: DAC / DAP versus current DA-V2-style depth metadata, especially ERP/large-FoV depth confidence.
-- DB-45c flow confidence audit: PriOr-Flow / FlowSeek-style confidence, occlusion, and forward-backward reliability; no blind flow warp.
-- DB-45d Waymo sensor artifact taxonomy: SplatAD / SplatFlow / StreetGaussians-style diagnostics for HDR/color, rolling shutter/sync, dynamic object, and parallax categories; not final panorama rendering.
+- DB45a VGGT feasibility gate: current-runtime no-go, not a VGGT model negative.
+- DB45b existing-evidence permission calibration: accepted permission-calibration-only guardrails, no RED promotion.
+- DB45c VGGT Commercial access update + schema gate: HF file access cleared, but VGGT route remains not evidence-ready.
+
+**Parked future subtracks under DB-45 unless split into separate briefs:**
+
+- Geometry foundation evidence job: VGGT / Fast3R / CUT3R-style pointmaps, tracks, confidence, and multi-view consistency as evidence only.
+- Depth risk upgrade: DAC / DAP versus current DA-V2-style depth metadata, especially ERP/large-FoV depth confidence.
+- Flow confidence audit: PriOr-Flow / FlowSeek-style confidence, occlusion, and forward-backward reliability; no blind flow warp.
+- Waymo sensor artifact taxonomy: SplatAD / SplatFlow / StreetGaussians-style diagnostics for HDR/color, rolling shutter/sync, dynamic object, and parallax categories; not final panorama rendering.
 
 **Minimum decisive experiment:** 8 fixed seam segments: positives with known raw/LiDAR/flow support, and negatives including DB41 lower-right, DB25 dark-wall/key-pair low-flow seam, DB36/DB40 generated fake geometry, and object-adjacent occlusion.
 
