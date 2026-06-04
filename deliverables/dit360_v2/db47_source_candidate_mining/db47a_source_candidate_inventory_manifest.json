@@ -1,0 +1,285 @@
+{
+  "db": "DB-47a",
+  "status": "source_candidate_inventory_phase0",
+  "created_utc": "2026-06-04T16:44:22.489071+00:00",
+  "accepted_evidence_type": "source-selection-inventory-only",
+  "purpose": "Inventory existing source/frame candidate mining evidence without new repair, generation, or dataset scan.",
+  "scope": {
+    "cpu_local_only": true,
+    "a100_used": false,
+    "executor_used": false,
+    "new_dataset_scan": false,
+    "panorama_repair": false,
+    "generation": false,
+    "source_replacement": false,
+    "input_artifacts": [
+      "deliverables/dit360_v2/db27_temporal_frame_scan/db27_temporal_frame_scan_summary.json",
+      "deliverables/dit360_v2/db28_clean_subset_refine/db28_strict_clean_source_scan_summary.json",
+      "deliverables/dit360_v2/db31_multilog_candidate_scan/db31_multilog_candidate_scan_summary.json",
+      "deliverables/dit360_v2/db34_current_best_qa/db34_current_best_manifest.json",
+      "deliverables/dit360_v2/db38_bosch_handoff/db38_bosch_handoff_manifest.json",
+      "deliverables/dit360_v2/db42_seam_decision_handoff/db42_seam_decision_handoff_manifest.json",
+      "deliverables/dit360_v2/db43_source_faithfulness_gate/db43_source_faithfulness_gate_manifest.json"
+    ]
+  },
+  "scan_summaries": [
+    {
+      "name": "DB27 temporal nearby-frame scan",
+      "present": true,
+      "anchors_or_candidates": 7,
+      "ranked_count": 7,
+      "selected_count": null,
+      "unique_logs": [],
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "top_candidate": {
+        "anchor": 20,
+        "line_risk_score_low_is_better": 0.06301886818363715,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "lidar_support_frac": 0.27697083333333333,
+        "active_label_count_gt5pct": 4
+      },
+      "ranking_note": "low line_risk_score is only a candidate filter; visual review is authoritative"
+    },
+    {
+      "name": "DB28 strict-clean source scan",
+      "present": true,
+      "anchors_or_candidates": 7,
+      "ranked_count": 7,
+      "selected_count": null,
+      "unique_logs": [],
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "top_candidate": {
+        "anchor": 200,
+        "line_risk_score_low_is_better": 0.0596461582951389,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "lidar_support_frac": 0.31566666666666665,
+        "active_label_count_gt5pct": 4
+      },
+      "ranking_note": "low line_risk_score is only a candidate filter; visual review is authoritative"
+    },
+    {
+      "name": "DB31 multilog candidate scan",
+      "present": true,
+      "anchors_or_candidates": 22,
+      "ranked_count": 22,
+      "selected_count": 22,
+      "unique_logs": [
+        "02a00399",
+        "0bae3b5e",
+        "2c652f9e",
+        "9f871fb4",
+        "fbee355f"
+      ],
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "top_candidate": {
+        "log_id": "02a00399",
+        "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+        "anchor": 200,
+        "rank_score_low_is_better": 0.08073060729274881,
+        "yolo_edge_object_score": 0,
+        "roi_line_risk": 0.0596461582951389,
+        "roi_lidar_support": 0.31566666666666665,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03352099777246646,
+        "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0200_source.jpg"
+      },
+      "ranking_note": "candidate filter only; exact seamroute and vision review are authoritative"
+    }
+  ],
+  "aggregate_counts": {
+    "existing_candidate_records": 36,
+    "db31_selected_count": 22,
+    "db31_unique_logs": 5,
+    "db31_log_ids": [
+      "02a00399",
+      "0bae3b5e",
+      "2c652f9e",
+      "9f871fb4",
+      "fbee355f"
+    ],
+    "db38_accepted_or_current_best_rows": 2,
+    "db38_rejected_or_diagnostic_rows": 2,
+    "db42_route_status_counts": {
+      "accepted current Bosch handoff candidate": 1,
+      "rejected / diagnostic only": 1,
+      "rejected for ground seam": 1,
+      "closed under current evidence": 1
+    },
+    "db43_case_count": 29,
+    "db43_claim_label_counts": {
+      "caveated-handoff": 1,
+      "source-faithful": 2,
+      "presentation-only": 2,
+      "source-sidestep": 2,
+      "diagnostic": 5,
+      "reject": 13,
+      "abstain": 4
+    }
+  },
+  "accepted_source_selection_evidence": {
+    "source_base": "deliverables\\dit360_v2\\db28_clean_subset_refine\\SR_bmw_db28_a200_final_1024x2048.png",
+    "current_handoff": "deliverables\\dit360_v2\\db32_generated_sky_harmonize_v2\\db32_generated_sky_harmonize_s40.png",
+    "db38_rows": [
+      {
+        "name": "DB28_a200_source",
+        "path": "deliverables\\dit360_v2\\db28_clean_subset_refine\\SR_bmw_db28_a200_final_1024x2048.png",
+        "decision": "accepted source sidestep base",
+        "note": "cleaner source, no original G red-line seam, but sky/black bands remain"
+      },
+      {
+        "name": "DB32_s40_current_best",
+        "path": "deliverables\\dit360_v2\\db32_generated_sky_harmonize_v2\\db32_generated_sky_harmonize_s40.png",
+        "decision": "current best Bosch handoff candidate",
+        "note": "DB28 source plus object-gated sky fill/harmonization; source pixels preserved"
+      }
+    ],
+    "db42_use": "DB32 s40 as current Bosch handoff candidate",
+    "not_a_claim": "DB32/DB28 are source-sidestep/handoff evidence, not original-G seam repair and not source-faithful ceiling."
+  },
+  "rejected_or_caveated_evidence": {
+    "db38_rows": [
+      {
+        "name": "G_bmw_pano",
+        "path": "deliverables\\ghostkill\\G_bmw_pano.jpg",
+        "decision": "reject-as-handoff seam residual",
+        "note": "user-nearest original but has long red-line/right white-line seam"
+      },
+      {
+        "name": "DB36_G_DiT_redline_rejected",
+        "path": "deliverables\\dit360_v2\\db36_user_redline_mask\\G_bmw_pano_user_redline_tau5_fetch\\G_bmw_pano_user_redline_tau5\\db36_user_redline_tau5\\db36_user_redline_tau5_corecompose.png",
+        "decision": "reject fake ground",
+        "note": "object gate passed but generated fake ground slabs/holes"
+      }
+    ],
+    "db42_do_not_use_as_final": [
+      "G_bmw_pano seam patches",
+      "A1_view_none v14 seam patches",
+      "BEST_bmw_pano donor/v14 seam patches"
+    ],
+    "db43_reject_or_diagnostic_case_ids": [
+      "g_bmw_long",
+      "g_bmw_right",
+      "a1_view_none_right",
+      "best_bmw_right",
+      "db23_ground_core",
+      "db23_full_core",
+      "db36_user_redline",
+      "db39_g_v14_raw",
+      "db39_best_v14_raw",
+      "db39_a1_v14_raw",
+      "db40_keepout_core",
+      "db40_longsrc_raw",
+      "db35_best_donor",
+      "db35_a1_donor",
+      "db26_photometric_smudge",
+      "db30_sky_mask_preview",
+      "db33_s50_sky_halo",
+      "db31_nonbmw_montage"
+    ],
+    "db43_no_evidence_case_ids": [
+      "db25_longline_evidence",
+      "db24_source_boundary",
+      "db41_right_roi",
+      "db41_lower_right"
+    ],
+    "top_reason_codes": {
+      "generated_region": 6,
+      "detector_clean_but_geometry_fake": 4,
+      "vertical_slice": 4,
+      "unknown_or_abstain": 4,
+      "red_region_no_repair": 4,
+      "source_sidestep": 3,
+      "sky_generated_caveat": 3,
+      "ghosting": 3,
+      "not_source_faithful": 3,
+      "no_source_evidence": 3,
+      "not_original_g_repair": 2,
+      "classic_bmw_failure_reference": 2,
+      "source_boundary": 2,
+      "not_final": 2,
+      "unsafe_donor": 2,
+      "fake_road": 2
+    }
+  },
+  "limitations": [
+    "DB47a is an inventory over existing artifacts only; it is not a new dataset scan.",
+    "DB31 selected_count is a bounded candidate shortlist, not the full Waymo distribution.",
+    "DB32/DB34/DB38/DB42 acceptance is source-sidestep/handoff acceptance, not original-G seam repair.",
+    "DB41 lower-right/right-line remains no-evidence/abstain; source selection cannot promote it as repaired."
+  ],
+  "next_scan_contract": {
+    "required_before_full_db47_scan": [
+      "fixed candidate universe and logs before execution",
+      "report total scanned, strict accepted, relaxed accepted, reject-by-reason, and abstain distribution",
+      "show both accepted candidates and failures",
+      "same-ROI boards for source-sidestep wins and rejected lookalikes",
+      "explicitly label source-sidestep separately from seam repair"
+    ],
+    "hard_forbidden_claims": [
+      "DB32 is a repaired original-G seam",
+      "G_bmw_pano is the default repair base",
+      "DB41 lower-right/right-line is source-faithfully repairable under current evidence",
+      "top pretty candidates imply dataset-level acceptance without rate accounting"
+    ]
+  },
+  "checks": [
+    {
+      "id": "cpu_local_only",
+      "pass": true,
+      "evidence": "DB47a reads existing artifacts only; no executor/A100/model/generation path exists in this script."
+    },
+    {
+      "id": "bounded_existing_artifacts",
+      "pass": true,
+      "evidence": "Inputs include DB27/DB28/DB31/DB34/DB38/DB42/DB43 existing artifacts."
+    },
+    {
+      "id": "reports_counts_not_top10_only",
+      "pass": true,
+      "evidence": "candidate_records=36; db31_unique_logs=5"
+    },
+    {
+      "id": "source_sidestep_not_repair",
+      "pass": true,
+      "evidence": "Manifest labels DB28/DB32 as source-sidestep/current handoff only, not original-G repair."
+    },
+    {
+      "id": "db41_abstain_preserved",
+      "pass": true,
+      "evidence": "DB47a cannot promote DB41; it is inventory/source-selection only."
+    },
+    {
+      "id": "no_repair_or_generation",
+      "pass": true,
+      "evidence": "No panorama repair, source replacement, generated pixels, diffusion, or refiner output is produced."
+    }
+  ],
+  "decision": {
+    "db45_status": "paused_on_executor_dns_for_vggt_residuals",
+    "db47_status": "running_phase0_inventory_complete",
+    "accepted_db47_diagnostic_evidence": true,
+    "accepted_source_faithful_repair": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "claim_boundary": "Source/frame selection may produce cleaner handoff candidates, but it is not local seam repair."
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47a_source_candidate_inventory_manifest.json",
+    "board": "deliverables/dit360_v2/db47_source_candidate_mining/db47a_source_candidate_inventory_board.jpg"
+  }
+}
