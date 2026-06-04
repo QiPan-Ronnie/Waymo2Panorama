@@ -1,0 +1,712 @@
+{
+  "db": "DB-45k",
+  "status": "vggt_pose_reflection_coordinate_audit",
+  "created_utc": "2026-06-04T22:01:04.138304+00:00",
+  "purpose": "Audit DB45j reflection/coordinate failure from existing outputs only; no model action and no repair.",
+  "inputs": {
+    "db45i_remote_result": "deliverables\\dit360_v2\\db45_geometry_evidence_audit\\db45i_vggt_calibrated_residual_remote_result.json",
+    "db45i_manifest": "deliverables\\dit360_v2\\db45_geometry_evidence_audit\\db45i_vggt_calibrated_residual_manifest.json",
+    "db45h_manifest": "deliverables\\dit360_v2\\db45_geometry_evidence_audit\\db45h_vggt_residual_job_contract_manifest.json",
+    "db45g_manifest": "deliverables\\dit360_v2\\db45_geometry_evidence_audit\\db45g_vggt_pose_decode_readiness_manifest.json"
+  },
+  "scope": {
+    "cpu_local_only": true,
+    "existing_outputs_only": true,
+    "network": false,
+    "a100_executor": false,
+    "hf_access": false,
+    "model_load": false,
+    "model_inference": false,
+    "renderer": false,
+    "erp_repair": false,
+    "source_replacement": false,
+    "generated_pixels": false,
+    "permission_change": false,
+    "red_promotion": false
+  },
+  "source_contract_audit": {
+    "documented_camera_order": [
+      "ring_front_center",
+      "ring_front_left",
+      "ring_side_left",
+      "ring_rear_left",
+      "ring_rear_right",
+      "ring_side_right",
+      "ring_front_right"
+    ],
+    "saved_center_order": [
+      "ring_front_center",
+      "ring_front_left",
+      "ring_side_left",
+      "ring_rear_left",
+      "ring_rear_right",
+      "ring_side_right",
+      "ring_front_right"
+    ],
+    "av2_order_match": true,
+    "db45g_official_mentions_opencv_camera_from_world": true,
+    "db45i_uses_official_pose_decode": true,
+    "db45i_center_formula_is_camera_from_world_inverse": true,
+    "db45h_reflection_allowed": false,
+    "axis_hypothesis_boundary": "Proper rotations are already covered by Sim(3). A one-axis flip is a reflection and is not admissible without official-source evidence. DB45k does not enumerate arbitrary flips or permutations."
+  },
+  "saved_centers": {
+    "vggt_camera_from_world_centers": {
+      "ring_front_center": [
+        -0.000107,
+        0.000147,
+        9.4e-05
+      ],
+      "ring_front_left": [
+        -0.000109,
+        0.002473,
+        -0.020397
+      ],
+      "ring_side_left": [
+        0.005834,
+        0.002344,
+        -0.009936
+      ],
+      "ring_rear_left": [
+        0.00442,
+        0.005942,
+        0.012282
+      ],
+      "ring_rear_right": [
+        0.016227,
+        0.007444,
+        -0.015446
+      ],
+      "ring_side_right": [
+        0.008349,
+        0.002336,
+        -0.022629
+      ],
+      "ring_front_right": [
+        0.00326,
+        0.001688,
+        -0.021039
+      ]
+    },
+    "vggt_translation_column_centers": {
+      "ring_front_center": [
+        0.000107,
+        -0.000146,
+        -9.4e-05
+      ],
+      "ring_front_left": [
+        0.013983,
+        -0.002949,
+        0.014762
+      ],
+      "ring_side_left": [
+        0.010506,
+        -0.002553,
+        0.004622
+      ],
+      "ring_rear_left": [
+        -0.00154,
+        -0.00602,
+        0.012926
+      ],
+      "ring_rear_right": [
+        0.007411,
+        -0.007718,
+        -0.021043
+      ],
+      "ring_side_right": [
+        -0.021032,
+        -0.001901,
+        -0.011886
+      ],
+      "ring_front_right": [
+        -0.016602,
+        -0.002193,
+        0.013256
+      ]
+    },
+    "waymo_rig_camera_centers": {
+      "ring_front_center": [
+        1.629104,
+        -0.01331,
+        1.45314
+      ],
+      "ring_front_left": [
+        1.54957,
+        0.2033,
+        1.438022
+      ],
+      "ring_side_left": [
+        1.305059,
+        0.274337,
+        1.448077
+      ],
+      "ring_rear_left": [
+        1.094272,
+        0.123661,
+        1.441953
+      ],
+      "ring_rear_right": [
+        1.097831,
+        -0.137142,
+        1.442177
+      ],
+      "ring_side_right": [
+        1.309692,
+        -0.278611,
+        1.447251
+      ],
+      "ring_front_right": [
+        1.554869,
+        -0.197736,
+        1.44426
+      ]
+    }
+  },
+  "alignment_audit": {
+    "official_camera_from_world_center": {
+      "allow_reflection": false,
+      "reflection_preferred_by_svd": true,
+      "det_R": 1.0,
+      "scale": 12.564522,
+      "mean_residual_m": 0.21799,
+      "rms_residual_m": 0.227648,
+      "max_residual_m": 0.319167,
+      "per_camera_residual_m": {
+        "ring_front_center": 0.319167,
+        "ring_front_left": 0.281944,
+        "ring_side_left": 0.273712,
+        "ring_rear_left": 0.170779,
+        "ring_rear_right": 0.168902,
+        "ring_side_right": 0.168017,
+        "ring_front_right": 0.143406
+      },
+      "pass_db45_initial_center_thresholds": false,
+      "aligned_centers": [
+        [
+          1.359932,
+          0.154121,
+          1.415987
+        ],
+        [
+          1.480046,
+          -0.067064,
+          1.477541
+        ],
+        [
+          1.355969,
+          0.005921,
+          1.431366
+        ],
+        [
+          1.210459,
+          0.248826,
+          1.441998
+        ],
+        [
+          1.266052,
+          -0.126057,
+          1.45252
+        ],
+        [
+          1.412797,
+          -0.146084,
+          1.441261
+        ],
+        [
+          1.455143,
+          -0.095163,
+          1.454207
+        ]
+      ],
+      "documented_by_db45g_official_source": true,
+      "admissible_for_geometry_promotion": false,
+      "reason_not_admissible": "Official convention still prefers a reflection and fails the no-reflection contract."
+    },
+    "official_centers_with_reflection_allowed": {
+      "allow_reflection": true,
+      "reflection_preferred_by_svd": true,
+      "det_R": -1.0,
+      "scale": 12.634383,
+      "mean_residual_m": 0.217386,
+      "rms_residual_m": 0.226961,
+      "max_residual_m": 0.318104,
+      "per_camera_residual_m": {
+        "ring_front_center": 0.318104,
+        "ring_front_left": 0.279878,
+        "ring_side_left": 0.273666,
+        "ring_rear_left": 0.171527,
+        "ring_rear_right": 0.168218,
+        "ring_side_right": 0.167425,
+        "ring_front_right": 0.142883
+      },
+      "pass_db45_initial_center_thresholds": true,
+      "aligned_centers": [
+        [
+          1.359854,
+          0.154276,
+          1.477824
+        ],
+        [
+          1.480764,
+          -0.066639,
+          1.410999
+        ],
+        [
+          1.355903,
+          0.005653,
+          1.458882
+        ],
+        [
+          1.2096,
+          0.250094,
+          1.453597
+        ],
+        [
+          1.265531,
+          -0.126526,
+          1.434344
+        ],
+        [
+          1.41307,
+          -0.146926,
+          1.445485
+        ],
+        [
+          1.455676,
+          -0.095433,
+          1.433749
+        ]
+      ],
+      "admissible_for_geometry_promotion": false,
+      "reason_not_admissible": "Reflected similarity is explicitly disallowed by DB45h/DB45i center-alignment contract."
+    },
+    "translation_column_as_center_diagnostic_only": {
+      "allow_reflection": false,
+      "reflection_preferred_by_svd": false,
+      "det_R": 1.0,
+      "scale": 10.933397,
+      "mean_residual_m": 0.173113,
+      "rms_residual_m": 0.203139,
+      "max_residual_m": 0.373909,
+      "per_camera_residual_m": {
+        "ring_front_center": 0.277679,
+        "ring_front_left": 0.136575,
+        "ring_side_left": 0.157845,
+        "ring_rear_left": 0.373909,
+        "ring_rear_right": 0.114167,
+        "ring_side_right": 0.031935,
+        "ring_front_right": 0.119682
+      },
+      "pass_db45_initial_center_thresholds": true,
+      "aligned_centers": [
+        [
+          1.353592,
+          -0.003944,
+          1.486473
+        ],
+        [
+          1.413068,
+          0.207329,
+          1.43995
+        ],
+        [
+          1.338786,
+          0.121713,
+          1.470067
+        ],
+        [
+          1.455389,
+          0.049631,
+          1.379327
+        ],
+        [
+          1.099627,
+          -0.03691,
+          1.496806
+        ],
+        [
+          1.336849,
+          -0.267409,
+          1.459775
+        ],
+        [
+          1.543085,
+          -0.095911,
+          1.382482
+        ]
+      ],
+      "documented_by_db45g_official_source": false,
+      "admissible_for_geometry_promotion": false,
+      "reason_not_admissible": "Translation-column-as-center is a diagnostic contradiction check only; DB45g official-source fallback records decoded extrinsics as OpenCV camera-from-world, and DB45k does not recompute pointmap residuals."
+    },
+    "negative_translation_column_diagnostic_only": {
+      "allow_reflection": false,
+      "reflection_preferred_by_svd": true,
+      "det_R": 1.0,
+      "scale": 10.887422,
+      "mean_residual_m": 0.173802,
+      "rms_residual_m": 0.203934,
+      "max_residual_m": 0.374188,
+      "per_camera_residual_m": {
+        "ring_front_center": 0.280024,
+        "ring_front_left": 0.136984,
+        "ring_side_left": 0.160226,
+        "ring_rear_left": 0.374188,
+        "ring_rear_right": 0.110465,
+        "ring_side_right": 0.032172,
+        "ring_front_right": 0.122555
+      },
+      "pass_db45_initial_center_thresholds": false,
+      "aligned_centers": [
+        [
+          1.353616,
+          -0.004715,
+          1.403683
+        ],
+        [
+          1.412858,
+          0.206499,
+          1.446049
+        ],
+        [
+          1.338878,
+          0.120697,
+          1.417685
+        ],
+        [
+          1.455025,
+          0.050619,
+          1.509325
+        ],
+        [
+          1.100714,
+          -0.037727,
+          1.394105
+        ],
+        [
+          1.336954,
+          -0.26653,
+          1.435174
+        ],
+        [
+          1.542351,
+          -0.094344,
+          1.50886
+        ]
+      ],
+      "documented_by_db45g_official_source": false,
+      "admissible_for_geometry_promotion": false
+    },
+    "chirality_official_vs_waymo": {
+      "vggt_signed_volume": -1e-06,
+      "waymo_signed_volume": -0.001653,
+      "same_sign": true,
+      "camera_subset": [
+        "ring_front_center",
+        "ring_front_left",
+        "ring_side_left",
+        "ring_rear_left"
+      ]
+    }
+  },
+  "pairwise_rig_shape_audit": {
+    "official_camera_from_world_center": {
+      "best_scale_from_pairwise_distances": 18.286098,
+      "mean_abs_error_m": 0.193334,
+      "rms_abs_error_m": 0.218761,
+      "max_abs_error_m": 0.378413,
+      "heuristic_consistent": false,
+      "heuristic_thresholds_not_promotion_gates": {
+        "mean_abs_error_m": 0.1,
+        "max_abs_error_m": 0.25
+      },
+      "worst_pairs": [
+        {
+          "pair": [
+            "ring_front_left",
+            "ring_side_right"
+          ],
+          "scaled_vggt_distance_m": 0.159978,
+          "waymo_distance_m": 0.538391,
+          "abs_error_m": 0.378413
+        },
+        {
+          "pair": [
+            "ring_front_left",
+            "ring_front_right"
+          ],
+          "scaled_vggt_distance_m": 0.064336,
+          "waymo_distance_m": 0.40112,
+          "abs_error_m": 0.336783
+        },
+        {
+          "pair": [
+            "ring_side_left",
+            "ring_front_right"
+          ],
+          "scaled_vggt_distance_m": 0.20876,
+          "waymo_distance_m": 0.534109,
+          "abs_error_m": 0.325349
+        },
+        {
+          "pair": [
+            "ring_side_left",
+            "ring_side_right"
+          ],
+          "scaled_vggt_distance_m": 0.236618,
+          "waymo_distance_m": 0.552968,
+          "abs_error_m": 0.31635
+        },
+        {
+          "pair": [
+            "ring_front_center",
+            "ring_rear_left"
+          ],
+          "scaled_vggt_distance_m": 0.260295,
+          "waymo_distance_m": 0.552206,
+          "abs_error_m": 0.291911
+        },
+        {
+          "pair": [
+            "ring_rear_left",
+            "ring_rear_right"
+          ],
+          "scaled_vggt_distance_m": 0.551775,
+          "waymo_distance_m": 0.260827,
+          "abs_error_m": 0.290947
+        }
+      ]
+    },
+    "translation_column_diagnostic_only": {
+      "best_scale_from_pairwise_distances": 14.480636,
+      "mean_abs_error_m": 0.137157,
+      "rms_abs_error_m": 0.168601,
+      "max_abs_error_m": 0.343998,
+      "heuristic_consistent": false,
+      "heuristic_thresholds_not_promotion_gates": {
+        "mean_abs_error_m": 0.1,
+        "max_abs_error_m": 0.25
+      },
+      "worst_pairs": [
+        {
+          "pair": [
+            "ring_front_center",
+            "ring_rear_left"
+          ],
+          "scaled_vggt_distance_m": 0.208208,
+          "waymo_distance_m": 0.552206,
+          "abs_error_m": 0.343998
+        },
+        {
+          "pair": [
+            "ring_rear_left",
+            "ring_front_right"
+          ],
+          "scaled_vggt_distance_m": 0.225088,
+          "waymo_distance_m": 0.56165,
+          "abs_error_m": 0.336562
+        },
+        {
+          "pair": [
+            "ring_front_center",
+            "ring_side_left"
+          ],
+          "scaled_vggt_distance_m": 0.168979,
+          "waymo_distance_m": 0.433326,
+          "abs_error_m": 0.264347
+        },
+        {
+          "pair": [
+            "ring_rear_left",
+            "ring_rear_right"
+          ],
+          "scaled_vggt_distance_m": 0.509277,
+          "waymo_distance_m": 0.260827,
+          "abs_error_m": 0.24845
+        },
+        {
+          "pair": [
+            "ring_front_left",
+            "ring_rear_left"
+          ],
+          "scaled_vggt_distance_m": 0.230677,
+          "waymo_distance_m": 0.462227,
+          "abs_error_m": 0.231551
+        },
+        {
+          "pair": [
+            "ring_front_center",
+            "ring_rear_right"
+          ],
+          "scaled_vggt_distance_m": 0.33946,
+          "waymo_distance_m": 0.545624,
+          "abs_error_m": 0.206164
+        }
+      ]
+    },
+    "note": "Pairwise distances are invariant to rotation, translation, and reflection; scale is fitted once over all 21 camera pairs."
+  },
+  "target_roi_boundary": [
+    {
+      "roi": "db25_longline",
+      "known_lidar_support_frac": 0.094,
+      "coverage_valid_frac": 0.840092,
+      "owner_vggt_valid_frac_of_roi": 0.802392,
+      "raw_reprojection_med_px": 2309.346191,
+      "raw_reprojection_p90_px": 3700.071533,
+      "nearest_lidar_match_frac": 0.251721,
+      "nearest_lidar_3d_residual_med_m": 13.319297,
+      "permission_promotion_allowed": false
+    },
+    {
+      "roi": "db41_right_roi",
+      "known_lidar_support_frac": 0.084,
+      "coverage_valid_frac": 0.758575,
+      "owner_vggt_valid_frac_of_roi": 0.758553,
+      "raw_reprojection_med_px": 2401.202148,
+      "raw_reprojection_p90_px": 10756.242188,
+      "nearest_lidar_match_frac": 0.217445,
+      "nearest_lidar_3d_residual_med_m": 3.850346,
+      "permission_promotion_allowed": false
+    },
+    {
+      "roi": "db41_lower_right_roi",
+      "known_lidar_support_frac": 0.0,
+      "coverage_valid_frac": 0.421302,
+      "owner_vggt_valid_frac_of_roi": 0.421256,
+      "raw_reprojection_med_px": 1547.436279,
+      "raw_reprojection_p90_px": 10519.979492,
+      "nearest_lidar_match_frac": 0.153252,
+      "nearest_lidar_3d_residual_med_m": 1.390691,
+      "permission_promotion_allowed": false
+    }
+  ],
+  "prior_db45i_decision": {
+    "accepted_evidence_type": "vggt-calibrated-residual-diagnostic-only",
+    "accepted_db45_geometry_evidence": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "sim3_alignment": {
+      "available": true,
+      "pass_contract_initial_thresholds": false,
+      "scale": 12.564328,
+      "reflection_detected": true,
+      "det_R": 1.0,
+      "mean_residual_m": 0.217991,
+      "max_residual_m": 0.319168,
+      "per_camera_residual_m": {
+        "ring_front_center": 0.319168,
+        "ring_front_left": 0.281944,
+        "ring_side_left": 0.273717,
+        "ring_rear_left": 0.170781,
+        "ring_rear_right": 0.168906,
+        "ring_side_right": 0.168018,
+        "ring_front_right": 0.143402
+      },
+      "thresholds": {
+        "max_center_rms_m": 0.5,
+        "max_center_residual_m": 1.0,
+        "reflection_allowed": false
+      }
+    }
+  },
+  "checks": [
+    {
+      "id": "db45k_brief_open",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45k brief is present before execution."
+    },
+    {
+      "id": "inputs_present",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45i remote/manifest and DB45h contract inputs exist."
+    },
+    {
+      "id": "no_model_or_network_scope",
+      "pass": true,
+      "severity": "scope",
+      "evidence": "Script performs CPU/local saved-artifact audit only."
+    },
+    {
+      "id": "camera_order_documented",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Saved center order matches documented RING_CAMS_7 order."
+    },
+    {
+      "id": "official_decode_convention_recorded",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45g official-source fallback records OpenCV camera-from-world extrinsics."
+    },
+    {
+      "id": "extractor_followed_official_center_formula",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45i used pose_encoding_to_extri_intri and center = -Rcw.T @ tcw."
+    },
+    {
+      "id": "db45h_reflection_disallowed",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45h/DB45i contract disallows reflected Sim(3)."
+    },
+    {
+      "id": "official_center_not_admissible",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Official camera-from-world center fit still fails because reflection is preferred."
+    },
+    {
+      "id": "reflected_fit_not_admissible",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Best reflected fit has det(R)<0 and cannot be promoted."
+    },
+    {
+      "id": "translation_column_is_diagnostic_only",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Translation-column center passes center thresholds but conflicts with the documented official convention."
+    },
+    {
+      "id": "pairwise_shape_not_a_clean_coordinate_fix",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Official-center pairwise rig-shape error remains material after best scalar distance alignment."
+    },
+    {
+      "id": "roi_no_promotion_preserved",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "All DB25/DB41 ROI rows remain permission_promotion_allowed=false."
+    },
+    {
+      "id": "db41_lower_right_zero_lidar_preserved",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB41 lower-right known LiDAR support remains 0.000."
+    },
+    {
+      "id": "no_token_in_inputs_or_script",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "secret_scan_hits=[]"
+    }
+  ],
+  "secret_scan_hits": [],
+  "decision": {
+    "accepted_evidence_type": "vggt-pose-reflection-coordinate-audit-diagnostic-only",
+    "accepted_db45_diagnostic_evidence": true,
+    "accepted_db45_geometry_evidence": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "db45_status_after_db45k": "paused",
+    "route_recommendation": "pause_vggt_residual_route_after_coordinate_audit; official camera-from-world extraction fails the no-reflection contract, reflected fits are not admissible, and the translation-column improvement is an undocumented convention conflict that cannot promote geometry or RED controls.",
+    "claim_boundary": "DB45k is a coordinate/extractor audit only. It does not accept VGGT target-surface geometry, does not repair G/A1/BEST/DB32, and does not change DB25/DB41 RED/abstain states."
+  },
+  "board": "deliverables\\dit360_v2\\db45_geometry_evidence_audit\\db45k_vggt_pose_reflection_audit_board.jpg"
+}

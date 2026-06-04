@@ -66,7 +66,7 @@ Shared hard constraints for all briefs below:
 - If any brief hits its kill criteria, stop that direction, write the result to `progress.md`, and do not continue patch-on-patch under the same direction.
 
 # DB-45: Geometry foundation evidence audit
-Status: running (DB45k coordinate/reflection evidence audit open)
+Status: paused
 Route: A (geometry) / evidence-only
 
 Question: Can VGGT/Fast3R/CUT3R/DAC/DAP/PriOr-Flow/FlowSeek-style evidence turn any currently RED seam into YELLOW/GREEN, or improve the confidence calibration for layer-aware routing?
@@ -156,13 +156,13 @@ Max scope:
   - Max scope: CPU/local saved-artifact audit only. Inputs are existing `db45i_vggt_calibrated_residual_remote_result.json`, `db45i_vggt_calibrated_residual_manifest.json`, `db45h_vggt_residual_job_contract_manifest.json`, and local source files. No network, no A100, no executor, no model load, no HF access, no new raw-data scan, no new VGGT inference, no pointmap rerun, no repair/generation/source replacement, no permission change, no RED promotion.
   - Required vision check: DB45k board must show the reflection/non-reflection verdict, pairwise rig-shape audit, best admissible documented hypothesis, ROI no-promotion table, DB41 lower-right zero-LiDAR boundary, and explicit `diagnostic-only/no repair/no generation/no RED promotion` labels.
   - Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-  - Result: TBD -> archive to `progress.md` when done.
+  - Result (accepted diagnostic-only / route paused): DB45k ran CPU/local over existing DB45i/DB45h/DB45g artifacts only. Official camera-from-world center extraction still prefers reflection and fails the no-reflection contract (`mean/max=0.217990/0.319167 m`, pass=false); reflected fit has `det_R=-1.0` and remains non-admissible. Translation-column-as-center gives a non-reflective center fit (`mean/max=0.173113/0.373909 m`, center thresholds pass), but conflicts with DB45g official-source camera-from-world convention and is diagnostic-only. Official-center pairwise rig-shape error remains material (`mean/rms/max=0.193334/0.218761/0.378413 m`), all DB25/DB41 ROI rows stay no-promotion, and DB41 lower-right preserves LiDAR support `0.000`. Accepted evidence type is `vggt-pose-reflection-coordinate-audit-diagnostic-only`; `accepted_db45_geometry_evidence=false`, `permission_state_changes=none`, `red_promotions=[]`, no A100/model/reinfer/repair/generation/source replacement occurred. Detail archived at top of `progress.md`.
 
 Required vision check:
 - Board must include raw-camera support crop, LiDAR/depth/flow evidence overlays if available, model confidence overlay, and final permission-state label.
 - Mandatory visual check on DB41 lower-right and DB36/DB40 fake-geometry negatives.
 
-Result summary: DB45 is running only for DB45k saved-output coordinate/reflection audit. DB45j accepted VGGT calibrated residual **diagnostic-only** evidence; the route has real official inference/pose/decode/preprocess/residual outputs, but Sim(3) reflection and target-surface residual gates block geometry evidence and all permission changes. DB45k may only audit whether the reflection/coordinate failure is documented and decisive; it must not continue VGGT residual patch-on-patch, rerun inference, or reinterpret residuals as permission.
+Result summary: DB45 is paused after DB45k accepted VGGT pose/reflection coordinate audit **diagnostic-only** evidence. The route has real official inference/pose/decode/preprocess/residual outputs, but official camera-from-world center extraction still fails the no-reflection contract, reflected fits are not admissible, translation-column improvement is an undocumented convention-conflict diagnostic, and target ROI residuals remain no-promotion. Do not continue VGGT residual patch-on-patch, rerun inference, or reinterpret residuals as permission.
 
 # DB-46: BMW meeting presentation-only micro cleanup
 Status: proposed
