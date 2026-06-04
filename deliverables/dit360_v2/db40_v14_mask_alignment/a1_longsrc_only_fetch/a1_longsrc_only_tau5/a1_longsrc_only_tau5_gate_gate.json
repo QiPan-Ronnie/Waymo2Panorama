@@ -1,0 +1,11 @@
+{
+  "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db14_inputs/A1_view_none_bmw_1024x2048.png",
+  "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/a1_longsrc_only/a1_longsrc_only_tau5/a1_longsrc_only_tau5_corecompose.png",
+  "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/masks/a1longsrc_r008_h016_w025_tau5_preserve_nonseam.png",
+  "conf": 0.5,
+  "src_salient": 9,
+  "gen_salient": 9,
+  "netnew_count": 0,
+  "PASS": true,
+  "netnew": []
+}

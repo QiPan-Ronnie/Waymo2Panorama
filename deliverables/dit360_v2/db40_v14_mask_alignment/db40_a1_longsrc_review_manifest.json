@@ -1,0 +1,192 @@
+{
+  "board": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\db40_a1_longsrc_review_board.jpg",
+  "inputs": {
+    "A1 input": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\A1_view_none_bmw_1024x2048.png",
+    "DB14 A1 old-mask raw": "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau5\\a1view_r008_h016_w025_tau5_raw.png",
+    "DB40 keepout core": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\a1_keepout_strict_fetch\\a1_keepout_strict\\a1_keepout_strict_tau5\\a1_keepout_strict_tau5_corecompose.png",
+    "DB40 longsrc raw": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\a1_longsrc_only_fetch\\a1_longsrc_only_tau5\\a1_longsrc_only_tau5_raw.png",
+    "DB40 longsrc soft": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\a1_longsrc_only_fetch\\a1_longsrc_only_tau5\\a1_longsrc_only_tau5_softcompose.png",
+    "DB40 longsrc core": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\a1_longsrc_only_fetch\\a1_longsrc_only_tau5\\a1_longsrc_only_tau5_corecompose.png"
+  },
+  "rois_xyxy": {
+    "full": [
+      0,
+      0,
+      2048,
+      1024
+    ],
+    "long_source": [
+      820,
+      360,
+      1680,
+      735
+    ],
+    "right_bmw": [
+      1320,
+      300,
+      1960,
+      735
+    ]
+  },
+  "object_gate": {
+    "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db14_inputs/A1_view_none_bmw_1024x2048.png",
+    "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/a1_longsrc_only/a1_longsrc_only_tau5/a1_longsrc_only_tau5_corecompose.png",
+    "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/masks/a1longsrc_r008_h016_w025_tau5_preserve_nonseam.png",
+    "conf": 0.5,
+    "src_salient": 9,
+    "gen_salient": 9,
+    "netnew_count": 0,
+    "PASS": true,
+    "netnew": []
+  },
+  "diagnostics": {
+    "name": "a1_longsrc_only_tau5",
+    "init_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db14_inputs/A1_view_none_bmw_1024x2048.png",
+    "core_mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/masks/a1longsrc_r008_h016_w025_tau5_preserve_nonseam.png",
+    "model_mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/a1_longsrc_only/a1_longsrc_only_tau5/a1_longsrc_only_tau5_model_mask_far_preserve.png",
+    "raw_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/a1_longsrc_only/a1_longsrc_only_tau5/a1_longsrc_only_tau5_raw.png",
+    "softcompose_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/a1_longsrc_only/a1_longsrc_only_tau5/a1_longsrc_only_tau5_softcompose.png",
+    "corecompose_output": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/a1_longsrc_only/a1_longsrc_only_tau5/a1_longsrc_only_tau5_corecompose.png",
+    "height": 1024,
+    "width": 2048,
+    "steps": 50,
+    "seed": 0,
+    "guidance": 2.8,
+    "tau": 5.0,
+    "tau_internal": 0.05,
+    "halo_px": 16,
+    "halo_weight": 0.25,
+    "far_weight": 1.0,
+    "halo_min_t": 0.5,
+    "far_min_t": 0.0,
+    "compose_halo_alpha": 0.45,
+    "core_fraction": 0.0050487518310546875,
+    "halo_fraction": 0.01000213623046875,
+    "far_fraction": 0.9849491119384766,
+    "raw_core_mae_vs_init": 42.33367919921875,
+    "raw_halo_mae_vs_init": 22.816696166992188,
+    "raw_far_mae_vs_init": 3.4872264862060547,
+    "soft_core_mae_vs_init": 42.33367919921875,
+    "soft_halo_mae_vs_init": 10.792397499084473,
+    "soft_far_mae_vs_init": 0.0034521243069320917,
+    "corecompose_core_mae_vs_init": 42.33367919921875,
+    "corecompose_halo_mae_vs_init": 0.0,
+    "corecompose_far_mae_vs_init": 0.0,
+    "model_load_runtime_s": 708.536,
+    "invert_runtime_s": 56.51,
+    "case_runtime_s": 139.702,
+    "mask_convention": "white/255 preserves source; black/0 generates",
+    "method": "tri-map latent consistency: core free, halo soft clamp, far clamp"
+  },
+  "mask_manifest": {
+    "base_keep_mask": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\a1keep_r008_h016_w025_tau5_rightbmw_keepout_preserve_nonseam.png",
+    "output_mask": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\a1longsrc_r008_h016_w025_tau5_preserve_nonseam.png",
+    "preview": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\a1longsrc_r008_h016_w025_tau5_preview.jpg",
+    "long_source_roi_xyxy": [
+      820,
+      360,
+      1680,
+      735
+    ],
+    "old_core_fraction": 0.011279106140136719,
+    "selected_core_fraction": 0.0050487518310546875,
+    "dropped_core_fraction": 0.006230354309082031,
+    "components": [
+      {
+        "index": 0,
+        "area": 5343,
+        "bbox_xyxy": [
+          270,
+          386,
+          338,
+          651
+        ],
+        "selected": false
+      },
+      {
+        "index": 1,
+        "area": 5342,
+        "bbox_xyxy": [
+          879,
+          386,
+          914,
+          667
+        ],
+        "selected": true
+      },
+      {
+        "index": 2,
+        "area": 5246,
+        "bbox_xyxy": [
+          1132,
+          391,
+          1168,
+          671
+        ],
+        "selected": true
+      },
+      {
+        "index": 3,
+        "area": 4826,
+        "bbox_xyxy": [
+          604,
+          390,
+          626,
+          660
+        ],
+        "selected": false
+      },
+      {
+        "index": 4,
+        "area": 1918,
+        "bbox_xyxy": [
+          2037,
+          378,
+          2048,
+          569
+        ],
+        "selected": false
+      },
+      {
+        "index": 5,
+        "area": 979,
+        "bbox_xyxy": [
+          0,
+          534,
+          9,
+          647
+        ],
+        "selected": false
+      }
+    ],
+    "mask_convention": "white/255 preserves source; black/0 generates",
+    "reason": "Keep only A1 keepout-mask components that intersect the long_source ROI; preserve unrelated vertical strips that created non-BMW edit bands in the first DB40 run."
+  },
+  "roi_mae_vs_a1_input": {
+    "DB14 A1 old-mask raw": {
+      "long_source": 7.412668704986572,
+      "right_bmw": 7.553873538970947
+    },
+    "DB40 keepout core": {
+      "long_source": 1.1775803565979004,
+      "right_bmw": 0.0
+    },
+    "DB40 longsrc raw": {
+      "long_source": 7.1311492919921875,
+      "right_bmw": 5.0060930252075195
+    },
+    "DB40 longsrc soft": {
+      "long_source": 2.1139256954193115,
+      "right_bmw": 0.0
+    },
+    "DB40 longsrc core": {
+      "long_source": 1.3898574113845825,
+      "right_bmw": 0.0
+    }
+  },
+  "vision_verdict": {
+    "right_bmw": "PASS: BMW remains source-preserved and no old A1 white slab/ghost returns.",
+    "long_source": "FAIL: the narrower mask causes a conspicuous pole-like vertical object in raw/soft/core, so the seam edit is not source-faithful.",
+    "decision": "Reject DB40 long_source-only rerun. Mask shrinking removed unrelated edit strips but DiT still hallucinates structure inside the remaining seam core."
+  }
+}

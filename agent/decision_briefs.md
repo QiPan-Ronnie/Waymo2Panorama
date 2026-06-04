@@ -9,19 +9,6 @@ This file is the **direction/decision gate**, and it holds ONLY **active / pendi
 
 Status values: `proposed` / `running` / `explored` / `accepted` / `rejected` / `paused`.
 
-# DB-20260604-40: A1/G v14 mask-alignment and prompt root-cause replay
-Status: running
-Route: B (generative, constrained seam replay) + A (mask/source evidence)
-Question: The user observed that the old v14 trimap-clamp reference has a clean right white BMW region, while the newer A1/G v14-style outputs show a right-side white BMW ghost/vertical slice or a pole-like seam artifact. Was DB39 too broad because it reused the old hard-select seam mask on A1/G without proving the mask aligns to each candidate's actual seam? Can a candidate-specific trimap and prompt avoid the right-BMW artifact while repairing only the seam?
-Hypothesis: The old v14 method itself may not be the only issue; the replay inputs differ. The old reference used `02a00399_a000_hard_select_1024x2048.png` with its matching seam mask, while A1/G replay used different init images but the same old hard-select mask. That can cut across the white BMW/sidewalk region and cause generated vertical slabs. A candidate-specific seam mask plus a prompt that explicitly preserves the white BMW/building edge may be a valid small A100 test.
-Why now: The user's image review identifies a local artifact that DB39's broad rejection did not fully root-cause. Before declaring v14 dead, we need to separate method failure from input/mask mismatch.
-Expected evidence: CPU forensic board comparing old reference, A1/G init, old mask overlay on each init, candidate-specific seam/mask proposal, and right-BMW crops. If A100 is used, one bounded replay matrix on A1 first: old-mask control vs candidate-specific mask, with two prompts at most, raw/soft/core outputs, object gate, and vision review.
-Kill criteria: Reject if the white BMW gets ghosted, sliced, covered, or shape-shifted; reject if a pole/vertical slab remains in G right seam; reject if prompt changes broad source content or invents road/curb/sidewalk geometry; reject if improvement is only numeric and not visible in right-BMW/long seam crops.
-Max scope: A1 first, then G only if A1 root cause is supported. At most 4 A100 cases total in this DB: 2 masks x 2 prompts or fewer. Use existing Drive/Colab cache only; no local model-weight downloads; no new model family.
-Required vision check: Yes, including the two user-marked screenshots' right-BMW/pole ROI plus full ERP.
-Current evidence: A1 keepout + strict prompt A100 case supports the root-cause hypothesis: the right white BMW slab/ghost is removed and object gate passes (`netnew_count=0`), but the result still fails as a final seam solution because visible vertical edit bands remain in the long_source/dark-wall region. Evidence board/manifest: `deliverables/dit360_v2/db40_v14_mask_alignment/db40_a1_keepout_review_board.jpg`, `deliverables/dit360_v2/db40_v14_mask_alignment/db40_a1_keepout_review_manifest.json`.
-Next bounded test: do not repeat prompt-only variants. If continuing DB-40, change the edited seam support itself: shrink/reroute the A1 mask to only the necessary seam strip or construct a source-preserving hybrid that removes the right-BMW slab without touching unrelated vertical strips. Proceed to G only if A1 no longer creates non-BMW vertical bands.
-
 ### Template
 ```markdown
 # DB-YYYYMMDD-NN: <short title>
@@ -33,6 +20,7 @@ Result summary: TBD → archive to progress.md when done, then delete here.
 ```
 
 > **DONE THIS SESSION (2026-06-03, A100) — full record in `progress.md` (top "DiT360 SESSION SYNTHESIS" entry); kept here only as pointers so this queue stays short:**
+> - **DB-40 A1/G v14 mask-alignment replay** = **CLOSED / seam repair rejected, root-cause accepted**: A1 keepout proves the right BMW slab/ghost came from candidate/mask mismatch, but the long_source-only A100 rerun generated a pole-like vertical artifact despite object-gate PASS. Do not proceed to G with this v14 DiT360 seam-repair route. Results: `deliverables/dit360_v2/db40_v14_mask_alignment/`. Detail in progress.md.
 > - **DB-39 v14 trimap-clamp replay audit** = **REJECTED as G-family seam solution**: existing exact r008/h016/w025 v14 replay matrix already covers G/BEST/A1; board shows raw/soft/core variants either keep the seam or create vertical slice/slab artifacts. Results: `deliverables/dit360_v2/db39_v14_trimap_replay/`. Detail in progress.md.
 > - **DB-38 Bosch-ready candidate handoff board** = **ACCEPTED DB32 as current handoff candidate with caveats**: board compares G/DB19/DB28/DB32/DB36 under Bosch world-model constraints; DB32 is the defensible source-sidestep handoff, not a fix for original G. Results: `deliverables/dit360_v2/db38_bosch_handoff/`. Detail in progress.md.
 > - **DB-37 Google/Meta seam-mechanism gap audit** = **CLOSED / no new local repair opened**: public Google/Meta/StreetView mechanisms map to reliable overlap/depth/flow/global warp/source selection, all blocked by BMW ROI evidence or already tested by DB11-36. Result: `deliverables/dit360_v2/db37_google_meta_gap_audit/db37_google_meta_gap_audit.md`. Detail in progress.md.

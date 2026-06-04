@@ -1,0 +1,84 @@
+{
+  "base_keep_mask": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\a1keep_r008_h016_w025_tau5_rightbmw_keepout_preserve_nonseam.png",
+  "output_mask": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\a1longsrc_r008_h016_w025_tau5_preserve_nonseam.png",
+  "preview": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\masks\\a1longsrc_r008_h016_w025_tau5_preview.jpg",
+  "long_source_roi_xyxy": [
+    820,
+    360,
+    1680,
+    735
+  ],
+  "old_core_fraction": 0.011279106140136719,
+  "selected_core_fraction": 0.0050487518310546875,
+  "dropped_core_fraction": 0.006230354309082031,
+  "components": [
+    {
+      "index": 0,
+      "area": 5343,
+      "bbox_xyxy": [
+        270,
+        386,
+        338,
+        651
+      ],
+      "selected": false
+    },
+    {
+      "index": 1,
+      "area": 5342,
+      "bbox_xyxy": [
+        879,
+        386,
+        914,
+        667
+      ],
+      "selected": true
+    },
+    {
+      "index": 2,
+      "area": 5246,
+      "bbox_xyxy": [
+        1132,
+        391,
+        1168,
+        671
+      ],
+      "selected": true
+    },
+    {
+      "index": 3,
+      "area": 4826,
+      "bbox_xyxy": [
+        604,
+        390,
+        626,
+        660
+      ],
+      "selected": false
+    },
+    {
+      "index": 4,
+      "area": 1918,
+      "bbox_xyxy": [
+        2037,
+        378,
+        2048,
+        569
+      ],
+      "selected": false
+    },
+    {
+      "index": 5,
+      "area": 979,
+      "bbox_xyxy": [
+        0,
+        534,
+        9,
+        647
+      ],
+      "selected": false
+    }
+  ],
+  "mask_convention": "white/255 preserves source; black/0 generates",
+  "reason": "Keep only A1 keepout-mask components that intersect the long_source ROI; preserve unrelated vertical strips that created non-BMW edit bands in the first DB40 run."
+}
