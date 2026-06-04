@@ -1,0 +1,262 @@
+{
+  "db": "DB-45h",
+  "status": "vggt_residual_job_contract_gate",
+  "created_utc": "2026-06-04T16:05:56.451899+00:00",
+  "purpose": "Define the future VGGT calibrated residual extractor contract without running inference or accepting geometry evidence.",
+  "decision": {
+    "accepted_evidence_type": "vggt-residual-job-contract-only",
+    "accepted_db45_diagnostic_evidence": true,
+    "accepted_db45_geometry_evidence": false,
+    "runtime_ready": false,
+    "model_inference_ran": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "db45_status": "running",
+    "claim_boundary": "DB45h defines the evidence contract for a future extractor; it is not metric geometry evidence and does not authorize repair or RED promotion."
+  },
+  "refs": {
+    "db45b_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45b_evidence_permission_calibration_manifest.json",
+    "db45f_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45f_vggt_target_uv_sampling_gate_manifest.json",
+    "db45f_remote_result": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45f_vggt_remote_target_uv_sampling_result.json",
+    "db45g_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45g_vggt_pose_decode_readiness_manifest.json",
+    "board": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45h_vggt_residual_job_contract_board.jpg"
+  },
+  "scope": {
+    "cpu_local_only": true,
+    "model_load": false,
+    "model_inference": false,
+    "download": false,
+    "renderer": false,
+    "erp_repair": false,
+    "source_replacement": false,
+    "generated_image": false,
+    "red_promotion": false
+  },
+  "contract": {
+    "preconditions": {
+      "db45g_decode_path_diagnostic": true,
+      "db45g_residual_readiness": false,
+      "db45f_has_pose_key": true,
+      "db45f_stores_pose_tensor": false
+    },
+    "required_saved_outputs": [
+      {
+        "field": "pose_enc",
+        "shape": "B x S x 9, saved before log-tail compaction",
+        "why": "Required input to official pose_encoding_to_extri_intri; DB45f recorded the key but not tensor values."
+      },
+      {
+        "field": "decoded_extrinsics",
+        "shape": "S x 3 x 4, OpenCV camera-from-world",
+        "why": "Needed to extract VGGT camera centers and compare to the Waymo rig after Sim(3)."
+      },
+      {
+        "field": "decoded_intrinsics",
+        "shape": "S x 3 x 3 at VGGT preprocessed resolution, plus raw-image remap",
+        "why": "Needed for point/depth unprojection and raw-camera reprojection residuals."
+      },
+      {
+        "field": "preprocess_mapping",
+        "shape": "per camera crop/pad/resize transform",
+        "why": "Needed to map owner-UV ERP samples to VGGT coordinates without guessing."
+      },
+      {
+        "field": "waymo_rig_extrinsics",
+        "shape": "S x 4 x 4 T_ego_cam or equivalent",
+        "why": "Metric reference for camera-center Sim(3) alignment and raw-ray checks."
+      },
+      {
+        "field": "lidar_and_raw_residuals",
+        "shape": "per control ROI and per valid target sample",
+        "why": "Only raw/LiDAR-supported residuals can move a source-faithful permission state."
+      }
+    ],
+    "alignment_ladder": [
+      {
+        "step": "decode_camera",
+        "requirement": "Use official pose_encoding_to_extri_intri, not a hand-written pose guess.",
+        "promotion_allowed": false
+      },
+      {
+        "step": "extract_centers",
+        "requirement": "Invert camera-from-world extrinsics and compute camera centers C_vggt.",
+        "promotion_allowed": false
+      },
+      {
+        "step": "sim3_rig_alignment",
+        "requirement": "Solve a similarity transform from VGGT centers to Waymo rig centers over all 7 ring cameras; record scale, reflection flag, RMS, max residual, and per-camera residuals.",
+        "initial_stop_thresholds": {
+          "reflection_allowed": false,
+          "max_center_rms_m": 0.5,
+          "max_center_residual_m": 1.0
+        },
+        "promotion_allowed": false
+      },
+      {
+        "step": "target_surface_residuals",
+        "requirement": "For each frozen ROI owner-UV sample, transform VGGT point/depth to ego, compare against LiDAR or raw multi-view reprojection on the same target surface.",
+        "initial_stop_thresholds": {
+          "min_lidar_support_frac_for_promotion": 0.2,
+          "max_raw_reprojection_median_px": 3.0,
+          "max_raw_reprojection_p90_px": 8.0
+        },
+        "promotion_allowed": "only in a future brief if all DB45b target-surface checks pass"
+      }
+    ],
+    "control_policy": [
+      {
+        "name": "DB25 longline",
+        "segment_id": "db45_db25_longline_low_evidence",
+        "current_state": "RED",
+        "known_lidar_support_frac": 0.094,
+        "vggt_owner_uv_valid_frac": 0.840092,
+        "vggt_confidence_is_diagnostic_only": true,
+        "future_contract_result": "abstain_or_RED_until_lidar_raw_residual_passes",
+        "hard_rule": "confidence, owner-UV validity, or decoded pointmaps cannot promote without target-surface residual support"
+      },
+      {
+        "name": "DB41 right ROI",
+        "segment_id": "db45_db41_rightline_low_lidar",
+        "current_state": "RED",
+        "known_lidar_support_frac": 0.084,
+        "vggt_owner_uv_valid_frac": 0.758575,
+        "vggt_confidence_is_diagnostic_only": true,
+        "future_contract_result": "abstain_or_RED_until_lidar_raw_residual_passes",
+        "hard_rule": "confidence, owner-UV validity, or decoded pointmaps cannot promote without target-surface residual support"
+      },
+      {
+        "name": "DB41 lower-right ROI",
+        "segment_id": "db45_db41_lower_right_zero_lidar",
+        "current_state": "RED",
+        "known_lidar_support_frac": 0.0,
+        "vggt_owner_uv_valid_frac": 0.421302,
+        "vggt_confidence_is_diagnostic_only": true,
+        "future_contract_result": "abstain_or_RED_until_lidar_raw_residual_passes",
+        "hard_rule": "confidence, owner-UV validity, or decoded pointmaps cannot promote without target-surface residual support"
+      },
+      {
+        "name": "DB36 fake ground slabs / holes",
+        "segment_id": "db45_db36_fake_generated_ground",
+        "current_state": "RED",
+        "future_contract_result": "reject_non_admissible_generated_control",
+        "hard_rule": "raw-camera VGGT cannot validate generated-core fake geometry as sensor truth"
+      },
+      {
+        "name": "DB40 pole-like vertical artifact",
+        "segment_id": "db45_db40_fake_vertical_pole",
+        "current_state": "RED",
+        "future_contract_result": "reject_non_admissible_generated_control",
+        "hard_rule": "detector-clean/object-gate PASS cannot override fake-geometry rejection"
+      },
+      {
+        "name": "DB32 s40 handoff",
+        "segment_id": "db45_db32_source_sidestep_control",
+        "current_state": "YELLOW",
+        "future_contract_result": "unchanged_caveated_handoff",
+        "hard_rule": "source-sidestep handoff is not original-G seam repair and not source-faithful ceiling"
+      }
+    ],
+    "future_brief_requirements": [
+      "Run at most one log/anchor first: BMW log 02a00399 anchor 0, 7 raw ring cameras.",
+      "Save pose_enc, decoded extrinsics/intrinsics, preprocess mapping, and compact residual tables before any log-tail truncation.",
+      "Report camera-center Sim(3) residuals before any point residual is interpreted.",
+      "Report LiDAR/raw residuals per frozen DB25/DB41 ROI; DB41 lower-right remains abstain if LiDAR support is zero.",
+      "Do not emit repaired ERP, source replacement, renderer output, generated image, or permission promotion in the extractor brief."
+    ],
+    "threshold_boundary": "Initial stop thresholds are future extractor contract gates only. They are not validated calibration thresholds and do not constitute current geometry evidence.",
+    "claim_boundary": "This contract makes the next extractor auditable; it is not geometry evidence and does not authorize a repair."
+  },
+  "checks": [
+    {
+      "id": "db45b_permission_guardrails_present",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45b permission calibration is available."
+    },
+    {
+      "id": "db45g_decode_path_precondition",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45g accepted only official-source decode-path diagnostic evidence."
+    },
+    {
+      "id": "db45f_pose_key_but_no_tensor_recorded",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45f records pose_enc as a prediction key but does not store tensor values or decoded extrinsics."
+    },
+    {
+      "id": "contract_requires_pose_and_decode",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Future extractor must save pose_enc and decoded camera matrices."
+    },
+    {
+      "id": "contract_requires_preprocess_mapping",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Future extractor must preserve crop/pad/resize mapping."
+    },
+    {
+      "id": "contract_requires_sim3_alignment",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Future extractor must solve/report Sim(3) alignment to Waymo rig before residuals."
+    },
+    {
+      "id": "contract_requires_lidar_raw_residuals",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Future extractor must compare target-surface samples to LiDAR/raw residuals."
+    },
+    {
+      "id": "thresholds_are_contract_only",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45h thresholds are future extractor stop gates only, not accepted geometry calibration."
+    },
+    {
+      "id": "db41_lower_right_preserved_abstain",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB41 lower-right remains zero-LiDAR abstain under the contract."
+    },
+    {
+      "id": "generated_controls_rejected",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Generated fake controls remain non-admissible rejects."
+    },
+    {
+      "id": "no_model_action_or_repair",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45h is CPU/local contract only: no model load, inference, download, renderer, repair, source replacement, or generation."
+    },
+    {
+      "id": "no_red_promotion",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45h changes no permission state and promotes no RED control."
+    },
+    {
+      "id": "no_token_in_local_artifacts",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Secret scan hits: []"
+    },
+    {
+      "id": "db45f_remote_available",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45f target-UV diagnostic result is available for current control context."
+    },
+    {
+      "id": "db45f_manifest_available",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45f manifest accepted diagnostic-only owner-UV evidence."
+    }
+  ],
+  "secret_scan_hits": []
+}
