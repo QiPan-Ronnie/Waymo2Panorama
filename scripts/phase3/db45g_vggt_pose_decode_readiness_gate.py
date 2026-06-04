@@ -28,6 +28,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[2]
 OUT_DIR = ROOT / "deliverables" / "dit360_v2" / "db45_geometry_evidence_audit"
 DB45F = OUT_DIR / "db45f_vggt_target_uv_sampling_gate_manifest.json"
+DB45F_REMOTE_RESULT = OUT_DIR / "db45f_vggt_remote_target_uv_sampling_result.json"
 REMOTE_RESULT = OUT_DIR / "db45g_vggt_pose_decode_readiness_remote_result.json"
 MANIFEST = OUT_DIR / "db45g_vggt_pose_decode_readiness_manifest.json"
 BOARD = OUT_DIR / "db45g_vggt_pose_decode_readiness_board.jpg"
@@ -40,6 +41,49 @@ SECRET_BYTE_PATTERNS = [
     re.compile(rb"hf_[A-Za-z0-9]{20,}"),
     re.compile(rb"Bearer\s+[A-Za-z0-9._-]+"),
 ]
+
+OFFICIAL_SOURCE_FALLBACK = {
+    "source_only": True,
+    "urls": [
+        "https://github.com/facebookresearch/vggt",
+        "https://raw.githubusercontent.com/facebookresearch/vggt/main/vggt/utils/pose_enc.py",
+        "https://raw.githubusercontent.com/facebookresearch/vggt/main/vggt/utils/geometry.py",
+        "https://raw.githubusercontent.com/facebookresearch/vggt/main/demo_colmap.py",
+    ],
+    "findings": [
+        {
+            "id": "readme_predicts_geometry",
+            "source": "facebookresearch/vggt README",
+            "line_ref": "README lines 300, 342-362",
+            "claim": "VGGT predicts extrinsics, intrinsics, point maps, depth maps, tracks; the documented detailed path decodes pose_enc through pose_encoding_to_extri_intri before depth unprojection.",
+        },
+        {
+            "id": "pose_decode_function",
+            "source": "vggt/utils/pose_enc.py",
+            "line_ref": "pose_enc.py lines 4-9",
+            "claim": "pose_encoding_to_extri_intri reconstructs 3x4 extrinsics and 3x3 intrinsics from BxSx9 pose encoding.",
+        },
+        {
+            "id": "opencv_camera_from_world",
+            "source": "vggt/utils/pose_enc.py and README",
+            "line_ref": "pose_enc.py lines 7-8; README lines 349-352",
+            "claim": "Decoded extrinsics use OpenCV convention and represent camera-from-world transforms.",
+        },
+        {
+            "id": "world_unprojection_path",
+            "source": "vggt/utils/geometry.py",
+            "line_ref": "geometry.py lines 1-4",
+            "claim": "Official geometry utilities unproject depth maps to world coordinates using extrinsics and intrinsics, with camera-from-world extrinsics inverted to camera-to-world.",
+        },
+        {
+            "id": "colmap_export_path",
+            "source": "demo_colmap.py",
+            "line_ref": "demo_colmap.py lines 1-2",
+            "claim": "Official COLMAP demo decodes camera/depth outputs, unprojects points, and resizes intrinsics from VGGT's 518 resolution before export.",
+        },
+    ],
+    "claim_boundary": "Official source documents a pose/camera decode path, but source-only inspection does not prove metric alignment to Waymo rig or LiDAR and does not provide saved DB45f pose tensor values.",
+}
 
 
 def font(size: int) -> ImageFont.ImageFont:
@@ -286,6 +330,23 @@ def _sanitize_json(obj: Any) -> Any:
     return obj
 
 
+def local_db45f_remote_pose_state() -> dict[str, Any]:
+    if not DB45F_REMOTE_RESULT.exists():
+        return {"exists": False, "has_pose_enc_key": False, "stores_pose_enc_tensor": False}
+    raw = read_json(DB45F_REMOTE_RESULT)
+    keys = raw.get("vggt", {}).get("prediction_keys") or []
+    shapes = raw.get("vggt", {}).get("field_shapes") or {}
+    return {
+        "exists": True,
+        "prediction_keys": keys,
+        "has_pose_enc_key": "pose_enc" in keys,
+        "has_pose_enc_list_key": "pose_enc_list" in keys,
+        "stored_field_shapes": shapes,
+        "stores_pose_enc_tensor": "pose_enc" in raw.get("vggt", {}) or "pose_enc" in shapes,
+        "path": rel(DB45F_REMOTE_RESULT),
+    }
+
+
 def run_remote(timeout_s: int) -> dict[str, Any]:
     url = os.environ["COLAB_URL"].rstrip("/")
     token = os.environ["COLAB_TOKEN"]
@@ -363,9 +424,15 @@ def scan_secret_hits(paths: list[Path]) -> list[dict[str, str]]:
     return hits
 
 
-def build_checks(remote: dict[str, Any], db45f: dict[str, Any], secret_hits: list[dict[str, str]]) -> list[dict[str, Any]]:
+def build_checks(
+    remote: dict[str, Any],
+    db45f: dict[str, Any],
+    local_db45f_pose: dict[str, Any],
+    secret_hits: list[dict[str, str]],
+) -> list[dict[str, Any]]:
     readiness = remote.get("readiness", {})
     scope = remote.get("scope", {})
+    source_fallback = remote.get("official_source_fallback") or OFFICIAL_SOURCE_FALLBACK
 
     def chk(check_id: str, passed: bool, severity: str, evidence: str) -> dict[str, Any]:
         return {"id": check_id, "pass": bool(passed), "severity": severity, "evidence": evidence}
@@ -392,15 +459,29 @@ def build_checks(remote: dict[str, Any], db45f: dict[str, Any], secret_hits: lis
         ),
         chk(
             "pose_decode_candidate_found",
-            readiness.get("official_pose_decode_candidate_found") is True,
+            readiness.get("official_pose_decode_candidate_found") is True
+            or bool(source_fallback.get("source_only") and len(source_fallback.get("findings") or []) >= 3),
             "blocker",
-            f"Decode candidates: {readiness.get('decode_candidates')}",
+            f"Runtime decode candidates: {readiness.get('decode_candidates')}; official-source fallback findings: {[f.get('id') for f in source_fallback.get('findings', [])]}",
         ),
         chk(
             "db45f_pose_key_available",
-            readiness.get("db45f_has_pose_enc_key") is True,
+            readiness.get("db45f_has_pose_enc_key") is True or local_db45f_pose.get("has_pose_enc_key") is True,
             "blocker",
-            "Remote source/API inspection must read the saved DB45f Drive result and confirm its VGGT prediction keys include pose_enc; a remote-unavailable STOP is not evidence that local DB45f lacks pose_enc.",
+            f"Remote source/API inspection must read saved DB45f result when available; local DB45f result has pose_enc key={local_db45f_pose.get('has_pose_enc_key')} and stores pose_enc tensor={local_db45f_pose.get('stores_pose_enc_tensor')}.",
+        ),
+        chk(
+            "runtime_source_api_inspection_completed",
+            remote.get("colab_job", {}).get("exit_code") == 0 and remote.get("error") is None,
+            "blocker",
+            "Official-source fallback can document decode path, but runtime source/API inspection is still required before residual readiness is accepted.",
+        ),
+        chk(
+            "actual_pose_tensor_or_decoded_extrinsics_available",
+            local_db45f_pose.get("stores_pose_enc_tensor") is True
+            or readiness.get("db45f_pose_tensor_or_decoded_extrinsics_available") is True,
+            "blocker",
+            "DB45f local artifact records prediction keys but not actual pose_enc tensor values or decoded extrinsics; future residual computation needs a new bounded inference/extractor sub-scope.",
         ),
         chk(
             "future_residual_requires_new_brief",
@@ -491,6 +572,33 @@ def build_board(manifest: dict[str, Any]) -> None:
     for item in candidates[:8]:
         y = draw_wrapped(draw, 42, y, f"- {item.get('module')}::{item.get('name')}{item.get('signature') or ''}", 120, (235, 235, 235), 13, 4)
 
+    y += 12
+    draw.text((24, y), "Official-source fallback", fill=(255, 255, 255), font=font(21))
+    y += 30
+    fallback = manifest.get("official_source_fallback", {})
+    for item in (fallback.get("findings") or [])[:5]:
+        y = draw_wrapped(
+            draw,
+            42,
+            y,
+            f"- {item.get('id')}: {item.get('claim')} [{item.get('line_ref')}]",
+            120,
+            (210, 235, 255),
+            13,
+            4,
+        )
+    local_pose = manifest.get("local_db45f_pose_state", {})
+    y = draw_wrapped(
+        draw,
+        42,
+        y + 6,
+        f"- local DB45f pose key={local_pose.get('has_pose_enc_key')} tensor stored={local_pose.get('stores_pose_enc_tensor')}",
+        120,
+        (255, 220, 170),
+        13,
+        4,
+    )
+
     x2 = 1050
     y2 = 154
     draw.text((x2, y2), "Hard checks", fill=(255, 255, 255), font=font(21))
@@ -524,10 +632,15 @@ def build_manifest() -> dict[str, Any]:
         "error": {"type": "MissingRemoteResult", "message": "Run with --run-remote first."},
     }
     remote = _sanitize_json(remote)
+    remote["official_source_fallback"] = OFFICIAL_SOURCE_FALLBACK
+    local_db45f_pose = local_db45f_remote_pose_state()
     secret_hits = scan_secret_hits([REMOTE_RESULT])
-    checks = build_checks(remote, db45f, secret_hits)
+    checks = build_checks(remote, db45f, local_db45f_pose, secret_hits)
     blocker_failures = [c for c in checks if c["severity"] == "blocker" and not c["pass"]]
     readiness = remote.get("readiness", {})
+    source_decode_path_documented = any(
+        c["id"] == "pose_decode_candidate_found" and c["pass"] for c in checks
+    )
     accepted = not blocker_failures
     manifest = {
         "db": "DB-45g",
@@ -535,33 +648,41 @@ def build_manifest() -> dict[str, Any]:
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "purpose": "Inspect official VGGT pose/camera decode readiness for a future metric pointmap/LiDAR residual job without running inference.",
         "decision": {
-            "accepted_evidence_type": "vggt-pose-decode-readiness-only" if accepted else "blocked-or-no-go",
+            "accepted_evidence_type": "vggt-official-source-decode-path-diagnostic-only" if source_decode_path_documented else "blocked-or-no-go",
+            "accepted_db45_diagnostic_evidence": bool(source_decode_path_documented),
             "residual_readiness": accepted and readiness.get("future_residual_job_allowed_if_new_brief") is True,
             "accepted_db45_geometry_evidence": False,
             "model_inference_ran": False,
             "permission_state_changes": "none",
             "red_promotions": [],
             "db45_status": "running",
-            "claim_boundary": "Readiness-only: official pose decode may permit a future residual brief; no metric geometry evidence is accepted here.",
+            "claim_boundary": "Official-source decode path is documented, but runtime inspection and saved pose/extrinsic tensors are still missing; no metric geometry evidence or residual readiness is accepted.",
         },
         "refs": {
             "db45f_manifest": rel(DB45F),
+            "db45f_remote_result": rel(DB45F_REMOTE_RESULT),
             "remote_result_json": rel(REMOTE_RESULT),
             "board": rel(BOARD),
         },
         "remote_result": remote,
+        "official_source_fallback": OFFICIAL_SOURCE_FALLBACK,
+        "local_db45f_pose_state": local_db45f_pose,
         "checks": checks,
         "secret_scan_hits": secret_hits,
     }
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     secret_hits = scan_secret_hits([REMOTE_RESULT, MANIFEST])
-    checks = build_checks(remote, db45f, secret_hits)
+    checks = build_checks(remote, db45f, local_db45f_pose, secret_hits)
     blocker_failures = [c for c in checks if c["severity"] == "blocker" and not c["pass"]]
+    source_decode_path_documented = any(
+        c["id"] == "pose_decode_candidate_found" and c["pass"] for c in checks
+    )
     accepted = not blocker_failures
     manifest["checks"] = checks
     manifest["secret_scan_hits"] = secret_hits
-    manifest["decision"]["accepted_evidence_type"] = "vggt-pose-decode-readiness-only" if accepted else "blocked-or-no-go"
+    manifest["decision"]["accepted_evidence_type"] = "vggt-official-source-decode-path-diagnostic-only" if source_decode_path_documented else "blocked-or-no-go"
+    manifest["decision"]["accepted_db45_diagnostic_evidence"] = bool(source_decode_path_documented)
     manifest["decision"]["residual_readiness"] = accepted and readiness.get("future_residual_job_allowed_if_new_brief") is True
     MANIFEST.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     build_board(manifest)
