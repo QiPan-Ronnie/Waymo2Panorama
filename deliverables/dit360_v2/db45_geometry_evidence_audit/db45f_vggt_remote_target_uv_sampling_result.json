@@ -1,0 +1,907 @@
+{
+  "anchor": 0,
+  "db": "DB-45f",
+  "ended_utc": "2026-06-04T15:01:59Z",
+  "official_preprocess": {
+    "function": "vggt.utils.load_fn.load_and_preprocess_images",
+    "input_tensor_shape": [
+      7,
+      3,
+      518,
+      518
+    ],
+    "mode": "crop",
+    "params_by_camera": {
+      "0": {
+        "crop_y": 84,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 686,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 0,
+        "post_crop_height": 518,
+        "post_crop_width": 518,
+        "raw_height": 2048,
+        "raw_width": 1550,
+        "target_size": 518
+      },
+      "1": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "2": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "3": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "4": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "5": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "6": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      }
+    },
+    "source": "/content/vggt_db45d/vggt/vggt/utils/load_fn.py"
+  },
+  "raw_camera_load": {
+    "camera_names": [
+      "ring_front_center",
+      "ring_front_left",
+      "ring_side_left",
+      "ring_rear_left",
+      "ring_rear_right",
+      "ring_side_right",
+      "ring_front_right"
+    ],
+    "ok": true,
+    "raw_shapes_hw": [
+      [
+        2048,
+        1550
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ]
+    ]
+  },
+  "recovered_from": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db45f_vggt_target_uv_sampling/db45f_remote_target_uv_sampling_result.json",
+  "recovered_utc": "2026-06-04T15:14:48Z",
+  "scope": {
+    "erp_repair": false,
+    "generated_image": false,
+    "old_uniform_wrapper_used": false,
+    "one_anchor": true,
+    "one_log": true,
+    "raw_ring_cameras": 7,
+    "renderer": false,
+    "source_replacement": false
+  },
+  "secret_policy": "HF token read from environment only; not written to output.",
+  "started_utc": "2026-06-04T15:01:29Z",
+  "target_uv_sampling": {
+    "db25_longline": {
+      "admissibility": {
+        "permission_promotion_allowed_by_vggt_alone": false,
+        "preprocessing_mapping_recorded": true,
+        "still_model_diagnostic_only": true,
+        "target_uv_mapping_available": true
+      },
+      "coverage_valid_frac": 0.840092,
+      "heatmap_grids": {
+        "depth_conf": [
+          [
+            1.012663,
+            1.001362,
+            1.060277,
+            1.092947,
+            1.079962,
+            1.068577,
+            1.168257,
+            1.066755
+          ],
+          [
+            1.170673,
+            1.091655,
+            1.080615,
+            1.051495,
+            1.116812,
+            1.213623,
+            1.312037,
+            1.008545
+          ],
+          [
+            1.140637,
+            1.181993,
+            1.071543,
+            1.231723,
+            1.165323,
+            1.246018,
+            1.434303,
+            1.32937
+          ],
+          [
+            1.000375,
+            1.140605,
+            1.12948,
+            1.251835,
+            1.311725,
+            1.265235,
+            1.273395,
+            1.24367
+          ]
+        ],
+        "preprocess_valid": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "world_points_conf": [
+          [
+            1.000282,
+            1.0,
+            1.021545,
+            1.01253,
+            1.000175,
+            1.000007,
+            1.000002,
+            1.000077
+          ],
+          [
+            1.07836,
+            1.078553,
+            1.03107,
+            1.001832,
+            1.001,
+            1.000072,
+            1.000008,
+            1.0
+          ],
+          [
+            1.00412,
+            1.008447,
+            1.002608,
+            1.004645,
+            1.000995,
+            1.000138,
+            1.00002,
+            1.00001
+          ],
+          [
+            1.0,
+            1.008325,
+            1.00265,
+            1.000065,
+            1.00009,
+            1.00009,
+            1.000015,
+            1.00002
+          ]
+        ]
+      },
+      "model_internal_overlap_pair_disagreement": {
+        "0-1": {
+          "overlap_px": 13816,
+          "valid_px": 12847,
+          "world_points_l2": {
+            "mean": 0.1681,
+            "med": 0.022759,
+            "n": 12843,
+            "p10": 0.012195,
+            "p90": 0.175254,
+            "std": 0.486259,
+            "valid": 0.999689
+          }
+        },
+        "0-6": {
+          "overlap_px": 12960,
+          "valid_px": 12001,
+          "world_points_l2": {
+            "mean": 0.0436,
+            "med": 0.021105,
+            "n": 11998,
+            "p10": 0.009997,
+            "p90": 0.038724,
+            "std": 0.134154,
+            "valid": 0.99975
+          }
+        },
+        "6-5": {
+          "overlap_px": 12010,
+          "valid_px": 11926,
+          "world_points_l2": {
+            "mean": 0.039051,
+            "med": 0.039867,
+            "n": 11921,
+            "p10": 0.035156,
+            "p90": 0.041728,
+            "std": 0.002866,
+            "valid": 0.999581
+          }
+        }
+      },
+      "owner_counts": {
+        "0": 65752,
+        "1": 11530,
+        "5": 53816,
+        "6": 70524
+      },
+      "owner_preprocess_valid_frac_of_roi": 0.802392,
+      "owner_uv_valid_frac_of_roi": 0.840092,
+      "roi_xyxy": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "target_sampled_stats": {
+        "depth": {
+          "mean": 0.561245,
+          "med": 0.287988,
+          "n": 192572,
+          "p10": 0.183714,
+          "p90": 1.521397,
+          "std": 0.677713,
+          "valid": 0.802383
+        },
+        "depth_conf": {
+          "mean": 1.148682,
+          "med": 1.103723,
+          "n": 192572,
+          "p10": 1.000002,
+          "p90": 1.38906,
+          "std": 0.164372,
+          "valid": 0.802383
+        },
+        "world_points_conf": {
+          "mean": 1.009675,
+          "med": 1.000036,
+          "n": 192572,
+          "p10": 1.0,
+          "p90": 1.010957,
+          "std": 0.039611,
+          "valid": 0.802383
+        },
+        "world_points_norm": {
+          "mean": 0.545455,
+          "med": 0.279855,
+          "n": 192572,
+          "p10": 0.198594,
+          "p90": 1.262696,
+          "std": 0.632777,
+          "valid": 0.802383
+        }
+      }
+    },
+    "db41_lower_right_roi": {
+      "admissibility": {
+        "permission_promotion_allowed_by_vggt_alone": false,
+        "preprocessing_mapping_recorded": true,
+        "still_model_diagnostic_only": true,
+        "target_uv_mapping_available": true
+      },
+      "coverage_valid_frac": 0.421302,
+      "heatmap_grids": {
+        "depth_conf": [
+          [
+            1.35604,
+            1.135207,
+            1.307313,
+            1.508855,
+            1.56242,
+            1.53512,
+            1.36359,
+            1.44905
+          ],
+          [
+            1.319402,
+            1.456705,
+            1.48972,
+            1.1779,
+            1.070675,
+            1.034725,
+            1.002142,
+            1.00001
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ],
+        "preprocess_valid": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ],
+        "world_points_conf": [
+          [
+            1.0,
+            1.000002,
+            1.000005,
+            1.000047,
+            1.000878,
+            1.001227,
+            1.000293,
+            1.000338
+          ],
+          [
+            1.000018,
+            1.000025,
+            1.000012,
+            1.000012,
+            1.00001,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "model_internal_overlap_pair_disagreement": {
+        "3-4": {
+          "overlap_px": 1916,
+          "valid_px": 1916,
+          "world_points_l2": {
+            "mean": 0.031196,
+            "med": 0.031477,
+            "n": 1916,
+            "p10": 0.026896,
+            "p90": 0.034834,
+            "std": 0.003046,
+            "valid": 1.0
+          }
+        },
+        "5-4": {
+          "overlap_px": 4208,
+          "valid_px": 4178,
+          "world_points_l2": {
+            "mean": 0.049505,
+            "med": 0.047338,
+            "n": 4176,
+            "p10": 0.042567,
+            "p90": 0.05904,
+            "std": 0.006925,
+            "valid": 0.999521
+          }
+        }
+      },
+      "owner_counts": {
+        "4": 27017,
+        "5": 18332
+      },
+      "owner_preprocess_valid_frac_of_roi": 0.421256,
+      "owner_uv_valid_frac_of_roi": 0.421302,
+      "roi_xyxy": [
+        1580,
+        560,
+        2048,
+        790
+      ],
+      "target_sampled_stats": {
+        "depth": {
+          "mean": 0.23459,
+          "med": 0.232051,
+          "n": 45344,
+          "p10": 0.136209,
+          "p90": 0.357171,
+          "std": 0.08427,
+          "valid": 0.421256
+        },
+        "depth_conf": {
+          "mean": 1.340532,
+          "med": 1.393616,
+          "n": 45344,
+          "p10": 1.000001,
+          "p90": 1.615353,
+          "std": 0.232677,
+          "valid": 0.421256
+        },
+        "world_points_conf": {
+          "mean": 1.000215,
+          "med": 1.000009,
+          "n": 45344,
+          "p10": 1.0,
+          "p90": 1.000323,
+          "std": 0.00103,
+          "valid": 0.421256
+        },
+        "world_points_norm": {
+          "mean": 0.270238,
+          "med": 0.263178,
+          "n": 45344,
+          "p10": 0.202855,
+          "p90": 0.358071,
+          "std": 0.062058,
+          "valid": 0.421256
+        }
+      }
+    },
+    "db41_right_roi": {
+      "admissibility": {
+        "permission_promotion_allowed_by_vggt_alone": false,
+        "preprocessing_mapping_recorded": true,
+        "still_model_diagnostic_only": true,
+        "target_uv_mapping_available": true
+      },
+      "coverage_valid_frac": 0.758575,
+      "heatmap_grids": {
+        "depth_conf": [
+          [
+            1.116407,
+            1.024717,
+            1.028843,
+            1.021195,
+            1.044065,
+            1.042482,
+            1.088677,
+            1.02081
+          ],
+          [
+            1.346235,
+            1.02483,
+            1.041578,
+            1.084345,
+            1.103305,
+            1.135763,
+            1.21325,
+            1.067695
+          ],
+          [
+            1.567048,
+            1.14044,
+            1.236057,
+            1.23036,
+            1.404997,
+            1.471017,
+            1.353813,
+            1.329645
+          ],
+          [
+            1.428765,
+            1.20864,
+            1.349695,
+            1.50982,
+            1.142765,
+            1.002265,
+            1.0,
+            1.0
+          ]
+        ],
+        "preprocess_valid": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "world_points_conf": [
+          [
+            1.000002,
+            1.000015,
+            1.000082,
+            1.000075,
+            1.000338,
+            1.010228,
+            1.00513,
+            1.005565
+          ],
+          [
+            1.000005,
+            1.000002,
+            1.000023,
+            1.000233,
+            1.002105,
+            1.00193,
+            1.008915,
+            1.009932
+          ],
+          [
+            1.000023,
+            1.00001,
+            1.000002,
+            1.000005,
+            1.00007,
+            1.001865,
+            1.003175,
+            1.00252
+          ],
+          [
+            1.00002,
+            1.00002,
+            1.00002,
+            1.00002,
+            1.000005,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ]
+      },
+      "model_internal_overlap_pair_disagreement": {
+        "3-4": {
+          "overlap_px": 6374,
+          "valid_px": 6374,
+          "world_points_l2": {
+            "mean": 0.225144,
+            "med": 0.049157,
+            "n": 6374,
+            "p10": 0.027808,
+            "p90": 0.718281,
+            "std": 0.427419,
+            "valid": 1.0
+          }
+        },
+        "5-4": {
+          "overlap_px": 11785,
+          "valid_px": 11702,
+          "world_points_l2": {
+            "mean": 0.076312,
+            "med": 0.046248,
+            "n": 11698,
+            "p10": 0.028604,
+            "p90": 0.066523,
+            "std": 0.154389,
+            "valid": 0.999658
+          }
+        },
+        "6-5": {
+          "overlap_px": 4832,
+          "valid_px": 4746,
+          "world_points_l2": {
+            "mean": 0.038895,
+            "med": 0.039269,
+            "n": 4741,
+            "p10": 0.036181,
+            "p90": 0.041123,
+            "std": 0.002047,
+            "valid": 0.998946
+          }
+        }
+      },
+      "owner_counts": {
+        "3": 200,
+        "4": 83647,
+        "5": 82190
+      },
+      "owner_preprocess_valid_frac_of_roi": 0.758553,
+      "owner_uv_valid_frac_of_roi": 0.758575,
+      "roi_xyxy": [
+        1440,
+        360,
+        2048,
+        720
+      ],
+      "target_sampled_stats": {
+        "depth": {
+          "mean": 0.594015,
+          "med": 0.414125,
+          "n": 166032,
+          "p10": 0.179597,
+          "p90": 1.084116,
+          "std": 0.488594,
+          "valid": 0.758553
+        },
+        "depth_conf": {
+          "mean": 1.196336,
+          "med": 1.126588,
+          "n": 166032,
+          "p10": 1.0,
+          "p90": 1.565636,
+          "std": 0.211209,
+          "valid": 0.758553
+        },
+        "world_points_conf": {
+          "mean": 1.002148,
+          "med": 1.000006,
+          "n": 166032,
+          "p10": 1.0,
+          "p90": 1.002884,
+          "std": 0.009875,
+          "valid": 0.758553
+        },
+        "world_points_norm": {
+          "mean": 0.60068,
+          "med": 0.412863,
+          "n": 166032,
+          "p10": 0.217606,
+          "p90": 1.057854,
+          "std": 0.442958,
+          "valid": 0.758553
+        }
+      }
+    }
+  },
+  "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+  "vggt": {
+    "cuda_free_gb_after": 26.77,
+    "duration_s": 16.92,
+    "field_shapes": {
+      "depth": [
+        7,
+        518,
+        518
+      ],
+      "depth_conf": [
+        7,
+        518,
+        518
+      ],
+      "world_points": [
+        7,
+        518,
+        518,
+        3
+      ],
+      "world_points_conf": [
+        7,
+        518,
+        518
+      ]
+    },
+    "inference_ok": true,
+    "model_id": "facebook/VGGT-1B-Commercial",
+    "prediction_keys": [
+      "depth",
+      "depth_conf",
+      "images",
+      "pose_enc",
+      "pose_enc_list",
+      "world_points",
+      "world_points_conf"
+    ]
+  },
+  "colab_job": {
+    "job_id": "0404998afa534865b137b4c7eb97f41d",
+    "state": "done",
+    "exit_code": 0,
+    "duration_s": 31.008129358291626
+  },
+  "recovery_colab_job": {
+    "job_id": "81b6e87db75d445eb058829fc4a58865",
+    "state": "done",
+    "exit_code": 0,
+    "duration_s": 0.5005574226379395,
+    "purpose": "read existing DB45f Drive JSON only; no VGGT inference"
+  }
+}
