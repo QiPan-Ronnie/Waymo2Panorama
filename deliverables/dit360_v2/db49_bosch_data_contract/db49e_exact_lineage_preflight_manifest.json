@@ -1,0 +1,162 @@
+{
+  "db": "DB-49e",
+  "status": "preflight_paused",
+  "created_utc": "2026-06-04T22:40:12.680350+00:00",
+  "accepted_evidence_type": "exact-lineage-source-map-rerun-preflight-only",
+  "purpose": "Gate the exact DB32/a200 lineage source/provenance sidecar rerun without fabricating ownership or leaking runtime secrets.",
+  "scope": {
+    "cpu_local_preflight": true,
+    "local_target_data_present": false,
+    "secure_runtime_secret_source_present": false,
+    "remote_rerun_executed": false,
+    "local_rerun_executed": false,
+    "a100_used": false,
+    "executor_used": false,
+    "hf_or_vggt_used": false,
+    "model_inference": false,
+    "generation": false,
+    "repair": false,
+    "source_replacement": false,
+    "candidate_pixels_modified": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "output_location": "deliverables/dit360_v2/db49_bosch_data_contract"
+  },
+  "lineage": {
+    "target_uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+    "target_anchor": 200,
+    "tag": "db49e_a200_exact",
+    "db32_candidate": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+    "db32_sha256": "ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930",
+    "db34_source_base": "deliverables\\dit360_v2\\db28_clean_subset_refine\\SR_bmw_db28_a200_final_1024x2048.png",
+    "db34_previous_best": "deliverables\\dit360_v2\\db29_sky_clean_a200\\SR_bmw_db28_a200_sky_t50_s0_corecompose.png",
+    "db34_mask": "deliverables\\dit360_v2\\db29_sky_clean_a200\\SR_bmw_db28_a200_opmask_sky.png",
+    "expected_remote_data_root": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val",
+    "local_target_log": "data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394"
+  },
+  "dependencies": {
+    "db47e_manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47e_final_candidate_review_manifest.json",
+    "db49b_manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_sidecar_starter_pack_manifest.json",
+    "db49c_manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_manifest.json",
+    "db49d_manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49d_seamroute_source_map_instrumentation_manifest.json",
+    "seamroute_script": "scripts/phase3/_seamroute.py"
+  },
+  "preflight_checks": [
+    {
+      "id": "db49e_brief_exists",
+      "pass": true,
+      "evidence": "DB49e brief exists before execution."
+    },
+    {
+      "id": "db47e_confirmed_a200_source_base",
+      "pass": true,
+      "evidence": "DB47e confirmed a200 as current source-sidestep base."
+    },
+    {
+      "id": "db32_sha_unchanged",
+      "pass": true,
+      "evidence": "DB32 sha256=ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930."
+    },
+    {
+      "id": "db34_source_base_is_a200",
+      "pass": true,
+      "evidence": "DB34 source_base=deliverables\\dit360_v2\\db28_clean_subset_refine\\SR_bmw_db28_a200_final_1024x2048.png."
+    },
+    {
+      "id": "db49b_sidecars_available_partial",
+      "pass": true,
+      "evidence": "DB49b partial generated/unknown/risk sidecars exist and did not fabricate source_id_map."
+    },
+    {
+      "id": "db49c_source_map_missing_boundary",
+      "pass": true,
+      "evidence": "DB49c says source_id_map is missing/blocking and not fabricated."
+    },
+    {
+      "id": "db49d_sidecar_support_present",
+      "pass": true,
+      "evidence": "DB49d default-off source/provenance sidecar support is present."
+    },
+    {
+      "id": "local_exact_data_available",
+      "pass": false,
+      "evidence": "Local target log path exists=False: data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394."
+    },
+    {
+      "id": "secure_runtime_secret_source_available",
+      "pass": false,
+      "evidence": "COLAB_URL/COLAB_TOKEN env present=False; non-repo runtime secret file present=False."
+    },
+    {
+      "id": "no_secret_values_scanned_into_outputs",
+      "pass": true,
+      "evidence": "Preflight records only boolean secret-source presence, never secret values."
+    },
+    {
+      "id": "strict_secret_scan_pass",
+      "pass": true,
+      "evidence": "Strict token/endpoint scan found no secret-like strings in DB49e inputs or manifest text."
+    }
+  ],
+  "pause_reasons": [
+    "local_target_log_missing",
+    "secure_runtime_secret_source_missing"
+  ],
+  "planned_exact_rerun": {
+    "allowed_now": false,
+    "not_executed_reason": "preconditions_missing",
+    "sidecar_dir": "deliverables/dit360_v2/db49_bosch_data_contract/db49e_exact_lineage_sidecars",
+    "command_contract_redacted": [
+      "python",
+      "scripts/phase3/_seamroute.py",
+      "--uuid",
+      "02a00399-3857-444e-8db3-a8f58489c394",
+      "--anchor",
+      "200",
+      "--tag",
+      "db49e_a200_exact",
+      "--save-source-id-map",
+      "--sidecar-dir",
+      "<db49e_sidecar_dir>"
+    ],
+    "expected_sidecars": [
+      "SR_db49e_a200_exact_routed_source_id_map.png",
+      "SR_db49e_a200_exact_valid_mask.png",
+      "SR_db49e_a200_exact_virtual_center_effect_mask.png",
+      "SR_db49e_a200_exact_ground_reproject_effect_mask.png",
+      "SR_db49e_a200_exact_final_source_state_map.png",
+      "SR_db49e_a200_exact_source_id_overlay.png",
+      "SR_db49e_a200_exact_source_id_sidecar_legend.json"
+    ]
+  },
+  "decision": {
+    "db49e_status": "paused_on_preflight_preconditions",
+    "accepted_source_id_map_evidence": false,
+    "source_id_map_created": false,
+    "candidate_image_selection_changed": false,
+    "db32_candidate_modified": false,
+    "accepted_source_faithful_repair": false,
+    "accepted_original_g_repair": false,
+    "ready_for_uncaveated_bosch_training_data": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "claim_boundary": "DB49e preflight does not create DB32 source ownership. It gates the exact a200 rerun and pauses when local data or secure runtime secret sources are absent.",
+    "next_allowed_step": "Run one exact lineage rerun only after COLAB_URL/COLAB_TOKEN env vars or a non-repo runtime secret file are available; otherwise keep DB49e paused and do not use chat-pasted tokens in commands or artifacts."
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49e_exact_lineage_preflight_manifest.json",
+    "board": "deliverables/dit360_v2/db49_bosch_data_contract/db49e_exact_lineage_preflight_board.jpg"
+  },
+  "strict_secret_scan": {
+    "checked_paths": [
+      "agent/decision_briefs.md",
+      "scripts/phase3/_seamroute.py",
+      "deliverables/dit360_v2/db49_bosch_data_contract/db49b_sidecar_starter_pack_manifest.json",
+      "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_manifest.json",
+      "deliverables/dit360_v2/db49_bosch_data_contract/db49d_seamroute_source_map_instrumentation_manifest.json",
+      "deliverables/dit360_v2/db47_source_candidate_mining/db47e_final_candidate_review_manifest.json"
+    ],
+    "hits": [],
+    "manifest_has_secret_pattern": false
+  }
+}
