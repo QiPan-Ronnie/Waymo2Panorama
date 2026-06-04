@@ -1,0 +1,47 @@
+{
+  "current_best": "deliverables\\dit360_v2\\db32_generated_sky_harmonize_v2\\db32_generated_sky_harmonize_s40.png",
+  "source_base": "deliverables\\dit360_v2\\db28_clean_subset_refine\\SR_bmw_db28_a200_final_1024x2048.png",
+  "previous_best": "deliverables\\dit360_v2\\db29_sky_clean_a200\\SR_bmw_db28_a200_sky_t50_s0_corecompose.png",
+  "mask": "deliverables\\dit360_v2\\db29_sky_clean_a200\\SR_bmw_db28_a200_opmask_sky.png",
+  "object_gate": {
+    "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a200_final_1024x2048.png",
+    "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db34_current_best_qa/db32_generated_sky_harmonize_s40.png",
+    "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db29_sky_clean_a200/SR_bmw_db28_a200_masks/opmask_sky.png",
+    "conf": 0.5,
+    "src_salient": 8,
+    "gen_salient": 8,
+    "netnew_count": 0,
+    "PASS": true,
+    "netnew": []
+  },
+  "source_preservation": {
+    "db29_noncore_vs_source": {
+      "max": 0,
+      "mae": 0.0,
+      "pixels": 1315661
+    },
+    "db32_noncore_vs_source": {
+      "max": 0,
+      "mae": 0.0,
+      "pixels": 1315661
+    },
+    "db32_noncore_vs_db29": {
+      "max": 0,
+      "mae": 0.0,
+      "pixels": 1315661
+    },
+    "db32_core_vs_db29": {
+      "max": 47,
+      "mae": 18.265825198242847,
+      "pixels": 781491
+    }
+  },
+  "accepted_caveats": [
+    "DB32 changes only the generated sky core; source-preserved buildings, vehicles, road, trees, poles, and captured sky panel remain byte-exact versus DB29.",
+    "The foreground black car remains in the source content.",
+    "The lower out-of-FOV black region remains unfilled because ground/full outpaint was rejected as Bosch-unsafe.",
+    "The preserved center sky panel discontinuity is reduced versus DB29 but not eliminated."
+  ],
+  "review_board": "deliverables\\dit360_v2\\db34_current_best_qa\\db34_current_best_review_board.jpg",
+  "core_overlay": "deliverables\\dit360_v2\\db34_current_best_qa\\db34_db32_core_overlay.jpg"
+}

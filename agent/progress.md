@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-34 current-best DB32 s40 QA and review pack - accepted current-best reference)
+> **Goal:** harden DB-32 `s40` as the current best object-safe presentation candidate with a fresh object gate, source-preservation checks, review board, and manifest.
+> **What ran:** uploaded DB-32 `s40` to Drive and ran `scripts/phase3/_object_gate.py` on Colab against the DB-28 a200 source and the DB-29 sky core mask. Added local `scripts/phase3/db34_current_best_qa.py` to build `db34_current_best_manifest.json`, `db34_current_best_review_board.jpg`, and `db34_db32_core_overlay.jpg`. No generation and no local model-weight download.
+> **Gate results:** object gate **PASS**: `src_salient=8`, `gen_salient=8`, `netnew_count=0`, `PASS=true`. Source-preservation checks: DB29 non-core vs DB28 source `max=0`; DB32 non-core vs DB28 source `max=0`; DB32 non-core vs DB29 `max=0`; DB32 core vs DB29 `max=47`, `mae=18.27`.
+> **Vision verdict:** **ACCEPTED current-best reference.** The review board shows DB32 `s40` improves over DB28 source by filling upper sky, slightly improves DB29 sky color mismatch, and does not add detector-visible objects. It still has explicit caveats: foreground black car remains, lower out-of-FoV black remains, and the preserved center sky panel discontinuity is reduced but not eliminated.
+> **Locations:** Drive `results/db34_current_best_qa/`; local `deliverables/dit360_v2/db34_current_best_qa/` including `db32_s40_object_gate_gate.{json,jpg}`, `db34_current_best_manifest.json`, `db34_current_best_review_board.jpg`, and `db34_db32_core_overlay.jpg`.
+> **Conclusion:** use `deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png` as the current best reference unless a future brief beats it on both vision and gates.
+> ---
+
 > ### 2026-06-04 (DB-33 Cube-face local sky-boundary harmonization - rejected)
 > **Goal:** test a bounded CubeComposer-inspired idea without running CubeComposer: use local perspective/cube-face reasoning around preserved source-sky boundaries, but change only the already generated DB-29 sky core, starting from DB-32 `s40`.
 > **What ran:** added CPU-only `scripts/phase3/db33_local_sky_boundary_harmonize.py`. The script builds a strict source-sky sample, propagates a local low-frequency LAB color field into the generated sky core, protects bright cloud pixels, and writes full/top/rectilinear sky review montages for strengths `s30`, `s50`, `s70`. No DiT/FLUX/CubeComposer model run and no model weights were used.
