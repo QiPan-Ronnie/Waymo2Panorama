@@ -1,0 +1,404 @@
+{
+  "db": "DB54",
+  "created_utc": "2026-06-04T23:53:41.048059+00:00",
+  "status": "paused_no_local_exact_assets_found",
+  "evidence_type": "local-exact-asset-recovery-audit-only",
+  "purpose": "Catalog whether DB47f's fixed missing exact assets already exist locally before using any token-bearing runtime.",
+  "scope": {
+    "cpu_local_catalog_only": true,
+    "fixed_target_count": 8,
+    "required_asset_count": 15,
+    "remote_status": false,
+    "remote_exec": false,
+    "a100": false,
+    "network": false,
+    "hf_or_vggt": false,
+    "model_inference": false,
+    "dataset_scan": false,
+    "seamroute_or_renderer_execution": false,
+    "zip_extraction": false,
+    "image_copy": false,
+    "exact_asset_fetch": false,
+    "panorama_repair": false,
+    "generation": false,
+    "source_replacement": false,
+    "source_id_map_created": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "accepted_final_candidate": false,
+    "output_location": "deliverables/dit360_v2/db54_local_artifact_recovery"
+  },
+  "fixed_targets": [
+    {
+      "candidate_id": "02a00399_a0201",
+      "anchor": 201,
+      "required": [
+        "compare",
+        "final"
+      ]
+    },
+    {
+      "candidate_id": "02a00399_a0209",
+      "anchor": 209,
+      "required": [
+        "compare",
+        "final"
+      ]
+    },
+    {
+      "candidate_id": "02a00399_a0210",
+      "anchor": 210,
+      "required": [
+        "compare",
+        "final"
+      ]
+    },
+    {
+      "candidate_id": "02a00399_a0211",
+      "anchor": 211,
+      "required": [
+        "compare",
+        "final"
+      ]
+    },
+    {
+      "candidate_id": "02a00399_a0031",
+      "anchor": 31,
+      "required": [
+        "compare",
+        "final"
+      ]
+    },
+    {
+      "candidate_id": "02a00399_a0038",
+      "anchor": 38,
+      "required": [
+        "compare",
+        "final"
+      ]
+    },
+    {
+      "candidate_id": "02a00399_a0040",
+      "anchor": 40,
+      "required": [
+        "compare",
+        "final"
+      ]
+    },
+    {
+      "candidate_id": "02a00399_a0105",
+      "anchor": 105,
+      "required": [
+        "final"
+      ]
+    }
+  ],
+  "local_catalog": {
+    "search_roots": [
+      "deliverables",
+      "outputs"
+    ],
+    "files_scanned": 2084,
+    "zip_files_scanned": 18,
+    "zip_members_scanned": 238,
+    "scan_errors": [],
+    "asset_rows": [
+      {
+        "candidate_id": "02a00399_a0201",
+        "anchor": 201,
+        "asset": "compare",
+        "expected_filename": "SR_bmw_db28_a201_compare.jpg",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_compare.jpg",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0201",
+        "anchor": 201,
+        "asset": "final",
+        "expected_filename": "SR_bmw_db28_a201_final_1024x2048.png",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_final_1024x2048.png",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0209",
+        "anchor": 209,
+        "asset": "compare",
+        "expected_filename": "SR_bmw_db28_a209_compare.jpg",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_compare.jpg",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0209",
+        "anchor": 209,
+        "asset": "final",
+        "expected_filename": "SR_bmw_db28_a209_final_1024x2048.png",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_final_1024x2048.png",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0210",
+        "anchor": 210,
+        "asset": "compare",
+        "expected_filename": "SR_bmw_db28_a210_compare.jpg",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_compare.jpg",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0210",
+        "anchor": 210,
+        "asset": "final",
+        "expected_filename": "SR_bmw_db28_a210_final_1024x2048.png",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_final_1024x2048.png",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0211",
+        "anchor": 211,
+        "asset": "compare",
+        "expected_filename": "SR_bmw_db28_a211_compare.jpg",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_compare.jpg",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0211",
+        "anchor": 211,
+        "asset": "final",
+        "expected_filename": "SR_bmw_db28_a211_final_1024x2048.png",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_final_1024x2048.png",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0031",
+        "anchor": 31,
+        "asset": "compare",
+        "expected_filename": "SR_bmw_db28_a31_compare.jpg",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_compare.jpg",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0031",
+        "anchor": 31,
+        "asset": "final",
+        "expected_filename": "SR_bmw_db28_a31_final_1024x2048.png",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_final_1024x2048.png",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0038",
+        "anchor": 38,
+        "asset": "compare",
+        "expected_filename": "SR_bmw_db28_a38_compare.jpg",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_compare.jpg",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0038",
+        "anchor": 38,
+        "asset": "final",
+        "expected_filename": "SR_bmw_db28_a38_final_1024x2048.png",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_final_1024x2048.png",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0040",
+        "anchor": 40,
+        "asset": "compare",
+        "expected_filename": "SR_bmw_db28_a40_compare.jpg",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_compare.jpg",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0040",
+        "anchor": 40,
+        "asset": "final",
+        "expected_filename": "SR_bmw_db28_a40_final_1024x2048.png",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_final_1024x2048.png",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      },
+      {
+        "candidate_id": "02a00399_a0105",
+        "anchor": 105,
+        "asset": "final",
+        "expected_filename": "SR_bmw_db28_a105_final_1024x2048.png",
+        "canonical_expected_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_final_1024x2048.png",
+        "local_file_matches": [],
+        "zip_entry_matches": [],
+        "best_local_match": null,
+        "local_file_match_count": 0,
+        "zip_entry_match_count": 0,
+        "status": "missing",
+        "accepted_as_exact_closure": false
+      }
+    ],
+    "status_counts": {
+      "missing": 15
+    }
+  },
+  "summary_counts": {
+    "local_file_found_required_assets": 0,
+    "zip_entry_only_required_assets": 0,
+    "missing_required_assets": 15,
+    "all_required_have_local_file": false,
+    "any_required_has_local_file": false
+  },
+  "claim_boundaries": [
+    "local recovery candidates only until same-ROI visual/lineage review accepts them",
+    "not a repaired ERP",
+    "not source-faithful local repair",
+    "not original-G/A1/BEST repair",
+    "not source_id_map evidence",
+    "not uncaveated Bosch training data",
+    "does not change DB41/DB25 abstain boundaries"
+  ],
+  "dependencies": {
+    "decision_brief": "agent/decision_briefs.md",
+    "db47f_manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47f_fixed_universe_exact_closure_preflight_manifest.json",
+    "db53_manifest": "deliverables/dit360_v2/db53_db47f_launch_harness/db53_db47f_launch_harness_manifest.json"
+  },
+  "decision": {
+    "accepted_db54_diagnostic_evidence": true,
+    "accepted_exact_closure": false,
+    "accepted_source_faithful_repair": false,
+    "accepted_original_g_repair": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "recommended_next": "Open a bounded DB47g same-ROI lineage/visual review only if local candidates are found; otherwise DB47f still needs approved env/non-repo runtime or local target data for one actual closure batch."
+  },
+  "hard_checks": [
+    {
+      "id": "db54_brief_running",
+      "pass": true,
+      "evidence": "DB54 decision brief exists before local catalog execution."
+    },
+    {
+      "id": "fixed_universe_matches_db47f_db53",
+      "pass": true,
+      "evidence": "target_ids=['02a00399_a0201', '02a00399_a0209', '02a00399_a0210', '02a00399_a0211', '02a00399_a0031', '02a00399_a0038', '02a00399_a0040', '02a00399_a0105']"
+    },
+    {
+      "id": "required_asset_count_is_15",
+      "pass": true,
+      "evidence": "Seven compare+final targets plus a105 final."
+    },
+    {
+      "id": "search_roots_inside_repo",
+      "pass": true,
+      "evidence": "roots=['deliverables', 'outputs']"
+    },
+    {
+      "id": "strict_db28_tag_match_policy",
+      "pass": true,
+      "evidence": "Matches require SR_bmw_db28_a<anchor> plus compare/final naming; generic BMW/GhostKill images cannot match."
+    },
+    {
+      "id": "no_copy_extract_fetch_or_rerun",
+      "pass": true,
+      "evidence": "Catalog reads filenames, zip member names, and image metadata only; it does not extract, copy, fetch, rerun, or execute."
+    },
+    {
+      "id": "no_remote_a100_network_model_or_repair",
+      "pass": true,
+      "evidence": "CPU/local only; no executor, A100, network, HF/VGGT, seamroute, renderer, repair, generation, source replacement, source_id_map, or RED promotion."
+    },
+    {
+      "id": "found_paths_not_promoted",
+      "pass": true,
+      "evidence": "Every found path remains a recovery candidate pending same-ROI visual/lineage review."
+    },
+    {
+      "id": "strict_secret_scan_zero",
+      "pass": true,
+      "evidence": "hits=0 across DB54 script, brief, and manifest."
+    }
+  ],
+  "hard_checks_pass": true,
+  "token_scan_hits": [],
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db54_local_artifact_recovery/db54_local_exact_asset_recovery_manifest.json",
+    "board": "deliverables/dit360_v2/db54_local_artifact_recovery/db54_local_exact_asset_recovery_board.jpg"
+  }
+}

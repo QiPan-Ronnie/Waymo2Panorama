@@ -284,6 +284,38 @@ Required vision check:
 
 Result summary: Phase0 DB47a accepted `source-selection-inventory-only` evidence. CPU/local script `scripts/phase3/db47_source_candidate_inventory.py` reads existing DB27/DB28/DB31/DB34/DB38/DB42/DB43 artifacts only and produced `deliverables/dit360_v2/db47_source_candidate_mining/db47a_source_candidate_inventory_manifest.json` plus `db47a_source_candidate_inventory_board.jpg`. It reviewed 36 existing candidate records (DB27 7 nearby anchors, DB28 7 strict-clean anchors, DB31 22 shortlist candidates across 5 logs), preserved DB28/DB32 as source-sidestep/current-handoff evidence only, and set the next full DB47 scan contract. Phase1 DB47b accepted `source-selection-threshold-replay-only` evidence: CPU/local script `scripts/phase3/db47b_candidate_universe_threshold_replay.py` freezes the DB31 22-row shortlist as the bounded universe, uses DB27/DB28 only as comparison context, reports 7 strict review-bucket rows, 3 relaxed review-bucket rows, and 12 rejected/diagnostic rows with reject reasons, inherits DB41 lower-right/right-line abstain without evaluating or promoting it, and selects no final panorama. Phase2 DB47c accepted `source-selection-visual-accounting-only` evidence: CPU/local script `scripts/phase3/db47c_same_roi_bucket_review.py` reviews all 22 DB47b rows using DB47b plus existing DB28/DB31 summaries/montages/exact assets only; verdicts are 3 `review_exact_same_log`, 4 strict montage-only hold, 3 relaxed hold, 2 same-log weak-margin rejects, 3 confirmed existing failures, and 7 non-BMW no-successor rejects. Phase3 DB47d accepted `source-selection-exact-review-pack-only` evidence: CPU/local script `scripts/phase3/db47d_exact_same_log_review.py` reviews the 10 strict/relaxed same-log rows using DB47c plus existing DB28 exact assets only; verdicts are 3 `exact_review_candidate_not_final` (`a105`, `a200`, `a204`), 4 strict missing-exact holds, and 3 relaxed missing-exact holds. Phase4 DB47e accepted `source-selection-final-candidate-review-existing-artifacts-only` evidence: CPU/local script `scripts/phase3/db47e_final_candidate_review.py` reviews only `a105`, `a200`, and `a204`; confirms `a200` as the current source-sidestep base for the existing DB32 `s40` handoff candidate; keeps `a204` as an exact final-eligible alternate not selected; keeps `a105` compare-only hold; and preserves the 7 DB47d missing-exact holds. Phase5 DB47f accepted only `fixed-universe-exact-closure-preflight-only` evidence: CPU/local script `scripts/phase3/db47f_fixed_universe_exact_closure_preflight.py` confirms the fixed 8 exact/final gaps remain unresolved, finds local target data absent and no secure runtime secret source in-process, and pauses before any exact fetch/rerun. No new dataset scan, exact asset fetch, remote/executor/A100, repair, generation, source replacement, `source_id_map`, permission change, or RED promotion. DB47 remains source-selection/source-sidestep evidence only and is paused until secure runtime/data preconditions are satisfied.
 
+# DB-54: DB47f local exact-asset recovery audit
+Status: accepted / paused
+Route: sidestep / source-selection evidence
+
+Question: Are any of the fixed DB47f missing exact compare/final assets already present in the local worktree or historical/untracked deliverables under alternate folders, names, or zip entries?
+
+Hypothesis: Because the worktree contains many historical and untracked seamroute/DiT deliverables, at least some DB47f gaps may be recoverable by cataloging local artifacts before using A100 or any token-bearing executor. If no matching assets exist locally, the result still usefully confirms that DB47f genuinely needs a safe runtime/data path.
+
+Why now: DB53 says to stop adding infra-only layers. Before running the actual bounded DB47f closure batch on A100, a token-free local recovery audit can test whether the required exact evidence is already present and avoid unnecessary remote work.
+
+Expected evidence:
+- One CPU/local manifest and board listing the fixed 8 DB47f targets only: `a201`, `a209`, `a210`, `a211`, `a031`, `a038`, `a040`, and `a105`.
+- For each required compare/final asset, report canonical-path status, alternate local file matches, zip-entry matches if any, image readability/dimensions for local file matches, and remaining missing assets.
+- Explicit claim boundary: found paths are local recovery candidates only until same-ROI visual/lineage review accepts them; this brief does not repair an ERP or select a final candidate.
+
+Kill criteria:
+- Search expands beyond the fixed 8 DB47f targets or treats arbitrary BMW/GhostKill images as DB28 exact assets without the `SR_bmw_db28_a<anchor>_*` tag.
+- Any zip is extracted, any candidate image is copied into a canonical location, or any seamroute/renderer/model/A100/network command is run.
+- A found path is promoted to source-faithful repair, original-G/A1/BEST repair, `source_id_map`, RED promotion, or uncaveated Bosch training-data readiness.
+- Chat-pasted HF/Colab/tunnel token values are echoed, stored, scanned into output, or embedded in commands/artifacts.
+- DB41 lower-right/right-line or DB25 abstain boundaries are promoted from recovered source-selection assets.
+
+Max scope:
+- CPU/local only; read file names, image metadata, and zip member names under bounded repo artifact roots.
+- No A100, no executor, no network, no HF/VGGT, no model inference, no dataset scan, no seamroute/renderer execution, no exact asset fetch, no image copy/extraction, no repair/generation/source replacement/permission change/RED promotion.
+- Output location: `deliverables/dit360_v2/db54_local_artifact_recovery/`.
+
+Required vision check:
+- Board must show the 8-target table, found/missing required assets, thumbnails for local image matches where present, zip-entry matches separately labeled as not recovered files, DB47f/DB53 context, and explicit `local catalog only / no closure / no repair / no token use` boundary.
+
+Result summary: DB54 accepted only `local-exact-asset-recovery-audit-only` evidence and paused with `status=paused_no_local_exact_assets_found`. CPU/local script `scripts/phase3/db54_local_exact_asset_recovery.py` scanned bounded local artifact roots by filename plus zip member names only (`2084` files, `18` zip files, `238` zip members) and found `0` local file matches and `0` zip-entry-only matches for the fixed DB47f 15 required assets. All `15` required compare/final assets remain missing. No A100/executor/network/HF/VGGT/model/dataset scan/seamroute/renderer/zip extraction/image copy/exact fetch/repair/generation/source replacement/`source_id_map`/permission change/RED promotion occurred. Detail archived in `progress.md` 2026-06-04 DB54 entry.
+
 # DB-48: Koi center-preserve DiT360 outpainting side branch
 Status: proposed
 Route: B (generative) / presentation-demo side branch
