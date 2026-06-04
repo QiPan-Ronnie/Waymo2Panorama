@@ -1,0 +1,421 @@
+{
+  "db": "DB53",
+  "created_utc": "2026-06-04T23:42:20.527323+00:00",
+  "status": "dry_run_plan_paused_for_safe_data_path",
+  "evidence_type": "db47f-token-free-launch-harness-dry-run-only",
+  "purpose": "Freeze a token-free launch harness and command/output mapping for the next DB47f batch without executing it.",
+  "scope": {
+    "cpu_local_dry_run": true,
+    "target_count": 8,
+    "remote_status": false,
+    "remote_exec": false,
+    "a100": false,
+    "network": false,
+    "hf_or_vggt": false,
+    "model_inference": false,
+    "seamroute_executed": false,
+    "exact_asset_fetch_or_copy": false,
+    "panorama_repair": false,
+    "generation": false,
+    "source_replacement": false,
+    "source_id_map_created": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "output_location": "deliverables/dit360_v2/db53_db47f_launch_harness"
+  },
+  "db52_preconditions": {
+    "safe_data_path_available": false,
+    "closure_batch_allowed_now": false,
+    "reason": "DB53 is dry-run only even if a future safe path becomes available; actual execution requires a follow-up DB47f closure run."
+  },
+  "seamroute_static_capabilities": {
+    "has_uuid_arg": true,
+    "has_anchor_arg": true,
+    "has_tag_arg": true,
+    "writes_compare": true,
+    "writes_final": true,
+    "writes_sidecars_default_off": true,
+    "seamroute_executed": false
+  },
+  "planned_batch": {
+    "target_uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+    "remote_workdir_candidates": [
+      "/content/waymo2panorama",
+      "/content/drive/MyDrive/koi_waymo2pano_colab/Waymo2Panorama"
+    ],
+    "remote_output_root": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute",
+    "target_ids": [
+      "02a00399_a0201",
+      "02a00399_a0209",
+      "02a00399_a0210",
+      "02a00399_a0211",
+      "02a00399_a0031",
+      "02a00399_a0038",
+      "02a00399_a0040",
+      "02a00399_a0105"
+    ],
+    "anchors": [
+      201,
+      209,
+      210,
+      211,
+      31,
+      38,
+      40,
+      105
+    ],
+    "targets": [
+      {
+        "candidate_id": "02a00399_a0201",
+        "anchor": 201,
+        "tag": "bmw_db28_a201",
+        "required_assets": [
+          "compare",
+          "final"
+        ],
+        "dry_run_command_argv": [
+          "python",
+          "scripts/phase3/_seamroute.py",
+          "--uuid",
+          "02a00399-3857-444e-8db3-a8f58489c394",
+          "--anchor",
+          "201",
+          "--tag",
+          "bmw_db28_a201"
+        ],
+        "remote_workdir_candidates": [
+          "/content/waymo2panorama",
+          "/content/drive/MyDrive/koi_waymo2pano_colab/Waymo2Panorama"
+        ],
+        "expected_remote_outputs": {
+          "compare": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a201_compare.jpg",
+          "final": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a201_final_1024x2048.png"
+        },
+        "expected_local_destinations": {
+          "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_compare.jpg",
+          "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_final_1024x2048.png"
+        },
+        "current_local_missing_required": [
+          "compare",
+          "final"
+        ],
+        "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+        "executed": false
+      },
+      {
+        "candidate_id": "02a00399_a0209",
+        "anchor": 209,
+        "tag": "bmw_db28_a209",
+        "required_assets": [
+          "compare",
+          "final"
+        ],
+        "dry_run_command_argv": [
+          "python",
+          "scripts/phase3/_seamroute.py",
+          "--uuid",
+          "02a00399-3857-444e-8db3-a8f58489c394",
+          "--anchor",
+          "209",
+          "--tag",
+          "bmw_db28_a209"
+        ],
+        "remote_workdir_candidates": [
+          "/content/waymo2panorama",
+          "/content/drive/MyDrive/koi_waymo2pano_colab/Waymo2Panorama"
+        ],
+        "expected_remote_outputs": {
+          "compare": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a209_compare.jpg",
+          "final": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a209_final_1024x2048.png"
+        },
+        "expected_local_destinations": {
+          "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_compare.jpg",
+          "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_final_1024x2048.png"
+        },
+        "current_local_missing_required": [
+          "compare",
+          "final"
+        ],
+        "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+        "executed": false
+      },
+      {
+        "candidate_id": "02a00399_a0210",
+        "anchor": 210,
+        "tag": "bmw_db28_a210",
+        "required_assets": [
+          "compare",
+          "final"
+        ],
+        "dry_run_command_argv": [
+          "python",
+          "scripts/phase3/_seamroute.py",
+          "--uuid",
+          "02a00399-3857-444e-8db3-a8f58489c394",
+          "--anchor",
+          "210",
+          "--tag",
+          "bmw_db28_a210"
+        ],
+        "remote_workdir_candidates": [
+          "/content/waymo2panorama",
+          "/content/drive/MyDrive/koi_waymo2pano_colab/Waymo2Panorama"
+        ],
+        "expected_remote_outputs": {
+          "compare": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a210_compare.jpg",
+          "final": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a210_final_1024x2048.png"
+        },
+        "expected_local_destinations": {
+          "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_compare.jpg",
+          "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_final_1024x2048.png"
+        },
+        "current_local_missing_required": [
+          "compare",
+          "final"
+        ],
+        "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+        "executed": false
+      },
+      {
+        "candidate_id": "02a00399_a0211",
+        "anchor": 211,
+        "tag": "bmw_db28_a211",
+        "required_assets": [
+          "compare",
+          "final"
+        ],
+        "dry_run_command_argv": [
+          "python",
+          "scripts/phase3/_seamroute.py",
+          "--uuid",
+          "02a00399-3857-444e-8db3-a8f58489c394",
+          "--anchor",
+          "211",
+          "--tag",
+          "bmw_db28_a211"
+        ],
+        "remote_workdir_candidates": [
+          "/content/waymo2panorama",
+          "/content/drive/MyDrive/koi_waymo2pano_colab/Waymo2Panorama"
+        ],
+        "expected_remote_outputs": {
+          "compare": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a211_compare.jpg",
+          "final": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a211_final_1024x2048.png"
+        },
+        "expected_local_destinations": {
+          "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_compare.jpg",
+          "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_final_1024x2048.png"
+        },
+        "current_local_missing_required": [
+          "compare",
+          "final"
+        ],
+        "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+        "executed": false
+      },
+      {
+        "candidate_id": "02a00399_a0031",
+        "anchor": 31,
+        "tag": "bmw_db28_a31",
+        "required_assets": [
+          "compare",
+          "final"
+        ],
+        "dry_run_command_argv": [
+          "python",
+          "scripts/phase3/_seamroute.py",
+          "--uuid",
+          "02a00399-3857-444e-8db3-a8f58489c394",
+          "--anchor",
+          "31",
+          "--tag",
+          "bmw_db28_a31"
+        ],
+        "remote_workdir_candidates": [
+          "/content/waymo2panorama",
+          "/content/drive/MyDrive/koi_waymo2pano_colab/Waymo2Panorama"
+        ],
+        "expected_remote_outputs": {
+          "compare": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a31_compare.jpg",
+          "final": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a31_final_1024x2048.png"
+        },
+        "expected_local_destinations": {
+          "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_compare.jpg",
+          "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_final_1024x2048.png"
+        },
+        "current_local_missing_required": [
+          "compare",
+          "final"
+        ],
+        "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+        "executed": false
+      },
+      {
+        "candidate_id": "02a00399_a0038",
+        "anchor": 38,
+        "tag": "bmw_db28_a38",
+        "required_assets": [
+          "compare",
+          "final"
+        ],
+        "dry_run_command_argv": [
+          "python",
+          "scripts/phase3/_seamroute.py",
+          "--uuid",
+          "02a00399-3857-444e-8db3-a8f58489c394",
+          "--anchor",
+          "38",
+          "--tag",
+          "bmw_db28_a38"
+        ],
+        "remote_workdir_candidates": [
+          "/content/waymo2panorama",
+          "/content/drive/MyDrive/koi_waymo2pano_colab/Waymo2Panorama"
+        ],
+        "expected_remote_outputs": {
+          "compare": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a38_compare.jpg",
+          "final": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a38_final_1024x2048.png"
+        },
+        "expected_local_destinations": {
+          "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_compare.jpg",
+          "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_final_1024x2048.png"
+        },
+        "current_local_missing_required": [
+          "compare",
+          "final"
+        ],
+        "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+        "executed": false
+      },
+      {
+        "candidate_id": "02a00399_a0040",
+        "anchor": 40,
+        "tag": "bmw_db28_a40",
+        "required_assets": [
+          "compare",
+          "final"
+        ],
+        "dry_run_command_argv": [
+          "python",
+          "scripts/phase3/_seamroute.py",
+          "--uuid",
+          "02a00399-3857-444e-8db3-a8f58489c394",
+          "--anchor",
+          "40",
+          "--tag",
+          "bmw_db28_a40"
+        ],
+        "remote_workdir_candidates": [
+          "/content/waymo2panorama",
+          "/content/drive/MyDrive/koi_waymo2pano_colab/Waymo2Panorama"
+        ],
+        "expected_remote_outputs": {
+          "compare": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a40_compare.jpg",
+          "final": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a40_final_1024x2048.png"
+        },
+        "expected_local_destinations": {
+          "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_compare.jpg",
+          "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_final_1024x2048.png"
+        },
+        "current_local_missing_required": [
+          "compare",
+          "final"
+        ],
+        "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+        "executed": false
+      },
+      {
+        "candidate_id": "02a00399_a0105",
+        "anchor": 105,
+        "tag": "bmw_db28_a105",
+        "required_assets": [
+          "final"
+        ],
+        "dry_run_command_argv": [
+          "python",
+          "scripts/phase3/_seamroute.py",
+          "--uuid",
+          "02a00399-3857-444e-8db3-a8f58489c394",
+          "--anchor",
+          "105",
+          "--tag",
+          "bmw_db28_a105"
+        ],
+        "remote_workdir_candidates": [
+          "/content/waymo2panorama",
+          "/content/drive/MyDrive/koi_waymo2pano_colab/Waymo2Panorama"
+        ],
+        "expected_remote_outputs": {
+          "final": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a105_final_1024x2048.png"
+        },
+        "expected_local_destinations": {
+          "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_final_1024x2048.png"
+        },
+        "current_local_missing_required": [
+          "final"
+        ],
+        "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+        "executed": false
+      }
+    ],
+    "batch_size_max": 8,
+    "remote_jobs_max": 1,
+    "execution_policy": "Do not execute until COLAB_URL/COLAB_TOKEN env or approved non-repo runtime secret source, or local target data, is available."
+  },
+  "accepted_outputs_if_future_execution_passes": [
+    "SR_bmw_db28_a<anchor>_compare.jpg",
+    "SR_bmw_db28_a<anchor>_final_1024x2048.png"
+  ],
+  "explicitly_not_accepted": [
+    "source-faithful local repair claim",
+    "original-G/A1/BEST repair claim",
+    "source_id_map or Bosch provenance sidecar",
+    "generated pixels",
+    "DB25/DB41 RED promotion",
+    "uncaveated Bosch training-data claim"
+  ],
+  "hard_checks": [
+    {
+      "id": "db53_brief_running",
+      "pass": true,
+      "evidence": "DB53 brief exists before dry-run plan execution."
+    },
+    {
+      "id": "db47f_fixed_universe_preserved",
+      "pass": true,
+      "evidence": "target_ids=['02a00399_a0201', '02a00399_a0209', '02a00399_a0210', '02a00399_a0211', '02a00399_a0031', '02a00399_a0038', '02a00399_a0040', '02a00399_a0105']"
+    },
+    {
+      "id": "db52_safe_path_still_absent",
+      "pass": true,
+      "evidence": "DB52 reports no env runtime pair, no approved non-repo runtime secret file, and no local target data."
+    },
+    {
+      "id": "seamroute_has_required_args_and_outputs",
+      "pass": true,
+      "evidence": "Static _seamroute.py audit found uuid/anchor/tag args and compare/final output templates."
+    },
+    {
+      "id": "dry_run_only_no_execution",
+      "pass": true,
+      "evidence": "DB53 generated command argv only; it did not run _seamroute.py or any remote command."
+    },
+    {
+      "id": "no_source_map_or_repair_claim",
+      "pass": true,
+      "evidence": "The plan excludes sidecar/source_id_map acceptance and labels closure as source-selection evidence only."
+    },
+    {
+      "id": "strict_secret_scan_zero",
+      "pass": true,
+      "evidence": "hits=0 across DB53 script, brief, and manifest."
+    }
+  ],
+  "hard_checks_pass": true,
+  "token_scan_hits": [],
+  "dependencies": {
+    "db47f_manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47f_fixed_universe_exact_closure_preflight_manifest.json",
+    "db52_manifest": "deliverables/dit360_v2/db52_secure_runtime_contract/db52_secure_runtime_contract_manifest.json",
+    "seamroute_script": "scripts/phase3/_seamroute.py"
+  }
+}

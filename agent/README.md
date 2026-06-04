@@ -8,6 +8,8 @@
 
 > **DB52 update (2026-06-04):** DB52 is accepted only as `secure-runtime-contract-only` and paused. It converts the DB47f unblocker into a token-safe launch contract: approved inputs are `COLAB_URL`/`COLAB_TOKEN` env vars or a non-repo runtime secret file, or replicated local target data. The current in-process state still has no env runtime pair, no approved non-repo runtime secret file, and no local target log, so `closure_batch_allowed_now=false`. Chat-pasted tunnel/HF token values remain rejected as command/artifact secrets. DB52 ran no remote/status/exec/A100/HF/VGGT/model/exact fetch/repair/generation/source replacement/`source_id_map`/RED promotion.
 
+> **DB53 update (2026-06-04):** DB53 is accepted only as `db47f-token-free-launch-harness-dry-run-only` and paused. It adds a deterministic no-secret argv/output mapping for the future fixed 8-anchor DB47f closure batch, but safe data path is still false and no command was executed. No remote/status/exec/A100/HF/VGGT/model/`_seamroute.py` run/exact fetch/repair/generation/source replacement/`source_id_map`/RED promotion occurred. Stop adding infra-only layers; the next seam-quality step needs approved env/non-repo runtime secret source or local target data, then the actual bounded DB47f closure batch.
+
 ---
 
 ## Current Seam State (2026-05-28)

@@ -520,3 +520,40 @@ Required vision check:
 - Board must show the approved secret-source policy, current precondition booleans, fixed 8 DB47f targets, stop/launch decision, DB32/G/DB41 claim boundaries, and explicit no-token/no-remote/no-repair/no-RED status.
 
 Result summary: DB52 accepted only `secure-runtime-contract-only`; see the 2026-06-04 DB52 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db52_secure_runtime_contract.py` produced `deliverables/dit360_v2/db52_secure_runtime_contract/db52_secure_runtime_contract_manifest.json` plus board. Current in-process preconditions remain false: no `COLAB_URL`/`COLAB_TOKEN` env pair, no approved non-repo runtime secret file, no local target log data, and `closure_batch_allowed_now=false`. A configured local HF auth file exists, but no HF/network recheck was run under this CPU/local contract scope. DB52 ran no remote/status/exec/A100/HF/VGGT/model/renderer/exact fetch/repair/generation/source replacement/source_id_map/permission change/RED promotion. Future DB47f closure may run only after env or non-repo runtime secret source, or local target data, is available; chat-pasted JSON/token values remain rejected as command/artifact secrets.
+
+# DB-53: DB47f token-free launch harness dry-run
+Status: accepted / paused pending safe runtime/data path
+Route: infra / source-selection precondition
+
+Question: Can DB47f be prepared as a deterministic token-free launch harness, using existing `_seamroute.py` behavior and DB47f/DB52 gates, without launching remote execution or creating exact assets now?
+
+Hypothesis: DB52 fixed the secret-intake policy, but the next runtime-enabled turn can still drift into unbounded scan, wrong tags, extra claims, or patch-on-patch unless the exact 8-anchor command plan and output mapping are frozen now. A CPU/local dry-run manifest can materially advance DB47f by making the future one-batch closure mechanically auditable while keeping current execution paused.
+
+Why now: DB47f remains the next seam-quality route, but current safe data path is absent. The useful local work is to remove launch ambiguity, not to run another repair or presentation branch.
+
+Expected evidence:
+- One CPU/local script, manifest, and board under `deliverables/dit360_v2/db53_db47f_launch_harness/`.
+- Per-anchor dry-run command plan for exactly the 8 DB47f anchors, using `_seamroute.py --uuid 02a00399-3857-444e-8db3-a8f58489c394 --anchor <anchor> --tag bmw_db28_a<anchor>`.
+- Expected remote output names and local destination names for exact `compare` and `final_1024x2048` assets only.
+- Explicit launch preconditions inherited from DB52; if absent, the runner status must be dry-run/paused.
+- No shell script with secrets, no endpoint values, and no command artifact containing token values.
+
+Kill criteria:
+- Runs `/status`, `/exec`, A100, network, HF/VGGT, model inference, renderer/dataset scan, exact asset fetch, or `_seamroute.py`.
+- Uses chat-pasted tunnel/HF token, endpoint URL, bearer token, or any secret value in commands/artifacts.
+- Expands beyond the 8 DB47f anchors or changes anchor/tag mapping.
+- Writes or copies exact compare/final assets under this dry-run scope.
+- Treats generated dry-run commands as executed evidence.
+- Calls source-selection closure original-G repair, source-faithful local repair, source map, or Bosch training-ready output.
+- Promotes DB25/DB41 RED/no-evidence or changes DB32/G claim boundaries.
+
+Max scope:
+- CPU/local dry-run plan only.
+- One script, one manifest, one board.
+- No remote/network/model/data fetch, no `_seamroute.py` execution, no candidate image modification, no generated pixels, no permission change, no RED promotion.
+- Output location: `deliverables/dit360_v2/db53_db47f_launch_harness/`.
+
+Required vision check:
+- Board must show DB52 precondition status, the 8-anchor command/output table, exact compare/final destination mapping, dry-run stop decision, and explicit no-token/no-remote/no-exact-fetch/no-repair/no-RED labels.
+
+Result summary: DB53 accepted only `db47f-token-free-launch-harness-dry-run-only`; see the 2026-06-04 DB53 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db53_db47f_launch_harness_dryrun.py` produced `deliverables/dit360_v2/db53_db47f_launch_harness/db53_db47f_launch_harness_manifest.json` plus board. It created a no-secret argv/output mapping for exactly the 8 DB47f anchors and records expected compare/final names only. It ran no remote/status/exec/A100/network/HF/VGGT/model/_seamroute/renderer/exact fetch or copy/repair/generation/source replacement/source_id_map/permission change/RED promotion. DB53 remains paused because DB52's safe data path is still false; it is launch-risk reduction only, not seam evidence or closure.
