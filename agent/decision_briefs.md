@@ -108,6 +108,8 @@ Max scope:
 - First running pass (2026-06-04): CPU/local manifest + board over existing DB25/DB41/DB43/DB44 evidence, plus A100 live/env/cache preflight only. No heavy model download, no model inference, no renderer, no repaired ERP.
 - Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
 - Phase0 result (2026-06-04): `gate_pass=true` for the fixed 8-control evidence audit; no RED promotion and no foundation-model confidence claim. DB45 remains running, because this only locked controls/registry/preflight and did not run an actual scoped foundation-model evidence job. Detail archived at top of `progress.md`.
+- Phase1 sub-scope (2026-06-04): VGGT evidence feasibility gate only. Check current Colab repo/cache/env/HF-readiness against the frozen 8-control evidence schema. No install, no model download, no inference, no renderer, no repaired ERP. If VGGT repo/cache/env is missing or the only available confidence is uniform/non-evidential, stop the VGGT route, write `progress.md`, and do not continue patch-on-patch.
+- Phase1 result (2026-06-04): VGGT current-runtime route is **no-go**, not a model negative. A100/data/repo are reachable and the user-provided HF token is valid, but remote repo is stale, `vggt` is not importable, the VGGT repo cache tarball is invalid/0-byte, HF Commercial checkpoint file access is still gated/403, no HF checkpoint cache was observed, and the current wrapper uses uniform confidence. No DB45 evidence accepted, no permission-state change, no RED promotion. Detail archived at top of `progress.md`.
 
 Required vision check:
 - Board must include raw-camera support crop, LiDAR/depth/flow evidence overlays if available, model confidence overlay, and final permission-state label.
