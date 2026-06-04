@@ -1,35 +1,34 @@
-# Verdict: next exploration after DB-14 old-r008 rejection
+# Verdict: DB-23 next experiment choice
 
 Rounds completed: 2
 Convergence: yes
 
 ## Winning Argument
 
-ID: ARG-7C2F (revealed: DB-21 current-base-aligned thin seam mask first)
+ID: ARG-A83F (revealed: Rejudge/complete DiT360 out-of-FOV ground/full outpaint first)
+
 Score: 9/10
 
-Summary: The next action should be DB-21: build a current-base-aligned thin mask, visually approve its overlay, then run only a tiny G_bmw tau{5,8} DiT360 test. This directly tests the DB-14 failure mechanism without committing to another broad DiT sweep.
+Summary: The next experiment should close the unfinished DiT360 out-of-FOV branch, not reopen near-ground seam repair. First fetch/re-gate/vision-judge the already-run ground/full outputs from `results/dit360_outpaint_v2`; only if outputs are missing or stale should a strict one-mask/one-seed bottom-band run be launched on A100.
 
 Key evidence:
-- DB-14's `trimap_preview.jpg` shows the old r008 core is historical fixed vertical strips, not the current residual seam.
-- Google Street View uses optical flow only where correspondences are reliable, then subtle global spline warping; this supports "small, inspected, confidence-gated edits" rather than broad generated repair.
-- Meta Surround360 similarly uses optical-flow novel-view synthesis and compositing, but acknowledges occlusion/flow ambiguity; this supports a narrow kill-gated test, not reopening the whole flow route.
-- CubeComposer is relevant mainly as a cube-face continuity idea, not as a direct AV stitching solution. Borrow cube-aware overlay/precheck ideas; do not run the full CubeComposer model first.
+- DB-19 sky-only outpaint is the one consistently positive DiT360 result, so out-of-FOV completion is a valid constrained use of generation.
+- DB-14/21/22 collectively reject near-ground seam-line DiT repair: old mask misalignment, current aligned masks, and rectilinear diagnosis all point to semantic ground redraw.
+- D4b ground/full outpaint was recorded as run but not judged after a tunnel outage, so the ledger has a concrete unresolved item.
+- The user explicitly asked to complete DiT360 content and keep A100 useful.
 
 ## Minority Positions
 
-- ARG-91BD: Lost because CubeComposer's full model targets perspective-video-to-360 generation. Its cube-aware padding/blending is useful as a representation hint, but a full pivot is too expensive before the cheap DB-21 falsifier.
-- ARG-44A9: Lost because local evidence already shows optical-flow/geometry floors in textureless/occluded BMW seams. Commercial methods inform constraints but do not guarantee our rig can match them.
-- ARG-E603: Lost as the immediate next step because it stops discovery too early. It remains the fallback deliverable path if DB-21 fails.
+- ARG-F21C: Strong strategic direction, but should be a separate follow-up brief: raw-camera evidence pack / reference-guided seam guidance. It is more promising than more blind DiT seam knobs, but it does not need to block DB-23.
+- ARG-C64D: Lost because DB-21/22 weakened the premise that yaw/RF knobs can turn semantic redraw into faithful geometry repair.
+- ARG-9B7E: Useful for reporting, but existing docs already capture the commercial-method lesson. It is not the best immediate A100 action.
 
 ## Synthesis
 
-DB-14 should be read precisely: blind old-mask reuse is rejected. The failure does not close DiT360 seam repair, because the mask did not cover the current defect correctly and in BEST actively cut salient objects.
+DB-23 must define success narrowly: object-free, visually plausible out-of-FOV bottom/outer-band completion. It must not claim to straighten the right-ground white-line seam or fix curb geometry. Any generated car/person/sign, new lane/curb structure, or visible rewrite of captured road/building content kills the result.
 
-The commercial systems point in the same direction: seam repair must be subtle, confidence-gated, and geometry-aware. Google/Meta are not doing unconstrained image invention. Therefore DB-21 must require an overlay review before GPU and must be killed on any object cut, lane/curb bend, or no-op.
-
-CubeComposer should be inspected as a source of cube-face context and boundary-continuity ideas. It should not become a full model-run direction unless DB-21 shows ERP-space mask geometry itself is the blocker.
+After DB-23, the next non-local-optimum direction should be an AV evidence-pack brief: project raw camera evidence, LiDAR/epipolar validity, and ERP/cube seam panels into one diagnostic package. That aligns with the DiT360 and CubeComposer lessons without using blind generation as a stitching solver.
 
 ## Confidence
 
-High for the next-step ordering. Medium on whether DB-21 will produce a visually better image; it is explicitly a cheap falsification, not a promised win.
+High for immediate ordering. Medium on whether ground/full outpaint will pass; the experiment is designed to close it quickly if it fails.

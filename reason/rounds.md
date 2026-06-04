@@ -1,73 +1,73 @@
-# Reason: next exploration after DB-14 old-r008 rejection
+# Reason: DB-23 next experiment choice
 
-Question: After DB-14 shows blind reuse of the old v14 r008 fixed vertical-strip mask fails visually on G/A1/BEST, what should the next exploration path be?
+Question: With A100 live after DB-14/21/22 rejected near-ground DiT seam repair, what should be the next experiment direction?
 
 ## Round 1 - Positions
 
-Position ARG-7C2F: Run DB-21 next: derive a current-base-aligned thin seam mask, require visual overlay approval before GPU, then run a tiny DiT360 tau{5,8} test on G only.
+Position ARG-A83F: Complete the unfinished DiT360 out-of-FOV branch first: re-gate and vision-judge the already-run ground/full outpaint, and if needed run only one strict bottom-band variant. This fills the DiT360 ledger without reopening seam-line hallucination.
 
-Position ARG-91BD: Pivot first to cube-space/CubeComposer-style continuity: convert ERP to cubemap/cube faces and handle seam continuity there before any more DiT360 runs.
+Position ARG-F21C: Start the AV raw-camera evidence-pack / reference-guided seam direction first. DiT360's transferable insight is perspective evidence packaged into ERP/cube regions, not blind inpainting; this is the next non-local-optimum direction.
 
-Position ARG-44A9: Stop generative seam repair and return to Street-View/Surround360-style optical-flow and global-warp methods, because commercial systems solve seams with geometry/flow rather than diffusion.
+Position ARG-C64D: Use the A100 on the remaining DiT360 seam knobs: multi-yaw generate-and-select plus RF eta/gamma plumbing. DB-20 listed them as surviving levers before DB-21/22 fully closed the seam path.
 
-Position ARG-E603: Stop T1 seam chasing for now and assemble the best presentable deliverable: current best base + proven sky-only outpaint, with the wavy ground seam honestly labeled as the residual floor.
+Position ARG-9B7E: Pause GPU and do a conventional Google/Meta gap audit first. The project target is Street-View/Surround360 plausibility, so another generator run may be a distraction.
 
 ## Round 1 - Critiques
 
-ARG-7C2F critique: Strong assumption is that a better mask fixes the main failure. DB-14 proves the old mask is wrong, but not that DiT360 can faithfully straighten a lane/curb once the mask is correct. Logical strength: 8/10.
+ARG-A83F critique: Strong assumption is that ground/full outputs are still worth judging after prior full outpaint and ground seam failures. It could waste effort on a high-risk region where DiT tends to invent cars/curbs. Logical strength 7/10 because the scope can be made small and kill-gated.
 
-ARG-91BD critique: Strong assumption is that CubeComposer seam ideas transfer to a deterministic repair task. The source says CubeComposer is perspective-video-to-360 generation with cube-aware context/padding/blending; it is not an AV multi-camera stitcher or a local seam repair model. Full pivot risks large setup cost before a single falsifiable image. Logical strength: 6/10.
+ARG-F21C critique: Strong assumption is that evidence packaging can turn into a better result soon. It is conceptually aligned but may not use the live A100, and without a cheap visual kill-test it can become another large design branch. Logical strength 8/10 as strategic direction, 6/10 as immediate next A100 step.
 
-ARG-44A9 critique: Google and Meta do rely on optical flow, but the local project already hit textureless/occlusion floors in flow-derived methods. Google also discards low-confidence flow correspondences and solves a global under-constrained warp, which may still fail when our overlap has too little reliable structure. Logical strength: 6/10.
+ARG-C64D critique: Strong assumption is that yaw/RF knobs can overcome semantic redraw. DB-21 and DB-22 directly weaken that assumption: correct mask placement still yielded planter/curb hallucination. Logical strength 4/10.
 
-ARG-E603 critique: It is honest and low risk, but it may prematurely freeze the one user-visible defect that motivated the current A100 session. It should be a fallback deliverable, not the next exploration if a cheap DB-21 falsification exists. Logical strength: 7/10.
+ARG-9B7E critique: Strong assumption is that audit before experiment will reveal a new practical algorithm. The docs already contain the commercial-method lesson: flow/warping and seam routing are confidence-gated, but our co-observation is weaker and many conventional routes were tested. Logical strength 5/10.
 
 ## Round 1 - Rebuttals
 
-ARG-7C2F rebuttal: Narrow the claim: DB-21 is not "DiT will work"; it is the cheapest falsifier of the mask-alignment hypothesis. Overlay-first kill criteria prevent another blind GPU sweep.
+ARG-A83F rebuttal: The goal explicitly asks to complete DiT360 content and not leave A100 idle. This branch is not "try harder at seam"; it is out-of-FOV completion, where sky already passed. Ground/full were already run but not judged in an earlier outage, so the first action may be fetch/gate/vision, not new GPU. If it fails, it closes a loose end cleanly.
 
-ARG-91BD rebuttal: Narrow the claim: do not run CubeComposer full model yet. Inspect/borrow cube-face representation and boundary blending ideas as design guidance, possibly for mask construction or cube-local diagnostics.
+ARG-F21C rebuttal: This should become the next strategic brief after the DiT360 ledger is clean. A CPU evidence-pack kill-test can run in parallel after DB-23, but it should not leave a known DiT360 pending branch unjudged.
 
-ARG-44A9 rebuttal: The commercial-method insight should remain in the evidence model: flow works where reliable correspondence exists; our failure is likely sparse/ambiguous overlap and occlusion. Use it to constrain DB-21 masks, not to reopen broad flow work.
+ARG-C64D rebuttal: The only possible defense is that yaw/RF may produce a no-object, less-warped local edit. But DB-21 shows the model's failure mode is semantic replacement even under a tiny aligned mask, so this is now a low-priority contingency.
 
-ARG-E603 rebuttal: Accept fallback role. If DB-21 fails, the deliverable path should become current-best + sky-only outpaint rather than more seam patching.
+ARG-9B7E rebuttal: A commercial-method audit is useful for reporting, but it is not the best immediate A100 use. It can be summarized from existing evidence after visual outputs are settled.
 
 ## Round 1 - Judgment
 
-Judge A logic: ARG-7C2F 8.5, ARG-91BD 6.5, ARG-44A9 6.5, ARG-E603 7.5. Strongest: ARG-7C2F.
+Judge A, logic: ARG-A83F 8, ARG-F21C 7, ARG-C64D 4, ARG-9B7E 5. Strongest ARG-A83F.
 
-Judge B evidence/falsifiability: ARG-7C2F 9, ARG-91BD 6, ARG-44A9 7, ARG-E603 8. Strongest: ARG-7C2F.
+Judge B, evidence quality: ARG-A83F 8, ARG-F21C 7, ARG-C64D 3, ARG-9B7E 6. Strongest ARG-A83F.
 
-Judge C practical applicability: ARG-7C2F 9, ARG-91BD 5.5, ARG-44A9 6, ARG-E603 8. Strongest: ARG-7C2F.
+Judge C, practical applicability: ARG-A83F 9, ARG-F21C 7, ARG-C64D 4, ARG-9B7E 5. Strongest ARG-A83F.
 
-Convergence check: Not complete. ARG-7C2F leads but must answer whether cube-space should precede mask generation.
+Convergence check: top argument scores >=8 from all judges and no unanswered rebuttal remains, but run a second round because the evidence-guided direction is strategically important.
 
 ## Round 2 - Critiques
 
-ARG-7C2F critique: It could still generate a mask in ERP coordinates that is distorted near cube/ERP boundaries, repeating the "vertical strip" pathology in a narrower form. Logical strength: 8/10.
+ARG-A83F critique: It must avoid declaring a "Google-like" improvement if ground/full fills out-of-FOV black but leaves major seam artifacts. The brief must define success narrowly: object-free bottom/outer-band completion with no new salient structures, not seam repair.
 
-ARG-91BD critique: Its useful part is representation-level, not model-level. If it demands cloning/running Wan/CubeComposer before DB-21, it is an expensive detour from a local falsifiable test. Logical strength: 6/10.
+ARG-F21C critique: It should not be postponed indefinitely. If DB-23 closes quickly, the next brief should be an evidence-pack visualization/abstention test using raw AV2 perspective crops, LiDAR/epipolar masks, and ERP/cube seam panels.
 
-ARG-44A9 critique: It frames Google/Meta as proof that our rig should be solvable, but those systems rely on different camera geometry, strong sync/calibration, and enough overlap texture; Meta explicitly notes optical flow remains ill-posed under occlusion. Logical strength: 6.5/10.
+ARG-C64D critique: Any GPU run here must require new evidence that generation failure is frame/projection-dependent. DB-22 found the opposite, so the direction should stay paused.
 
-ARG-E603 critique: It maximizes presentability but not discovery. The user's explicit goal is to keep exploring while A100 is available, so stopping before DB-21 leaves a cheap hypothesis untested. Logical strength: 7.5/10.
+ARG-9B7E critique: The audit should be folded into the narrative, not become an experiment blocker. The decisive gap is not ignorance of Google/Meta but missing reliable correspondences/occlusion handling in this rig's seam zones.
 
 ## Round 2 - Rebuttals
 
-ARG-7C2F rebuttal: Add a cube-aware precheck without a full CubeComposer pivot: inspect the defect in ERP crop and, if the seam sits near problematic projection distortion, also render a cube-face/rectilinear view for mask overlay. GPU still waits for visual overlay approval.
+ARG-A83F rebuttal: Accept the narrowed success definition. DB-23 should first fetch/rejudge existing D4b outputs; only if missing or stale should it run a strict one-mask/one-seed bottom-band outpaint on BMW. Kill immediately on object-gate fail or vision hallucination.
 
-ARG-91BD rebuttal: Concede full-model run is not first. Keep CubeComposer as a source for DB-22 only if DB-21 overlay or output suggests ERP geometry is the blocker.
+ARG-F21C rebuttal: Accept as the next strategic direction after DB-23. It should be briefed separately, not mixed with outpaint completion.
 
-ARG-44A9 rebuttal: Concede commercial methods define an upper-bound style, not a drop-in recipe. The actionable import is confidence-gated correspondences and subtle global regularization, not another broad flow rewrite.
+ARG-C64D rebuttal: Concede. It is a contingency, not the next experiment.
 
-ARG-E603 rebuttal: Concede it is the fallback product path after DB-21, not the immediate exploration path.
+ARG-9B7E rebuttal: Concede for immediate execution. Keep as report framing and comparison language.
 
 ## Round 2 - Judgment
 
-Judge A logic: ARG-7C2F 9, ARG-91BD 7, ARG-44A9 7, ARG-E603 8. Strongest: ARG-7C2F.
+Judge A, logic: ARG-A83F 9, ARG-F21C 8, ARG-C64D 3, ARG-9B7E 5. Strongest ARG-A83F.
 
-Judge B evidence/falsifiability: ARG-7C2F 9, ARG-91BD 7, ARG-44A9 7, ARG-E603 8. Strongest: ARG-7C2F.
+Judge B, evidence quality: ARG-A83F 9, ARG-F21C 8, ARG-C64D 3, ARG-9B7E 6. Strongest ARG-A83F.
 
-Judge C practical applicability: ARG-7C2F 9, ARG-91BD 6.5, ARG-44A9 6.5, ARG-E603 8. Strongest: ARG-7C2F.
+Judge C, practical applicability: ARG-A83F 9, ARG-F21C 7, ARG-C64D 3, ARG-9B7E 5. Strongest ARG-A83F.
 
-Convergence check: Converged by threshold. ARG-7C2F top scores are all >=8 and the main rebuttal is answered by adding cube-aware overlay precheck before GPU.
+Convergence: yes. Immediate next experiment = DB-23 DiT360 out-of-FOV ground/full rejudge with strict object/vision gate. Next strategic branch after that = AV raw-camera evidence-pack.
