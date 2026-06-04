@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-39 v14 trimap-clamp replay audit - rejected as G-family seam solution)
+> **Goal:** answer the user's specific correction that the seam work should follow the older `runs_v14_trimap_clamp_bmw/trimap_r008_h016_w025_tau5/..._raw_fullres_1024x2048.png` method, not only DB36's ultra-narrow red-line core compose.
+> **What ran:** added CPU-only `scripts/phase3/db39_v14_trimap_replay_audit.py`, which builds a same-ROI board and manifest from existing fetched v14 trimap-clamp results. No A100 rerun and no model weights were used locally. The manifest records that the exact r008/h016/w025 trimap-clamp family already exists locally for `G_bmw_pano` tau5/8/12, `BEST_bmw_pano` tau5, and `A1_view_none` tau5/8/12.
+> **Vision verdict:** **REJECTED as a seam solution.** The old v14 method is different from DB36 and was worth separating, but the existing exact replay results still do not solve the user-marked seam. `G v14 raw tau5` produces a conspicuous vertical generated pole/slice in the right-white/lower-right ROI; `BEST v14 raw tau5` inherits BEST's ghosting and also has slab/slice artifacts; `A1 v14 raw tau5` turns the right seam into a visible vertical slice. Soft/core variants are diagnostic only: they lower numeric ROI MAE but still leave a visible band/paste or slice problem. The old hard-select v14 reference is visually closer in places, but it still does not remove the long/right seam in a Bosch/world-model trustworthy way.
+> **Gate note:** object gates are not enough here: G/A1 v14 tau5 can pass with `netnew=0`, yet vision still fails due seam-local generated geometry/slice artifacts. BEST v14 tau5 fails the object gate (`netnew_count=1`) and is visually worse.
+> **Locations:** `deliverables/dit360_v2/db39_v14_trimap_replay/db39_v14_trimap_replay_board.jpg`, `deliverables/dit360_v2/db39_v14_trimap_replay/db39_v14_trimap_replay_manifest.json`.
+> **Conclusion:** do not spend A100 repeating the same v14 trimap-clamp matrix unless a genuinely new mask/source constraint is introduced. The seam remains unsolved for the original G-family; DB32 remains a source-sidestep Bosch handoff candidate, not an original-G seam fix.
+> ---
+
 > ### 2026-06-04 (DB-38 Bosch-ready candidate handoff board - accepted DB32 as current handoff candidate with caveats)
 > **Goal:** after DB35/36/37 closed original G-family seam repair, produce a Bosch/world-model-facing candidate decision instead of continuing fake-ground edits.
 > **What ran:** added CPU-only `scripts/phase3/db38_bosch_handoff_board.py`, generating a same-board comparison of `G_bmw_pano`, DB19 G sky-only, DB28 a200 source, DB32 s40 current-best, and the rejected DB36 DiT red-line output. The board includes full view plus long seam, right white-line, sky/panel, object, and diff ROIs. No A100, no generation, no new model weights.

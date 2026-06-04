@@ -1,0 +1,254 @@
+{
+  "db": "DB-20260604-39",
+  "question": "Does exact v14 trimap-clamp raw/soft/core replay solve the user-marked G-family seam?",
+  "rois_2048x1024": {
+    "long_source": [
+      850,
+      360,
+      1680,
+      735
+    ],
+    "right_white": [
+      1400,
+      330,
+      2048,
+      735
+    ],
+    "lower_right": [
+      1580,
+      560,
+      2048,
+      790
+    ]
+  },
+  "method_summary": {
+    "runner": "scripts/phase3/run_dit360_trimap_clamp.py",
+    "mask_convention": "white/255 preserves source; black/0 generates",
+    "old_setting": "r008_h016_w025_tau5",
+    "tri_map": "core free generation, halo weak latent source clamp, far strong source clamp"
+  },
+  "vision_verdict": "reject as seam solution: existing exact v14 replay results reduce some local texture breaks but repeatedly introduce vertical slice/slab artifacts or retain the original long/right seam. DB36 remains a separate negative control, not the full v14 method.",
+  "a100_needed": false,
+  "a100_reason": "Existing fetched DB14 outputs already cover G tau5/8/12, BEST tau5, and A1 tau5/8/12 with the requested r008/h016/w025 trimap-clamp family. Re-running the same matrix would spend A100 without new evidence.",
+  "existing_v14_replay_matrix": {
+    "G_bmw_pano": [
+      "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau12\\g_r008_h016_w025_tau12_raw.png",
+      "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_raw.png",
+      "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau8\\g_r008_h016_w025_tau8_raw.png"
+    ],
+    "BEST_bmw_pano": [
+      "deliverables\\dit360_v2\\db14_best_bmw_pano_fetch\\BEST_bmw_pano\\best_r008_h016_w025_tau5\\best_r008_h016_w025_tau5_raw.png"
+    ],
+    "A1_view_none": [
+      "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau12\\a1view_r008_h016_w025_tau12_raw.png",
+      "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau5\\a1view_r008_h016_w025_tau5_raw.png",
+      "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau8\\a1view_r008_h016_w025_tau8_raw.png"
+    ]
+  },
+  "rows": [
+    {
+      "label": "G input",
+      "path": "deliverables\\ghostkill\\G_bmw_pano.jpg",
+      "exists": true,
+      "verdict": "baseline; user-marked long/right seam remains",
+      "diagnostics_path": null,
+      "gate_path": null,
+      "gate_pass": null,
+      "netnew_count": null,
+      "core_fraction": null,
+      "halo_fraction": null,
+      "far_fraction": null,
+      "raw_core_mae_vs_init": null,
+      "raw_halo_mae_vs_init": null,
+      "raw_far_mae_vs_init": null,
+      "method": null,
+      "roi_mae_vs_init": null
+    },
+    {
+      "label": "G v14 raw tau5",
+      "path": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_raw.png",
+      "exists": true,
+      "verdict": "reject candidate: right ROI vertical generated slice/pole-like artifact",
+      "diagnostics_path": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_diagnostics.json",
+      "gate_path": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_gate_gate.json",
+      "gate_pass": true,
+      "netnew_count": 0,
+      "core_fraction": 0.016311168670654297,
+      "halo_fraction": 0.03287696838378906,
+      "far_fraction": 0.9508118629455566,
+      "raw_core_mae_vs_init": 35.4283447265625,
+      "raw_halo_mae_vs_init": 19.37598419189453,
+      "raw_far_mae_vs_init": 3.399768352508545,
+      "method": "tri-map latent consistency: core free, halo soft clamp, far clamp",
+      "roi_mae_vs_init": {
+        "long_source": 7.343369007110596,
+        "right_white": 8.261537551879883,
+        "lower_right": 7.353394031524658
+      }
+    },
+    {
+      "label": "G v14 soft tau5",
+      "path": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_softcompose.png",
+      "exists": true,
+      "verdict": "diagnostic only; seam softened but source-band/slice still visible",
+      "diagnostics_path": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_diagnostics.json",
+      "gate_path": null,
+      "gate_pass": null,
+      "netnew_count": null,
+      "core_fraction": 0.016311168670654297,
+      "halo_fraction": 0.03287696838378906,
+      "far_fraction": 0.9508118629455566,
+      "raw_core_mae_vs_init": 35.4283447265625,
+      "raw_halo_mae_vs_init": 19.37598419189453,
+      "raw_far_mae_vs_init": 3.399768352508545,
+      "method": "tri-map latent consistency: core free, halo soft clamp, far clamp",
+      "roi_mae_vs_init": {
+        "long_source": 2.4065263271331787,
+        "right_white": 2.353654146194458,
+        "lower_right": 2.0658862590789795
+      }
+    },
+    {
+      "label": "G v14 core tau5",
+      "path": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_corecompose.png",
+      "exists": true,
+      "verdict": "diagnostic only; preserves outside core but exposes hard paste/slice",
+      "diagnostics_path": "deliverables\\dit360_v2\\db14_g_bmw_pano_fetch\\G_bmw_pano\\g_r008_h016_w025_tau5\\g_r008_h016_w025_tau5_diagnostics.json",
+      "gate_path": null,
+      "gate_pass": null,
+      "netnew_count": null,
+      "core_fraction": 0.016311168670654297,
+      "halo_fraction": 0.03287696838378906,
+      "far_fraction": 0.9508118629455566,
+      "raw_core_mae_vs_init": 35.4283447265625,
+      "raw_halo_mae_vs_init": 19.37598419189453,
+      "raw_far_mae_vs_init": 3.399768352508545,
+      "method": "tri-map latent consistency: core free, halo soft clamp, far clamp",
+      "roi_mae_vs_init": {
+        "long_source": 1.530224323272705,
+        "right_white": 1.56789231300354,
+        "lower_right": 1.4664405584335327
+      }
+    },
+    {
+      "label": "BEST input",
+      "path": "deliverables\\ghostkill\\BEST_bmw_pano.jpg",
+      "exists": true,
+      "verdict": "baseline; building/car ghosting remains",
+      "diagnostics_path": null,
+      "gate_path": null,
+      "gate_pass": null,
+      "netnew_count": null,
+      "core_fraction": null,
+      "halo_fraction": null,
+      "far_fraction": null,
+      "raw_core_mae_vs_init": null,
+      "raw_halo_mae_vs_init": null,
+      "raw_far_mae_vs_init": null,
+      "method": null,
+      "roi_mae_vs_init": null
+    },
+    {
+      "label": "BEST v14 raw tau5",
+      "path": "deliverables\\dit360_v2\\db14_best_bmw_pano_fetch\\BEST_bmw_pano\\best_r008_h016_w025_tau5\\best_r008_h016_w025_tau5_raw.png",
+      "exists": true,
+      "verdict": "reject candidate: inherits BEST ghosting and adds generated vertical slabs",
+      "diagnostics_path": "deliverables\\dit360_v2\\db14_best_bmw_pano_fetch\\BEST_bmw_pano\\best_r008_h016_w025_tau5\\best_r008_h016_w025_tau5_diagnostics.json",
+      "gate_path": "deliverables\\dit360_v2\\db14_best_bmw_pano_fetch\\BEST_bmw_pano\\best_r008_h016_w025_tau5\\best_r008_h016_w025_tau5_gate_gate.json",
+      "gate_pass": false,
+      "netnew_count": 1,
+      "core_fraction": 0.016311168670654297,
+      "halo_fraction": 0.03287696838378906,
+      "far_fraction": 0.9508118629455566,
+      "raw_core_mae_vs_init": 44.46162033081055,
+      "raw_halo_mae_vs_init": 21.47533416748047,
+      "raw_far_mae_vs_init": 3.412853717803955,
+      "method": "tri-map latent consistency: core free, halo soft clamp, far clamp",
+      "roi_mae_vs_init": {
+        "long_source": 7.036343574523926,
+        "right_white": 8.7064790725708,
+        "lower_right": 8.09294605255127
+      }
+    },
+    {
+      "label": "A1 input",
+      "path": "deliverables\\a1_streetview_pipeline\\A1_view_none_L1_vs_result.jpg",
+      "exists": true,
+      "verdict": "baseline; parallax artifacts remain",
+      "diagnostics_path": null,
+      "gate_path": null,
+      "gate_pass": null,
+      "netnew_count": null,
+      "core_fraction": null,
+      "halo_fraction": null,
+      "far_fraction": null,
+      "raw_core_mae_vs_init": null,
+      "raw_halo_mae_vs_init": null,
+      "raw_far_mae_vs_init": null,
+      "method": null,
+      "roi_mae_vs_init": null
+    },
+    {
+      "label": "A1 v14 raw tau5",
+      "path": "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau5\\a1view_r008_h016_w025_tau5_raw.png",
+      "exists": true,
+      "verdict": "reject candidate: right seam becomes a visible vertical slice",
+      "diagnostics_path": "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau5\\a1view_r008_h016_w025_tau5_diagnostics.json",
+      "gate_path": "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau5\\a1view_r008_h016_w025_tau5_gate_gate.json",
+      "gate_pass": true,
+      "netnew_count": 0,
+      "core_fraction": 0.016311168670654297,
+      "halo_fraction": 0.03287696838378906,
+      "far_fraction": 0.9508118629455566,
+      "raw_core_mae_vs_init": 37.006656646728516,
+      "raw_halo_mae_vs_init": 18.58403968811035,
+      "raw_far_mae_vs_init": 3.486232042312622,
+      "method": "tri-map latent consistency: core free, halo soft clamp, far clamp",
+      "roi_mae_vs_init": {
+        "long_source": 7.5045881271362305,
+        "right_white": 8.698229789733887,
+        "lower_right": 8.029756546020508
+      }
+    },
+    {
+      "label": "old v14 raw hardselect",
+      "path": "deliverables\\dit360_seam_completion\\runs_v14_trimap_clamp_bmw\\trimap_r008_h016_w025_tau5\\trimap_r008_h016_w025_tau5_raw_fullres_1024x2048.png",
+      "exists": true,
+      "verdict": "reference method; visually closer in places but still shows generated vertical seam material",
+      "diagnostics_path": "deliverables\\dit360_seam_completion\\runs_v14_trimap_clamp_bmw\\trimap_r008_h016_w025_tau5\\trimap_r008_h016_w025_tau5_diagnostics.json",
+      "gate_path": null,
+      "gate_pass": null,
+      "netnew_count": null,
+      "core_fraction": 0.016311168670654297,
+      "halo_fraction": 0.03287696838378906,
+      "far_fraction": 0.9508118629455566,
+      "raw_core_mae_vs_init": 30.28188133239746,
+      "raw_halo_mae_vs_init": 17.439268112182617,
+      "raw_far_mae_vs_init": 3.509864091873169,
+      "method": "tri-map latent consistency: core free, halo soft clamp, far clamp",
+      "roi_mae_vs_init": null
+    },
+    {
+      "label": "DB36 redline core",
+      "path": "deliverables\\dit360_v2\\db36_user_redline_mask\\G_bmw_pano_user_redline_tau5_fetch\\G_bmw_pano_user_redline_tau5\\db36_user_redline_tau5\\db36_user_redline_tau5_corecompose.png",
+      "exists": true,
+      "verdict": "negative control; fake pale ground slabs/holes",
+      "diagnostics_path": "deliverables\\dit360_v2\\db36_user_redline_mask\\G_bmw_pano_user_redline_tau5_fetch\\G_bmw_pano_user_redline_tau5\\db36_user_redline_tau5\\db36_user_redline_tau5_diagnostics.json",
+      "gate_path": null,
+      "gate_pass": null,
+      "netnew_count": null,
+      "core_fraction": 0.008163928985595703,
+      "halo_fraction": 0.015147686004638672,
+      "far_fraction": 0.9766883850097656,
+      "raw_core_mae_vs_init": 96.8352279663086,
+      "raw_halo_mae_vs_init": 36.455902099609375,
+      "raw_far_mae_vs_init": 3.403637409210205,
+      "method": "tri-map latent consistency: core free, halo soft clamp, far clamp",
+      "roi_mae_vs_init": {
+        "long_source": 1.756575107574463,
+        "right_white": 4.97456169128418,
+        "lower_right": 10.705415725708008
+      }
+    }
+  ]
+}
