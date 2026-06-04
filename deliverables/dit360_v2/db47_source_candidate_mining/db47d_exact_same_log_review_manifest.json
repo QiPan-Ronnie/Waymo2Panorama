@@ -1,0 +1,351 @@
+{
+  "db": "DB-47d",
+  "status": "exact_same_log_review_pack",
+  "created_utc": "2026-06-04T17:40:54.513339+00:00",
+  "accepted_evidence_type": "source-selection-exact-review-pack-only",
+  "purpose": "Make DB47c strict/relaxed same-log exact evidence self-contained without selecting a final candidate.",
+  "scope": {
+    "cpu_local_only": true,
+    "inputs": [
+      "deliverables/dit360_v2/db47_source_candidate_mining/db47c_same_roi_bucket_review_manifest.json",
+      "deliverables/dit360_v2/db28_clean_subset_refine/db28_strict_clean_source_scan_summary.json",
+      "deliverables/dit360_v2/db28_clean_subset_refine/db28_strict_clean_source_scan_montage.jpg"
+    ],
+    "db47c_rows_reviewed": 10,
+    "new_dataset_scan": false,
+    "new_exact_asset_fetch": false,
+    "a100_used": false,
+    "executor_used": false,
+    "model_inference": false,
+    "seamroute_or_renderer": false,
+    "panorama_repair": false,
+    "generation": false,
+    "source_replacement": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "output_location": "deliverables/dit360_v2/db47_source_candidate_mining"
+  },
+  "db28_context": {
+    "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+    "roi": [
+      850,
+      420,
+      1650,
+      720
+    ],
+    "anchors": [
+      105,
+      200,
+      201,
+      204,
+      209,
+      210,
+      211
+    ],
+    "ranking_note": "low line_risk_score is only a candidate filter; visual review is authoritative"
+  },
+  "aggregate_counts": {
+    "total_reviewed_rows": 10,
+    "strict_rows": 7,
+    "relaxed_rows": 3,
+    "exact_compare_rows": 3,
+    "exact_final_rows": 2,
+    "missing_exact_rows": 7,
+    "visual_verdict_counts": {
+      "exact_review_candidate_not_final": 3,
+      "hold_strict_missing_exact": 4,
+      "hold_relaxed_missing_exact": 3
+    },
+    "visual_reason_counts": {
+      "same_log": 10,
+      "strict_metric_pass": 7,
+      "missing_exact_asset": 7,
+      "no_promotion": 7,
+      "exact_compare_available": 3,
+      "source_sidestep_review_only": 3,
+      "relaxed_metric_pass": 3,
+      "weaker_metric_boundary": 3
+    }
+  },
+  "reviewed_rows": [
+    {
+      "candidate_id": "02a00399_a0200",
+      "anchor": 200,
+      "db47b_bucket": "strict_review_bucket",
+      "db47c_visual_verdict": "review_exact_same_log",
+      "db47d_visual_verdict": "exact_review_candidate_not_final",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "same_log",
+        "exact_compare_available",
+        "source_sidestep_review_only"
+      ],
+      "note": "Exact DB28 compare evidence exists. Keep as review candidate only; do not select a final candidate from DB47d.",
+      "rank_score_low_is_better": 0.08073060729274881,
+      "roi_lidar_support": 0.31566666666666665,
+      "roi_line_risk": 0.0596461582951389,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_final_1024x2048.png"
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    },
+    {
+      "candidate_id": "02a00399_a0201",
+      "anchor": 201,
+      "db47b_bucket": "strict_review_bucket",
+      "db47c_visual_verdict": "hold_montage_only_strict",
+      "db47d_visual_verdict": "hold_strict_missing_exact",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "same_log",
+        "missing_exact_asset",
+        "no_promotion"
+      ],
+      "note": "Strict metric row lacks local exact compare/final evidence, so it remains hold.",
+      "rank_score_low_is_better": 0.08073060729274881,
+      "roi_lidar_support": 0.31566666666666665,
+      "roi_line_risk": 0.0596461582951389,
+      "exact_assets": {
+        "compare": null,
+        "final": null
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    },
+    {
+      "candidate_id": "02a00399_a0204",
+      "anchor": 204,
+      "db47b_bucket": "strict_review_bucket",
+      "db47c_visual_verdict": "review_exact_same_log",
+      "db47d_visual_verdict": "exact_review_candidate_not_final",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "same_log",
+        "exact_compare_available",
+        "source_sidestep_review_only"
+      ],
+      "note": "Exact DB28 compare evidence exists. Keep as review candidate only; do not select a final candidate from DB47d.",
+      "rank_score_low_is_better": 0.08122266670283994,
+      "roi_lidar_support": 0.312175,
+      "roi_line_risk": 0.05995049025234375,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a204_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a204_final_1024x2048.png"
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    },
+    {
+      "candidate_id": "02a00399_a0209",
+      "anchor": 209,
+      "db47b_bucket": "strict_review_bucket",
+      "db47c_visual_verdict": "hold_montage_only_strict",
+      "db47d_visual_verdict": "hold_strict_missing_exact",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "same_log",
+        "missing_exact_asset",
+        "no_promotion"
+      ],
+      "note": "Strict metric row lacks local exact compare/final evidence, so it remains hold.",
+      "rank_score_low_is_better": 0.08208174860613673,
+      "roi_lidar_support": 0.3007416666666667,
+      "roi_line_risk": 0.06094701398810764,
+      "exact_assets": {
+        "compare": null,
+        "final": null
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    },
+    {
+      "candidate_id": "02a00399_a0210",
+      "anchor": 210,
+      "db47b_bucket": "strict_review_bucket",
+      "db47c_visual_verdict": "hold_montage_only_strict",
+      "db47d_visual_verdict": "hold_strict_missing_exact",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "same_log",
+        "missing_exact_asset",
+        "no_promotion"
+      ],
+      "note": "Strict metric row lacks local exact compare/final evidence, so it remains hold.",
+      "rank_score_low_is_better": 0.08209006643965248,
+      "roi_lidar_support": 0.3002916666666667,
+      "roi_line_risk": 0.06098623576779514,
+      "exact_assets": {
+        "compare": null,
+        "final": null
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    },
+    {
+      "candidate_id": "02a00399_a0211",
+      "anchor": 211,
+      "db47b_bucket": "strict_review_bucket",
+      "db47c_visual_verdict": "hold_montage_only_strict",
+      "db47d_visual_verdict": "hold_strict_missing_exact",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "same_log",
+        "missing_exact_asset",
+        "no_promotion"
+      ],
+      "note": "Strict metric row lacks local exact compare/final evidence, so it remains hold.",
+      "rank_score_low_is_better": 0.08209006643965248,
+      "roi_lidar_support": 0.3002916666666667,
+      "roi_line_risk": 0.06098623576779514,
+      "exact_assets": {
+        "compare": null,
+        "final": null
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    },
+    {
+      "candidate_id": "02a00399_a0105",
+      "anchor": 105,
+      "db47b_bucket": "strict_review_bucket",
+      "db47c_visual_verdict": "review_exact_same_log",
+      "db47d_visual_verdict": "exact_review_candidate_not_final",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "same_log",
+        "exact_compare_available",
+        "source_sidestep_review_only"
+      ],
+      "note": "Exact DB28 compare evidence exists. Keep as review candidate only; do not select a final candidate from DB47d.",
+      "rank_score_low_is_better": 0.08210606086975566,
+      "roi_lidar_support": 0.3141375,
+      "roi_line_risk": 0.05977943971315105,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_compare.jpg",
+        "final": null
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    },
+    {
+      "candidate_id": "02a00399_a0031",
+      "anchor": 31,
+      "db47b_bucket": "relaxed_review_bucket",
+      "db47c_visual_verdict": "hold_relaxed_same_log",
+      "db47d_visual_verdict": "hold_relaxed_missing_exact",
+      "visual_reasons": [
+        "relaxed_metric_pass",
+        "same_log",
+        "missing_exact_asset",
+        "weaker_metric_boundary",
+        "no_promotion"
+      ],
+      "note": "Relaxed row lacks local exact evidence and has weaker metrics; it remains hold.",
+      "rank_score_low_is_better": 0.10333440443905528,
+      "roi_lidar_support": 0.2727583333333333,
+      "roi_line_risk": 0.06338602762126735,
+      "exact_assets": {
+        "compare": null,
+        "final": null
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    },
+    {
+      "candidate_id": "02a00399_a0038",
+      "anchor": 38,
+      "db47b_bucket": "relaxed_review_bucket",
+      "db47c_visual_verdict": "hold_relaxed_same_log",
+      "db47d_visual_verdict": "hold_relaxed_missing_exact",
+      "visual_reasons": [
+        "relaxed_metric_pass",
+        "same_log",
+        "missing_exact_asset",
+        "weaker_metric_boundary",
+        "no_promotion"
+      ],
+      "note": "Relaxed row lacks local exact evidence and has weaker metrics; it remains hold.",
+      "rank_score_low_is_better": 0.10338431050332487,
+      "roi_lidar_support": 0.2722291666666667,
+      "roi_line_risk": 0.06343214952886285,
+      "exact_assets": {
+        "compare": null,
+        "final": null
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    },
+    {
+      "candidate_id": "02a00399_a0040",
+      "anchor": 40,
+      "db47b_bucket": "relaxed_review_bucket",
+      "db47c_visual_verdict": "hold_relaxed_same_log",
+      "db47d_visual_verdict": "hold_relaxed_missing_exact",
+      "visual_reasons": [
+        "relaxed_metric_pass",
+        "same_log",
+        "missing_exact_asset",
+        "weaker_metric_boundary",
+        "no_promotion"
+      ],
+      "note": "Relaxed row lacks local exact evidence and has weaker metrics; it remains hold.",
+      "rank_score_low_is_better": 0.10357344232205909,
+      "roi_lidar_support": 0.27003333333333335,
+      "roi_line_risk": 0.06362353728715278,
+      "exact_assets": {
+        "compare": null,
+        "final": null
+      },
+      "claim_boundary": "same-log exact review pack only; not final candidate and not original-G repair"
+    }
+  ],
+  "checks": [
+    {
+      "id": "brief_scope_is_db47d",
+      "pass": true,
+      "evidence": "DB47d sub-scope exists in decision_briefs.md before execution."
+    },
+    {
+      "id": "uses_existing_db47c_db28_only",
+      "pass": true,
+      "evidence": "Inputs are DB47c manifest, DB28 summary/montage, and local DB28 exact assets only."
+    },
+    {
+      "id": "reviews_all_strict_relaxed_rows",
+      "pass": true,
+      "evidence": "reviewed=10 strict=7 relaxed=3."
+    },
+    {
+      "id": "exact_and_missing_assets_reported",
+      "pass": true,
+      "evidence": "exact_compare_rows=3; missing_exact_rows=7; final_rows=2."
+    },
+    {
+      "id": "no_final_candidate_selection",
+      "pass": true,
+      "evidence": "All verdicts are exact-review-candidate or hold labels; no selected final field exists."
+    },
+    {
+      "id": "no_scan_repair_generation_or_source_replacement",
+      "pass": true,
+      "evidence": "CPU/local existing-artifact review only; no scan, seamroute, renderer, model, A100, executor, generation, repair, or source replacement."
+    },
+    {
+      "id": "source_sidestep_not_original_g_repair",
+      "pass": true,
+      "evidence": "Exact rows are same-log source-sidestep review candidates only, not original-G seam repair."
+    },
+    {
+      "id": "db41_abstain_boundary_preserved",
+      "pass": true,
+      "evidence": "DB47d does not evaluate or promote DB41 lower-right/right-line; inherited no-evidence/abstain remains."
+    }
+  ],
+  "decision": {
+    "db47_status": "running_phase3_exact_review_pack_complete",
+    "accepted_db47_diagnostic_evidence": true,
+    "accepted_source_faithful_repair": false,
+    "selected_final_candidate": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "claim_boundary": "DB47d is an exact same-log source-selection review pack only; it does not repair seams or accept a final panorama.",
+    "next_allowed_step": "Either open a final-candidate review with stricter same-ROI criteria, open a fixed-universe full scan, or pause DB47; do not select a final from DB47d alone."
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47d_exact_same_log_review_manifest.json",
+    "board": "deliverables/dit360_v2/db47_source_candidate_mining/db47d_exact_same_log_review_board.jpg"
+  }
+}
