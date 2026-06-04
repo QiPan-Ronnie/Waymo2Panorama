@@ -1,7 +1,7 @@
 {
   "db": "DB-45g",
   "status": "vggt_pose_decode_readiness_gate",
-  "created_utc": "2026-06-04T15:30:56.111120+00:00",
+  "created_utc": "2026-06-04T15:46:34.793089+00:00",
   "purpose": "Inspect official VGGT pose/camera decode readiness for a future metric pointmap/LiDAR residual job without running inference.",
   "decision": {
     "accepted_evidence_type": "blocked-or-no-go",
@@ -21,8 +21,8 @@
   "remote_result": {
     "db": "DB-45g",
     "error": {
-      "type": "HTTPError",
-      "message": "HTTP Error 530: <none>",
+      "type": "URLError",
+      "message": "<urlopen error [Errno 11001] getaddrinfo failed>",
       "stage": "submit_exec"
     },
     "scope": {
@@ -48,7 +48,7 @@
       "id": "remote_job_completed",
       "pass": false,
       "severity": "blocker",
-      "evidence": "Colab job None exit=None error={'type': 'HTTPError', 'message': 'HTTP Error 530: <none>', 'stage': 'submit_exec'}."
+      "evidence": "Colab job None exit=None error={'type': 'URLError', 'message': '<urlopen error [Errno 11001] getaddrinfo failed>', 'stage': 'submit_exec'}."
     },
     {
       "id": "official_repo_present",
@@ -66,13 +66,13 @@
       "id": "db45f_pose_key_available",
       "pass": false,
       "severity": "blocker",
-      "evidence": "DB45f remote VGGT prediction keys include pose_enc."
+      "evidence": "Remote source/API inspection must read the saved DB45f Drive result and confirm its VGGT prediction keys include pose_enc; a remote-unavailable STOP is not evidence that local DB45f lacks pose_enc."
     },
     {
       "id": "future_residual_requires_new_brief",
-      "pass": false,
+      "pass": true,
       "severity": "scope",
-      "evidence": "DB45g only decides readiness; any residual inference needs a new bounded sub-scope."
+      "evidence": "DB45g only decides readiness; any residual inference needs a new bounded sub-scope. Remote-unavailable states do not grant residual permission."
     },
     {
       "id": "no_model_action_or_repair",

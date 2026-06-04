@@ -1,8 +1,8 @@
 {
   "db": "DB-45g",
   "error": {
-    "type": "HTTPError",
-    "message": "HTTP Error 530: <none>",
+    "type": "URLError",
+    "message": "<urlopen error [Errno 11001] getaddrinfo failed>",
     "stage": "submit_exec"
   },
   "scope": {

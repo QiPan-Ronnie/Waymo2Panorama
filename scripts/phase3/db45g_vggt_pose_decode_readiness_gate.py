@@ -400,14 +400,24 @@ def build_checks(remote: dict[str, Any], db45f: dict[str, Any], secret_hits: lis
             "db45f_pose_key_available",
             readiness.get("db45f_has_pose_enc_key") is True,
             "blocker",
-            "DB45f remote VGGT prediction keys include pose_enc.",
+            "Remote source/API inspection must read the saved DB45f Drive result and confirm its VGGT prediction keys include pose_enc; a remote-unavailable STOP is not evidence that local DB45f lacks pose_enc.",
         ),
         chk(
             "future_residual_requires_new_brief",
-            readiness.get("future_residual_job_allowed_if_new_brief") in {True, False}
-            and readiness.get("claim") == "readiness-only; no geometry evidence accepted",
+            (
+                readiness.get("future_residual_job_allowed_if_new_brief") in {True, False}
+                and readiness.get("claim") == "readiness-only; no geometry evidence accepted"
+            )
+            or (
+                remote.get("error") is not None
+                and scope.get("model_inference") is False
+                and scope.get("renderer") is False
+                and scope.get("erp_repair") is False
+                and scope.get("source_replacement") is False
+                and scope.get("generated_image") is False
+            ),
             "scope",
-            "DB45g only decides readiness; any residual inference needs a new bounded sub-scope.",
+            "DB45g only decides readiness; any residual inference needs a new bounded sub-scope. Remote-unavailable states do not grant residual permission.",
         ),
         chk(
             "no_model_action_or_repair",
@@ -452,6 +462,18 @@ def build_board(manifest: dict[str, Any]) -> None:
     y = 154
     draw.text((24, y), "Remote/source facts", fill=(255, 255, 255), font=font(21))
     y += 30
+    err = remote.get("error")
+    if err:
+        y = draw_wrapped(
+            draw,
+            42,
+            y,
+            f"- remote_error stage={err.get('stage')} type={err.get('type')} message={err.get('message')}",
+            120,
+            (255, 190, 160),
+            13,
+            4,
+        )
     for line in [
         f"job={remote.get('colab_job', {}).get('job_id')} exit={remote.get('colab_job', {}).get('exit_code')} duration={remote.get('colab_job', {}).get('duration_s')}",
         f"official_repo={remote.get('official_repo', {}).get('exists')} head={remote.get('official_repo', {}).get('git_head')}",
