@@ -1,0 +1,18 @@
+{
+  "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+  "anchor": 0,
+  "input": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_bevfinal_1024x2048.png",
+  "roi": [
+    850,
+    420,
+    1650,
+    720
+  ],
+  "edit_band_frac_pano": 0.010693073272705078,
+  "edit_band_frac_roi": 0.0934375,
+  "changed_mean_abs_rgb_in_band": 8.17620215533259,
+  "alpha": 0.55,
+  "sigma_low": 7.0,
+  "sigma_smooth": 31.0,
+  "note": "diagnostic candidate only; no geometry warp and no generation"
+}

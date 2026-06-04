@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-03 (DB-26 source-safe photometric attenuation for long-line seam — rejected)
+> **Goal:** test the remaining safe Google/Meta-style conventional lever for the user-marked long line: reduce seam visibility through low-frequency photometric attenuation only, with no geometry warp and no generation.
+> **What ran:** added and ran CPU-only `scripts/phase3/db26_photometric_attenuate.py` on the BMW `SR_bmw_bevfinal_1024x2048.png` ROI `[850,420,1650,720]`. It detects horizontal camera-label boundaries, builds a narrow edit band, and blends only low-frequency RGB (`sigma_low=7`, `sigma_smooth=31`, `alpha=0.55`) while preserving high-frequency detail.
+> **Metrics:** edit band = 1.07% of pano / 9.34% of ROI; mean abs RGB change inside band = 8.18. No model weights, no generation, no pixel motion.
+> **Vision verdict:** **REJECTED.** The long horizontal line remains visible at normal viewing scale. The ROI montage shows the edit band also touches vertical source boundaries, and the dark wall picks up low-frequency smudges/color wash. This fails the DB-26 kill gate: it is not enough of a visibility reduction, and the safe-looking photometric edit still risks altering real dark-wall appearance.
+> **Locations:** Drive `results/db26_photometric_attenuate/`; local `deliverables/dit360_v2/db26_photometric_fetch/db26_attenuated_roi_montage.jpg`, `db26_attenuated_full.png`, `db26_summary.json`; script `scripts/phase3/db26_photometric_attenuate.py`.
+> **Conclusion:** For the red-line defect, four families are now closed: DiT ground/full generation (DB-23), blind Google/Meta-style geometry warp without evidence (DB-24/25), and low-frequency photometric attenuation (DB-26). The honest next direction, if continuing, is not patching this output further; it is adding stronger evidence such as temporal/raw-camera reference or treating the line as a risk/abstain annotation.
+> ---
+
 > ### 2026-06-03 (DB-25 AV raw-camera evidence pack for long-line seam — evidence-only / closed)
 > **Goal:** before any Google/Meta-style repair attempt, verify whether the user-marked long horizontal seam line has enough real raw-camera / LiDAR / flow evidence to justify source-faithful correction.
 > **What ran:** added and ran CPU-only `scripts/phase3/db25_longline_evidence_pack.py` on Colab for BMW anchor 0 ROI `[850,420,1650,720]`. The pack includes current ROI, camera-id overlay, near-ground mask, LiDAR support overlay, FB-flow reliable overlay, top ERP slabs, raw camera thumbnails, and JSON metrics. No model weights, no generation, no panorama edit.
