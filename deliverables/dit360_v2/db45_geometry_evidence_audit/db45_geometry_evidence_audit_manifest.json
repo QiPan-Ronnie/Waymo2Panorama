@@ -1,0 +1,553 @@
+{
+  "db": "DB-45",
+  "status": "running_phase0_output",
+  "purpose": "Geometry/depth/flow foundation evidence audit v0 over fixed controls.",
+  "scope": {
+    "evidence_only": true,
+    "fixed_segments": 8,
+    "max_segments": 8,
+    "new_panorama_generation": false,
+    "panorama_repair": false,
+    "source_replacement": false,
+    "diffusion_or_refiner": false,
+    "model_download": false,
+    "model_inference": false,
+    "a100_used": "status/env/cache preflight only"
+  },
+  "outputs": {
+    "manifest": "deliverables\\dit360_v2\\db45_geometry_evidence_audit\\db45_geometry_evidence_audit_manifest.json",
+    "permission_board": "deliverables\\dit360_v2\\db45_geometry_evidence_audit\\db45_evidence_permission_board.jpg",
+    "negative_board": "deliverables\\dit360_v2\\db45_geometry_evidence_audit\\db45_negative_controls_board.jpg",
+    "preflight_board": "deliverables\\dit360_v2\\db45_geometry_evidence_audit\\db45_preflight_and_gate_board.jpg"
+  },
+  "refs": {
+    "db44_manifest": "deliverables\\dit360_v2\\db44_layer_aware_dispatcher\\db44_layer_aware_dispatcher_manifest.json",
+    "db41_manifest": "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\db41_rightline_evidence_manifest.json",
+    "db25_summary": "deliverables\\dit360_v2\\db25_longline_evidence_fetch\\db25_longline_summary.json"
+  },
+  "a100_preflight": {
+    "status_endpoint": {
+      "runtime_type": "colab-gpu",
+      "gpu_name": "NVIDIA A100-SXM4-40GB",
+      "gpu_mem_free_gb": 39.49,
+      "active_jobs": 0,
+      "shell_alive": false,
+      "version": "0.1.0a1"
+    },
+    "exec_preflight": {
+      "job_id": "f98f06aa4c9f4c95b9249bb1ecbda4f0",
+      "exit_code": 0,
+      "repo_found_in_checked_paths": false,
+      "drive_mounted": true,
+      "python": "3.12.13",
+      "modules": {
+        "torch": true,
+        "transformers": true,
+        "cv2": true,
+        "av2": false,
+        "PIL": true
+      },
+      "cache_hits": [
+        "/content/drive/MyDrive/koi_waymo2pano_colab/cache/new_f_vggt",
+        "/content/drive/MyDrive/koi_waymo2pano_colab/cache/new_f_vggt/vggt-repo.tar.zst"
+      ],
+      "model_download": false,
+      "model_inference": false,
+      "panorama_generation": false
+    },
+    "verdict": "A100 is live, but DB45 v0 only records env/cache readiness. No foundation model evidence is accepted yet."
+  },
+  "evidence_registry": [
+    {
+      "path": "deliverables\\dit360_v2\\db25_longline_evidence_fetch\\db25_longline_summary.json",
+      "kind": "roi_flow_lidar_summary",
+      "status": "structured_json",
+      "db45_action": "reuse",
+      "note": "Long-line ROI has structured raw/LiDAR/flow evidence and remains abstain under current summary.",
+      "summary": {}
+    },
+    {
+      "path": "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\db41_rightline_evidence_manifest.json",
+      "kind": "rightline_roi_gate",
+      "status": "structured_json",
+      "db45_action": "reuse",
+      "note": "Right/lower-right ROIs have structured thresholds; both fail DB41 gate and remain abstain.",
+      "summary": {}
+    },
+    {
+      "path": "deliverables\\dit360_v2\\db44_layer_aware_dispatcher\\db44_layer_aware_dispatcher_manifest.json",
+      "kind": "dispatcher_manifest",
+      "status": "structured_json",
+      "db45_action": "reuse",
+      "note": "DB44 component states are the source for DB45 permission deltas.",
+      "summary": {}
+    },
+    {
+      "path": "deliverables\\depth_visibility_seam_probe\\batch_summary.json",
+      "kind": "lidar_depth_visibility_summary",
+      "status": "structured_json",
+      "db45_action": "reuse_case_level_only",
+      "note": "Case-level seam-band depth visibility is reusable, but it is not DB41 target-ROI-specific.",
+      "summary": {
+        "bmw_lidar_supported_frac_of_band": 0.4496674260724221,
+        "bmw_unknown_frac_of_band": 0.5503325739275778,
+        "bmw_high_depth_risk_frac_supported": 0.3316614898925607,
+        "bmw_parallax_p90_px": 18.162599563598633
+      }
+    },
+    {
+      "path": "deliverables\\dense_depth_edge_seam_probe\\batch_summary.json",
+      "kind": "dense_depth_edge_summary",
+      "status": "structured_json",
+      "db45_action": "reuse_case_level_only",
+      "note": "Depth-Anything-V2 evidence exists; it is diagnostic metadata, not DAC/DAP and not a renderer.",
+      "summary": {
+        "model_id": "depth-anything/Depth-Anything-V2-Small-hf",
+        "bmw_high_dense_depth_frac_of_band": 0.04420199429873267,
+        "dense_vs_source_risk": 0.422000914812088,
+        "dense_vs_structure_risk": 0.5133917927742004
+      }
+    },
+    {
+      "path": "data\\parallax_subset.json",
+      "kind": "parallax_ranking_or_subset",
+      "status": "structured_json",
+      "db45_action": "index_only",
+      "note": "Useful for case prioritization; not enough to promote DB41 ROIs without target-surface support.",
+      "summary": {
+        "keys": [
+          "anchors_sorted_by_parallax_desc",
+          "bottom_2",
+          "closeness_function",
+          "method",
+          "per_anchor_per_cam",
+          "score_definition",
+          "top_3"
+        ],
+        "type": "dict"
+      }
+    },
+    {
+      "path": "deliverables\\e2_seam_depth\\pareto_table.json",
+      "kind": "depth_fusion_negative_control",
+      "status": "structured_json",
+      "db45_action": "reuse_negative_control",
+      "note": "E2 depth fusion is a negative control showing depth warp distortion escalates.",
+      "summary": {
+        "E2_dense_p90_px_vs_L1": 32.9,
+        "E2_sparse_p90_px_vs_L1": 7.6,
+        "E1_5_p90_px_vs_L1": 0.2,
+        "note": "E1.5 = min geometry cost (~0) + removes photometric seam + no doubling = the safe operating point. Fusing the geometric cut via depth escalates distortion (depth-accuracy-bound)."
+      }
+    },
+    {
+      "path": "outputs\\phase3\\pi3_cache",
+      "kind": "pi3_cache_index",
+      "status": "present",
+      "db45_action": "index_only",
+      "note": "Pi3 cache can be evidence metadata only; do not treat cached geometry as seam truth without ROI checks.",
+      "summary": {
+        "anchor_dirs": [
+          "anchor_000",
+          "anchor_060",
+          "anchor_090",
+          "anchor_150"
+        ],
+        "anchor_dir_count": 4
+      }
+    }
+  ],
+  "model_routes": [
+    {
+      "route": "VGGT",
+      "local_script": true,
+      "remote_cache_hint": "new_f_vggt/vggt-repo.tar.zst",
+      "current_evidence_state": "script_or_cache_only_no_db45_outputs",
+      "db45_action": "do_not_run_until_scoped_evidence_job"
+    },
+    {
+      "route": "Fast3R",
+      "local_script": false,
+      "remote_cache_hint": null,
+      "current_evidence_state": "no_local_script_or_output",
+      "db45_action": "do_not_run"
+    },
+    {
+      "route": "CUT3R",
+      "local_script": false,
+      "remote_cache_hint": null,
+      "current_evidence_state": "no_local_script_or_output",
+      "db45_action": "do_not_run"
+    },
+    {
+      "route": "DAC/DAP",
+      "local_script": false,
+      "remote_cache_hint": null,
+      "current_evidence_state": "no_structured_output; DA-V2 probe is separate existing diagnostic",
+      "db45_action": "do_not_claim_as_dac_dap"
+    },
+    {
+      "route": "PriOr-Flow/FlowSeek",
+      "local_script": false,
+      "remote_cache_hint": null,
+      "current_evidence_state": "no_local_tool_or_output; DB25/DB41 flow is DIS-style reliability only",
+      "db45_action": "do_not_run"
+    },
+    {
+      "route": "DepthPro/Metric3D",
+      "local_script": true,
+      "remote_cache_hint": null,
+      "current_evidence_state": "route_script_only_no_db45_structured_output",
+      "db45_action": "do_not_run_until_followup_brief"
+    }
+  ],
+  "segments": [
+    {
+      "segment_id": "db45_clean_source_preservation",
+      "source_component_id": "db44_db34_source_preservation",
+      "title": "DB34 DB32 source preservation QA",
+      "artifact": "deliverables/dit360_v2/db34_current_best_qa/db34_current_best_review_board.jpg",
+      "role": "positive-control",
+      "layer": "low-risk source boundary",
+      "evidence_state_before": "GREEN",
+      "evidence_state_after": "GREEN",
+      "claim_before": "source-faithful",
+      "claim_after": "source-faithful",
+      "existing_evidence": {
+        "source_preservation": true,
+        "noncore_byte_exact": true,
+        "generated_mask_excluded": true
+      },
+      "foundation_model_evidence": {
+        "state": "not_run_in_db45_v0",
+        "reason": "preflight-only; no model download, inference, rendering, or repaired ERP",
+        "permission_effect": "no_promotion"
+      },
+      "permission_delta": "unchanged",
+      "required_future_evidence": [
+        "source_id_map stays consistent",
+        "future model confidence must not relabel full DB32 as source-faithful"
+      ],
+      "kill_guard": "positive control does not upgrade full DB32 to source-faithful",
+      "verdict": "Keep GREEN positive control only for source-preserved non-core pixels."
+    },
+    {
+      "segment_id": "db45_bev_planar_road_control",
+      "source_component_id": "db44_bevfinal_source_faithful",
+      "title": "BEV/seamroute source-faithful ceiling",
+      "artifact": "deliverables/dit360_v2/db23_gate_fetch/seamroute/SR_bmw_bevfinal_1024x2048.png",
+      "role": "positive-caveated-control",
+      "layer": "planar road + curb floor",
+      "evidence_state_before": "YELLOW",
+      "evidence_state_after": "YELLOW",
+      "claim_before": "source-faithful",
+      "claim_after": "source-faithful",
+      "existing_evidence": {
+        "source_faithful_route": true,
+        "planar_road_allowed": true,
+        "curb_floor": true,
+        "out_of_fov_caveat": true
+      },
+      "foundation_model_evidence": {
+        "state": "not_run_in_db45_v0",
+        "reason": "preflight-only; no model download, inference, rendering, or repaired ERP",
+        "permission_effect": "no_promotion"
+      },
+      "permission_delta": "unchanged",
+      "required_future_evidence": [
+        "plane validity or LiDAR support on the target surface",
+        "curb/off-plane mask proving the operator does not bleed into DB41-like regions"
+      ],
+      "kill_guard": "BEV road does not make off-plane curb/right-line repairable",
+      "verdict": "Keep YELLOW/source-faithful caveat: road evidence cannot upgrade curb/right-line."
+    },
+    {
+      "segment_id": "db45_db32_source_sidestep_control",
+      "source_component_id": "db44_db32_s40_long_roi",
+      "title": "DB32 long seam ROI",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/DB32_s40_current_long_roi.jpg",
+      "role": "claim-control",
+      "layer": "source/frame selection",
+      "evidence_state_before": "YELLOW",
+      "evidence_state_after": "YELLOW",
+      "claim_before": "source-sidestep",
+      "claim_after": "source-sidestep",
+      "existing_evidence": {
+        "source_sidestep": true,
+        "not_original_g_repair": true,
+        "generated_sky_caveat_in_full_candidate": true
+      },
+      "foundation_model_evidence": {
+        "state": "not_run_in_db45_v0",
+        "reason": "preflight-only; no model download, inference, rendering, or repaired ERP",
+        "permission_effect": "no_promotion"
+      },
+      "permission_delta": "unchanged",
+      "required_future_evidence": [
+        "same-ROI source comparison must keep sidestep language",
+        "DB49 generated/unknown masks if used for Bosch handoff"
+      ],
+      "kill_guard": "do not mix DB32 sidestep with original-G seam repair",
+      "verdict": "Keep YELLOW/source-sidestep; no local seam repair claim."
+    },
+    {
+      "segment_id": "db45_db25_longline_abstain",
+      "source_component_id": "db44_db25_longline_evidence",
+      "title": "DB25 long-line evidence",
+      "artifact": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_evidence_montage.jpg",
+      "role": "negative-evidence-control",
+      "layer": "low-support long-line evidence",
+      "evidence_state_before": "RED",
+      "evidence_state_after": "RED",
+      "claim_before": "abstain",
+      "claim_after": "abstain",
+      "existing_evidence": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "near_ground_frac": 0.6233333333333333,
+        "lidar_support_frac": 0.09380416666666666,
+        "best_flow_pair": "0-1",
+        "best_flow_reliable_frac": 0.6823972206137812,
+        "key_pair_6_5_flow_reliable_frac": 0.10466278101582015,
+        "top_camera_labels": [
+          6,
+          0,
+          5
+        ]
+      },
+      "foundation_model_evidence": {
+        "state": "not_run_in_db45_v0",
+        "reason": "preflight-only; no model download, inference, rendering, or repaired ERP",
+        "permission_effect": "no_promotion"
+      },
+      "permission_delta": "unchanged",
+      "required_future_evidence": [
+        "target-surface-aware tracks, not only best-pair flow",
+        "raw-camera/LiDAR evidence on the right dark-wall/near-ground target surface"
+      ],
+      "kill_guard": "flow/LiDAR weakness blocks geometry warp",
+      "verdict": "Remain RED/evidence-only abstain; best pair does not cover key right dark-wall pair."
+    },
+    {
+      "segment_id": "db45_db41_right_roi_abstain",
+      "source_component_id": "db44_db41_right_roi",
+      "title": "DB41 right ROI",
+      "artifact": "deliverables/dit360_v2/db41_rightline_evidence_gate/right_roi/db25_longline_evidence_montage.jpg",
+      "role": "negative-evidence-control",
+      "layer": "right-line/curb no-evidence",
+      "evidence_state_before": "RED",
+      "evidence_state_after": "RED",
+      "claim_before": "abstain",
+      "claim_after": "abstain",
+      "existing_evidence": {
+        "roi": [
+          1440,
+          360,
+          2048,
+          720
+        ],
+        "near_ground_frac": 0.5194444444444445,
+        "lidar_support_frac": 0.08416027046783625,
+        "best_flow_pair": "3-4",
+        "best_flow_reliable_frac": 0.8625666771258237,
+        "key_pair_5_4_flow_reliable_frac": 0.6853627492575307,
+        "passes_db41_gate": false,
+        "top_camera_labels": [
+          4,
+          5,
+          3
+        ]
+      },
+      "foundation_model_evidence": {
+        "state": "not_run_in_db45_v0",
+        "reason": "preflight-only; no model download, inference, rendering, or repaired ERP",
+        "permission_effect": "no_promotion"
+      },
+      "permission_delta": "unchanged",
+      "required_future_evidence": [
+        "prove flow/LiDAR support lands on the white-line or curb target surface",
+        "continuous source-faithful geometry across the right ROI"
+      ],
+      "kill_guard": "DB41 right ROI must remain abstain",
+      "verdict": "Remain RED/abstain; high best-flow patch cannot override sparse LiDAR target evidence."
+    },
+    {
+      "segment_id": "db45_db41_lower_right_abstain",
+      "source_component_id": "db44_db41_lower_right",
+      "title": "DB41 lower-right ROI",
+      "artifact": "deliverables/dit360_v2/db41_rightline_evidence_gate/lower_right_roi/db25_longline_evidence_montage.jpg",
+      "role": "hard-negative-evidence-control",
+      "layer": "lower-right no-evidence near-ground",
+      "evidence_state_before": "RED",
+      "evidence_state_after": "RED",
+      "claim_before": "abstain",
+      "claim_after": "abstain",
+      "existing_evidence": {
+        "roi": [
+          1580,
+          560,
+          2048,
+          790
+        ],
+        "near_ground_frac": 1.0,
+        "lidar_support_frac": 0.0,
+        "best_flow_pair": "3-4",
+        "best_flow_reliable_frac": 0.7306889352818372,
+        "key_pair_5_4_flow_reliable_frac": 0.5047528517110266,
+        "passes_db41_gate": false,
+        "top_camera_labels": [
+          4,
+          5
+        ]
+      },
+      "foundation_model_evidence": {
+        "state": "not_run_in_db45_v0",
+        "reason": "preflight-only; no model download, inference, rendering, or repaired ERP",
+        "permission_effect": "no_promotion"
+      },
+      "permission_delta": "unchanged",
+      "required_future_evidence": [
+        "new raw/depth/correspondence evidence on the actual lower-right target surface",
+        "must not be upgraded by generic dense confidence or edge-attached flow"
+      ],
+      "kill_guard": "DB41 lower-right must remain abstain",
+      "verdict": "Remain RED/abstain; LiDAR support is zero in the all-near-ground target ROI."
+    },
+    {
+      "segment_id": "db45_db36_fake_redline_reject",
+      "source_component_id": "db44_db36_user_redline",
+      "title": "DB36 user red-line DiT",
+      "artifact": "deliverables/dit360_v2/db36_user_redline_mask/G_bmw_pano_user_redline_tau5_fetch/G_bmw_pano_user_redline_tau5/db36_user_redline_tau5/db36_user_redline_tau5_corecompose.png",
+      "role": "fake-geometry-negative",
+      "layer": "right-line/curb generated seam",
+      "evidence_state_before": "RED",
+      "evidence_state_after": "RED",
+      "claim_before": "reject",
+      "claim_after": "reject",
+      "existing_evidence": {
+        "generated_output": true,
+        "object_gate_pass_is_insufficient": true,
+        "fake_geometry_reasons": [
+          "fake_slab",
+          "black_hole",
+          "fake_ground"
+        ]
+      },
+      "foundation_model_evidence": {
+        "state": "not_run_in_db45_v0",
+        "reason": "preflight-only; no model download, inference, rendering, or repaired ERP",
+        "permission_effect": "no_promotion"
+      },
+      "permission_delta": "unchanged",
+      "required_future_evidence": [
+        "future model confidence must be low or contradicted on fake generated geometry",
+        "do not accept outside-mask exactness as a seam repair proof"
+      ],
+      "kill_guard": "narrow prompt mask cannot bypass fake-geometry gate",
+      "verdict": "Remain RED/reject; detector-clean generated red-line output is fake geometry."
+    },
+    {
+      "segment_id": "db45_db40_longsrc_fake_pole_reject",
+      "source_component_id": "db44_db40_longsrc_raw",
+      "title": "DB40 A1 longsrc raw",
+      "artifact": "deliverables/dit360_v2/db40_v14_mask_alignment/a1_longsrc_only_fetch/a1_longsrc_only_tau5/a1_longsrc_only_tau5_raw.png",
+      "role": "fake-geometry-negative",
+      "layer": "long-source generated seam",
+      "evidence_state_before": "RED",
+      "evidence_state_after": "RED",
+      "claim_before": "reject",
+      "claim_after": "reject",
+      "existing_evidence": {
+        "generated_output": true,
+        "object_gate_pass_is_insufficient": true,
+        "fake_geometry_reasons": [
+          "vertical_slice",
+          "pole_like_artifact",
+          "long_source_band"
+        ]
+      },
+      "foundation_model_evidence": {
+        "state": "not_run_in_db45_v0",
+        "reason": "preflight-only; no model download, inference, rendering, or repaired ERP",
+        "permission_effect": "no_promotion"
+      },
+      "permission_delta": "unchanged",
+      "required_future_evidence": [
+        "future model confidence must reject pole/slice artifacts",
+        "BMW keepout root-cause success must not become a seam repair claim"
+      ],
+      "kill_guard": "object gate pass is insufficient",
+      "verdict": "Remain RED/reject; longsrc replay creates pole-like generated geometry."
+    }
+  ],
+  "counts": {
+    "evidence_state_after": {
+      "GREEN": 1,
+      "YELLOW": 2,
+      "RED": 5
+    },
+    "claim_after": {
+      "source-faithful": 2,
+      "source-sidestep": 1,
+      "abstain": 3,
+      "reject": 2
+    },
+    "permission_delta": {
+      "unchanged": 8
+    }
+  },
+  "kill_checks": [
+    {
+      "id": "max_8_segments",
+      "pass": true,
+      "description": "DB45 v0 must stay within the first-pass max scope of exactly 8 fixed controls."
+    },
+    {
+      "id": "no_repair_or_model_inference",
+      "pass": true,
+      "description": "A100 was used only for live/env/cache preflight; no model inference or repaired ERP was produced."
+    },
+    {
+      "id": "no_red_promoted",
+      "pass": true,
+      "description": "Every RED control remains RED with unchanged permission state."
+    },
+    {
+      "id": "db41_right_remains_abstain",
+      "pass": true,
+      "description": "DB41 right ROI remains abstain because LiDAR support is below gate even with local flow patches."
+    },
+    {
+      "id": "db41_lower_right_zero_lidar",
+      "pass": true,
+      "description": "DB41 lower-right remains abstain with zero LiDAR support in the all-near-ground target ROI."
+    },
+    {
+      "id": "fake_geometry_rejects",
+      "pass": true,
+      "description": "DB36 fake red-line slabs/holes and DB40 pole-like longsrc raw remain rejected."
+    },
+    {
+      "id": "db32_not_fully_source_faithful",
+      "pass": true,
+      "description": "DB32 long ROI remains source-sidestep/caveated and is not promoted to fully source-faithful or original-G repair."
+    },
+    {
+      "id": "no_foundation_confidence_claim",
+      "pass": true,
+      "description": "No VGGT/Fast3R/CUT3R/DAC/DAP/PriOr-Flow confidence is claimed before a scoped model run."
+    }
+  ],
+  "gate_pass": true,
+  "decision": {
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "accepted_as_final_db45": false,
+    "db45_remains_running": true,
+    "next": "If continuing DB45, open a sub-scope for an actual foundation-model evidence run. It must compare confidence/tracks/depth/flow against these eight controls and must kill immediately if RED controls receive high confidence without target-surface evidence."
+  }
+}

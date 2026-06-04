@@ -66,7 +66,7 @@ Shared hard constraints for all briefs below:
 - If any brief hits its kill criteria, stop that direction, write the result to `progress.md`, and do not continue patch-on-patch under the same direction.
 
 # DB-45: Geometry foundation evidence audit
-Status: proposed
+Status: running
 Route: A (geometry) / evidence-only
 
 Question: Can VGGT/Fast3R/CUT3R/DAC/DAP/PriOr-Flow/FlowSeek-style evidence turn any currently RED seam into YELLOW/GREEN, or improve the confidence calibration for layer-aware routing?
@@ -105,6 +105,9 @@ Max scope:
 - Evidence-only; no panorama repair, no source replacement, no diffusion/refiner.
 - 8 fixed segments for first pass; expand only through a follow-up brief.
 - Do not download/run heavy models locally unless execution environment and scope are explicitly approved in the running brief.
+- First running pass (2026-06-04): CPU/local manifest + board over existing DB25/DB41/DB43/DB44 evidence, plus A100 live/env/cache preflight only. No heavy model download, no model inference, no renderer, no repaired ERP.
+- Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
+- Phase0 result (2026-06-04): `gate_pass=true` for the fixed 8-control evidence audit; no RED promotion and no foundation-model confidence claim. DB45 remains running, because this only locked controls/registry/preflight and did not run an actual scoped foundation-model evidence job. Detail archived at top of `progress.md`.
 
 Required vision check:
 - Board must include raw-camera support crop, LiDAR/depth/flow evidence overlays if available, model confidence overlay, and final permission-state label.

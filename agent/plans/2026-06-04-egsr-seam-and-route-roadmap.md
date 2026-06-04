@@ -33,7 +33,9 @@ DB43 locks these next-step constraints: DB32 `s40` is caveated handoff/source-si
 
 DB44 Layer-aware seam routing / EGSR dispatcher v0 is completed and accepted as a CPU-only dispatcher dry-run gate. Outputs are under `deliverables/dit360_v2/db44_layer_aware_dispatcher/`, with script `scripts/phase3/db44_layer_aware_dispatcher.py`. DB44 did not repair or generate a new ERP; it mapped 29 DB43 known cases into layer/evidence/operator/claim components, kept DB41 RED/abstain, and executed no operators.
 
-DB45 is therefore the recommended next running brief if the source-faithful EGSR mainline continues. It should be evidence-only and ask whether any currently RED seam can be legitimately promoted to YELLOW/GREEN with stronger geometry/depth/flow evidence. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
+DB45 is now running. Its phase0 evidence-only control/registry pass is completed: outputs are under `deliverables/dit360_v2/db45_geometry_evidence_audit/`, with script `scripts/phase3/db45_geometry_evidence_audit.py`. DB45 v0 fixed 8 controls, registered reusable evidence sources, verified A100 live/env/cache state only, and kept all permission states unchanged (`GREEN=1`, `YELLOW=2`, `RED=5`; no RED promotion; no foundation-model confidence claimed).
+
+DB45 is **not closed** by this phase0 pass. The next DB45 step, if continuing the source-faithful EGSR mainline, must be a scoped foundation-model evidence job with frozen ROI list, output schema, and promotion/kill thresholds. It must compare confidence/tracks/depth/flow against the same 8 controls and kill immediately if DB25/DB41/DB36/DB40 RED controls receive high confidence without target-surface raw/depth/flow support. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
 
 ---
 
