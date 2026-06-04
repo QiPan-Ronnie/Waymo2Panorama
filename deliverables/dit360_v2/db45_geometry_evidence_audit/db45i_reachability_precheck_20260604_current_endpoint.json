@@ -1,7 +1,7 @@
 {
   "db": "DB-45i",
   "status": "reachability_precheck_failed",
-  "created_utc": "2026-06-04T18:52:04.6136631Z",
+  "created_utc": "2026-06-04T19:15:48.6140109Z",
   "purpose": "Record the independent /status reachability gate for the latest user-provided A100 executor before any DB45i --run-remote job.",
   "endpoint_policy": {
     "endpoint_source": "latest_user_provided_runtime_json_current_turn",
@@ -12,6 +12,7 @@
   "attempts": [
     {
       "environment": "sandbox",
+      "attempt_label": "goal_continuation_recheck_after_user_left_endpoint_open",
       "request": "GET /status only",
       "submitted_exec_job": false,
       "result": "dns_resolution_failed",
@@ -20,6 +21,7 @@
     },
     {
       "environment": "approved_non_sandbox_network",
+      "attempt_label": "goal_continuation_recheck_after_user_left_endpoint_open",
       "request": "GET /status only",
       "submitted_exec_job": false,
       "result": "dns_resolution_failed",
