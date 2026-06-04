@@ -1,5 +1,15 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-33 Cube-face local sky-boundary harmonization - rejected)
+> **Goal:** test a bounded CubeComposer-inspired idea without running CubeComposer: use local perspective/cube-face reasoning around preserved source-sky boundaries, but change only the already generated DB-29 sky core, starting from DB-32 `s40`.
+> **What ran:** added CPU-only `scripts/phase3/db33_local_sky_boundary_harmonize.py`. The script builds a strict source-sky sample, propagates a local low-frequency LAB color field into the generated sky core, protects bright cloud pixels, and writes full/top/rectilinear sky review montages for strengths `s30`, `s50`, `s70`. No DiT/FLUX/CubeComposer model run and no model weights were used.
+> **Gate results:** all DB-33 variants preserved source pixels exactly: `noncore_max_abs_diff_vs_db29=0`. Core changes versus DB-32 were modest (`s30` core MAE `4.50`, `s50` `7.98`, `s70` `11.45`), with the same strict source-sky sample as DB-32 v2 (`24048` pixels, `1.15%` of pano).
+> **Vision verdict:** **REJECTED.** `s30` is effectively indistinguishable from DB-32 `s40` and does not reduce the source-sky panel enough to matter. `s50` and `s70` introduce visible local sky halos / diagonal color-field bands around preserved sky panels in both top ERP and upward rectilinear review. They stay source-safe numerically, but visually they are worse than DB-32.
+> **CubeComposer interpretation:** directly running CubeComposer remains misaligned for this AV/Bosch objective because it is a large generative cubemap/panorama model and would rewrite source content. The useful transferable piece is rectilinear/cube-face review; DB-33 confirms that this representation is valuable for catching sky artifacts, but the local boundary harmonization itself should not replace DB-32.
+> **Locations:** local `deliverables/dit360_v2/db33_local_sky_boundary_harmonize/` including `db33_local_sky_boundary_harmonize_s{30,50,70}.png`, `db33_top_montage.jpg`, `db33_full_montage.jpg`, `db33_rect_sky_montage.jpg`, `db33_core_red_source_sky_blue_overlay.jpg`, and `db33_diagnostics.json`.
+> **Conclusion:** keep DB-32 `s40` as the current best object-safe presentation candidate. Cube/rectilinear views should stay in the review toolkit, but no further local sky-boundary color-field tuning is justified without a stronger sky/source segmentation signal.
+> ---
+
 > ### 2026-06-04 (DB-32 generated-sky chroma harmonization for a200 - accepted with small-gain caveat)
 > **Goal:** reduce DB-29's visible sky-panel color discontinuity without touching any source-preserved pixels, using only the existing generated sky core from the DB-29 `opmask_sky`.
 > **What ran:** added CPU-only `scripts/phase3/db32_generated_sky_harmonize.py`, downloaded the existing DB-29 core mask `SR_bmw_db28_a200_opmask_sky.png`, and ran deterministic LAB color-stat matching only inside the mask-black generated sky core. No DiT/FLUX run, no model weights, no learned sky segmentation.
