@@ -1,0 +1,343 @@
+{
+  "db": "DB-51",
+  "status": "accepted_acquisition_queue",
+  "created_utc": "2026-06-04T23:03:03.593376+00:00",
+  "accepted_evidence_type": "egsr-target-source-pair-acquisition-queue-only",
+  "purpose": "Translate DB50's zero executable repair target into a fixed evidence-acquisition queue for the next single brief.",
+  "scope": {
+    "cpu_local_only": true,
+    "existing_artifacts_only": true,
+    "new_panorama_repair": false,
+    "renderer_or_dataset_run": false,
+    "exact_asset_fetch": false,
+    "a100_or_executor_used": false,
+    "hf_or_vggt_used": false,
+    "diffusion_or_generation": false,
+    "source_replacement": false,
+    "db49e_rerun": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "output_location": "deliverables/dit360_v2/db51_egsr_target_acquisition"
+  },
+  "inputs": {
+    "decision_brief": "agent/decision_briefs.md",
+    "db44_manifest": "deliverables/dit360_v2/db44_layer_aware_dispatcher/db44_layer_aware_dispatcher_manifest.json",
+    "db47d_manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47d_exact_same_log_review_manifest.json",
+    "db47e_manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47e_final_candidate_review_manifest.json",
+    "db50_manifest": "deliverables/dit360_v2/db50_egsr_operator_v0/db50_egsr_operator_readiness_manifest.json",
+    "db25_summary": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_summary.json",
+    "db41_manifest": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+    "db49e_manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49e_exact_lineage_preflight_manifest.json"
+  },
+  "acquisition_queue": [
+    {
+      "rank": 1,
+      "queue_id": "db47f_fixed_universe_exact_source_selection_closure",
+      "category": "source-selection",
+      "claim_if_successful": "source-sidestep candidate evidence only",
+      "why_ranked_here": "DB50 found no local repair target; source/frame selection is the only currently accepted seam-quality sidestep path.",
+      "available_evidence": [
+        "DB47b fixed 22-row candidate universe",
+        "DB47c same-ROI visual accounting",
+        "DB47d exact same-log review pack",
+        "DB47e a200/a204/a105 final-candidate accounting"
+      ],
+      "missing_or_blocked": [
+        {
+          "candidate_id": "02a00399_a0201",
+          "anchor": 201,
+          "bucket": "strict_review_bucket",
+          "missing": "compare_and_final",
+          "available": [],
+          "reason": "DB47d/DB47e hold: exact same-log assets absent locally."
+        },
+        {
+          "candidate_id": "02a00399_a0209",
+          "anchor": 209,
+          "bucket": "strict_review_bucket",
+          "missing": "compare_and_final",
+          "available": [],
+          "reason": "DB47d/DB47e hold: exact same-log assets absent locally."
+        },
+        {
+          "candidate_id": "02a00399_a0210",
+          "anchor": 210,
+          "bucket": "strict_review_bucket",
+          "missing": "compare_and_final",
+          "available": [],
+          "reason": "DB47d/DB47e hold: exact same-log assets absent locally."
+        },
+        {
+          "candidate_id": "02a00399_a0211",
+          "anchor": 211,
+          "bucket": "strict_review_bucket",
+          "missing": "compare_and_final",
+          "available": [],
+          "reason": "DB47d/DB47e hold: exact same-log assets absent locally."
+        },
+        {
+          "candidate_id": "02a00399_a0031",
+          "anchor": 31,
+          "bucket": "relaxed_review_bucket",
+          "missing": "compare_and_final",
+          "available": [],
+          "reason": "DB47d/DB47e hold: exact same-log assets absent locally."
+        },
+        {
+          "candidate_id": "02a00399_a0038",
+          "anchor": 38,
+          "bucket": "relaxed_review_bucket",
+          "missing": "compare_and_final",
+          "available": [],
+          "reason": "DB47d/DB47e hold: exact same-log assets absent locally."
+        },
+        {
+          "candidate_id": "02a00399_a0040",
+          "anchor": 40,
+          "bucket": "relaxed_review_bucket",
+          "missing": "compare_and_final",
+          "available": [],
+          "reason": "DB47d/DB47e hold: exact same-log assets absent locally."
+        },
+        {
+          "candidate_id": "02a00399_a0105",
+          "anchor": 105,
+          "bucket": "strict_review_bucket",
+          "missing": "final",
+          "available": [
+            "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_compare.jpg"
+          ],
+          "reason": "a105 has exact compare only; no final image exists locally."
+        }
+      ],
+      "allowed_next_action": "Open DB47f with max 8 anchors (7 missing exact holds plus a105 final gap) to fetch or rerun exact compare/final assets, only after secure runtime/data preconditions are available.",
+      "kill_criteria_pointer": [
+        "unbounded dataset scan",
+        "cherry-pick by pretty montage",
+        "source selection described as original-G repair",
+        "DB41/no-evidence promotion",
+        "pasted-token command or artifact use"
+      ],
+      "can_improve_seam_quality": true,
+      "can_be_source_faithful_repair": false,
+      "requires_remote_or_data": true,
+      "requires_secure_secret_source": true,
+      "expected_output_location": "deliverables/dit360_v2/db47_source_candidate_mining/"
+    },
+    {
+      "rank": 2,
+      "queue_id": "db50b_lpam_or_local_alignment_target_evidence",
+      "category": "operator-target",
+      "claim_if_successful": "possible source-faithful operator target, not yet repair",
+      "why_ranked_here": "This is the direct path from EGSR dispatcher to an algorithmic operator, but DB50 found no GREEN/far-static raw-pair target locally.",
+      "available_evidence": [
+        "DB50 readiness says lpam_executable_targets=0",
+        "DB25/DB41 provide negative controls and flow/LiDAR boundaries"
+      ],
+      "missing_or_blocked": [
+        "far/static GREEN segment with raw source-pair crops",
+        "owner/source support at target pixels",
+        "protected-structure mask",
+        "occlusion/flow consistency check",
+        "same-ROI before/after target for vision review"
+      ],
+      "negative_controls": {
+        "db25_longline_not_eligible": true,
+        "db25_lidar_support_frac": 0.09380416666666666,
+        "db25_near_ground_frac": 0.6233333333333333,
+        "db25_key_pair_6_5_flow_reliable_frac": 0.10466278101582015,
+        "db41_not_eligible": true,
+        "db41_right_lidar_gate": {
+          "passes_flow_threshold": true,
+          "passes_lidar_threshold": false,
+          "passes_db41_gate": false
+        },
+        "db41_lower_right_lidar_gate": {
+          "passes_flow_threshold": true,
+          "passes_lidar_threshold": false,
+          "passes_db41_gate": false
+        }
+      },
+      "allowed_next_action": "Open a target-specific DB50b/DB51b evidence brief only after selecting a fixed segment and acquiring raw/source-pair evidence; do not run LPAM on DB41/DB25 RED controls.",
+      "kill_criteria_pointer": [
+        "flow-only or confidence-only promotion",
+        "object/curb/lane/topology deformation",
+        "blocky source swap",
+        "no protected-structure mask",
+        "no same-ROI vision board"
+      ],
+      "can_improve_seam_quality": true,
+      "can_be_source_faithful_repair": true,
+      "requires_remote_or_data": true,
+      "requires_secure_secret_source": true,
+      "expected_output_location": "deliverables/dit360_v2/db50_egsr_operator_v0/"
+    },
+    {
+      "rank": 3,
+      "queue_id": "db49e_exact_lineage_source_provenance",
+      "category": "provenance",
+      "claim_if_successful": "data-contract source/provenance sidecars only",
+      "why_ranked_here": "Important for Bosch packaging, but DB49e does not improve seam quality and remains preflight-paused.",
+      "available_evidence": [
+        "DB47e confirms a200 as current DB32 source-sidestep base",
+        "DB49d sidecar instrumentation exists",
+        "DB49e lineage preflight passed non-runtime checks"
+      ],
+      "missing_or_blocked": [
+        "local_target_log_missing",
+        "secure_runtime_secret_source_missing"
+      ],
+      "allowed_next_action": "Resume only after COLAB_URL/COLAB_TOKEN env or non-repo runtime secret file and exact data path are available.",
+      "kill_criteria_pointer": [
+        "chat-pasted token used in command/artifact",
+        "generated/VC/out-of-FOV pixels labeled as camera-owned",
+        "source map described as seam repair"
+      ],
+      "can_improve_seam_quality": false,
+      "can_be_source_faithful_repair": false,
+      "requires_remote_or_data": true,
+      "requires_secure_secret_source": true,
+      "expected_output_location": "deliverables/dit360_v2/db49_bosch_data_contract/"
+    },
+    {
+      "rank": 4,
+      "queue_id": "db45_fixed_target_geometry_evidence",
+      "category": "geometry-evidence",
+      "claim_if_successful": "diagnostic/evidence only unless calibrated target-surface support passes",
+      "why_ranked_here": "Could support future EGSR permission, but DB45k blocks VGGT residual promotion and broad model chasing would be patch-on-patch.",
+      "available_evidence": [
+        "DB45j real VGGT inference diagnostics",
+        "DB45k reflection/coordinate audit",
+        "DB25/DB41 residual no-promotion controls"
+      ],
+      "missing_or_blocked": [
+        "new official-source convention evidence",
+        "fixed target selected before model run",
+        "raw/LiDAR target-surface residual gate that can pass"
+      ],
+      "allowed_next_action": "Only open a fixed-target geometry evidence brief if it directly serves DB51/DB50 target eligibility.",
+      "kill_criteria_pointer": [
+        "VGGT residual patch-on-patch",
+        "model confidence treated as source truth",
+        "DB41 lower-right promoted despite zero LiDAR"
+      ],
+      "can_improve_seam_quality": false,
+      "can_be_source_faithful_repair": false,
+      "requires_remote_or_data": true,
+      "requires_secure_secret_source": true,
+      "expected_output_location": "deliverables/dit360_v2/db45_geometry_evidence_audit/"
+    },
+    {
+      "rank": 5,
+      "queue_id": "db46_db48_presentation_only_cleanup",
+      "category": "presentation-only",
+      "claim_if_successful": "presentation/demo only with generated/edit masks",
+      "why_ranked_here": "Useful only if the priority switches to a meeting/demo image; it must not contaminate source-faithful or Bosch training-data claims.",
+      "available_evidence": [
+        "DB43/DB44 presentation branch separation",
+        "DB48/DiT360 prior negative data claims"
+      ],
+      "missing_or_blocked": [
+        "explicit user priority switch to presentation",
+        "base-selection decision before generation",
+        "generated/edit masks and license caveats"
+      ],
+      "allowed_next_action": "Keep parked unless the user explicitly asks for meeting/demo presentation.",
+      "kill_criteria_pointer": [
+        "invented road/curb/lane/salient objects",
+        "shown as Bosch/source-faithful data",
+        "base silently defaults to G_bmw_pano"
+      ],
+      "can_improve_seam_quality": true,
+      "can_be_source_faithful_repair": false,
+      "requires_remote_or_data": true,
+      "requires_secure_secret_source": true,
+      "expected_output_location": "deliverables/dit360_v2/db46_presentation_only_bmw_cleanup/"
+    }
+  ],
+  "counts": {
+    "queue_items": 5,
+    "categories": {
+      "source-selection": 1,
+      "operator-target": 1,
+      "provenance": 1,
+      "geometry-evidence": 1,
+      "presentation-only": 1
+    },
+    "requires_remote_or_data": 5,
+    "can_improve_seam_quality": 3,
+    "can_be_source_faithful_repair": 1,
+    "db47_missing_exact_or_final_gaps": 8,
+    "db50_phase0_executable_repair_targets": 0,
+    "db50_lpam_executable_targets": 0,
+    "db41_lower_right_lidar_support": 0.0,
+    "db25_lidar_support": 0.09380416666666666
+  },
+  "decision": {
+    "db51_status": "accepted_target_acquisition_queue_only",
+    "recommended_next_single_brief": "DB47f fixed-universe exact source-selection closure, if secure runtime/data preconditions are satisfied; otherwise keep DB50 paused and do not run operators.",
+    "source_faithful_repair_executed": false,
+    "new_candidate_image_created": false,
+    "accepted_source_faithful_repair": false,
+    "accepted_original_g_repair": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "ready_for_uncaveated_bosch_training_data": false,
+    "claim_boundary": "DB51 is an acquisition queue only. It does not repair seams, does not create source maps, does not change DB32/DB41/G boundaries, and does not authorize pasted-token remote execution."
+  },
+  "hard_checks": [
+    {
+      "id": "db51_brief_exists",
+      "pass": true,
+      "evidence": "DB51 brief exists before execution."
+    },
+    {
+      "id": "db50_zero_target_carried_forward",
+      "pass": true,
+      "evidence": "DB50 phase0_executable_repair_targets=0, lpam_executable_targets=0."
+    },
+    {
+      "id": "db47_missing_exact_gaps_explicit",
+      "pass": true,
+      "evidence": "DB47 gaps counted=8 including seven missing exact holds plus a105 final gap."
+    },
+    {
+      "id": "db25_db41_not_promoted",
+      "pass": true,
+      "evidence": "DB25 recommendation remains abstain; DB41 lower-right gate remains false."
+    },
+    {
+      "id": "no_remote_or_model_action",
+      "pass": true,
+      "evidence": "DB51 creates only a local acquisition manifest/board."
+    },
+    {
+      "id": "db49e_not_reclassified_as_seam_quality",
+      "pass": true,
+      "evidence": "DB49e status=preflight_paused; queue class is provenance, not seam-quality repair."
+    },
+    {
+      "id": "strict_secret_scan_pass",
+      "pass": true,
+      "evidence": "Strict token/endpoint scan found no secret-like strings in DB51 inputs or manifest text."
+    }
+  ],
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db51_egsr_target_acquisition/db51_egsr_target_acquisition_manifest.json",
+    "board": "deliverables/dit360_v2/db51_egsr_target_acquisition/db51_egsr_target_acquisition_board.jpg"
+  },
+  "strict_secret_scan": {
+    "checked_paths": [
+      "agent/decision_briefs.md",
+      "deliverables/dit360_v2/db44_layer_aware_dispatcher/db44_layer_aware_dispatcher_manifest.json",
+      "deliverables/dit360_v2/db47_source_candidate_mining/db47d_exact_same_log_review_manifest.json",
+      "deliverables/dit360_v2/db47_source_candidate_mining/db47e_final_candidate_review_manifest.json",
+      "deliverables/dit360_v2/db50_egsr_operator_v0/db50_egsr_operator_readiness_manifest.json",
+      "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_summary.json",
+      "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+      "deliverables/dit360_v2/db49_bosch_data_contract/db49e_exact_lineage_preflight_manifest.json"
+    ],
+    "hits": [],
+    "manifest_has_secret_pattern": false
+  }
+}

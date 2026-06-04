@@ -437,3 +437,40 @@ Required vision check:
 - Board must label `no repair / no generation / no RED promotion / DB32 caveated / G diagnostic only`.
 
 Result summary: DB50 Phase0 accepted as `egsr-operator-readiness-existing-artifacts-only`; see the 2026-06-04 DB50 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db50_egsr_operator_readiness.py` reviewed all 29 DB44 components and created `deliverables/dit360_v2/db50_egsr_operator_v0/db50_egsr_operator_readiness_manifest.json` plus board. No repair/generation/remote/model/source replacement/DB49e rerun occurred. Current local artifacts contain 0 executable new source-faithful repair targets and 0 executable LPAM targets: counts are 3 presentation-only, 1 already-satisfied keep control, 2 source-sidestep-only, 1 existing BEV caveated control, and 22 abstain/reject. DB41 remains RED/no-evidence/abstain, `G_bmw_pano` remains diagnostic only, DB32 remains caveated handoff, and DB50 must not continue patch-on-patch without a fresh target-specific sub-brief carrying raw/source-pair evidence and protected-structure checks.
+
+# DB-51: EGSR target/source-pair evidence acquisition queue
+Status: accepted / paused pending next brief
+Route: A / evidence acquisition for source-faithful operators
+
+Question: After DB50 found zero executable new source-faithful repair targets, what is the smallest evidence-acquisition queue that could make a future DB50 sub-brief actually executable without violating DB41/no-evidence or DB32/G claim boundaries?
+
+Hypothesis: The next seam-quality progress is not another repair attempt; it is to acquire or validate target-specific evidence. The likely highest-value queue is (1) DB47 fixed-universe exact source-selection closure for the remaining same-log holds, because source/frame selection is the only currently accepted way to avoid the hard seam, and (2) a future LPAM/local-alignment target only if raw/source-pair support and protected-structure checks can be proven. DB49e remains useful for provenance but is not seam-quality; DB46/DB48 remain presentation-only.
+
+Why now: DB50 Phase0 made the immediate operator gap explicit: current local artifacts have 0 executable repair targets and 0 LPAM targets. Continuing to write operators without target/source-pair evidence would repeat the project's patch-on-patch failure mode.
+
+Expected evidence:
+- One CPU/local script, manifest, and board using existing DB47d/e, DB50, DB44, DB25, DB41, and DB49e artifacts only.
+- A ranked acquisition queue with each item labeled as `source-selection`, `operator-target`, `provenance`, `presentation-only`, or `geometry-evidence`.
+- For each item: required evidence, currently available evidence, blockers, allowed next action, kill criteria pointer, expected output location, and whether it can become source-faithful repair, source-sidestep, diagnostic, presentation-only, or data-contract evidence.
+- Explicit handling of DB47 missing-exact holds (`a201`, `a209`, `a210`, `a211`, `a031`, `a038`, `a040`) and `a105` compare-only final gap.
+- Explicit rejection of DB25/DB41 right/lower-right as current local operator targets.
+
+Kill criteria:
+- Promotes DB41 right/lower-right or DB25/DB41 RED regions based on flow-only, montage-only, or model-confidence-only evidence.
+- Treats DB47 source selection as original-G seam repair or fully source-faithful local repair.
+- Treats DB49e/source_id_map provenance as seam-quality improvement.
+- Treats DB46/DB48 presentation-only work as Bosch training-data/source-faithful output.
+- Uses chat-pasted runtime or HF tokens, runs `/exec`, A100, HF/VGGT/DiT/FLUX, renderer, dataset scan, exact asset fetch, or panorama repair under this acquisition-queue scope.
+- Creates guessed exact assets, guessed raw/source-pair evidence, or guessed source ownership.
+- Produces a recommendation without a fixed max-scope and kill criteria for the next brief.
+
+Max scope:
+- CPU/local existing-artifact acquisition planning only.
+- No new panorama, no source replacement, no repair, no generation, no model inference, no remote/executor, no HF/A100, no DB49e rerun, no exact asset fetch.
+- One script/manifest/board under `deliverables/dit360_v2/db51_egsr_target_acquisition/`.
+- Any actual asset fetch, source-selection exact closure, LPAM/local alignment, geometry model, or provenance rerun requires a fresh follow-up brief.
+
+Required vision check:
+- Board must show the acquisition queue, DB47 missing-exact holds, DB50 no-target result, DB41/DB25 abstain evidence, DB32/G claim boundary, and explicit `no repair / no remote / no token use / no RED promotion`.
+
+Result summary: DB51 accepted only `egsr-target-source-pair-acquisition-queue-only`; see the 2026-06-04 DB51 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db51_egsr_target_acquisition_queue.py` produced `deliverables/dit360_v2/db51_egsr_target_acquisition/db51_egsr_target_acquisition_manifest.json` plus board. It created no repair, no generation, no source replacement, no exact asset fetch, no remote/executor/model/HF/A100 action, no DB49e rerun, no permission change, and no RED promotion. The ranked queue is: (1) DB47f fixed-universe exact source-selection closure if secure runtime/data preconditions are satisfied; (2) DB50b LPAM/local-alignment target evidence only after a fixed segment has raw/source-pair support and protected-structure checks; (3) DB49e provenance, not seam-quality; (4) fixed-target geometry evidence only if it serves a selected DB51/DB50 target; (5) DB46/DB48 presentation-only only after explicit priority switch. DB47 has 8 exact/final gaps (seven missing exact holds plus `a105` final gap). DB25/DB41 remain acquisition blockers and repair abstains. Chat-pasted runtime/HF tokens are still not authorized as command/artifact secrets.
