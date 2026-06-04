@@ -1,0 +1,547 @@
+{
+  "db": "DB-47c",
+  "status": "same_roi_bucket_visual_accounting_review",
+  "created_utc": "2026-06-04T17:23:39.638440+00:00",
+  "accepted_evidence_type": "source-selection-visual-accounting-only",
+  "purpose": "Attach same-ROI visual/accounting verdicts to DB47b buckets without selecting a final candidate.",
+  "scope": {
+    "cpu_local_only": true,
+    "a100_used": false,
+    "executor_used": false,
+    "new_dataset_scan": false,
+    "panorama_repair": false,
+    "generation": false,
+    "source_replacement": false,
+    "input_artifacts": [
+      "deliverables/dit360_v2/db47_source_candidate_mining/db47b_candidate_universe_threshold_replay_manifest.json",
+      "deliverables/dit360_v2/db28_clean_subset_refine/db28_strict_clean_source_scan_summary.json",
+      "deliverables/dit360_v2/db31_multilog_candidate_scan/db31_multilog_candidate_scan_summary.json",
+      "deliverables/dit360_v2/db28_clean_subset_refine/db28_strict_clean_source_scan_montage.jpg",
+      "deliverables/dit360_v2/db31_multilog_candidate_scan/db31_roi_montage.jpg",
+      "deliverables/dit360_v2/db31_multilog_candidate_scan/db31_full_montage.jpg"
+    ],
+    "output_location": "deliverables/dit360_v2/db47_source_candidate_mining"
+  },
+  "aggregate_counts": {
+    "total_reviewed_rows": 22,
+    "db47b_bucket_counts": {
+      "strict_review_bucket": 7,
+      "relaxed_review_bucket": 3,
+      "rejected_or_diagnostic": 12
+    },
+    "visual_verdict_counts": {
+      "review_exact_same_log": 3,
+      "hold_montage_only_strict": 4,
+      "hold_relaxed_same_log": 3,
+      "rejected_same_log_weak_margin": 2,
+      "rejected_confirmed_existing_failure": 3,
+      "rejected_non_bmw_no_successor": 7
+    },
+    "visual_reason_counts": {
+      "rejected_bucket": 12,
+      "montage_only_limit": 11,
+      "strict_metric_pass": 7,
+      "same_log_source_sidestep_only": 7,
+      "non_bmw_log_no_current_successor": 7,
+      "exact_compare_asset_available": 3,
+      "relaxed_metric_pass": 3,
+      "scene_or_source_boundary_shift_risk": 3,
+      "requires_exact_review": 3,
+      "non_bmw_log": 3,
+      "existing_seamroute_failure_asset": 3,
+      "same_log_lower_lidar_or_object_margin": 2,
+      "requires_no_promotion": 2
+    },
+    "exact_asset_rows": 6,
+    "unique_exact_assets": 11,
+    "montage_only_rows": 16
+  },
+  "reviewed_rows": [
+    {
+      "candidate_id": "02a00399_a0200",
+      "log_id": "02a00399",
+      "anchor": 200,
+      "db47b_bucket": "strict_review_bucket",
+      "visual_verdict": "review_exact_same_log",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "exact_compare_asset_available",
+        "same_log_source_sidestep_only"
+      ],
+      "note": "Strict row has same-log metrics and at least one existing exact compare/final asset; review only, not final selection.",
+      "rank_score_low_is_better": 0.08073060729274881,
+      "yolo_edge_object_score": 0,
+      "roi_lidar_support": 0.31566666666666665,
+      "roi_line_risk": 0.0596461582951389,
+      "exact_assets": [
+        "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_compare.jpg",
+        "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_final_1024x2048.png"
+      ],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0201",
+      "log_id": "02a00399",
+      "anchor": 201,
+      "db47b_bucket": "strict_review_bucket",
+      "visual_verdict": "hold_montage_only_strict",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "montage_only_limit",
+        "same_log_source_sidestep_only"
+      ],
+      "note": "Strict row is visible in DB28/DB31 montages but lacks a local exact compare asset; hold before any candidate promotion.",
+      "rank_score_low_is_better": 0.08073060729274881,
+      "yolo_edge_object_score": 0,
+      "roi_lidar_support": 0.31566666666666665,
+      "roi_line_risk": 0.0596461582951389,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0204",
+      "log_id": "02a00399",
+      "anchor": 204,
+      "db47b_bucket": "strict_review_bucket",
+      "visual_verdict": "review_exact_same_log",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "exact_compare_asset_available",
+        "same_log_source_sidestep_only"
+      ],
+      "note": "Strict row has same-log metrics and at least one existing exact compare/final asset; review only, not final selection.",
+      "rank_score_low_is_better": 0.08122266670283994,
+      "yolo_edge_object_score": 0,
+      "roi_lidar_support": 0.312175,
+      "roi_line_risk": 0.05995049025234375,
+      "exact_assets": [
+        "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a204_compare.jpg",
+        "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a204_final_1024x2048.png"
+      ],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0209",
+      "log_id": "02a00399",
+      "anchor": 209,
+      "db47b_bucket": "strict_review_bucket",
+      "visual_verdict": "hold_montage_only_strict",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "montage_only_limit",
+        "same_log_source_sidestep_only"
+      ],
+      "note": "Strict row is visible in DB28/DB31 montages but lacks a local exact compare asset; hold before any candidate promotion.",
+      "rank_score_low_is_better": 0.08208174860613673,
+      "yolo_edge_object_score": 0,
+      "roi_lidar_support": 0.3007416666666667,
+      "roi_line_risk": 0.06094701398810764,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0210",
+      "log_id": "02a00399",
+      "anchor": 210,
+      "db47b_bucket": "strict_review_bucket",
+      "visual_verdict": "hold_montage_only_strict",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "montage_only_limit",
+        "same_log_source_sidestep_only"
+      ],
+      "note": "Strict row is visible in DB28/DB31 montages but lacks a local exact compare asset; hold before any candidate promotion.",
+      "rank_score_low_is_better": 0.08209006643965248,
+      "yolo_edge_object_score": 0,
+      "roi_lidar_support": 0.3002916666666667,
+      "roi_line_risk": 0.06098623576779514,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0211",
+      "log_id": "02a00399",
+      "anchor": 211,
+      "db47b_bucket": "strict_review_bucket",
+      "visual_verdict": "hold_montage_only_strict",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "montage_only_limit",
+        "same_log_source_sidestep_only"
+      ],
+      "note": "Strict row is visible in DB28/DB31 montages but lacks a local exact compare asset; hold before any candidate promotion.",
+      "rank_score_low_is_better": 0.08209006643965248,
+      "yolo_edge_object_score": 0,
+      "roi_lidar_support": 0.3002916666666667,
+      "roi_line_risk": 0.06098623576779514,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0105",
+      "log_id": "02a00399",
+      "anchor": 105,
+      "db47b_bucket": "strict_review_bucket",
+      "visual_verdict": "review_exact_same_log",
+      "visual_reasons": [
+        "strict_metric_pass",
+        "exact_compare_asset_available",
+        "same_log_source_sidestep_only"
+      ],
+      "note": "Strict row has same-log metrics and at least one existing exact compare/final asset; review only, not final selection.",
+      "rank_score_low_is_better": 0.08210606086975566,
+      "yolo_edge_object_score": 0,
+      "roi_lidar_support": 0.3141375,
+      "roi_line_risk": 0.05977943971315105,
+      "exact_assets": [
+        "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_compare.jpg"
+      ],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0031",
+      "log_id": "02a00399",
+      "anchor": 31,
+      "db47b_bucket": "relaxed_review_bucket",
+      "visual_verdict": "hold_relaxed_same_log",
+      "visual_reasons": [
+        "relaxed_metric_pass",
+        "scene_or_source_boundary_shift_risk",
+        "requires_exact_review"
+      ],
+      "note": "Relaxed row is same-log but weaker on object/LiDAR margins and appears in a different street/ROI context; hold for exact review.",
+      "rank_score_low_is_better": 0.10333440443905528,
+      "yolo_edge_object_score": 1,
+      "roi_lidar_support": 0.2727583333333333,
+      "roi_line_risk": 0.06338602762126735,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0038",
+      "log_id": "02a00399",
+      "anchor": 38,
+      "db47b_bucket": "relaxed_review_bucket",
+      "visual_verdict": "hold_relaxed_same_log",
+      "visual_reasons": [
+        "relaxed_metric_pass",
+        "scene_or_source_boundary_shift_risk",
+        "requires_exact_review"
+      ],
+      "note": "Relaxed row is same-log but weaker on object/LiDAR margins and appears in a different street/ROI context; hold for exact review.",
+      "rank_score_low_is_better": 0.10338431050332487,
+      "yolo_edge_object_score": 1,
+      "roi_lidar_support": 0.2722291666666667,
+      "roi_line_risk": 0.06343214952886285,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0040",
+      "log_id": "02a00399",
+      "anchor": 40,
+      "db47b_bucket": "relaxed_review_bucket",
+      "visual_verdict": "hold_relaxed_same_log",
+      "visual_reasons": [
+        "relaxed_metric_pass",
+        "scene_or_source_boundary_shift_risk",
+        "requires_exact_review"
+      ],
+      "note": "Relaxed row is same-log but weaker on object/LiDAR margins and appears in a different street/ROI context; hold for exact review.",
+      "rank_score_low_is_better": 0.10357344232205909,
+      "yolo_edge_object_score": 1,
+      "roi_lidar_support": 0.27003333333333335,
+      "roi_line_risk": 0.06362353728715278,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0014",
+      "log_id": "02a00399",
+      "anchor": 14,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_same_log_weak_margin",
+      "visual_reasons": [
+        "rejected_bucket",
+        "same_log_lower_lidar_or_object_margin",
+        "requires_no_promotion"
+      ],
+      "note": "Same-log row fails DB47b relaxed thresholds and should not be promoted from metrics or montage alone.",
+      "rank_score_low_is_better": 0.10482087741201222,
+      "yolo_edge_object_score": 1,
+      "roi_lidar_support": 0.2556541666666667,
+      "roi_line_risk": 0.06487681841401909,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "02a00399_a0052",
+      "log_id": "02a00399",
+      "anchor": 52,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_same_log_weak_margin",
+      "visual_reasons": [
+        "rejected_bucket",
+        "same_log_lower_lidar_or_object_margin",
+        "requires_no_promotion"
+      ],
+      "note": "Same-log row fails DB47b relaxed thresholds and should not be promoted from metrics or montage alone.",
+      "rank_score_low_is_better": 0.10614574594208728,
+      "yolo_edge_object_score": 1,
+      "roi_lidar_support": 0.24245833333333333,
+      "roi_line_risk": 0.06602696078689235,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "9f871fb4_a0265",
+      "log_id": "9f871fb4",
+      "anchor": 265,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_confirmed_existing_failure",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log",
+        "existing_seamroute_failure_asset"
+      ],
+      "note": "Existing DB31 exact seamroute follow-up is available for this non-BMW row and did not find a successor.",
+      "rank_score_low_is_better": 0.11820426697940258,
+      "yolo_edge_object_score": 1,
+      "roi_lidar_support": 0.29722916666666666,
+      "roi_line_risk": 0.07583011125900607,
+      "exact_assets": [
+        "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_9f871fb4_a265_compare.jpg",
+        "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_9f871fb4_a265_final_1024x2048.png"
+      ],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "0bae3b5e_a0280",
+      "log_id": "0bae3b5e",
+      "anchor": 280,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_confirmed_existing_failure",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log",
+        "existing_seamroute_failure_asset"
+      ],
+      "note": "Existing DB31 exact seamroute follow-up is available for this non-BMW row and did not find a successor.",
+      "rank_score_low_is_better": 0.1263890248607233,
+      "yolo_edge_object_score": 2,
+      "roi_lidar_support": 0.31416666666666665,
+      "roi_line_risk": 0.064549240234375,
+      "exact_assets": [
+        "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_0bae3b5e_a280_compare.jpg",
+        "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_0bae3b5e_a280_final_1024x2048.png"
+      ],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "2c652f9e_a0160",
+      "log_id": "2c652f9e",
+      "anchor": 160,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_confirmed_existing_failure",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log",
+        "existing_seamroute_failure_asset"
+      ],
+      "note": "Existing DB31 exact seamroute follow-up is available for this non-BMW row and did not find a successor.",
+      "rank_score_low_is_better": 0.1310984509538267,
+      "yolo_edge_object_score": 2,
+      "roi_lidar_support": 0.244025,
+      "roi_line_risk": 0.06265394804166667,
+      "exact_assets": [
+        "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_2c652f9e_a160_compare.jpg",
+        "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_2c652f9e_a160_final_1024x2048.png"
+      ],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "2c652f9e_a0155",
+      "log_id": "2c652f9e",
+      "anchor": 155,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_non_bmw_no_successor",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log_no_current_successor",
+        "montage_only_limit"
+      ],
+      "note": "Non-BMW row remains rejected/diagnostic under DB31 accounting; no current successor evidence exists.",
+      "rank_score_low_is_better": 0.13124963198275258,
+      "yolo_edge_object_score": 2,
+      "roi_lidar_support": 0.24276666666666666,
+      "roi_line_risk": 0.06275823661111112,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "9f871fb4_a0275",
+      "log_id": "9f871fb4",
+      "anchor": 275,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_non_bmw_no_successor",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log_no_current_successor",
+        "montage_only_limit"
+      ],
+      "note": "Non-BMW row remains rejected/diagnostic under DB31 accounting; no current successor evidence exists.",
+      "rank_score_low_is_better": 0.13641694968340523,
+      "yolo_edge_object_score": 2,
+      "roi_lidar_support": 0.2962125,
+      "roi_line_risk": 0.0759398112391276,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "9f871fb4_a0145",
+      "log_id": "9f871fb4",
+      "anchor": 145,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_non_bmw_no_successor",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log_no_current_successor",
+        "montage_only_limit"
+      ],
+      "note": "Non-BMW row remains rejected/diagnostic under DB31 accounting; no current successor evidence exists.",
+      "rank_score_low_is_better": 0.13772988933312452,
+      "yolo_edge_object_score": 2,
+      "roi_lidar_support": 0.2812,
+      "roi_line_risk": 0.07755968430625,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "9f871fb4_a0045",
+      "log_id": "9f871fb4",
+      "anchor": 45,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_non_bmw_no_successor",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log_no_current_successor",
+        "montage_only_limit"
+      ],
+      "note": "Non-BMW row remains rejected/diagnostic under DB31 accounting; no current successor evidence exists.",
+      "rank_score_low_is_better": 0.1380938335966733,
+      "yolo_edge_object_score": 2,
+      "roi_lidar_support": 0.2781458333333333,
+      "roi_line_risk": 0.07788923383669706,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "9f871fb4_a0050",
+      "log_id": "9f871fb4",
+      "anchor": 50,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_non_bmw_no_successor",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log_no_current_successor",
+        "montage_only_limit"
+      ],
+      "note": "Non-BMW row remains rejected/diagnostic under DB31 accounting; no current successor evidence exists.",
+      "rank_score_low_is_better": 0.1380956676710651,
+      "yolo_edge_object_score": 2,
+      "roi_lidar_support": 0.2781208333333333,
+      "roi_line_risk": 0.07789193137719184,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "9f871fb4_a0040",
+      "log_id": "9f871fb4",
+      "anchor": 40,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_non_bmw_no_successor",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log_no_current_successor",
+        "montage_only_limit"
+      ],
+      "note": "Non-BMW row remains rejected/diagnostic under DB31 accounting; no current successor evidence exists.",
+      "rank_score_low_is_better": 0.1381037941228362,
+      "yolo_edge_object_score": 2,
+      "roi_lidar_support": 0.2780916666666667,
+      "roi_line_risk": 0.07789507850776911,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    },
+    {
+      "candidate_id": "fbee355f_a0305",
+      "log_id": "fbee355f",
+      "anchor": 305,
+      "db47b_bucket": "rejected_or_diagnostic",
+      "visual_verdict": "rejected_non_bmw_no_successor",
+      "visual_reasons": [
+        "rejected_bucket",
+        "non_bmw_log_no_current_successor",
+        "montage_only_limit"
+      ],
+      "note": "Non-BMW row remains rejected/diagnostic under DB31 accounting; no current successor evidence exists.",
+      "rank_score_low_is_better": 0.16949129657625064,
+      "yolo_edge_object_score": 2,
+      "roi_lidar_support": 0.32717083333333336,
+      "roi_line_risk": 0.09832501165277775,
+      "exact_assets": [],
+      "claim_boundary": "same-ROI visual/accounting review only; not final candidate, not repair"
+    }
+  ],
+  "checks": [
+    {
+      "id": "brief_scope_is_db47c",
+      "pass": true,
+      "evidence": "DB47c sub-scope was added to decision_briefs.md before this script was run."
+    },
+    {
+      "id": "uses_existing_db28_db31_db47b_only",
+      "pass": true,
+      "evidence": "Inputs are DB47b manifest plus DB28/DB31 summaries and local DB28/DB31 visual assets."
+    },
+    {
+      "id": "reports_all_db47b_rows",
+      "pass": true,
+      "evidence": "reviewed_rows=22; DB47b candidate universe rows=22."
+    },
+    {
+      "id": "shows_wins_and_failures",
+      "pass": true,
+      "evidence": "visual_verdict_counts={'review_exact_same_log': 3, 'hold_montage_only_strict': 4, 'hold_relaxed_same_log': 3, 'rejected_same_log_weak_margin': 2, 'rejected_confirmed_existing_failure': 3, 'rejected_non_bmw_no_successor': 7}."
+    },
+    {
+      "id": "no_final_candidate_selection",
+      "pass": true,
+      "evidence": "All verdicts are review/hold/rejected labels; no selected_final_candidate field is true."
+    },
+    {
+      "id": "no_remote_model_generation_or_repair",
+      "pass": true,
+      "evidence": "CPU/local existing-artifact review only; no executor, A100, model inference, scan, repair, generation, source replacement, or RED promotion."
+    },
+    {
+      "id": "source_sidestep_boundary_preserved",
+      "pass": true,
+      "evidence": "Strict same-log rows are kept only for source-sidestep visual review, not original-G seam repair."
+    }
+  ],
+  "decision": {
+    "db47_status": "running_phase2_visual_accounting_review_complete",
+    "accepted_db47_diagnostic_evidence": true,
+    "accepted_source_faithful_repair": false,
+    "selected_final_candidate": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "claim_boundary": "DB47c is a same-ROI source-selection review gate only; it does not repair seams or accept a final panorama.",
+    "next_allowed_step": "Either run a bounded exact same-log review for strict/relaxed rows with a fresh brief, or pause DB47 and return to evidence/operator work."
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47c_same_roi_bucket_review_manifest.json",
+    "board": "deliverables/dit360_v2/db47_source_candidate_mining/db47c_same_roi_bucket_review_board.jpg"
+  }
+}
