@@ -1,0 +1,150 @@
+{
+  "board": "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\db41_rightline_evidence_board.jpg",
+  "rois_xyxy": {
+    "right_roi": [
+      1440,
+      360,
+      2048,
+      720
+    ],
+    "lower_right_roi": [
+      1580,
+      560,
+      2048,
+      790
+    ]
+  },
+  "summaries": {
+    "right_roi": {
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 0,
+      "roi": [
+        1440,
+        360,
+        2048,
+        720
+      ],
+      "roi_valid_frac": 0.7585754751461988,
+      "camera_label_counts": {
+        "3": 200,
+        "4": 83586,
+        "5": 82251
+      },
+      "top_camera_labels": [
+        4,
+        5,
+        3
+      ],
+      "near_ground_frac": 0.5194444444444445,
+      "lidar_support_frac": 0.08416027046783625,
+      "flow_pair_stats": {
+        "6-5": {
+          "overlap_px": 4832,
+          "fb_reliable_px": 244,
+          "fb_reliable_frac": 0.050496688741721855,
+          "mean_rgb_residual": 11.92170238494873
+        },
+        "5-4": {
+          "overlap_px": 11785,
+          "fb_reliable_px": 8077,
+          "fb_reliable_frac": 0.6853627492575307,
+          "mean_rgb_residual": 16.828792572021484
+        },
+        "3-4": {
+          "overlap_px": 6374,
+          "fb_reliable_px": 5498,
+          "fb_reliable_frac": 0.8625666771258237,
+          "mean_rgb_residual": 13.853414535522461
+        }
+      },
+      "best_flow_pair": "3-4",
+      "best_flow_reliable_frac": 0.8625666771258237,
+      "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence"
+    },
+    "lower_right_roi": {
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 0,
+      "roi": [
+        1580,
+        560,
+        2048,
+        790
+      ],
+      "roi_valid_frac": 0.42130248978075063,
+      "camera_label_counts": {
+        "4": 27017,
+        "5": 18332
+      },
+      "top_camera_labels": [
+        4,
+        5
+      ],
+      "near_ground_frac": 1.0,
+      "lidar_support_frac": 0.0,
+      "flow_pair_stats": {
+        "5-4": {
+          "overlap_px": 4208,
+          "fb_reliable_px": 2124,
+          "fb_reliable_frac": 0.5047528517110266,
+          "mean_rgb_residual": 22.172847747802734
+        },
+        "3-4": {
+          "overlap_px": 1916,
+          "fb_reliable_px": 1400,
+          "fb_reliable_frac": 0.7306889352818372,
+          "mean_rgb_residual": 14.622825622558594
+        }
+      },
+      "best_flow_pair": "3-4",
+      "best_flow_reliable_frac": 0.7306889352818372,
+      "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence"
+    }
+  },
+  "thresholds": {
+    "min_best_flow_reliable_frac": 0.5,
+    "min_lidar_support_frac": 0.2
+  },
+  "threshold_results": {
+    "right_roi": {
+      "passes_flow_threshold": true,
+      "passes_lidar_threshold": false,
+      "passes_db41_gate": false
+    },
+    "lower_right_roi": {
+      "passes_flow_threshold": true,
+      "passes_lidar_threshold": false,
+      "passes_db41_gate": false
+    }
+  },
+  "inputs": {
+    "G_bmw_pano": "deliverables\\ghostkill\\G_bmw_pano.jpg",
+    "A1_view_none": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\A1_view_none_bmw_1024x2048.png",
+    "DB32 current handoff": "deliverables\\dit360_v2\\db32_generated_sky_harmonize_v2\\db32_generated_sky_harmonize_s40.png"
+  },
+  "evidence_files": {
+    "right_roi": [
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\right_roi\\db25_longline_evidence_montage.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\right_roi\\db25_longline_summary.json",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\right_roi\\roi_camid_overlay.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\right_roi\\roi_current.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\right_roi\\roi_flow_reliable.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\right_roi\\roi_lidar_support.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\right_roi\\roi_nearground.jpg"
+    ],
+    "lower_right_roi": [
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\lower_right_roi\\db25_longline_evidence_montage.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\lower_right_roi\\db25_longline_summary.json",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\lower_right_roi\\roi_camid_overlay.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\lower_right_roi\\roi_current.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\lower_right_roi\\roi_flow_reliable.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\lower_right_roi\\roi_lidar_support.jpg",
+      "deliverables\\dit360_v2\\db41_rightline_evidence_gate\\lower_right_roi\\roi_nearground.jpg"
+    ],
+    "rectilinear_reference": "deliverables\\dit360_v2\\db22_rectilinear_diag\\db22_rect_bmw_rightline_montage.jpg"
+  },
+  "vision_verdict": {
+    "right_roi": "Fail as repair evidence: flow has local reliable patches, but LiDAR support is only 0.084 and the visible support does not establish a single continuous curb/white-line surface.",
+    "lower_right_roi": "Fail as repair evidence: LiDAR support is 0.0 in an all-near-ground ROI; flow reliability is not sufficient because it attaches to vertical vehicle/edge fragments rather than the white-line geometry.",
+    "decision": "DB41 rejects original-G right-white-line repair. Future seam work should not edit this band without new raw/depth/correspondence evidence."
+  }
+}

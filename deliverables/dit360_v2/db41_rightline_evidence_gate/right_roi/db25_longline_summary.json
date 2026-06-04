@@ -1,0 +1,46 @@
+{
+  "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+  "anchor": 0,
+  "roi": [
+    1440,
+    360,
+    2048,
+    720
+  ],
+  "roi_valid_frac": 0.7585754751461988,
+  "camera_label_counts": {
+    "3": 200,
+    "4": 83586,
+    "5": 82251
+  },
+  "top_camera_labels": [
+    4,
+    5,
+    3
+  ],
+  "near_ground_frac": 0.5194444444444445,
+  "lidar_support_frac": 0.08416027046783625,
+  "flow_pair_stats": {
+    "6-5": {
+      "overlap_px": 4832,
+      "fb_reliable_px": 244,
+      "fb_reliable_frac": 0.050496688741721855,
+      "mean_rgb_residual": 11.92170238494873
+    },
+    "5-4": {
+      "overlap_px": 11785,
+      "fb_reliable_px": 8077,
+      "fb_reliable_frac": 0.6853627492575307,
+      "mean_rgb_residual": 16.828792572021484
+    },
+    "3-4": {
+      "overlap_px": 6374,
+      "fb_reliable_px": 5498,
+      "fb_reliable_frac": 0.8625666771258237,
+      "mean_rgb_residual": 13.853414535522461
+    }
+  },
+  "best_flow_pair": "3-4",
+  "best_flow_reliable_frac": 0.8625666771258237,
+  "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence"
+}
