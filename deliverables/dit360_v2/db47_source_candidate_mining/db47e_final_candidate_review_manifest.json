@@ -1,0 +1,346 @@
+{
+  "db": "DB-47e",
+  "status": "accepted_existing_artifact_final_candidate_review",
+  "created_utc": "2026-06-04T22:18:36.133409+00:00",
+  "accepted_evidence_type": "source-selection-final-candidate-review-existing-artifacts-only",
+  "purpose": "Confirm whether current DB47 exact rows support the existing DB32 source-sidestep base without creating or rerunning imagery.",
+  "scope": {
+    "cpu_local_only": true,
+    "inputs": [
+      "deliverables/dit360_v2/db47_source_candidate_mining/db47d_exact_same_log_review_manifest.json",
+      "deliverables/dit360_v2/db34_current_best_qa/db34_current_best_manifest.json",
+      "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+      "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+      "deliverables/ghostkill/G_bmw_pano.jpg"
+    ],
+    "reviewed_anchors": [
+      105,
+      200,
+      204
+    ],
+    "missing_exact_holds_preserved": [
+      "02a00399_a0201",
+      "02a00399_a0209",
+      "02a00399_a0210",
+      "02a00399_a0211",
+      "02a00399_a0031",
+      "02a00399_a0038",
+      "02a00399_a0040"
+    ],
+    "new_dataset_scan": false,
+    "new_exact_asset_fetch": false,
+    "seamroute_or_renderer": false,
+    "a100_used": false,
+    "executor_used": false,
+    "hf_or_vggt_used": false,
+    "model_inference": false,
+    "panorama_repair": false,
+    "generation": false,
+    "source_replacement": false,
+    "source_id_map_created": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "output_location": "deliverables/dit360_v2/db47_source_candidate_mining"
+  },
+  "candidate_review": [
+    {
+      "candidate_id": "02a00399_a0105",
+      "anchor": 105,
+      "db47d_candidate_present": true,
+      "db47d_visual_verdict": "exact_review_candidate_not_final",
+      "rank_score_low_is_better": 0.08210606086975566,
+      "roi_lidar_support": 0.3141375,
+      "roi_line_risk": 0.05977943971315105,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_compare.jpg",
+        "final": null
+      },
+      "asset_stats": {
+        "compare": {
+          "exists": true,
+          "size": [
+            1900,
+            2940
+          ],
+          "sha256": "87ecc742b99b629d2a7486d46820862b1bd4bcc4ba7908cfebce225443c3e468"
+        },
+        "final": {
+          "exists": false
+        }
+      },
+      "final_eligible": false,
+      "db34_source_base": false,
+      "db47e_verdict": "hold_compare_only_not_final_eligible",
+      "role": "hold",
+      "visual_reasons": [
+        "exact_compare_available",
+        "exact_final_missing",
+        "different_scene_context_risk",
+        "not_final_eligible",
+        "review_only"
+      ],
+      "note": "a105 has an exact compare image but no existing final image, so it cannot be promoted in DB47e.",
+      "claim_boundary": "source-sidestep candidate review only; not original-G repair, not source_id_map evidence"
+    },
+    {
+      "candidate_id": "02a00399_a0200",
+      "anchor": 200,
+      "db47d_candidate_present": true,
+      "db47d_visual_verdict": "exact_review_candidate_not_final",
+      "rank_score_low_is_better": 0.08073060729274881,
+      "roi_lidar_support": 0.31566666666666665,
+      "roi_line_risk": 0.0596461582951389,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_final_1024x2048.png"
+      },
+      "asset_stats": {
+        "compare": {
+          "exists": true,
+          "size": [
+            1900,
+            2940
+          ],
+          "sha256": "8243ae87a3fcf8f7e4a28d77c696ba64efe8011777e107a8618b50b94225b115"
+        },
+        "final": {
+          "exists": true,
+          "size": [
+            2048,
+            1024
+          ],
+          "sha256": "c3b5c65c66b7e2c3eb84cc8db7d9ad1429f5859d80d2a5b0f943660cf5ce03cd"
+        }
+      },
+      "final_eligible": true,
+      "db34_source_base": true,
+      "db47e_verdict": "confirmed_current_source_sidestep_base",
+      "role": "keep_a200_db32_lineage",
+      "visual_reasons": [
+        "exact_compare_available",
+        "exact_final_available",
+        "db34_source_base",
+        "db32_noncore_byte_exact_to_source",
+        "best_or_tied_db28_line_risk",
+        "no_new_candidate_image"
+      ],
+      "note": "Confirm a200 as the current source-sidestep base for the existing DB32 handoff candidate; this does not make DB32 source-faithful because sky core remains generated/harmonized.",
+      "claim_boundary": "source-sidestep candidate review only; not original-G repair, not source_id_map evidence"
+    },
+    {
+      "candidate_id": "02a00399_a0204",
+      "anchor": 204,
+      "db47d_candidate_present": true,
+      "db47d_visual_verdict": "exact_review_candidate_not_final",
+      "rank_score_low_is_better": 0.08122266670283994,
+      "roi_lidar_support": 0.312175,
+      "roi_line_risk": 0.05995049025234375,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a204_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a204_final_1024x2048.png"
+      },
+      "asset_stats": {
+        "compare": {
+          "exists": true,
+          "size": [
+            1900,
+            2940
+          ],
+          "sha256": "0cf8bf052f32f671d64f99f37e324bef0d24fe02cc09d3047d7024915fba10c7"
+        },
+        "final": {
+          "exists": true,
+          "size": [
+            2048,
+            1024
+          ],
+          "sha256": "1c33b46e3255be96a12e0b37f3ea1def97bdc813061031aa80a3905d54f8be8a"
+        }
+      },
+      "final_eligible": true,
+      "db34_source_base": false,
+      "db47e_verdict": "hold_alternate_final_eligible",
+      "role": "alternate_not_selected",
+      "visual_reasons": [
+        "exact_compare_available",
+        "exact_final_available",
+        "not_db34_source_base",
+        "no_downstream_db29_db32_qa",
+        "slightly_worse_rank_score",
+        "review_only"
+      ],
+      "note": "a204 is a valid exact alternate to keep in accounting, but it lacks the downstream DB29/DB32/DB34 lineage and does not displace a200 under this brief.",
+      "claim_boundary": "source-sidestep candidate review only; not original-G repair, not source_id_map evidence"
+    }
+  ],
+  "aggregate_counts": {
+    "reviewed_candidates": 3,
+    "final_eligible_candidates": 2,
+    "compare_only_holds": 1,
+    "missing_exact_holds_from_db47d": 7,
+    "visual_verdict_counts": {
+      "hold_compare_only_not_final_eligible": 1,
+      "confirmed_current_source_sidestep_base": 1,
+      "hold_alternate_final_eligible": 1
+    },
+    "visual_reason_counts": {
+      "exact_compare_available": 3,
+      "review_only": 2,
+      "exact_final_available": 2,
+      "exact_final_missing": 1,
+      "different_scene_context_risk": 1,
+      "not_final_eligible": 1,
+      "db34_source_base": 1,
+      "db32_noncore_byte_exact_to_source": 1,
+      "best_or_tied_db28_line_risk": 1,
+      "no_new_candidate_image": 1,
+      "not_db34_source_base": 1,
+      "no_downstream_db29_db32_qa": 1,
+      "slightly_worse_rank_score": 1
+    }
+  },
+  "db32_context": {
+    "candidate_image": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+    "sha256": "ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930",
+    "sha256_expected": "ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930",
+    "source_base": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_final_1024x2048.png",
+    "previous_best": "deliverables/dit360_v2/db29_sky_clean_a200/SR_bmw_db28_a200_sky_t50_s0_corecompose.png",
+    "mask": "deliverables/dit360_v2/db29_sky_clean_a200/SR_bmw_db28_a200_opmask_sky.png",
+    "object_gate": {
+      "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a200_final_1024x2048.png",
+      "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db34_current_best_qa/db32_generated_sky_harmonize_s40.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db29_sky_clean_a200/SR_bmw_db28_a200_masks/opmask_sky.png",
+      "conf": 0.5,
+      "src_salient": 8,
+      "gen_salient": 8,
+      "netnew_count": 0,
+      "PASS": true,
+      "netnew": []
+    },
+    "source_preservation": {
+      "db29_noncore_vs_source": {
+        "max": 0,
+        "mae": 0.0,
+        "pixels": 1315661
+      },
+      "db32_noncore_vs_source": {
+        "max": 0,
+        "mae": 0.0,
+        "pixels": 1315661
+      },
+      "db32_noncore_vs_db29": {
+        "max": 0,
+        "mae": 0.0,
+        "pixels": 1315661
+      },
+      "db32_core_vs_db29": {
+        "max": 47,
+        "mae": 18.265825198242847,
+        "pixels": 781491
+      }
+    },
+    "accepted_caveats": [
+      "DB32 changes only the generated sky core; source-preserved buildings, vehicles, road, trees, poles, and captured sky panel remain byte-exact versus DB29.",
+      "The foreground black car remains in the source content.",
+      "The lower out-of-FOV black region remains unfilled because ground/full outpaint was rejected as Bosch-unsafe.",
+      "The preserved center sky panel discontinuity is reduced versus DB29 but not eliminated."
+    ],
+    "claim_boundary": "DB32 s40 is the caveated Bosch-facing handoff candidate with source-sidestep plus generated/harmonized sky caveats; it is not fully source-faithful."
+  },
+  "diagnostic_context": {
+    "g_bmw_pano": "deliverables/ghostkill/G_bmw_pano.jpg",
+    "g_bmw_claim": "classic BMW failure / diagnostic reference only; not a repair base.",
+    "db41_manifest": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+    "db41_board": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_board.jpg",
+    "db41_right_gate": {
+      "passes_flow_threshold": true,
+      "passes_lidar_threshold": false,
+      "passes_db41_gate": false
+    },
+    "db41_lower_right_gate": {
+      "passes_flow_threshold": true,
+      "passes_lidar_threshold": false,
+      "passes_db41_gate": false
+    },
+    "db41_lower_right_lidar_support": 0.0
+  },
+  "image_comparison_stats_diagnostic_only": {
+    "a200_vs_a204_full_mae": 7.303633530934651,
+    "a200_vs_a204_source_review_roi_mae": 22.113908333333335,
+    "a200_vs_db32_full_mae": 55.555676778157554,
+    "a200_vs_db32_source_review_roi_mae": 0.0,
+    "note": "MAE values are diagnostic context only and are not source-ownership evidence."
+  },
+  "checks": [
+    {
+      "id": "brief_scope_is_db47e",
+      "pass": true,
+      "evidence": "DB47e Phase4 brief exists before execution."
+    },
+    {
+      "id": "inputs_existing_artifacts_only",
+      "pass": true,
+      "evidence": "Inputs are existing DB47d, DB28, DB32/DB34, DB41, and G diagnostic artifacts."
+    },
+    {
+      "id": "reviews_only_allowed_anchors",
+      "pass": true,
+      "evidence": "reviewed anchors=[105, 200, 204]; missing-exact DB47d holds remain holds."
+    },
+    {
+      "id": "final_eligible_requires_compare_and_final",
+      "pass": true,
+      "evidence": "Only a200 and a204 have both exact compare and final assets; a105 is compare-only hold."
+    },
+    {
+      "id": "a200_matches_db32_lineage",
+      "pass": true,
+      "evidence": "DB34 source_base=deliverables\\dit360_v2\\db28_clean_subset_refine\\SR_bmw_db28_a200_final_1024x2048.png."
+    },
+    {
+      "id": "db32_sha_unchanged",
+      "pass": true,
+      "evidence": "DB32 sha256=ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930."
+    },
+    {
+      "id": "db34_noncore_preservation_present",
+      "pass": true,
+      "evidence": "db32_noncore_vs_source={'max': 0, 'mae': 0.0, 'pixels': 1315661}."
+    },
+    {
+      "id": "db41_abstain_preserved",
+      "pass": true,
+      "evidence": "DB41 right/lower-right remain failed gates; lower-right LiDAR support is 0.0."
+    },
+    {
+      "id": "no_source_id_map_or_provenance_claim",
+      "pass": true,
+      "evidence": "DB47e does not create or infer source_id_map; DB49 exact-lineage rerun remains required."
+    },
+    {
+      "id": "no_model_remote_or_generation",
+      "pass": true,
+      "evidence": "CPU/local review only; no HF/VGGT, A100, executor, seamroute, renderer, scan, generation, source replacement, or repair."
+    }
+  ],
+  "decision": {
+    "db47_status": "accepted_phase4_existing_artifact_final_candidate_review",
+    "accepted_db47_source_selection_evidence": true,
+    "confirmed_current_source_sidestep_base_anchor": 200,
+    "confirmed_current_handoff_candidate": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+    "candidate_image_selection_changed": false,
+    "new_candidate_created": false,
+    "accepted_source_faithful_repair": false,
+    "accepted_original_g_repair": false,
+    "accepted_source_id_map_evidence": false,
+    "ready_for_uncaveated_bosch_training_data": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "claim_boundary": "DB47e confirms the existing a200/DB32 source-sidestep base under local exact evidence; it does not repair original G/A1/BEST, does not fill DB49 source_id_map, and does not make DB32 fully source-faithful.",
+    "next_recommended_step": "Open DB49 exact-lineage source/provenance sidecar rerun if Bosch data-contract packaging is next, or keep DB47 paused unless a bounded fixed-universe scan is explicitly needed."
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47e_final_candidate_review_manifest.json",
+    "board": "deliverables/dit360_v2/db47_source_candidate_mining/db47e_final_candidate_review_board.jpg"
+  }
+}
