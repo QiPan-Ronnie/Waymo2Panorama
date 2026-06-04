@@ -1,0 +1,12 @@
+{
+  "init": "deliverables\\ghostkill\\G_bmw_pano.jpg",
+  "result": "deliverables\\dit360_v2\\db36_user_redline_mask\\G_bmw_pano_user_redline_tau5_fetch\\G_bmw_pano_user_redline_tau5\\db36_user_redline_tau5\\db36_user_redline_tau5_corecompose.png",
+  "mask": "deliverables\\dit360_v2\\db36_user_redline_mask\\db36_g_user_redline_mask_preserve_nonseam.png",
+  "core_pixels": 17121,
+  "core_fraction": 0.008163928985595703,
+  "outside_mask_max_abs_diff": 0,
+  "outside_mask_mean_abs_diff": 0.0,
+  "core_mean_abs_diff": 96.83523158694001,
+  "board": "deliverables\\dit360_v2\\db36_user_redline_mask\\db36_reject_review_board.jpg",
+  "vision_verdict": "reject: fake ground slabs/holes in corecompose; seam not cleanly solved"
+}

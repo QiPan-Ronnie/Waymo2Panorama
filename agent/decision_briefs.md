@@ -9,16 +9,16 @@ This file is the **direction/decision gate**, and it holds ONLY **active / pendi
 
 Status values: `proposed` / `running` / `explored` / `accepted` / `rejected` / `paused`.
 
-## DB-20260604-36: Ultra-narrow DiT360 red-line seam mask
+## DB-20260604-37: Google/Meta seam-mechanism gap audit
 Status: running
-Route: B (generative, constrained) after DB35 donor rejection
-Question: Can DiT360 improve the exact user-marked `G_bmw_pano` seam if the edit mask is much narrower and more targeted than the earlier v14/full-ground attempts?
-Hypothesis: Earlier v14/DB14 and DB21 failures may be caused by masks that let DiT rewrite too much structure around the seam. A user-red-line mask that only covers the long dark-wall/source-boundary strip plus the lower-right white-line discontinuity, with a halo/far clamp and core-only postcompose, may hide the visible seam while preserving cars, buildings, and source content outside the mask.
-Why now: DB35 proved the seam is still unsolved and post-hoc BEST/A1 donor patching is not defensible. The user explicitly asked to keep focus on seam quality and to revisit the DiT360 v14-style method for the named candidates.
-Expected evidence: local mask preview before GPU; one A100 DiT360 run on `G_bmw_pano` only using the existing Drive/Colab weights; raw/soft/corecompose outputs; same DB35 long/right ROI review board; object gate and outside-mask preservation stats.
-Kill criteria: reject if mask touches the BMW body/building facade/signage more than a thin seam strip, if DiT introduces vertical slice artifacts, new objects, fake lanes/curbs, ghosting, blurred road slabs, or if outside-mask pixels are not byte-exact in corecompose. Reject if same-ROI vision does not beat raw G on the user-marked seam.
-Max scope: one input (`deliverables/ghostkill/G_bmw_pano.jpg`), one ultra-narrow two-region mask, one DiT360 case (`tau=5`, `halo=16`, `guidance=2.8`, `seed=0`) plus gate/review. No broad seed/tau sweep, no full/ground outpaint, no local model-weight download.
-Required vision check: yes, mask preview first, then full pano + same-ROI seam crops after GPU.
+Route: A (research/evidence) -> only one cheap local test if a new mechanism survives
+Question: After DB35/36 rejected donor patching and ultra-narrow DiT ground seam generation, is there any Google/Meta/StreetView-style seam mechanism that the project has not actually tested and that can be mapped to the `G_bmw_pano` red-line/right-line failure?
+Hypothesis: Production stitchers mostly win through capture design, dense reliable overlap/depth/flow, multi-band blending, seam selection, and temporal/source selection, not by hallucinating a thin ground line after the fact. The likely remaining honest answer is that the BMW G-family red-line seam is an evidence/co-visibility floor unless a cited mechanism maps to a concrete, cheap, falsifiable local test.
+Why now: The user explicitly asked not to forget Google Maps / Meta 360 and also correctly re-centered the goal on seam quality. DB24/25/26, DB35, and DB36 close the obvious post-hoc repair families; DB37 should verify whether the project is missing a real production-stitching lever or just re-discovering known physical limits.
+Expected evidence: cite primary/public technical sources where possible; build a short mechanism-to-project table comparing Google/StreetView/Meta-style methods against DB11-36 evidence; identify either one concrete next local test or a reasoned no-go. If a local test is proposed, it must be same-ROI/vision-judged.
+Kill criteria: reject sources that are only marketing or generic blog claims; reject mechanisms that require unavailable capture hardware, dense overlap, temporal revisits, or dense depth that the BMW ROI lacks; reject any proposal that only hides the seam by fake ground/objects or cannot be falsified on the DB35 ROI board.
+Max scope: research/audit plus at most one CPU-only local diagnostic board. No A100 run, no new model weights, no broad source scan, and no new generation.
+Required vision check: yes if a local diagnostic board is produced; otherwise cite evidence and map it to existing DB35/36 visuals.
 Result summary: TBD -> archive to progress.md when done, then delete here.
 
 ### Template

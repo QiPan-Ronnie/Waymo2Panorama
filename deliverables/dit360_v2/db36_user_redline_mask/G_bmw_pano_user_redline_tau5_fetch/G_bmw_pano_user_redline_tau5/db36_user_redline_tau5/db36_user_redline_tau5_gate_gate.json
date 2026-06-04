@@ -1,0 +1,11 @@
+{
+  "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db36_user_redline_mask/G_bmw_pano.jpg",
+  "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db36_user_redline_mask/G_bmw_pano_user_redline_tau5/db36_user_redline_tau5/db36_user_redline_tau5_corecompose.png",
+  "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db36_user_redline_mask/db36_g_user_redline_mask_preserve_nonseam.png",
+  "conf": 0.5,
+  "src_salient": 10,
+  "gen_salient": 8,
+  "netnew_count": 0,
+  "PASS": true,
+  "netnew": []
+}

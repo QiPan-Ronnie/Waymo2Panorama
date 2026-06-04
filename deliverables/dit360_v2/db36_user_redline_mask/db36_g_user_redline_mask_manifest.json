@@ -1,0 +1,27 @@
+{
+  "init": "deliverables\\ghostkill\\G_bmw_pano.jpg",
+  "mask_convention": "white/255 preserves source; black/0 generates",
+  "mask": "deliverables\\dit360_v2\\db36_user_redline_mask\\db36_g_user_redline_mask_preserve_nonseam.png",
+  "core_pixels": 17121,
+  "core_fraction": 0.008163928985595703,
+  "halo_px": 16,
+  "bbox_xyxy": [
+    1057,
+    564,
+    2048,
+    710
+  ],
+  "long_roi": [
+    850,
+    420,
+    1650,
+    720
+  ],
+  "right_roi": [
+    1440,
+    360,
+    2048,
+    720
+  ],
+  "board": "deliverables\\dit360_v2\\db36_user_redline_mask\\db36_g_user_redline_mask_board.jpg"
+}
