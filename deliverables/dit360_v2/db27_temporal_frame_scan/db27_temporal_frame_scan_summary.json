@@ -1,0 +1,303 @@
+{
+  "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+  "anchors": [
+    0,
+    5,
+    10,
+    15,
+    20,
+    30,
+    40
+  ],
+  "roi": [
+    850,
+    420,
+    1650,
+    720
+  ],
+  "ranking_note": "low line_risk_score is only a candidate filter; visual review is authoritative",
+  "ranked_by_line_risk": [
+    {
+      "anchor": 20,
+      "line_risk_score_low_is_better": 0.06301886818363715,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "lidar_support_frac": 0.27697083333333333,
+      "active_label_count_gt5pct": 4
+    },
+    {
+      "anchor": 30,
+      "line_risk_score_low_is_better": 0.06338602762126735,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "lidar_support_frac": 0.2727583333333333,
+      "active_label_count_gt5pct": 4
+    },
+    {
+      "anchor": 40,
+      "line_risk_score_low_is_better": 0.06362353728715278,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "lidar_support_frac": 0.27003333333333335,
+      "active_label_count_gt5pct": 4
+    },
+    {
+      "anchor": 15,
+      "line_risk_score_low_is_better": 0.06487681841401909,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "lidar_support_frac": 0.2556541666666667,
+      "active_label_count_gt5pct": 4
+    },
+    {
+      "anchor": 10,
+      "line_risk_score_low_is_better": 0.06686187626375868,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "lidar_support_frac": 0.23287916666666666,
+      "active_label_count_gt5pct": 4
+    },
+    {
+      "anchor": 0,
+      "line_risk_score_low_is_better": 0.0670470902233941,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "lidar_support_frac": 0.23075416666666668,
+      "active_label_count_gt5pct": 4
+    },
+    {
+      "anchor": 5,
+      "line_risk_score_low_is_better": 0.0685306177236111,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "lidar_support_frac": 0.21373333333333333,
+      "active_label_count_gt5pct": 4
+    }
+  ],
+  "summaries": [
+    {
+      "anchor": 0,
+      "timestamp_ns": 315966070549927210,
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "routed_objects": 12,
+      "valid_frac": 0.8400916666666667,
+      "lidar_support_frac": 0.23075416666666668,
+      "near_ground_frac": 0.6233333333333333,
+      "camera_label_counts": {
+        "0": 65752,
+        "1": 11530,
+        "5": 53816,
+        "6": 70524
+      },
+      "camera_label_fracs": {
+        "0": 0.32611520568191965,
+        "1": 0.05718621975776453,
+        "5": 0.26691531678090685,
+        "6": 0.349783257779409
+      },
+      "active_label_count_gt5pct": 4,
+      "horizontal_edge_frac": 0.0027833333333333334,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "max_row_y": 671,
+      "p95_row_horizontal_edge_frac": 0.025062500000000015,
+      "line_risk_score_low_is_better": 0.0670470902233941,
+      "note": "ranking aid only; vision review decides"
+    },
+    {
+      "anchor": 5,
+      "timestamp_ns": 315966070799927221,
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "routed_objects": 18,
+      "valid_frac": 0.8400916666666667,
+      "lidar_support_frac": 0.21373333333333333,
+      "near_ground_frac": 0.6233333333333333,
+      "camera_label_counts": {
+        "0": 64784,
+        "1": 12498,
+        "5": 53816,
+        "6": 70524
+      },
+      "camera_label_fracs": {
+        "0": 0.32131414230589916,
+        "1": 0.061987283133785,
+        "5": 0.26691531678090685,
+        "6": 0.349783257779409
+      },
+      "active_label_count_gt5pct": 4,
+      "horizontal_edge_frac": 0.0033458333333333335,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "max_row_y": 671,
+      "p95_row_horizontal_edge_frac": 0.026312500000000013,
+      "line_risk_score_low_is_better": 0.0685306177236111,
+      "note": "ranking aid only; vision review decides"
+    },
+    {
+      "anchor": 10,
+      "timestamp_ns": 315966071049927216,
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "routed_objects": 16,
+      "valid_frac": 0.8400916666666667,
+      "lidar_support_frac": 0.23287916666666666,
+      "near_ground_frac": 0.6233333333333333,
+      "camera_label_counts": {
+        "0": 65727,
+        "1": 11555,
+        "5": 53816,
+        "6": 70524
+      },
+      "camera_label_fracs": {
+        "0": 0.3259912112765472,
+        "1": 0.05731021416313696,
+        "5": 0.26691531678090685,
+        "6": 0.349783257779409
+      },
+      "active_label_count_gt5pct": 4,
+      "horizontal_edge_frac": 0.00275,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "max_row_y": 671,
+      "p95_row_horizontal_edge_frac": 0.025062500000000015,
+      "line_risk_score_low_is_better": 0.06686187626375868,
+      "note": "ranking aid only; vision review decides"
+    },
+    {
+      "anchor": 15,
+      "timestamp_ns": 315966071299927219,
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "routed_objects": 18,
+      "valid_frac": 0.8400916666666667,
+      "lidar_support_frac": 0.2556541666666667,
+      "near_ground_frac": 0.6233333333333333,
+      "camera_label_counts": {
+        "0": 65134,
+        "1": 12148,
+        "5": 53410,
+        "6": 70930
+      },
+      "camera_label_fracs": {
+        "0": 0.3230500639811132,
+        "1": 0.06025136145857099,
+        "5": 0.2649016476376586,
+        "6": 0.35179692692265724
+      },
+      "active_label_count_gt5pct": 4,
+      "horizontal_edge_frac": 0.0037166666666666667,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "max_row_y": 671,
+      "p95_row_horizontal_edge_frac": 0.025062500000000015,
+      "line_risk_score_low_is_better": 0.06487681841401909,
+      "note": "ranking aid only; vision review decides"
+    },
+    {
+      "anchor": 20,
+      "timestamp_ns": 315966071549927222,
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "routed_objects": 31,
+      "valid_frac": 0.8400916666666667,
+      "lidar_support_frac": 0.27697083333333333,
+      "near_ground_frac": 0.6233333333333333,
+      "camera_label_counts": {
+        "0": 65611,
+        "1": 11555,
+        "5": 53816,
+        "6": 70640
+      },
+      "camera_label_fracs": {
+        "0": 0.32541587723561916,
+        "1": 0.05731021416313696,
+        "5": 0.26691531678090685,
+        "6": 0.3503585918203371
+      },
+      "active_label_count_gt5pct": 4,
+      "horizontal_edge_frac": 0.0028458333333333335,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "max_row_y": 671,
+      "p95_row_horizontal_edge_frac": 0.025062500000000015,
+      "line_risk_score_low_is_better": 0.06301886818363715,
+      "note": "ranking aid only; vision review decides"
+    },
+    {
+      "anchor": 30,
+      "timestamp_ns": 315966072049927221,
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "routed_objects": 31,
+      "valid_frac": 0.8400916666666667,
+      "lidar_support_frac": 0.2727583333333333,
+      "near_ground_frac": 0.6233333333333333,
+      "camera_label_counts": {
+        "0": 65727,
+        "1": 11555,
+        "5": 53816,
+        "6": 70524
+      },
+      "camera_label_fracs": {
+        "0": 0.3259912112765472,
+        "1": 0.05731021416313696,
+        "5": 0.26691531678090685,
+        "6": 0.349783257779409
+      },
+      "active_label_count_gt5pct": 4,
+      "horizontal_edge_frac": 0.00275,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "max_row_y": 671,
+      "p95_row_horizontal_edge_frac": 0.025062500000000015,
+      "line_risk_score_low_is_better": 0.06338602762126735,
+      "note": "ranking aid only; vision review decides"
+    },
+    {
+      "anchor": 40,
+      "timestamp_ns": 315966072549927223,
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "routed_objects": 27,
+      "valid_frac": 0.8400916666666667,
+      "lidar_support_frac": 0.27003333333333335,
+      "near_ground_frac": 0.6233333333333333,
+      "camera_label_counts": {
+        "0": 65614,
+        "1": 11668,
+        "5": 53816,
+        "6": 70524
+      },
+      "camera_label_fracs": {
+        "0": 0.32543075656426385,
+        "1": 0.05787066887542034,
+        "5": 0.26691531678090685,
+        "6": 0.349783257779409
+      },
+      "active_label_count_gt5pct": 4,
+      "horizontal_edge_frac": 0.0028833333333333332,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "max_row_y": 671,
+      "p95_row_horizontal_edge_frac": 0.025062500000000015,
+      "line_risk_score_low_is_better": 0.06362353728715278,
+      "note": "ranking aid only; vision review decides"
+    }
+  ]
+}
