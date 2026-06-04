@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-03 (DB-29 DiT360 sky-only completion for clean-subset anchor 200 - accepted with sky-panel caveat)
+> **Goal:** apply only the already validated DiT360 sky-only operation to the DB-28 accepted source candidate `SR_bmw_db28_a200_final_1024x2048.png`, without touching ground, cars, or buildings.
+> **What ran:** A100/Drive DiT360 run through `scripts/phase3/run_db19_sky_colab.py`, tag `SR_bmw_db28_a200`, using `opmask_sky`, tau `50`, guidance `2.8`, seed `0`, halo `32`. Model weights stayed on Drive/Colab cache; no local weight download.
+> **Gate results:** object gate **PASS**: `src_salient=8`, `gen_salient=8`, `netnew_count=0`, `PASS=true`. Core fraction `37.26%`, halo/far are byte-preserved in corecompose (`corecompose_halo_mae=0`, `far_mae=0`).
+> **Vision verdict:** **Accepted as safe sky completion, not final polish.** The black upper out-of-FoV band is filled with plausible blue sky/clouds, and the buildings, black car, road, and storefront are source-preserved. However, the center/top captured sky patch remains much brighter/cyan than the generated sky around it, producing a visible sky-panel discontinuity. This is a sky-only appearance problem, not a reason to touch ground or objects.
+> **Locations:** Drive `results/db29_sky_clean_a200/`; local `deliverables/dit360_v2/db29_sky_clean_a200/` including `SR_bmw_db28_a200_sky_t50_s0_corecompose.png`, `*_gate_gate.{json,jpg}`, and review evidence.
+> **Conclusion:** DB-29 passes the Bosch object-safety gate and improves completeness, but the best next step is a new sky-only harmonization brief: generate/harmonize the existing sky patch plus black sky band while preserving skyline/objects, then gate and vision-review again.
+> ---
+
 > ### 2026-06-03 (DB-28 clean-subset source-boundary candidate mining - accepted source candidate)
 > **Goal:** stop forcing the bad BMW anchor-0 red-line frame and test whether the historical Bosch strict-clean anchors provide a better source panorama candidate before any DiT360 sky completion.
 > **What ran:** reused the CPU-only source-boundary scanner on strict YOLO-clean BMW anchors `[105,200,201,204,209,210,211]`, then ran exact `_seamroute.py` for anchors `105`, `200`, and `204`. No generation and no model weights were used.

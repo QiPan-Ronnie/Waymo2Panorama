@@ -1,0 +1,11 @@
+{
+  "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a200_final_1024x2048.png",
+  "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db29_sky_clean_a200/SR_bmw_db28_a200_sky_t50_s0/SR_bmw_db28_a200_sky_t50_s0/SR_bmw_db28_a200_sky_t50_s0_corecompose.png",
+  "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db29_sky_clean_a200/SR_bmw_db28_a200_masks/opmask_sky.png",
+  "conf": 0.5,
+  "src_salient": 8,
+  "gen_salient": 8,
+  "netnew_count": 0,
+  "PASS": true,
+  "netnew": []
+}
