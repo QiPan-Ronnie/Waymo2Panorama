@@ -1,0 +1,1127 @@
+{
+  "db": "DB-47b",
+  "status": "candidate_universe_threshold_replay",
+  "created_utc": "2026-06-04T17:08:43.552132+00:00",
+  "accepted_evidence_type": "source-selection-threshold-replay-only",
+  "purpose": "Freeze a bounded DB47 candidate universe and report strict/relaxed/rejected accounting before any broader scan.",
+  "scope": {
+    "cpu_local_only": true,
+    "a100_used": false,
+    "executor_used": false,
+    "new_dataset_scan": false,
+    "panorama_repair": false,
+    "generation": false,
+    "source_replacement": false,
+    "input_universe": "DB31 ranked_by_source_risk shortlist only",
+    "universe_rows": 22,
+    "comparison_only_artifacts": [
+      "deliverables/dit360_v2/db27_temporal_frame_scan/db27_temporal_frame_scan_summary.json",
+      "deliverables/dit360_v2/db28_clean_subset_refine/db28_strict_clean_source_scan_summary.json"
+    ],
+    "output_location": "deliverables/dit360_v2/db47_source_candidate_mining"
+  },
+  "thresholds": {
+    "strict_review_bucket": {
+      "yolo_edge_object_score_max": 0,
+      "roi_lidar_support_min": 0.3,
+      "roi_line_risk_max": 0.0615,
+      "rank_score_max": 0.083
+    },
+    "relaxed_review_bucket": {
+      "yolo_edge_object_score_max": 1,
+      "roi_lidar_support_min": 0.27,
+      "roi_line_risk_max": 0.064,
+      "rank_score_max": 0.104
+    },
+    "threshold_interpretation": "Buckets select candidates for future review only; they are not final visual acceptance."
+  },
+  "aggregate_counts": {
+    "total_universe_rows": 22,
+    "strict_review_bucket": 7,
+    "relaxed_review_bucket": 3,
+    "rejected_or_diagnostic": 12,
+    "unique_logs": [
+      "02a00399",
+      "0bae3b5e",
+      "2c652f9e",
+      "9f871fb4",
+      "fbee355f"
+    ],
+    "per_log_bucket_counts": {
+      "02a00399": {
+        "strict_review_bucket": 7,
+        "relaxed_review_bucket": 3,
+        "rejected_or_diagnostic": 2
+      },
+      "0bae3b5e": {
+        "rejected_or_diagnostic": 1
+      },
+      "2c652f9e": {
+        "rejected_or_diagnostic": 2
+      },
+      "9f871fb4": {
+        "rejected_or_diagnostic": 6
+      },
+      "fbee355f": {
+        "rejected_or_diagnostic": 1
+      }
+    },
+    "reject_reason_counts": {
+      "rank_score_above_relaxed": 12,
+      "roi_line_risk_above_relaxed": 10,
+      "non_bmw_log_no_current_successor": 10,
+      "edge_object_score_gt_relaxed": 9,
+      "lidar_support_below_strict": 6,
+      "lidar_support_below_relaxed": 4,
+      "edge_object_score_gt_strict": 3,
+      "db31_exact_seamroute_no_successor": 3,
+      "roi_line_risk_above_strict": 2
+    },
+    "review_bucket_reason_counts": {
+      "metric_strict_pass": 7,
+      "source_sidestep_review_only": 7,
+      "metric_relaxed_pass": 3,
+      "requires_same_roi_vision": 3
+    },
+    "local_asset_counts": {
+      "exact_or_candidate_asset_present": 4,
+      "per_candidate_asset_missing_local": 18
+    }
+  },
+  "comparison_context": {
+    "db27_temporal_rows": 7,
+    "db27_best": {
+      "anchor": 20,
+      "line_risk_score_low_is_better": 0.06301886818363715,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "lidar_support_frac": 0.27697083333333333,
+      "active_label_count_gt5pct": 4
+    },
+    "db28_strict_rows": 7,
+    "db28_best": {
+      "anchor": 200,
+      "line_risk_score_low_is_better": 0.0596461582951389,
+      "max_row_horizontal_edge_frac": 0.10375,
+      "lidar_support_frac": 0.31566666666666665,
+      "active_label_count_gt5pct": 4
+    },
+    "not_full_distribution": "DB31 is a shortlist from prior candidate mining, not the full Waymo data distribution.",
+    "db41_boundary": "DB41 lower-right/right-line is not in the DB47b candidate universe and remains an inherited no-evidence/abstain constraint."
+  },
+  "candidate_rows": [
+    {
+      "universe_rank": 1,
+      "candidate_id": "02a00399_a0200",
+      "log_id": "02a00399",
+      "anchor": 200,
+      "bucket": "strict_review_bucket",
+      "reasons": [
+        "metric_strict_pass",
+        "source_sidestep_review_only"
+      ],
+      "rank_score_low_is_better": 0.08073060729274881,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.0596461582951389,
+      "roi_lidar_support": 0.31566666666666665,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03352099777246646,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0200_source.jpg",
+      "local_review_asset": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_final_1024x2048.png",
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 2,
+      "candidate_id": "02a00399_a0201",
+      "log_id": "02a00399",
+      "anchor": 201,
+      "bucket": "strict_review_bucket",
+      "reasons": [
+        "metric_strict_pass",
+        "source_sidestep_review_only"
+      ],
+      "rank_score_low_is_better": 0.08073060729274881,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.0596461582951389,
+      "roi_lidar_support": 0.31566666666666665,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03352099777246646,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0201_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 3,
+      "candidate_id": "02a00399_a0204",
+      "log_id": "02a00399",
+      "anchor": 204,
+      "bucket": "strict_review_bucket",
+      "reasons": [
+        "metric_strict_pass",
+        "source_sidestep_review_only"
+      ],
+      "rank_score_low_is_better": 0.08122266670283994,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.05995049025234375,
+      "roi_lidar_support": 0.312175,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03393816988999151,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0204_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 4,
+      "candidate_id": "02a00399_a0209",
+      "log_id": "02a00399",
+      "anchor": 209,
+      "bucket": "strict_review_bucket",
+      "reasons": [
+        "metric_strict_pass",
+        "source_sidestep_review_only"
+      ],
+      "rank_score_low_is_better": 0.08208174860613673,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.06094701398810764,
+      "roi_lidar_support": 0.3007416666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03363274359562019,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0209_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 5,
+      "candidate_id": "02a00399_a0210",
+      "log_id": "02a00399",
+      "anchor": 210,
+      "bucket": "strict_review_bucket",
+      "reasons": [
+        "metric_strict_pass",
+        "source_sidestep_review_only"
+      ],
+      "rank_score_low_is_better": 0.08209006643965248,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.06098623576779514,
+      "roi_lidar_support": 0.3002916666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03356406815968298,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0210_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 6,
+      "candidate_id": "02a00399_a0211",
+      "log_id": "02a00399",
+      "anchor": 211,
+      "bucket": "strict_review_bucket",
+      "reasons": [
+        "metric_strict_pass",
+        "source_sidestep_review_only"
+      ],
+      "rank_score_low_is_better": 0.08209006643965248,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.06098623576779514,
+      "roi_lidar_support": 0.3002916666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03356406815968298,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0211_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 7,
+      "candidate_id": "02a00399_a0105",
+      "log_id": "02a00399",
+      "anchor": 105,
+      "bucket": "strict_review_bucket",
+      "reasons": [
+        "metric_strict_pass",
+        "source_sidestep_review_only"
+      ],
+      "rank_score_low_is_better": 0.08210606086975566,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.05977943971315105,
+      "roi_lidar_support": 0.3141375,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.036281380348010234,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0105_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 8,
+      "candidate_id": "02a00399_a0031",
+      "log_id": "02a00399",
+      "anchor": 31,
+      "bucket": "relaxed_review_bucket",
+      "reasons": [
+        "metric_relaxed_pass",
+        "requires_same_roi_vision"
+      ],
+      "rank_score_low_is_better": 0.10333440443905528,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06338602762126735,
+      "roi_lidar_support": 0.2727583333333333,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03544083737286204,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0031_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 9,
+      "candidate_id": "02a00399_a0038",
+      "log_id": "02a00399",
+      "anchor": 38,
+      "bucket": "relaxed_review_bucket",
+      "reasons": [
+        "metric_relaxed_pass",
+        "requires_same_roi_vision"
+      ],
+      "rank_score_low_is_better": 0.10338431050332487,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06343214952886285,
+      "roi_lidar_support": 0.2722291666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03544924660991559,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0038_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 10,
+      "candidate_id": "02a00399_a0040",
+      "log_id": "02a00399",
+      "anchor": 40,
+      "bucket": "relaxed_review_bucket",
+      "reasons": [
+        "metric_relaxed_pass",
+        "requires_same_roi_vision"
+      ],
+      "rank_score_low_is_better": 0.10357344232205909,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06362353728715278,
+      "roi_lidar_support": 0.27003333333333335,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.035444233410902894,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0040_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 11,
+      "candidate_id": "02a00399_a0014",
+      "log_id": "02a00399",
+      "anchor": 14,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_strict",
+        "lidar_support_below_relaxed",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed"
+      ],
+      "rank_score_low_is_better": 0.10482087741201222,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06487681841401909,
+      "roi_lidar_support": 0.2556541666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.0354312422177625,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0014_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 12,
+      "candidate_id": "02a00399_a0052",
+      "log_id": "02a00399",
+      "anchor": 52,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_strict",
+        "lidar_support_below_relaxed",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed"
+      ],
+      "rank_score_low_is_better": 0.10614574594208728,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06602696078689235,
+      "roi_lidar_support": 0.24245833333333333,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03581952256709984,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0052_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 13,
+      "candidate_id": "9f871fb4_a0265",
+      "log_id": "9f871fb4",
+      "anchor": 265,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_strict",
+        "lidar_support_below_strict",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed",
+        "db31_exact_seamroute_no_successor",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.11820426697940258,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.07583011125900607,
+      "roi_lidar_support": 0.29722916666666666,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.040831457156436664,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0265_source.jpg",
+      "local_review_asset": "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_9f871fb4_a265_compare.jpg",
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 14,
+      "candidate_id": "0bae3b5e_a0280",
+      "log_id": "0bae3b5e",
+      "anchor": 280,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_relaxed",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed",
+        "db31_exact_seamroute_no_successor",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.1263890248607233,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.064549240234375,
+      "roi_lidar_support": 0.31416666666666665,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.04408841028077398,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_0bae3b5e_a0280_source.jpg",
+      "local_review_asset": "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_0bae3b5e_a280_compare.jpg",
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 15,
+      "candidate_id": "2c652f9e_a0160",
+      "log_id": "2c652f9e",
+      "anchor": 160,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_relaxed",
+        "lidar_support_below_relaxed",
+        "roi_line_risk_above_strict",
+        "rank_score_above_relaxed",
+        "db31_exact_seamroute_no_successor",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.1310984509538267,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.06265394804166667,
+      "roi_lidar_support": 0.244025,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.05876556202702228,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0160_source.jpg",
+      "local_review_asset": "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_2c652f9e_a160_compare.jpg",
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 16,
+      "candidate_id": "2c652f9e_a0155",
+      "log_id": "2c652f9e",
+      "anchor": 155,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_relaxed",
+        "lidar_support_below_relaxed",
+        "roi_line_risk_above_strict",
+        "rank_score_above_relaxed",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.13124963198275258,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.06275823661111112,
+      "roi_lidar_support": 0.24276666666666666,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.0588697674925366,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0155_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 17,
+      "candidate_id": "9f871fb4_a0275",
+      "log_id": "9f871fb4",
+      "anchor": 275,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_relaxed",
+        "lidar_support_below_strict",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.13641694968340523,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.0759398112391276,
+      "roi_lidar_support": 0.2962125,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.04106030765395028,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0275_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 18,
+      "candidate_id": "9f871fb4_a0145",
+      "log_id": "9f871fb4",
+      "anchor": 145,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_relaxed",
+        "lidar_support_below_strict",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.13772988933312452,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.07755968430625,
+      "roi_lidar_support": 0.2812,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.04037823339305446,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0145_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 19,
+      "candidate_id": "9f871fb4_a0045",
+      "log_id": "9f871fb4",
+      "anchor": 45,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_relaxed",
+        "lidar_support_below_strict",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.1380938335966733,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.07788923383669706,
+      "roi_lidar_support": 0.2781458333333333,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.040454666133280505,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0045_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 20,
+      "candidate_id": "9f871fb4_a0050",
+      "log_id": "9f871fb4",
+      "anchor": 50,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_relaxed",
+        "lidar_support_below_strict",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.1380956676710651,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.07789193137719184,
+      "roi_lidar_support": 0.2781208333333333,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.040452747319718346,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0050_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 21,
+      "candidate_id": "9f871fb4_a0040",
+      "log_id": "9f871fb4",
+      "anchor": 40,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_relaxed",
+        "lidar_support_below_strict",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.1381037941228362,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.07789507850776911,
+      "roi_lidar_support": 0.2780916666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.0404638124779268,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0040_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    },
+    {
+      "universe_rank": 22,
+      "candidate_id": "fbee355f_a0305",
+      "log_id": "fbee355f",
+      "anchor": 305,
+      "bucket": "rejected_or_diagnostic",
+      "reasons": [
+        "edge_object_score_gt_relaxed",
+        "roi_line_risk_above_relaxed",
+        "rank_score_above_relaxed",
+        "non_bmw_log_no_current_successor"
+      ],
+      "rank_score_low_is_better": 0.16949129657625064,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.09832501165277775,
+      "roi_lidar_support": 0.32717083333333336,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.06481396649660642,
+      "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_fbee355f_a0305_source.jpg",
+      "local_review_asset": null,
+      "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+    }
+  ],
+  "review_buckets": {
+    "strict_review_bucket": [
+      {
+        "universe_rank": 1,
+        "candidate_id": "02a00399_a0200",
+        "log_id": "02a00399",
+        "anchor": 200,
+        "bucket": "strict_review_bucket",
+        "reasons": [
+          "metric_strict_pass",
+          "source_sidestep_review_only"
+        ],
+        "rank_score_low_is_better": 0.08073060729274881,
+        "yolo_edge_object_score": 0,
+        "roi_line_risk": 0.0596461582951389,
+        "roi_lidar_support": 0.31566666666666665,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03352099777246646,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0200_source.jpg",
+        "local_review_asset": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_final_1024x2048.png",
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 2,
+        "candidate_id": "02a00399_a0201",
+        "log_id": "02a00399",
+        "anchor": 201,
+        "bucket": "strict_review_bucket",
+        "reasons": [
+          "metric_strict_pass",
+          "source_sidestep_review_only"
+        ],
+        "rank_score_low_is_better": 0.08073060729274881,
+        "yolo_edge_object_score": 0,
+        "roi_line_risk": 0.0596461582951389,
+        "roi_lidar_support": 0.31566666666666665,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03352099777246646,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0201_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 3,
+        "candidate_id": "02a00399_a0204",
+        "log_id": "02a00399",
+        "anchor": 204,
+        "bucket": "strict_review_bucket",
+        "reasons": [
+          "metric_strict_pass",
+          "source_sidestep_review_only"
+        ],
+        "rank_score_low_is_better": 0.08122266670283994,
+        "yolo_edge_object_score": 0,
+        "roi_line_risk": 0.05995049025234375,
+        "roi_lidar_support": 0.312175,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03393816988999151,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0204_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 4,
+        "candidate_id": "02a00399_a0209",
+        "log_id": "02a00399",
+        "anchor": 209,
+        "bucket": "strict_review_bucket",
+        "reasons": [
+          "metric_strict_pass",
+          "source_sidestep_review_only"
+        ],
+        "rank_score_low_is_better": 0.08208174860613673,
+        "yolo_edge_object_score": 0,
+        "roi_line_risk": 0.06094701398810764,
+        "roi_lidar_support": 0.3007416666666667,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03363274359562019,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0209_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 5,
+        "candidate_id": "02a00399_a0210",
+        "log_id": "02a00399",
+        "anchor": 210,
+        "bucket": "strict_review_bucket",
+        "reasons": [
+          "metric_strict_pass",
+          "source_sidestep_review_only"
+        ],
+        "rank_score_low_is_better": 0.08209006643965248,
+        "yolo_edge_object_score": 0,
+        "roi_line_risk": 0.06098623576779514,
+        "roi_lidar_support": 0.3002916666666667,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03356406815968298,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0210_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 6,
+        "candidate_id": "02a00399_a0211",
+        "log_id": "02a00399",
+        "anchor": 211,
+        "bucket": "strict_review_bucket",
+        "reasons": [
+          "metric_strict_pass",
+          "source_sidestep_review_only"
+        ],
+        "rank_score_low_is_better": 0.08209006643965248,
+        "yolo_edge_object_score": 0,
+        "roi_line_risk": 0.06098623576779514,
+        "roi_lidar_support": 0.3002916666666667,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03356406815968298,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0211_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 7,
+        "candidate_id": "02a00399_a0105",
+        "log_id": "02a00399",
+        "anchor": 105,
+        "bucket": "strict_review_bucket",
+        "reasons": [
+          "metric_strict_pass",
+          "source_sidestep_review_only"
+        ],
+        "rank_score_low_is_better": 0.08210606086975566,
+        "yolo_edge_object_score": 0,
+        "roi_line_risk": 0.05977943971315105,
+        "roi_lidar_support": 0.3141375,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.036281380348010234,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0105_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      }
+    ],
+    "relaxed_review_bucket": [
+      {
+        "universe_rank": 8,
+        "candidate_id": "02a00399_a0031",
+        "log_id": "02a00399",
+        "anchor": 31,
+        "bucket": "relaxed_review_bucket",
+        "reasons": [
+          "metric_relaxed_pass",
+          "requires_same_roi_vision"
+        ],
+        "rank_score_low_is_better": 0.10333440443905528,
+        "yolo_edge_object_score": 1,
+        "roi_line_risk": 0.06338602762126735,
+        "roi_lidar_support": 0.2727583333333333,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03544083737286204,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0031_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 9,
+        "candidate_id": "02a00399_a0038",
+        "log_id": "02a00399",
+        "anchor": 38,
+        "bucket": "relaxed_review_bucket",
+        "reasons": [
+          "metric_relaxed_pass",
+          "requires_same_roi_vision"
+        ],
+        "rank_score_low_is_better": 0.10338431050332487,
+        "yolo_edge_object_score": 1,
+        "roi_line_risk": 0.06343214952886285,
+        "roi_lidar_support": 0.2722291666666667,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03544924660991559,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0038_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 10,
+        "candidate_id": "02a00399_a0040",
+        "log_id": "02a00399",
+        "anchor": 40,
+        "bucket": "relaxed_review_bucket",
+        "reasons": [
+          "metric_relaxed_pass",
+          "requires_same_roi_vision"
+        ],
+        "rank_score_low_is_better": 0.10357344232205909,
+        "yolo_edge_object_score": 1,
+        "roi_line_risk": 0.06362353728715278,
+        "roi_lidar_support": 0.27003333333333335,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.035444233410902894,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0040_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      }
+    ],
+    "rejected_or_diagnostic": [
+      {
+        "universe_rank": 11,
+        "candidate_id": "02a00399_a0014",
+        "log_id": "02a00399",
+        "anchor": 14,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_strict",
+          "lidar_support_below_relaxed",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed"
+        ],
+        "rank_score_low_is_better": 0.10482087741201222,
+        "yolo_edge_object_score": 1,
+        "roi_line_risk": 0.06487681841401909,
+        "roi_lidar_support": 0.2556541666666667,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.0354312422177625,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0014_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 12,
+        "candidate_id": "02a00399_a0052",
+        "log_id": "02a00399",
+        "anchor": 52,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_strict",
+          "lidar_support_below_relaxed",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed"
+        ],
+        "rank_score_low_is_better": 0.10614574594208728,
+        "yolo_edge_object_score": 1,
+        "roi_line_risk": 0.06602696078689235,
+        "roi_lidar_support": 0.24245833333333333,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.03581952256709984,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0052_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 13,
+        "candidate_id": "9f871fb4_a0265",
+        "log_id": "9f871fb4",
+        "anchor": 265,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_strict",
+          "lidar_support_below_strict",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed",
+          "db31_exact_seamroute_no_successor",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.11820426697940258,
+        "yolo_edge_object_score": 1,
+        "roi_line_risk": 0.07583011125900607,
+        "roi_lidar_support": 0.29722916666666666,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.040831457156436664,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0265_source.jpg",
+        "local_review_asset": "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_9f871fb4_a265_compare.jpg",
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 14,
+        "candidate_id": "0bae3b5e_a0280",
+        "log_id": "0bae3b5e",
+        "anchor": 280,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_relaxed",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed",
+          "db31_exact_seamroute_no_successor",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.1263890248607233,
+        "yolo_edge_object_score": 2,
+        "roi_line_risk": 0.064549240234375,
+        "roi_lidar_support": 0.31416666666666665,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.04408841028077398,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_0bae3b5e_a0280_source.jpg",
+        "local_review_asset": "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_0bae3b5e_a280_compare.jpg",
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 15,
+        "candidate_id": "2c652f9e_a0160",
+        "log_id": "2c652f9e",
+        "anchor": 160,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_relaxed",
+          "lidar_support_below_relaxed",
+          "roi_line_risk_above_strict",
+          "rank_score_above_relaxed",
+          "db31_exact_seamroute_no_successor",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.1310984509538267,
+        "yolo_edge_object_score": 2,
+        "roi_line_risk": 0.06265394804166667,
+        "roi_lidar_support": 0.244025,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.05876556202702228,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0160_source.jpg",
+        "local_review_asset": "deliverables/dit360_v2/db31_multilog_candidate_scan/seamroute_fetch/SR_db31_2c652f9e_a160_compare.jpg",
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 16,
+        "candidate_id": "2c652f9e_a0155",
+        "log_id": "2c652f9e",
+        "anchor": 155,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_relaxed",
+          "lidar_support_below_relaxed",
+          "roi_line_risk_above_strict",
+          "rank_score_above_relaxed",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.13124963198275258,
+        "yolo_edge_object_score": 2,
+        "roi_line_risk": 0.06275823661111112,
+        "roi_lidar_support": 0.24276666666666666,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.0588697674925366,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0155_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 17,
+        "candidate_id": "9f871fb4_a0275",
+        "log_id": "9f871fb4",
+        "anchor": 275,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_relaxed",
+          "lidar_support_below_strict",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.13641694968340523,
+        "yolo_edge_object_score": 2,
+        "roi_line_risk": 0.0759398112391276,
+        "roi_lidar_support": 0.2962125,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.04106030765395028,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0275_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 18,
+        "candidate_id": "9f871fb4_a0145",
+        "log_id": "9f871fb4",
+        "anchor": 145,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_relaxed",
+          "lidar_support_below_strict",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.13772988933312452,
+        "yolo_edge_object_score": 2,
+        "roi_line_risk": 0.07755968430625,
+        "roi_lidar_support": 0.2812,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.04037823339305446,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0145_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 19,
+        "candidate_id": "9f871fb4_a0045",
+        "log_id": "9f871fb4",
+        "anchor": 45,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_relaxed",
+          "lidar_support_below_strict",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.1380938335966733,
+        "yolo_edge_object_score": 2,
+        "roi_line_risk": 0.07788923383669706,
+        "roi_lidar_support": 0.2781458333333333,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.040454666133280505,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0045_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 20,
+        "candidate_id": "9f871fb4_a0050",
+        "log_id": "9f871fb4",
+        "anchor": 50,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_relaxed",
+          "lidar_support_below_strict",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.1380956676710651,
+        "yolo_edge_object_score": 2,
+        "roi_line_risk": 0.07789193137719184,
+        "roi_lidar_support": 0.2781208333333333,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.040452747319718346,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0050_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 21,
+        "candidate_id": "9f871fb4_a0040",
+        "log_id": "9f871fb4",
+        "anchor": 40,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_relaxed",
+          "lidar_support_below_strict",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.1381037941228362,
+        "yolo_edge_object_score": 2,
+        "roi_line_risk": 0.07789507850776911,
+        "roi_lidar_support": 0.2780916666666667,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.0404638124779268,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0040_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      },
+      {
+        "universe_rank": 22,
+        "candidate_id": "fbee355f_a0305",
+        "log_id": "fbee355f",
+        "anchor": 305,
+        "bucket": "rejected_or_diagnostic",
+        "reasons": [
+          "edge_object_score_gt_relaxed",
+          "roi_line_risk_above_relaxed",
+          "rank_score_above_relaxed",
+          "non_bmw_log_no_current_successor"
+        ],
+        "rank_score_low_is_better": 0.16949129657625064,
+        "yolo_edge_object_score": 2,
+        "roi_line_risk": 0.09832501165277775,
+        "roi_lidar_support": 0.32717083333333336,
+        "roi_active_labels": 4,
+        "midband_line_risk": 0.06481396649660642,
+        "source_image_recorded": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_fbee355f_a0305_source.jpg",
+        "local_review_asset": null,
+        "claim_boundary": "review-bucket only; not accepted panorama and not original-G seam repair"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "id": "brief_scope_is_db47b",
+      "pass": true,
+      "evidence": "DB47b sub-scope was added to decision_briefs.md before this script was run."
+    },
+    {
+      "id": "fixed_universe_db31_22",
+      "pass": true,
+      "evidence": "DB31 ranked_by_source_risk rows=22."
+    },
+    {
+      "id": "comparison_only_db27_db28",
+      "pass": true,
+      "evidence": "DB27 rows=7; DB28 rows=7; both are comparison-only."
+    },
+    {
+      "id": "reports_reject_reasons",
+      "pass": true,
+      "evidence": "rejected_or_diagnostic=12; reject_reason_types=9."
+    },
+    {
+      "id": "no_top_pretty_only",
+      "pass": true,
+      "evidence": "All DB31 shortlist rows are reported, not just top examples."
+    },
+    {
+      "id": "source_sidestep_not_repair",
+      "pass": true,
+      "evidence": "Strict/relaxed labels are review buckets only, not accepted panoramas or original-G seam repair."
+    },
+    {
+      "id": "db41_abstain_preserved",
+      "pass": true,
+      "evidence": "DB47b has no DB41 repair path and no permission-state output; DB41 remains inherited no-evidence/abstain from the active brief."
+    },
+    {
+      "id": "no_remote_model_generation_or_red_promotion",
+      "pass": true,
+      "evidence": "CPU/local JSON replay only; no executor, A100, model inference, repair, generation, or RED promotion."
+    }
+  ],
+  "decision": {
+    "db47_status": "running_phase1_threshold_replay_complete",
+    "accepted_db47_diagnostic_evidence": true,
+    "accepted_source_faithful_repair": false,
+    "selected_final_candidate": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "claim_boundary": "DB47b freezes/accounting-replays a source-selection universe only; it does not repair seams or accept a final panorama.",
+    "next_allowed_step": "If DB47 continues, run a bounded same-ROI visual/accounting review on the strict and failure buckets, or open a separate full-scan brief with a fixed dataset universe."
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47b_candidate_universe_threshold_replay_manifest.json",
+    "board": "deliverables/dit360_v2/db47_source_candidate_mining/db47b_candidate_universe_threshold_replay_board.jpg"
+  }
+}
