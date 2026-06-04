@@ -9,18 +9,6 @@ This file is the **direction/decision gate**, and it holds ONLY **active / pendi
 
 Status values: `proposed` / `running` / `explored` / `accepted` / `rejected` / `paused`.
 
-## DB-20260604-37: Google/Meta seam-mechanism gap audit
-Status: running
-Route: A (research/evidence) -> only one cheap local test if a new mechanism survives
-Question: After DB35/36 rejected donor patching and ultra-narrow DiT ground seam generation, is there any Google/Meta/StreetView-style seam mechanism that the project has not actually tested and that can be mapped to the `G_bmw_pano` red-line/right-line failure?
-Hypothesis: Production stitchers mostly win through capture design, dense reliable overlap/depth/flow, multi-band blending, seam selection, and temporal/source selection, not by hallucinating a thin ground line after the fact. The likely remaining honest answer is that the BMW G-family red-line seam is an evidence/co-visibility floor unless a cited mechanism maps to a concrete, cheap, falsifiable local test.
-Why now: The user explicitly asked not to forget Google Maps / Meta 360 and also correctly re-centered the goal on seam quality. DB24/25/26, DB35, and DB36 close the obvious post-hoc repair families; DB37 should verify whether the project is missing a real production-stitching lever or just re-discovering known physical limits.
-Expected evidence: cite primary/public technical sources where possible; build a short mechanism-to-project table comparing Google/StreetView/Meta-style methods against DB11-36 evidence; identify either one concrete next local test or a reasoned no-go. If a local test is proposed, it must be same-ROI/vision-judged.
-Kill criteria: reject sources that are only marketing or generic blog claims; reject mechanisms that require unavailable capture hardware, dense overlap, temporal revisits, or dense depth that the BMW ROI lacks; reject any proposal that only hides the seam by fake ground/objects or cannot be falsified on the DB35 ROI board.
-Max scope: research/audit plus at most one CPU-only local diagnostic board. No A100 run, no new model weights, no broad source scan, and no new generation.
-Required vision check: yes if a local diagnostic board is produced; otherwise cite evidence and map it to existing DB35/36 visuals.
-Result summary: TBD -> archive to progress.md when done, then delete here.
-
 ### Template
 ```markdown
 # DB-YYYYMMDD-NN: <short title>
@@ -32,6 +20,9 @@ Result summary: TBD → archive to progress.md when done, then delete here.
 ```
 
 > **DONE THIS SESSION (2026-06-03, A100) — full record in `progress.md` (top "DiT360 SESSION SYNTHESIS" entry); kept here only as pointers so this queue stays short:**
+> - **DB-37 Google/Meta seam-mechanism gap audit** = **CLOSED / no new local repair opened**: public Google/Meta/StreetView mechanisms map to reliable overlap/depth/flow/global warp/source selection, all blocked by BMW ROI evidence or already tested by DB11-36. Result: `deliverables/dit360_v2/db37_google_meta_gap_audit/db37_google_meta_gap_audit.md`. Detail in progress.md.
+> - **DB-36 ultra-narrow DiT360 red-line seam mask** = **REJECTED**: one A100 case on G with a 0.816% core mask passed object gate and preserved outside-mask pixels, but vision failed due fake pale ground slabs/black holes. Results: `deliverables/dit360_v2/db36_user_redline_mask/`. Detail in progress.md.
+> - **DB-35 seam-first target board and donor diagnostic** = **REJECTED as repair / evidence accepted**: same-ROI board proved G/BEST/A1/DB14 variants do not solve the user seam; BEST/A1 donor patch does not safely improve the right white-line. Results: `deliverables/dit360_v2/db35_seam_first/`. Detail in progress.md.
 > - **DB-34 current-best DB32 s40 QA and review pack** = **ACCEPTED current-best reference**: fresh object gate PASS (`netnew=0`), non-core/source pixels byte-exact, review board/manifest produced. Results: `deliverables/dit360_v2/db34_current_best_qa/`. Detail in progress.md.
 > - **DB-33 Cube-face local sky-boundary harmonization** = **REJECTED**: source pixels stayed byte-exact, but local boundary variants either gave no improvement over DB-32 s40 or introduced visible sky halos/diagonal color bands in rectilinear review. Results: `deliverables/dit360_v2/db33_local_sky_boundary_harmonize/`. Detail in progress.md.
 > - **DB-32 generated-sky chroma harmonization for a200** = **ACCEPTED with small-gain caveat**: CPU-only color match changes only the DB-29 generated sky core (`noncore_max_abs_diff=0`); best visual tradeoff is `s40`, reducing sky color mismatch without touching source content. Results: `deliverables/dit360_v2/db32_generated_sky_harmonize_v2/`. Detail in progress.md.

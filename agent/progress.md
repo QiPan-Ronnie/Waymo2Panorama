@@ -1,5 +1,13 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-37 Google/Meta seam-mechanism gap audit - closed / no new local repair)
+> **Goal:** answer the user's Google Maps / Meta 360 concern directly after DB35/36: determine whether a production-style seam mechanism remains untested for the `G_bmw_pano` long red-line / right white-line seam.
+> **What ran:** created `deliverables/dit360_v2/db37_google_meta_gap_audit/db37_google_meta_gap_audit.md`, mapping public/primary technical sources against DB11-36 evidence. Sources checked include Google Street View panorama repair, Google Jump VR video, Meta Surround360, the Surround360 archive repo, and a street-view panorama stitching framework paper. No GPU, no model weights, no image edits.
+> **Evidence synthesis:** Google/Meta-style systems rely on reliable overlap correspondences, calibrated capture, flow/depth, seam selection, subtle global warps, temporal/source redundancy, and final compositing. The BMW G seam is the counter-case: the target ROI is near-ground/low-texture, DB25 measured only 9.4% LiDAR support and only 10.5% FB-flow reliability for the key right/dark-wall pair, and DB35/36 showed post-hoc donor/DiT ground edits create blur/fake geometry instead of a clean seam.
+> **Conclusion:** **CLOSED / no new local repair opened.** The project has already tested the practical equivalents of production stitching levers: flow/virtual-center, single-source selection, graph-cut seam routing, line-cost reroute, BEV ground atlas, photometric attenuation, donor patch, and bounded DiT generation. Without new evidence such as denser depth, stronger temporal overlap, a better source frame, or a different capture rig, continuing local G-family seam repair is likely repetition rather than exploration.
+> **Location:** `deliverables/dit360_v2/db37_google_meta_gap_audit/db37_google_meta_gap_audit.md`.
+> ---
+
 > ### 2026-06-04 (DB-36 ultra-narrow DiT360 red-line seam mask - rejected)
 > **Goal:** test whether the user-marked `G_bmw_pano` seam can be repaired by making the DiT360 edit mask much narrower than the earlier v14/full-ground attempts: one line-like mask for the long dark-wall/curb source-boundary region plus the lower-right white-line seam.
 > **What ran:** added `scripts/phase3/db36_user_redline_mask.py` to build `db36_g_user_redline_mask_preserve_nonseam.png` and mask preview. The mask uses the existing DiT360 convention (`255=preserve`, `0=generate`) and had `core_fraction=0.816%`, roughly half the old v14 core fraction. Added `scripts/phase3/run_db36_user_redline_colab.py` and ran one A100 case on Colab/Drive (`tau=5`, `halo=16`, `guidance=2.8`, `seed=0`), with model weights kept on Colab/Drive. Added `scripts/phase3/db36_review.py` for local reject board and preservation stats.
