@@ -281,7 +281,7 @@ Required vision check:
 Result summary: TBD -> archive to `progress.md` when done, then delete this brief.
 
 # DB-49: Bosch-facing data contract / handoff packet
-Status: proposed
+Status: running (DB49a accepted inventory-only; any further packaging needs bounded scope)
 Route: infra / handoff / data contract
 
 Question: How should the final Bosch-facing output expose caveats, generated regions, abstain masks, risk maps, and current-best image selection?
@@ -321,9 +321,18 @@ Kill criteria:
 Max scope:
 - Packaging/reporting only after candidate outputs exist.
 - No new image generation or repair in this brief unless explicitly opened by another brief.
+- Phase0 / DB49a (2026-06-04): Existing-artifact data-contract inventory.
+  - Question: Can the current Bosch-facing state be expressed as a provenance/caveat contract without inventing new masks or overstating DB32/DB47?
+  - Hypothesis: Existing DB32/DB42/DB43/DB47 artifacts are enough to define the minimum contract fields, current evidence availability, and blocking gaps; this should make DB32 usable as a caveated handoff candidate while preventing misuse as source-faithful original-G repair.
+  - Why now: DB47d narrowed source-selection review evidence but still selected no final candidate, and DB45 is paused on executor DNS. The lowest-risk useful progress is to lock the data-product contract that future EGSR outputs must satisfy.
+  - Expected evidence: one CPU/local manifest and board using existing DB32/DB34/DB38/DB42/DB43/DB45/DB47 artifacts only; report required fields (`source_id_map`, `generated_mask`, `unknown_or_abstain_mask`, `risk_map`, `eval_report`, `candidate_image`, `caveat_table`), available evidence paths, missing/blocking fields, claim labels, and next-step contract.
+  - Kill criteria: creates or modifies candidate image/masks; runs renderer/model/executor/A100/generation/repair/source replacement; hides generated sky/out-of-FOV or unknown/abstain regions; claims DB32 is fully source-faithful or original-G repair; treats DB47d exact-review rows as final; omits DB41 lower-right/right-line abstain; omits generation-model/license caveat; includes secrets or current endpoint tokens.
+  - Max scope: CPU/local reporting only, existing artifacts only, no new image generation/repair/mask generation, no new dataset scan, no permission change, no RED promotion. Output location: `deliverables/dit360_v2/db49_bosch_data_contract/`.
+  - Required vision check: board must show current handoff candidate reference, generated/abstain/risk/eval contract status, DB47 review-only status, DB41 abstain, DB32 source-sidestep/generated-sky caveats, and explicit `not source-faithful / not original-G repair / no final candidate from DB47d alone` labels.
+  - Result (accepted inventory-only): `scripts/phase3/db49a_bosch_data_contract_inventory.py` produced `db49a_bosch_data_contract_inventory_manifest.json` and `db49a_bosch_data_contract_inventory_board.jpg` using existing artifacts only. `candidate_image`, `eval_report`, `caveat_table`, and `presentation_flag` are available; `generated_mask` is partial from the existing sky-core mask; per-pixel `source_id_map`, `unknown_or_abstain_mask`, and `risk_map` remain missing/blocking; generation-model/license review remains required. DB32 `s40` stays caveated handoff only; DB47d stays not-final; DB41 lower-right/right-line stays no-evidence/abstain; `ready_for_uncaveated_bosch_training_data=false`.
 
 Required vision check:
 - Final board must include the image, masks, risk/abstain overlays, and same-ROI caveat crops.
 - Manual claim-language review before any Bosch/Koi-facing use.
 
-Result summary: TBD -> archive to `progress.md` when done, then delete this brief.
+Result summary: DB49a accepted as `bosch-data-contract-inventory-only`; see the 2026-06-04 DB49a block at the top of `agent/progress.md`. Further DB49 work must package real sidecars or keep missing fields explicit; no narrative fill-in.

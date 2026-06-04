@@ -51,6 +51,8 @@ DB45 is **paused** by executor DNS/tunnel availability after DB45i repeatedly st
 
 DB47b is completed and accepted as **source-selection-threshold-replay-only** evidence. It freezes the existing DB31 22-row shortlist as the bounded candidate universe, with DB27/DB28 only as same-log comparison context, and reports 7 strict review-bucket rows, 3 relaxed review-bucket rows, and 12 rejected/diagnostic rows. DB47c is completed and accepted as **source-selection-visual-accounting-only** evidence. It reviews all 22 DB47b rows with existing DB28/DB31 visual assets only: 3 strict rows have exact same-log review assets, 4 strict rows are montage-only holds, 3 relaxed rows are holds, and 12 rows remain rejected/diagnostic. DB47d is completed and accepted as **source-selection-exact-review-pack-only** evidence. It reviews the 10 strict/relaxed same-log rows with DB47c plus existing DB28 exact assets only: 3 exact-review candidates (`a105`, `a200`, `a204`) remain not-final, and 7 rows remain missing-exact holds. These are review/accounting gates only: DB47b/c/d select no final panorama, perform no new dataset scan, generation, repair, source replacement, permission change, or RED promotion, and do not claim original-G seam repair. DB47 remains running only if a later brief opens a stricter final-candidate review, a fixed-universe full scan, or DB47 pause/DB49 packaging; do not choose a final candidate from DB47 metrics, montage-only evidence, or review-pack labels.
 
+DB49a Bosch data-contract inventory is completed and accepted as **bosch-data-contract-inventory-only** evidence. Outputs are under `deliverables/dit360_v2/db49_bosch_data_contract/`, with script `scripts/phase3/db49a_bosch_data_contract_inventory.py`. DB49a reads existing DB32/DB34/DB38/DB41/DB42/DB43/DB45i/DB47d artifacts only and creates no candidate image, repair, generated mask, abstain mask, risk map, dataset scan, model run, permission change, or RED promotion. It confirms DB32 `s40` is only a caveated Bosch-facing handoff candidate and that uncaveated Bosch training-data use is blocked until at least per-pixel `source_id_map`, `unknown_or_abstain_mask`, `risk_map`, and generation-model/license review are packaged. `generated_mask` is only partial via the existing sky-core mask/overlay; DB47d remains not-final and DB41 lower-right/right-line remains no-evidence/abstain.
+
 ---
 
 ## 0.2 Strategic Framing: Data Product / Data Contract
@@ -73,8 +75,11 @@ The practical data contract should include:
 - `risk_map`: seam, near-ground, curb, object, parallax, low-evidence risk;
 - `eval_report`: reason-coded accept/reject/caveat record, not just one score;
 - `presentation_flag`: whether an output is meeting/demo-only rather than training-data/source-faithful.
+- `license_generation_caveat`: explicit generation-model/license review before Bosch/commercial/training-data release.
 
 This data-contract framing does not replace seam repair. It prevents seam repair from being accepted for the wrong reason.
+
+DB49a is the current inventory baseline for this section: it reports which fields are available, partial, missing, or manually required, but it does not create the missing sidecars. Future DB49 work must not convert missing sidecars into narrative claims.
 
 ---
 
