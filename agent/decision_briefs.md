@@ -9,6 +9,18 @@ This file is the **direction/decision gate**, and it holds ONLY **active / pendi
 
 Status values: `proposed` / `running` / `explored` / `accepted` / `rejected` / `paused`.
 
+## DB-20260604-36: Ultra-narrow DiT360 red-line seam mask
+Status: running
+Route: B (generative, constrained) after DB35 donor rejection
+Question: Can DiT360 improve the exact user-marked `G_bmw_pano` seam if the edit mask is much narrower and more targeted than the earlier v14/full-ground attempts?
+Hypothesis: Earlier v14/DB14 and DB21 failures may be caused by masks that let DiT rewrite too much structure around the seam. A user-red-line mask that only covers the long dark-wall/source-boundary strip plus the lower-right white-line discontinuity, with a halo/far clamp and core-only postcompose, may hide the visible seam while preserving cars, buildings, and source content outside the mask.
+Why now: DB35 proved the seam is still unsolved and post-hoc BEST/A1 donor patching is not defensible. The user explicitly asked to keep focus on seam quality and to revisit the DiT360 v14-style method for the named candidates.
+Expected evidence: local mask preview before GPU; one A100 DiT360 run on `G_bmw_pano` only using the existing Drive/Colab weights; raw/soft/corecompose outputs; same DB35 long/right ROI review board; object gate and outside-mask preservation stats.
+Kill criteria: reject if mask touches the BMW body/building facade/signage more than a thin seam strip, if DiT introduces vertical slice artifacts, new objects, fake lanes/curbs, ghosting, blurred road slabs, or if outside-mask pixels are not byte-exact in corecompose. Reject if same-ROI vision does not beat raw G on the user-marked seam.
+Max scope: one input (`deliverables/ghostkill/G_bmw_pano.jpg`), one ultra-narrow two-region mask, one DiT360 case (`tau=5`, `halo=16`, `guidance=2.8`, `seed=0`) plus gate/review. No broad seed/tau sweep, no full/ground outpaint, no local model-weight download.
+Required vision check: yes, mask preview first, then full pano + same-ROI seam crops after GPU.
+Result summary: TBD -> archive to progress.md when done, then delete here.
+
 ### Template
 ```markdown
 # DB-YYYYMMDD-NN: <short title>

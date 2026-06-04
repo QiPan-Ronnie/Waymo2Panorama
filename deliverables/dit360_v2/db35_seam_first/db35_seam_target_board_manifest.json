@@ -1,0 +1,54 @@
+{
+  "long_roi": [
+    850,
+    420,
+    1650,
+    720
+  ],
+  "right_roi": [
+    1440,
+    360,
+    2048,
+    720
+  ],
+  "candidates": [
+    {
+      "name": "G_bmw_pano",
+      "note": "user nearest original; wavy seam"
+    },
+    {
+      "name": "BEST_bmw_pano",
+      "note": "ghost/building risk"
+    },
+    {
+      "name": "A1_view_none",
+      "note": "parallax residual"
+    },
+    {
+      "name": "DB14_G_v14_tau5",
+      "note": "old v14 DiT seam recipe on G"
+    },
+    {
+      "name": "DB14_BEST_v14_tau5",
+      "note": "old v14 DiT seam recipe on BEST"
+    },
+    {
+      "name": "DB14_A1_v14_tau5",
+      "note": "old v14 DiT seam recipe on A1_view_none"
+    },
+    {
+      "name": "DB19_G_sky_only",
+      "note": "G plus accepted sky-only; seam unchanged"
+    },
+    {
+      "name": "DB28_a200_source",
+      "note": "strict-clean source candidate; different anchor"
+    },
+    {
+      "name": "DB32_s40_current",
+      "note": "current best QA reference; sky only changed"
+    }
+  ],
+  "board": "deliverables\\dit360_v2\\db35_seam_first\\db35_seam_target_board.jpg",
+  "purpose": "same-ROI visual evidence only; not a repair"
+}

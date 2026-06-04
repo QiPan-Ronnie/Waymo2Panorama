@@ -1,5 +1,13 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-35 seam-first target board and donor diagnostic - rejected as repair, evidence accepted)
+> **Goal:** re-center the work on the user-priority seam defect in the `G_bmw_pano` family, especially the long source-boundary/red-line region and the right-ground white-line waviness, instead of treating DB-32 sky completion as a seam fix.
+> **What ran:** added `scripts/phase3/db35_seam_target_board.py` and built a same-ROI board over `G_bmw_pano`, `BEST_bmw_pano`, `A1_view_none`, DB14 v14 trimap outputs for G/BEST/A1, DB19 sky-only, DB28 a200 source, and DB32 s40 current-best. Added `scripts/phase3/db35_rightline_donor_diag.py` for one bounded CPU-only donor test: one right-ground seam mask, one LAB-matched feathered blend method, two donor sources (`BEST`, `A1`). No model weights and no generation were used locally.
+> **Vision verdict:** **REJECTED as a repair.** The seam problem is not solved. G/BEST/A1 all retain the user-visible right-ground/white-line and long source-boundary issues; DB14 v14 on G/BEST/A1 does not fix them and introduces vertical slice/structure artifacts in the right ROI; DB19 only changes sky. The donor diagnostic also fails: `BEST` barely changes the problematic line, while `A1` makes the lower-right ground softer/blurrier and still does not straighten the seam cleanly.
+> **Locations:** local `deliverables/dit360_v2/db35_seam_first/` including `db35_seam_target_board.jpg`, per-candidate long/right ROI crops, `db35_rightline_donor_diag_board.jpg`, `db35_rightline_{best,a1}_donor_patch.png`, and `db35_rightline_donor_diag_manifest.json`.
+> **Conclusion:** DB32 remains only a current-best presentation/reference candidate, not a seam solution for the original G-family seam. Post-hoc donor patching is not defensible. The next seam attempt must be either (a) a truly ultra-narrow generative red-line mask with object/source gates, or (b) an upstream source-boundary reroute with evidence stronger than DB24/25/26.
+> ---
+
 > ### 2026-06-04 (DB-34 current-best DB32 s40 QA and review pack - accepted current-best reference)
 > **Goal:** harden DB-32 `s40` as the current best object-safe presentation candidate with a fresh object gate, source-preservation checks, review board, and manifest.
 > **What ran:** uploaded DB-32 `s40` to Drive and ran `scripts/phase3/_object_gate.py` on Colab against the DB-28 a200 source and the DB-29 sky core mask. Added local `scripts/phase3/db34_current_best_qa.py` to build `db34_current_best_manifest.json`, `db34_current_best_review_board.jpg`, and `db34_db32_core_overlay.jpg`. No generation and no local model-weight download.

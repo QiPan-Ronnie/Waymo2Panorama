@@ -1,0 +1,21 @@
+{
+  "mask_pixels": 41923,
+  "mask_fraction": 0.01999044418334961,
+  "feather_radius": 10,
+  "method": "local LAB donor match + feathered blend inside one right-ground seam mask",
+  "BEST": {
+    "output": "deliverables\\dit360_v2\\db35_seam_first\\db35_rightline_best_donor_patch.png",
+    "changed_pixels": 43716,
+    "outside_mask_changed_pixels": 14978,
+    "right_roi_output": "deliverables\\dit360_v2\\db35_seam_first\\db35_rightline_best_right_roi.jpg",
+    "long_roi_output": "deliverables\\dit360_v2\\db35_seam_first\\db35_rightline_best_long_roi.jpg"
+  },
+  "A1": {
+    "output": "deliverables\\dit360_v2\\db35_seam_first\\db35_rightline_a1_donor_patch.png",
+    "changed_pixels": 48427,
+    "outside_mask_changed_pixels": 17610,
+    "right_roi_output": "deliverables\\dit360_v2\\db35_seam_first\\db35_rightline_a1_right_roi.jpg",
+    "long_roi_output": "deliverables\\dit360_v2\\db35_seam_first\\db35_rightline_a1_long_roi.jpg"
+  },
+  "board": "deliverables\\dit360_v2\\db35_seam_first\\db35_rightline_donor_diag_board.jpg"
+}
