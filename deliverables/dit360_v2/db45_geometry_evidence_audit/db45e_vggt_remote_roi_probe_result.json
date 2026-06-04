@@ -1,0 +1,258 @@
+{
+  "anchor": 0,
+  "db": "DB-45e",
+  "ended_utc": "2026-06-04T14:45:20Z",
+  "raw_camera_load": {
+    "camera_names": [
+      "ring_front_center",
+      "ring_front_left",
+      "ring_side_left",
+      "ring_rear_left",
+      "ring_rear_right",
+      "ring_side_right",
+      "ring_front_right"
+    ],
+    "image_shapes_hwc": [
+      [
+        0,
+        "ring_front_center",
+        2048,
+        1550
+      ],
+      [
+        1,
+        "ring_front_left",
+        1550,
+        2048
+      ],
+      [
+        2,
+        "ring_side_left",
+        1550,
+        2048
+      ],
+      [
+        3,
+        "ring_rear_left",
+        1550,
+        2048
+      ],
+      [
+        4,
+        "ring_rear_right",
+        1550,
+        2048
+      ],
+      [
+        5,
+        "ring_side_right",
+        1550,
+        2048
+      ],
+      [
+        6,
+        "ring_front_right",
+        1550,
+        2048
+      ]
+    ],
+    "ok": true
+  },
+  "scope": {
+    "erp_repair": false,
+    "generated_image": false,
+    "old_uniform_wrapper_used": false,
+    "one_anchor": true,
+    "one_log": true,
+    "raw_ring_cameras": 7,
+    "renderer": false,
+    "source_replacement": false
+  },
+  "secret_policy": "HF token read from environment only; not written to output.",
+  "started_utc": "2026-06-04T14:44:37Z",
+  "torch": {
+    "cuda_available": true,
+    "cuda_free_gb_before": 39.08,
+    "cuda_name": "NVIDIA A100-SXM4-40GB",
+    "device": "cuda",
+    "version": "2.11.0+cu128"
+  },
+  "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+  "vggt": {
+    "confidence_fields": {
+      "depth_conf": {
+        "global": {
+          "mean": 1.12442,
+          "med": 1.019517,
+          "p10": 1.0,
+          "p90": 1.410556,
+          "std": 0.175396,
+          "valid": 1.0
+        },
+        "per_cam": {
+          "0": {
+            "mean": 1.078961,
+            "med": 1.017661,
+            "p10": 1.0,
+            "p90": 1.231877,
+            "std": 0.101061,
+            "valid": 1.0
+          },
+          "1": {
+            "mean": 1.101603,
+            "med": 1.003344,
+            "p10": 1.0,
+            "p90": 1.353113,
+            "std": 0.149411,
+            "valid": 1.0
+          },
+          "2": {
+            "mean": 1.162992,
+            "med": 1.016632,
+            "p10": 1.0,
+            "p90": 1.499252,
+            "std": 0.205266,
+            "valid": 1.0
+          },
+          "3": {
+            "mean": 1.112135,
+            "med": 1.000002,
+            "p10": 1.0,
+            "p90": 1.444892,
+            "std": 0.186397,
+            "valid": 1.0
+          },
+          "4": {
+            "mean": 1.128583,
+            "med": 1.005282,
+            "p10": 1.0,
+            "p90": 1.442454,
+            "std": 0.184775,
+            "valid": 1.0
+          },
+          "5": {
+            "mean": 1.176772,
+            "med": 1.044609,
+            "p10": 1.0,
+            "p90": 1.584344,
+            "std": 0.227063,
+            "valid": 1.0
+          },
+          "6": {
+            "mean": 1.109897,
+            "med": 1.088575,
+            "p10": 1.000002,
+            "p90": 1.275267,
+            "std": 0.114178,
+            "valid": 1.0
+          }
+        },
+        "shape_vhw": [
+          7,
+          518,
+          518
+        ],
+        "source_key": "depth_conf"
+      },
+      "world_points_conf": {
+        "global": {
+          "mean": 1.006719,
+          "med": 1.000002,
+          "p10": 1.0,
+          "p90": 1.00929,
+          "std": 0.029681,
+          "valid": 1.0
+        },
+        "per_cam": {
+          "0": {
+            "mean": 1.022505,
+            "med": 1.000144,
+            "p10": 1.0,
+            "p90": 1.070745,
+            "std": 0.063337,
+            "valid": 1.0
+          },
+          "1": {
+            "mean": 1.010195,
+            "med": 1.000006,
+            "p10": 1.0,
+            "p90": 1.034643,
+            "std": 0.028722,
+            "valid": 1.0
+          },
+          "2": {
+            "mean": 1.003062,
+            "med": 1.000002,
+            "p10": 1.0,
+            "p90": 1.008988,
+            "std": 0.009297,
+            "valid": 1.0
+          },
+          "3": {
+            "mean": 1.005577,
+            "med": 1.0,
+            "p10": 1.0,
+            "p90": 1.004947,
+            "std": 0.02216,
+            "valid": 1.0
+          },
+          "4": {
+            "mean": 1.002854,
+            "med": 1.0,
+            "p10": 1.0,
+            "p90": 1.005368,
+            "std": 0.01153,
+            "valid": 1.0
+          },
+          "5": {
+            "mean": 1.000018,
+            "med": 1.0,
+            "p10": 1.0,
+            "p90": 1.00003,
+            "std": 9.8e-05,
+            "valid": 1.0
+          },
+          "6": {
+            "mean": 1.002825,
+            "med": 1.000033,
+            "p10": 1.0,
+            "p90": 1.002694,
+            "std": 0.01639,
+            "valid": 1.0
+          }
+        },
+        "shape_vhw": [
+          7,
+          518,
+          518
+        ],
+        "source_key": "world_points_conf"
+      }
+    },
+    "cuda_free_gb_after": 26.77,
+    "duration_s": 17.18,
+    "inference_ok": true,
+    "input_tensor_shape": [
+      7,
+      3,
+      518,
+      518
+    ],
+    "model_id": "facebook/VGGT-1B-Commercial",
+    "prediction_keys": [
+      "depth",
+      "depth_conf",
+      "images",
+      "pose_enc",
+      "pose_enc_list",
+      "world_points",
+      "world_points_conf"
+    ]
+  },
+  "colab_job": {
+    "job_id": "93d1fb9e6cfc48e5b8999aae5d263303",
+    "state": "done",
+    "exit_code": 0,
+    "duration_s": 45.011685848236084
+  }
+}

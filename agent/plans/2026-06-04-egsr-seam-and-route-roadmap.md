@@ -43,7 +43,9 @@ DB45c VGGT Commercial access update + schema gate is completed and accepted as *
 
 DB45d VGGT official setup/load smoke is completed and accepted as **setup-and-api-smoke-only** evidence. Outputs are under `deliverables/dit360_v2/db45_geometry_evidence_audit/`, with script `scripts/phase3/db45d_vggt_setup_smoke_gate.py`. One bounded A100 job cloned official VGGT, loaded `facebook/VGGT-1B-Commercial`, cached the checkpoint on Drive, and verified confidence-capable API fields. No AV image inference, renderer, repair, source replacement, or RED promotion was run. This clears the setup/checkpoint/API blocker for a future ROI probe, but still does not create accepted VGGT geometry evidence.
 
-DB45 is **not closed** by these readiness passes. The next DB45 step, if continuing the source-faithful EGSR mainline, must be a scoped foundation-model ROI evidence job with frozen ROI list, output schema, current extractor sync/upload, and promotion/kill thresholds. It must use real VGGT confidence/validity fields rather than the old uniform-confidence wrapper, compare confidence/tracks/depth/flow against the same 8 controls, and kill immediately if DB25/DB41/DB36/DB40 RED controls receive high confidence without target-surface raw/depth/flow support. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
+DB45e VGGT frozen-ROI confidence probe is completed and accepted as **vggt-roi-confidence-diagnostic-only** evidence. Outputs are under `deliverables/dit360_v2/db45_geometry_evidence_audit/`, with script `scripts/phase3/db45e_vggt_roi_probe_gate.py`. One bounded A100 job ran official VGGT on BMW anchor 0 raw 7-camera input and captured real non-uniform `depth_conf` / `world_points_conf` maps. Because the current evidence pack exposes camera-owner summaries rather than pixel-exact raw-camera target-surface mapping, DB25 and DB41 remain `RED/abstain`, DB41 lower-right preserves zero-LiDAR abstain, DB36/DB40 generated fake-geometry controls remain non-admissible rejects, and no DB45 permission state changed.
+
+DB45 is **not closed** by these readiness/diagnostic passes. The next DB45 step, if continuing the source-faithful EGSR mainline, must bring true target-surface evidence: pixel/track/pointmap mapping from the raw cameras into the seam ROI, multi-view consistency, or another bounded foundation-model signal that can be compared directly against the same RED controls. Owner-camera confidence alone is now known to be insufficient for promotion. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
 
 ---
 
@@ -290,6 +292,7 @@ These are roadmap items, not direct execution commands. DB43 and DB44 are comple
 - DB45b existing-evidence permission calibration: accepted permission-calibration-only guardrails, no RED promotion.
 - DB45c VGGT Commercial access update + schema gate: HF file access cleared, but VGGT route remains not evidence-ready.
 - DB45d VGGT official setup/load smoke: setup/checkpoint/API ready for a future ROI probe, but no geometry evidence accepted.
+- DB45e VGGT frozen-ROI confidence probe: accepted diagnostic owner-camera confidence only; no target-surface mapping, no geometry evidence, no RED promotion.
 
 **Parked future subtracks under DB-45 unless split into separate briefs:**
 

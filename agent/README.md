@@ -2,6 +2,8 @@
 
 > **TL;DR for agents new to this repo**: the 4 living docs are `handoff.md` + `progress.md` + `decision_briefs.md` + this `README.md` — write to those ONLY. Don't create new `.md` files under `deliverables/`. **Before starting any new experiment direction, open a brief in `decision_briefs.md` (the experiment gate — it has Kill criteria + Max scope).** Read the [rules below](#-rules-for-new-agents-per-user-2026-05-27) FIRST.
 
+> **Current pointer (2026-06-04):** read the top of `handoff.md`, `progress.md`, `decision_briefs.md`, and `plans/2026-06-04-egsr-seam-and-route-roadmap.md` before acting. DB43/DB44 are accepted; DB45 is running. DB45e accepted only `vggt-roi-confidence-diagnostic-only` evidence: official VGGT ran once on BMW anchor 0, but owner-camera confidence is not target-surface mapping, so DB25/DB41 remain `RED/abstain`, DB36/DB40 remain generated fake-geometry rejects, and no RED promotion occurred.
+
 ---
 
 ## Current Seam State (2026-05-28)
