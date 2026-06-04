@@ -1,0 +1,117 @@
+{
+  "board": "deliverables\\dit360_v2\\db38_bosch_handoff\\db38_bosch_handoff_board.jpg",
+  "rois": {
+    "long_roi": [
+      850,
+      420,
+      1650,
+      720
+    ],
+    "right_roi": [
+      1440,
+      360,
+      2048,
+      720
+    ],
+    "sky_roi": [
+      520,
+      170,
+      1480,
+      430
+    ],
+    "object_roi": [
+      1370,
+      300,
+      2048,
+      720
+    ]
+  },
+  "bosch_constraints": [
+    "world-model input should preserve real objects/road/curb where possible",
+    "fake generated ground is worse than an honest black/out-of-FOV or source-selection caveat",
+    "object gate is necessary but not sufficient; vision review decides seam/geometry quality"
+  ],
+  "candidate_decisions": [
+    {
+      "name": "G_bmw_pano",
+      "path": "deliverables\\ghostkill\\G_bmw_pano.jpg",
+      "decision": "reject-as-handoff seam residual",
+      "note": "user-nearest original but has long red-line/right white-line seam"
+    },
+    {
+      "name": "DB19_G_sky_only",
+      "path": "deliverables\\dit360_v2\\db19_G_bmw_pano_sky_t50_s0_postcompose_thr45.png",
+      "decision": "presentation-only with G seam caveat",
+      "note": "sky improved, original G ground seam preserved"
+    },
+    {
+      "name": "DB28_a200_source",
+      "path": "deliverables\\dit360_v2\\db28_clean_subset_refine\\SR_bmw_db28_a200_final_1024x2048.png",
+      "decision": "accepted source sidestep base",
+      "note": "cleaner source, no original G red-line seam, but sky/black bands remain"
+    },
+    {
+      "name": "DB32_s40_current_best",
+      "path": "deliverables\\dit360_v2\\db32_generated_sky_harmonize_v2\\db32_generated_sky_harmonize_s40.png",
+      "decision": "current best Bosch handoff candidate",
+      "note": "DB28 source plus object-gated sky fill/harmonization; source pixels preserved"
+    },
+    {
+      "name": "DB36_G_DiT_redline_rejected",
+      "path": "deliverables\\dit360_v2\\db36_user_redline_mask\\G_bmw_pano_user_redline_tau5_fetch\\G_bmw_pano_user_redline_tau5\\db36_user_redline_tau5\\db36_user_redline_tau5_corecompose.png",
+      "decision": "reject fake ground",
+      "note": "object gate passed but generated fake ground slabs/holes"
+    }
+  ],
+  "current_best": {
+    "name": "DB32_s40_current_best",
+    "path": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+    "not_a_claim": "does not fix original G seam; it is a cleaner source sidestep",
+    "source_preservation": {
+      "db29_noncore_vs_source": {
+        "max": 0,
+        "mae": 0.0,
+        "pixels": 1315661
+      },
+      "db32_noncore_vs_source": {
+        "max": 0,
+        "mae": 0.0,
+        "pixels": 1315661
+      },
+      "db32_noncore_vs_db29": {
+        "max": 0,
+        "mae": 0.0,
+        "pixels": 1315661
+      },
+      "db32_core_vs_db29": {
+        "max": 47,
+        "mae": 18.265825198242847,
+        "pixels": 781491
+      }
+    },
+    "object_gate": {
+      "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a200_final_1024x2048.png",
+      "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db34_current_best_qa/db32_generated_sky_harmonize_s40.png",
+      "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db29_sky_clean_a200/SR_bmw_db28_a200_masks/opmask_sky.png",
+      "conf": 0.5,
+      "src_salient": 8,
+      "gen_salient": 8,
+      "netnew_count": 0,
+      "PASS": true,
+      "netnew": []
+    },
+    "accepted_caveats": [
+      "DB32 changes only the generated sky core; source-preserved buildings, vehicles, road, trees, poles, and captured sky panel remain byte-exact versus DB29.",
+      "The foreground black car remains in the source content.",
+      "The lower out-of-FOV black region remains unfilled because ground/full outpaint was rejected as Bosch-unsafe.",
+      "The preserved center sky panel discontinuity is reduced versus DB29 but not eliminated."
+    ]
+  },
+  "negative_control": {
+    "name": "DB36_G_DiT_redline_rejected",
+    "reason": "reject: fake ground slabs/holes in corecompose; seam not cleanly solved",
+    "outside_mask_max_abs_diff": 0,
+    "core_mean_abs_diff": 96.83523158694001
+  },
+  "vision_verdict": "Accept DB32_s40_current_best as the current Bosch handoff candidate with caveats. It does not repair the original G seam; it sidesteps it through the cleaner DB28/a200 source, preserves non-sky source pixels, and passes the object gate. Reject G/DB19 as final handoff because the original long/right seam remains. Reject DB36 despite object-gate PASS because it creates fake ground slabs/holes."
+}

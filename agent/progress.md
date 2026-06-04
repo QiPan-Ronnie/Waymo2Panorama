@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-38 Bosch-ready candidate handoff board - accepted DB32 as current handoff candidate with caveats)
+> **Goal:** after DB35/36/37 closed original G-family seam repair, produce a Bosch/world-model-facing candidate decision instead of continuing fake-ground edits.
+> **What ran:** added CPU-only `scripts/phase3/db38_bosch_handoff_board.py`, generating a same-board comparison of `G_bmw_pano`, DB19 G sky-only, DB28 a200 source, DB32 s40 current-best, and the rejected DB36 DiT red-line output. The board includes full view plus long seam, right white-line, sky/panel, object, and diff ROIs. No A100, no generation, no new model weights.
+> **Vision verdict:** **ACCEPT DB32 `s40` as the current Bosch handoff candidate with caveats.** DB32 does not repair the original G seam; it sidesteps it via the cleaner DB28/a200 source, then uses object-gated sky fill/harmonization while preserving non-sky source pixels. G and DB19 remain useful diagnostic/presentation references but are rejected as final handoff because the original long/right seam remains. DB36 is a negative control: object-gate PASS did not prevent fake ground slabs/holes, so it stays rejected.
+> **Bosch caveats:** keep the foreground black car, lower out-of-FOV black band, and residual sky-panel discontinuity explicit. For world-model use, fake generated ground/curb is worse than an honest source/capture caveat.
+> **Locations:** `deliverables/dit360_v2/db38_bosch_handoff/db38_bosch_handoff_board.jpg`, `deliverables/dit360_v2/db38_bosch_handoff/db38_bosch_handoff_manifest.json`; current image `deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png`.
+> **Conclusion:** the project now has a defensible current handoff candidate and a clear negative result boundary: do not keep patching the G ground seam; use DB32 for handoff unless new source/depth/temporal evidence appears.
+> ---
+
 > ### 2026-06-04 (DB-37 Google/Meta seam-mechanism gap audit - closed / no new local repair)
 > **Goal:** answer the user's Google Maps / Meta 360 concern directly after DB35/36: determine whether a production-style seam mechanism remains untested for the `G_bmw_pano` long red-line / right white-line seam.
 > **What ran:** created `deliverables/dit360_v2/db37_google_meta_gap_audit/db37_google_meta_gap_audit.md`, mapping public/primary technical sources against DB11-36 evidence. Sources checked include Google Street View panorama repair, Google Jump VR video, Meta Surround360, the Surround360 archive repo, and a street-view panorama stitching framework paper. No GPU, no model weights, no image edits.
