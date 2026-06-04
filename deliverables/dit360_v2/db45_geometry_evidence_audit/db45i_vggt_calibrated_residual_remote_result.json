@@ -1,0 +1,16 @@
+{
+  "db": "DB-45i",
+  "error": {
+    "type": "URLError",
+    "message": "<urlopen error [Errno 11001] getaddrinfo failed>",
+    "stage": "status_or_submit_exec"
+  },
+  "scope": {
+    "model_inference": false,
+    "renderer": false,
+    "erp_repair": false,
+    "source_replacement": false,
+    "generated_image": false,
+    "red_promotion": false
+  }
+}

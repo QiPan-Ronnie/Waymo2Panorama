@@ -1,0 +1,182 @@
+{
+  "db": "DB-45i",
+  "status": "vggt_calibrated_residual_extractor_gate",
+  "created_utc": "2026-06-04T16:29:27.269244+00:00",
+  "purpose": "Run or prepare one bounded VGGT calibrated residual extractor without repair or RED promotion.",
+  "scope": {
+    "one_a100_job_if_reachable": true,
+    "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+    "anchor": 0,
+    "raw_ring_cameras": 7,
+    "roi_count": 3,
+    "renderer": false,
+    "erp_repair": false,
+    "source_replacement": false,
+    "generated_image": false,
+    "diffusion_or_refiner": false,
+    "permission_promotion_allowed_without_db45b_target_surface_support": false
+  },
+  "decision": {
+    "accepted_evidence_type": "blocked-or-paused",
+    "accepted_db45_diagnostic_evidence": false,
+    "accepted_db45_geometry_evidence": false,
+    "runtime_ready": false,
+    "model_inference_ran": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "db45_status": "running",
+    "claim_boundary": "DB45i can accept decoded residual diagnostics only; geometry evidence and permission changes require DB45b/DB45h target-surface gates."
+  },
+  "refs": {
+    "db45b_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45b_evidence_permission_calibration_manifest.json",
+    "db45f_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45f_vggt_target_uv_sampling_gate_manifest.json",
+    "db45g_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45g_vggt_pose_decode_readiness_manifest.json",
+    "db45h_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45h_vggt_residual_job_contract_manifest.json",
+    "remote_result_json": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45i_vggt_calibrated_residual_remote_result.json",
+    "board": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45i_vggt_calibrated_residual_board.jpg"
+  },
+  "remote_result": {
+    "db": "DB-45i",
+    "error": {
+      "type": "URLError",
+      "message": "<urlopen error [Errno 11001] getaddrinfo failed>",
+      "stage": "status_or_submit_exec"
+    },
+    "scope": {
+      "model_inference": false,
+      "renderer": false,
+      "erp_repair": false,
+      "source_replacement": false,
+      "generated_image": false,
+      "red_promotion": false
+    }
+  },
+  "roi_policy": {
+    "db25_longline": {
+      "segment_id": "db45_db25_longline_low_evidence",
+      "label": "DB25 long-line low-support ROI",
+      "roi_xyxy": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "known_lidar_support_frac": 0.094
+    },
+    "db41_right_roi": {
+      "segment_id": "db45_db41_rightline_low_lidar",
+      "label": "DB41 right-white-line ROI",
+      "roi_xyxy": [
+        1440,
+        360,
+        2048,
+        720
+      ],
+      "known_lidar_support_frac": 0.084
+    },
+    "db41_lower_right_roi": {
+      "segment_id": "db45_db41_lower_right_zero_lidar",
+      "label": "DB41 lower-right zero-LiDAR ROI",
+      "roi_xyxy": [
+        1580,
+        560,
+        2048,
+        790
+      ],
+      "known_lidar_support_frac": 0.0
+    }
+  },
+  "checks": [
+    {
+      "id": "db45b_precondition",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45b permission calibration manifest is present."
+    },
+    {
+      "id": "db45h_contract_precondition",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45h residual contract manifest is present."
+    },
+    {
+      "id": "remote_job_completed",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "job=None exit=None error={'type': 'URLError', 'message': '<urlopen error [Errno 11001] getaddrinfo failed>', 'stage': 'status_or_submit_exec'}"
+    },
+    {
+      "id": "one_log_anchor_scope",
+      "pass": false,
+      "severity": "scope",
+      "evidence": "Remote result is constrained to BMW log anchor 0."
+    },
+    {
+      "id": "official_vggt_inference",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Official VGGT inference must run exactly once under DB45i."
+    },
+    {
+      "id": "pose_enc_saved",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "pose_enc_shape=None"
+    },
+    {
+      "id": "decoded_cameras_saved",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Decoded camera matrices are required."
+    },
+    {
+      "id": "preprocess_mapping_saved",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Preprocess mapping must be recorded for all 7 views."
+    },
+    {
+      "id": "sim3_alignment_recorded",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "scale=None mean=None max=None"
+    },
+    {
+      "id": "sim3_contract_thresholds_pass",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "reflection=None mean=None max=None"
+    },
+    {
+      "id": "target_surface_residuals_present",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "All frozen DB25/DB41 ROIs need residual summaries."
+    },
+    {
+      "id": "db41_lower_right_zero_lidar_preserved",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB41 lower-right remains zero-LiDAR abstain; if remote is blocked, no residual or promotion was produced."
+    },
+    {
+      "id": "no_red_promotion",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45i does not promote RED controls."
+    },
+    {
+      "id": "no_repair_or_generation",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45i scope forbids render/repair/source replacement/generation."
+    },
+    {
+      "id": "no_token_in_artifacts",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "secret_scan_hits=[]"
+    }
+  ],
+  "secret_scan_hits": []
+}
