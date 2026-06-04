@@ -1,0 +1,97 @@
+{
+  "db": "DB-45g",
+  "status": "vggt_pose_decode_readiness_gate",
+  "created_utc": "2026-06-04T15:30:56.111120+00:00",
+  "purpose": "Inspect official VGGT pose/camera decode readiness for a future metric pointmap/LiDAR residual job without running inference.",
+  "decision": {
+    "accepted_evidence_type": "blocked-or-no-go",
+    "residual_readiness": false,
+    "accepted_db45_geometry_evidence": false,
+    "model_inference_ran": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "db45_status": "running",
+    "claim_boundary": "Readiness-only: official pose decode may permit a future residual brief; no metric geometry evidence is accepted here."
+  },
+  "refs": {
+    "db45f_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45f_vggt_target_uv_sampling_gate_manifest.json",
+    "remote_result_json": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45g_vggt_pose_decode_readiness_remote_result.json",
+    "board": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45g_vggt_pose_decode_readiness_board.jpg"
+  },
+  "remote_result": {
+    "db": "DB-45g",
+    "error": {
+      "type": "HTTPError",
+      "message": "HTTP Error 530: <none>",
+      "stage": "submit_exec"
+    },
+    "scope": {
+      "source_api_inspection_only": true,
+      "model_load": false,
+      "model_inference": false,
+      "download": false,
+      "renderer": false,
+      "erp_repair": false,
+      "source_replacement": false,
+      "generated_image": false,
+      "red_promotion": false
+    }
+  },
+  "checks": [
+    {
+      "id": "db45f_precondition",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45f accepted diagnostic-only owner-UV evidence and no geometry evidence."
+    },
+    {
+      "id": "remote_job_completed",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Colab job None exit=None error={'type': 'HTTPError', 'message': 'HTTP Error 530: <none>', 'stage': 'submit_exec'}."
+    },
+    {
+      "id": "official_repo_present",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Official repo state: None"
+    },
+    {
+      "id": "pose_decode_candidate_found",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Decode candidates: None"
+    },
+    {
+      "id": "db45f_pose_key_available",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "DB45f remote VGGT prediction keys include pose_enc."
+    },
+    {
+      "id": "future_residual_requires_new_brief",
+      "pass": false,
+      "severity": "scope",
+      "evidence": "DB45g only decides readiness; any residual inference needs a new bounded sub-scope."
+    },
+    {
+      "id": "no_model_action_or_repair",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45g ran no model load, inference, renderer, repair, source replacement, or generation."
+    },
+    {
+      "id": "no_red_promotion",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "DB45g is readiness-only and does not change any permission state."
+    },
+    {
+      "id": "no_token_in_local_artifacts",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Secret scan hits: []"
+    }
+  ],
+  "secret_scan_hits": []
+}

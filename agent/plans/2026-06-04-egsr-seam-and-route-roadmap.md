@@ -47,7 +47,7 @@ DB45e VGGT frozen-ROI confidence probe is completed and accepted as **vggt-roi-c
 
 DB45f VGGT target-ROI owner-UV sampling gate is completed and accepted as **vggt-target-uv-sampling-diagnostic-only** evidence. Outputs are under `deliverables/dit360_v2/db45_geometry_evidence_audit/`, with script `scripts/phase3/db45f_vggt_target_uv_sampling_gate.py`. The saved A100 inference result was recovered without rerunning VGGT. DB45f samples official VGGT maps at source-owner raw-camera UV pixels used by the frozen ERP seam ROIs and records official preprocessing mapping, but it remains model-diagnostic metadata only: no geometry evidence accepted, no repaired panorama, no source replacement, no RED promotion. It kills VGGT confidence-only RED promotion. DB25/DB41 remain `RED/abstain`, DB41 lower-right remains zero-LiDAR abstain, and DB36/DB40 remain generated fake-geometry rejects.
 
-DB45 is **not closed** by these readiness/diagnostic passes. The next DB45 step, if continuing the source-faithful EGSR mainline, must open a fresh bounded question and bring true target-surface evidence beyond model confidence: track consistency, calibrated pointmap residuals against LiDAR/raw evidence, or another signal that can be compared directly against the same RED controls. Owner-camera confidence and target-ROI owner-UV model confidence are both now known insufficient for promotion. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
+DB45 is **not closed** by these readiness/diagnostic passes. DB45g is now opened as the next bounded readiness question: can VGGT pose/pointmap outputs be officially decoded and calibrated against the known camera rig/LiDAR well enough to justify a future residual job? DB45g is source/API inspection only: no model inference, no model load, no render/repair/source replacement, no RED promotion. Its first attempt is paused because the provided executor tunnel returned HTTP `530`; this is not a VGGT/API negative. Owner-camera confidence and target-ROI owner-UV model confidence are both now known insufficient for promotion. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
 
 ---
 
@@ -296,6 +296,7 @@ These are roadmap items, not direct execution commands. DB43 and DB44 are comple
 - DB45d VGGT official setup/load smoke: setup/checkpoint/API ready for a future ROI probe, but no geometry evidence accepted.
 - DB45e VGGT frozen-ROI confidence probe: accepted diagnostic owner-camera confidence only; no target-surface mapping, no geometry evidence, no RED promotion.
 - DB45f VGGT target-ROI owner-UV sampling gate: accepted diagnostic-only target-pixel VGGT metadata; confidence-only RED promotion killed; no geometry evidence, no RED promotion.
+- DB45g VGGT pose/pointmap metric-residual readiness gate: opened and paused on executor HTTP 530; source/API inspection only, no inference.
 
 **Parked future subtracks under DB-45 unless split into separate briefs:**
 

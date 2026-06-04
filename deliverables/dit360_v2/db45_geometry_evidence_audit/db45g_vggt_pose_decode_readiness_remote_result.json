@@ -1,0 +1,19 @@
+{
+  "db": "DB-45g",
+  "error": {
+    "type": "HTTPError",
+    "message": "HTTP Error 530: <none>",
+    "stage": "submit_exec"
+  },
+  "scope": {
+    "source_api_inspection_only": true,
+    "model_load": false,
+    "model_inference": false,
+    "download": false,
+    "renderer": false,
+    "erp_repair": false,
+    "source_replacement": false,
+    "generated_image": false,
+    "red_promotion": false
+  }
+}
