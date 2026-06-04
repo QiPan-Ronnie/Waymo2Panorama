@@ -309,7 +309,7 @@ Required vision check:
 Result summary: TBD -> archive to `progress.md` when done, then delete this brief.
 
 # DB-49: Bosch-facing data contract / handoff packet
-Status: running (DB49a accepted inventory-only; DB49b accepted partial sidecar starter pack; DB49c accepted source-id feasibility; DB49d accepted source-map instrumentation-only; DB49e paused on preflight preconditions)
+Status: paused after DB49e preflight (DB49a accepted inventory-only; DB49b accepted partial sidecar starter pack; DB49c accepted source-id feasibility; DB49d accepted source-map instrumentation-only; DB49e paused on preflight preconditions)
 Route: infra / handoff / data contract
 
 Question: How should the final Bosch-facing output expose caveats, generated regions, abstain masks, risk maps, and current-best image selection?
@@ -398,4 +398,42 @@ Required vision check:
 - Final board must include the image, masks, risk/abstain overlays, and same-ROI caveat crops.
 - Manual claim-language review before any Bosch/Koi-facing use.
 
-Result summary: DB49a accepted as `bosch-data-contract-inventory-only`; DB49b accepted as `sidecar-starter-pack-partial-only`; DB49c accepted as `source-id-map-feasibility-inventory-only`; DB49d accepted as `source-map-instrumentation-only`; DB49e accepted only `exact-lineage-source-map-rerun-preflight-only` and paused before rerun. DB49e preflight confirms the a200/DB32 lineage and DB49d sidecar support, but no source map was created because the local target log/data path is absent and no secure runtime secret source is available (`COLAB_URL/COLAB_TOKEN` env or non-repo runtime secret file). See the 2026-06-04 DB49e block at the top of `agent/progress.md`. `source_id_map` remains missing/blocking for DB32 until one exact lineage rerun saves and validates a true owner artifact; no narrative fill-in and no pasted-token command usage.
+Result summary: DB49a accepted as `bosch-data-contract-inventory-only`; DB49b accepted as `sidecar-starter-pack-partial-only`; DB49c accepted as `source-id-map-feasibility-inventory-only`; DB49d accepted as `source-map-instrumentation-only`; DB49e accepted only `exact-lineage-source-map-rerun-preflight-only` and paused before rerun. DB49e preflight confirms the a200/DB32 lineage and DB49d sidecar support, but no source map was created because the local target log/data path is absent and no secure runtime secret source is available (`COLAB_URL/COLAB_TOKEN` env or non-repo runtime secret file). Chat-pasted runtime JSON is not a secure runtime source for DB49e because DB49e forbids token echo/store/command-artifact use. See the 2026-06-04 DB49e block at the top of `agent/progress.md`. `source_id_map` remains missing/blocking for DB32 until one exact lineage rerun saves and validates a true owner artifact; no narrative fill-in and no pasted-token command usage.
+
+# DB-50: EGSR source-faithful operator v0 / GREEN-YELLOW segment repair
+Status: accepted Phase0 / paused pending follow-up sub-brief
+Route: A / source-faithful EGSR operator implementation
+
+Question: After DB43/DB44 accepted the fake-geometry gate and layer-aware dispatcher, can the project move from gate/report to a bounded source-faithful operator pass that only touches GREEN/YELLOW eligible seam components and keeps RED/no-evidence components abstained?
+
+Hypothesis: A useful first source-faithful EGSR operator must be weaker than a global inpainting model: keep/abstain, source-only hard select, DB-proven BEV road atlas where already valid, low-frequency photometric polish only when evidence says the seam is photometric, and LPAM-like local patch alignment only for evidence-GREEN far/static segments. Under current evidence, DB41 right/lower-right and generated fake-geometry controls should stay RED/abstain/reject; if no eligible executable target exists in current local artifacts, DB50 should stop at operator-readiness evidence instead of patch-on-patch.
+
+Why now: DB43/DB44 are accepted, DB45 VGGT residuals are diagnostic-only/no-promotion, DB47e confirms `a200` only as source-sidestep/current base, and DB49e is a provenance/data-contract pause rather than seam-quality progress. The main goal is now seam-quality and algorithm formation, so the next useful step is to audit which EGSR operators can actually execute safely under the current evidence gates.
+
+Expected evidence:
+- One CPU/local script, manifest, and board using existing DB43/DB44/DB45/DB47/DB49 evidence only.
+- Per-component operator-readiness table for the DB44 components: evidence state, protected structures, allowed branch, candidate operator, required inputs, executable-now status, and stop reason.
+- Explicit counts for GREEN/YELLOW/RED, executable source-faithful components, abstain components, source-sidestep-only components, presentation-only/generated components, and rejected fake-geometry controls.
+- If no safe operator can run from current local artifacts, the output must say so and recommend the next brief/precondition; no panorama repair is created under DB50 Phase0.
+- If an operator is later allowed by a follow-up sub-brief, expected evidence must include `source_faithful_erp`, `segment_map`, `operator_map`, non-fabricated provenance/source-state map, `risk_map`, `unknown_or_abstain_mask`, segment report, and same-ROI before/after board.
+
+Kill criteria:
+- Any DB41 right/lower-right, DB25/DB41 RED, generated fake-geometry, or no-evidence component is repaired or promoted.
+- LPAM/local alignment is marked executable without far/static GREEN evidence, raw/source pair support, and protected-structure checks.
+- The run creates a new panorama, source replacement, generated pixels, diffusion/DiT/FLUX output, VGGT residual promotion, or A100/HF/model action under this Phase0 readiness scope.
+- The output hides DB32's source-sidestep/generated-sky caveats or calls DB32 a source-faithful ceiling.
+- `G_bmw_pano` is treated as the default repair base instead of a classic BMW failure / diagnostic reference.
+- Operator-readiness is judged by a scalar metric or pretty board only, without reason-coded stop conditions and same-ROI vision requirements.
+- It suggests continuing after a kill condition instead of writing `progress.md` and stopping.
+
+Max scope:
+- Phase0 only: CPU/local existing-artifact operator-readiness audit over DB44's 29 components and frozen guardrails.
+- No new panorama repair, no renderer/dataset run, no source replacement, no generation, no HF/VGGT/DiT/FLUX, no A100/executor, no DB49e source-map rerun.
+- No more than one script/manifest/board. Output location: `deliverables/dit360_v2/db50_egsr_operator_v0/`.
+- Any actual operator implementation or remote run requires a follow-up DB50 sub-brief with its own kill criteria and max scope.
+
+Required vision check:
+- Board must show the operator-readiness matrix plus canonical visual context for DB32/a200 handoff, `G_bmw_pano` diagnostic failure, DB41 abstain, BEV/source-faithful ceiling, and fake-geometry rejects.
+- Board must label `no repair / no generation / no RED promotion / DB32 caveated / G diagnostic only`.
+
+Result summary: DB50 Phase0 accepted as `egsr-operator-readiness-existing-artifacts-only`; see the 2026-06-04 DB50 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db50_egsr_operator_readiness.py` reviewed all 29 DB44 components and created `deliverables/dit360_v2/db50_egsr_operator_v0/db50_egsr_operator_readiness_manifest.json` plus board. No repair/generation/remote/model/source replacement/DB49e rerun occurred. Current local artifacts contain 0 executable new source-faithful repair targets and 0 executable LPAM targets: counts are 3 presentation-only, 1 already-satisfied keep control, 2 source-sidestep-only, 1 existing BEV caveated control, and 22 abstain/reject. DB41 remains RED/no-evidence/abstain, `G_bmw_pano` remains diagnostic only, DB32 remains caveated handoff, and DB50 must not continue patch-on-patch without a fresh target-specific sub-brief carrying raw/source-pair evidence and protected-structure checks.

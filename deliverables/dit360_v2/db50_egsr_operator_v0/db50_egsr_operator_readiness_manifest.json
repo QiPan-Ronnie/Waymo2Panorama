@@ -1,0 +1,924 @@
+{
+  "db": "DB-50",
+  "status": "accepted_readiness_gate",
+  "created_utc": "2026-06-04T22:52:06.727087+00:00",
+  "accepted_evidence_type": "egsr-operator-readiness-existing-artifacts-only",
+  "purpose": "Move DB44 dispatcher toward source-faithful operator implementation by identifying which components are actually executable under current evidence gates.",
+  "scope": {
+    "cpu_local_only": true,
+    "existing_artifacts_only": true,
+    "component_count": 29,
+    "new_panorama_repair": false,
+    "renderer_or_dataset_run": false,
+    "a100_or_executor_used": false,
+    "hf_or_vggt_used": false,
+    "diffusion_or_generation": false,
+    "source_replacement": false,
+    "db49e_rerun": false,
+    "red_promotion": false,
+    "output_location": "deliverables/dit360_v2/db50_egsr_operator_v0"
+  },
+  "inputs": {
+    "decision_brief": "agent/decision_briefs.md",
+    "db43_manifest": "deliverables/dit360_v2/db43_source_faithfulness_gate/db43_source_faithfulness_gate_manifest.json",
+    "db44_manifest": "deliverables/dit360_v2/db44_layer_aware_dispatcher/db44_layer_aware_dispatcher_manifest.json",
+    "db49e_manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49e_exact_lineage_preflight_manifest.json",
+    "db43_status": "running-output",
+    "db44_status": "accepted_dry_run_gate",
+    "db49e_status": "preflight_paused"
+  },
+  "counts": {
+    "evidence_state": {
+      "YELLOW": 10,
+      "GREEN": 1,
+      "RED": 18
+    },
+    "readiness": {
+      "presentation_only": 3,
+      "already_satisfied_keep": 1,
+      "source_sidestep_only": 2,
+      "existing_caveated_operator_control": 1,
+      "abstain_or_reject": 22
+    },
+    "stop_reasons": {
+      "generated_or_presentation_branch_not_source_faithful": 3,
+      "positive_control_no_repair_needed": 1,
+      "source_selection_not_local_repair": 2,
+      "bev_ceiling_exists_but_phase0_does_not_rerun_dataset": 1,
+      "diagnostic_or_rejected_control": 6,
+      "red_or_no_evidence_boundary": 9,
+      "fake_geometry_reject": 7
+    },
+    "phase0_executable_repair_targets": 0,
+    "already_satisfied_keep_controls": 1,
+    "lpam_executable_targets": 0,
+    "red_promotions": 0,
+    "unsafe_db32_source_faithful_claims": 0
+  },
+  "operator_policy": {
+    "db41_right_lower_right": "remain RED/no-evidence/abstain; no repair or promotion under DB50 Phase0",
+    "g_bmw_pano": "classic BMW failure / diagnostic reference only; not default repair base",
+    "db32_s40": "Bosch-facing presentation/handoff candidate with source-sidestep + generated-sky caveats; not source-faithful ceiling",
+    "lpam": "not executable until a follow-up brief supplies far/static GREEN raw pair evidence and protected-structure checks",
+    "photometric_polish": "not executable from DB26-style rejected smudge evidence; needs evidence-GREEN photometric-only segment",
+    "bev_road": "existing source-faithful ceiling/control only; Phase0 does not rerun dataset"
+  },
+  "components": [
+    {
+      "component_id": "db44_db32_s40_full",
+      "title": "DB32 s40 current handoff",
+      "artifact": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+      "evidence_state": "YELLOW",
+      "claim_level": "caveated-handoff",
+      "allowed_branch": "handoff-caveated",
+      "segment_type": "T8 sky + T12 source-sidestep",
+      "db44_dispatch_operator": "O9 sky-only + O10 source/frame selection",
+      "readiness": "presentation_only",
+      "candidate_operator": "O9 sky-only + O10 source/frame selection",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "generated_or_presentation_branch_not_source_faithful",
+      "required_inputs": [
+        "generated_mask",
+        "license_caveat",
+        "presentation_flag"
+      ],
+      "protected_structures": [],
+      "reason_codes": [
+        "caveated_handoff",
+        "source_sidestep",
+        "sky_generated_caveat",
+        "generated_region",
+        "not_original_g_repair",
+        "DB32 cannot become source-faithful ceiling or original-G repair"
+      ]
+    },
+    {
+      "component_id": "db44_db34_source_preservation",
+      "title": "DB34 DB32 source preservation QA",
+      "artifact": "deliverables/dit360_v2/db34_current_best_qa/db34_current_best_review_board.jpg",
+      "evidence_state": "GREEN",
+      "claim_level": "source-faithful",
+      "allowed_branch": "source-faithful",
+      "segment_type": "T0 non-core source preservation",
+      "db44_dispatch_operator": "O0 keep source pixels",
+      "readiness": "already_satisfied_keep",
+      "candidate_operator": "O0 keep source pixels",
+      "executable_now": true,
+      "source_faithful_candidate": true,
+      "stop_reason": "positive_control_no_repair_needed",
+      "required_inputs": [
+        "source preservation proof"
+      ],
+      "protected_structures": [
+        "lane_or_right_line",
+        "road_topology",
+        "building"
+      ],
+      "reason_codes": [
+        "source_preserved",
+        "noncore_byte_exact",
+        "positive_control",
+        "positive control does not upgrade full DB32 to source-faithful"
+      ]
+    },
+    {
+      "component_id": "db44_db32_top_sky",
+      "title": "DB32 top sky generated/captured mix",
+      "artifact": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_top_montage.jpg",
+      "evidence_state": "YELLOW",
+      "claim_level": "presentation-only",
+      "allowed_branch": "presentation-only",
+      "segment_type": "T8 generated sky",
+      "db44_dispatch_operator": "O9 sky-only generated fill",
+      "readiness": "presentation_only",
+      "candidate_operator": "O9 sky-only generated fill",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "generated_or_presentation_branch_not_source_faithful",
+      "required_inputs": [
+        "generated_mask",
+        "license_caveat",
+        "presentation_flag"
+      ],
+      "protected_structures": [],
+      "reason_codes": [
+        "generated_region",
+        "sky_generated_caveat",
+        "residual_sky_panel",
+        "not_ground_truth",
+        "sky-generation acceptance cannot transfer to ground/curb/lane"
+      ]
+    },
+    {
+      "component_id": "db44_db32_s40_long_roi",
+      "title": "DB32 long seam ROI",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/DB32_s40_current_long_roi.jpg",
+      "evidence_state": "YELLOW",
+      "claim_level": "source-sidestep",
+      "allowed_branch": "source-sidestep",
+      "segment_type": "T12 source/frame candidate",
+      "db44_dispatch_operator": "O10 source/frame selection",
+      "readiness": "source_sidestep_only",
+      "candidate_operator": "O10 source/frame selection",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "source_selection_not_local_repair",
+      "required_inputs": [
+        "candidate lineage",
+        "same-ROI review",
+        "claim caveats"
+      ],
+      "protected_structures": [],
+      "reason_codes": [
+        "source_sidestep",
+        "not_original_g_repair",
+        "do not mix DB32 sidestep with original-G seam repair"
+      ]
+    },
+    {
+      "component_id": "db44_db28_a200_source_long",
+      "title": "DB28 a200 source long ROI",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/DB28_a200_source_long_roi.jpg",
+      "evidence_state": "YELLOW",
+      "claim_level": "source-sidestep",
+      "allowed_branch": "source-sidestep",
+      "segment_type": "T12 source/frame candidate",
+      "db44_dispatch_operator": "O10 source/frame selection",
+      "readiness": "source_sidestep_only",
+      "candidate_operator": "O10 source/frame selection",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "source_selection_not_local_repair",
+      "required_inputs": [
+        "candidate lineage",
+        "same-ROI review",
+        "claim caveats"
+      ],
+      "protected_structures": [],
+      "reason_codes": [
+        "source_sidestep",
+        "candidate_not_final",
+        "source selection must not be described as repaired seam"
+      ]
+    },
+    {
+      "component_id": "db44_bevfinal_source_faithful",
+      "title": "BEV/seamroute source-faithful ceiling",
+      "artifact": "deliverables/dit360_v2/db23_gate_fetch/seamroute/SR_bmw_bevfinal_1024x2048.png",
+      "evidence_state": "YELLOW",
+      "claim_level": "source-faithful",
+      "allowed_branch": "source-faithful",
+      "segment_type": "T3 planar road + T5 curb floor",
+      "db44_dispatch_operator": "O4 BEV road atlas + O0 curb abstain",
+      "readiness": "existing_caveated_operator_control",
+      "candidate_operator": "O4 BEV road atlas + O0 curb abstain",
+      "executable_now": false,
+      "source_faithful_candidate": true,
+      "stop_reason": "bev_ceiling_exists_but_phase0_does_not_rerun_dataset",
+      "required_inputs": [
+        "raw cameras",
+        "LiDAR",
+        "BEV ground atlas",
+        "curb abstain mask",
+        "source provenance"
+      ],
+      "protected_structures": [
+        "vehicle",
+        "curb",
+        "road_topology"
+      ],
+      "reason_codes": [
+        "source_faithful",
+        "curb_floor",
+        "out_of_fov_caveat",
+        "BEV road does not make off-plane curb/right-line repairable"
+      ]
+    },
+    {
+      "component_id": "db44_g_bmw_long",
+      "title": "G_bmw_pano long seam",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/G_bmw_pano_long_roi.jpg",
+      "evidence_state": "RED",
+      "claim_level": "diagnostic",
+      "allowed_branch": "diagnostic-only",
+      "segment_type": "T1/T2/T5 classic BMW seam",
+      "db44_dispatch_operator": "O0 keep/mark risk",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "diagnostic_or_rejected_control",
+      "required_inputs": [],
+      "protected_structures": [
+        "vehicle"
+      ],
+      "reason_codes": [
+        "classic_bmw_failure_reference",
+        "not_default_repair_base",
+        "source_boundary",
+        "G is diagnostic failure reference, not default repair base"
+      ]
+    },
+    {
+      "component_id": "db44_g_bmw_right",
+      "title": "G_bmw_pano right-line",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/G_bmw_pano_right_roi.jpg",
+      "evidence_state": "RED",
+      "claim_level": "diagnostic",
+      "allowed_branch": "abstain",
+      "segment_type": "T4/T5/T10 right line/curb",
+      "db44_dispatch_operator": "O0 keep/abstain",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "red_or_no_evidence_boundary",
+      "required_inputs": [],
+      "protected_structures": [
+        "vehicle",
+        "lane_or_right_line",
+        "curb"
+      ],
+      "reason_codes": [
+        "classic_bmw_failure_reference",
+        "right_line_failure",
+        "no_source_evidence_pending_db41",
+        "right-line/curb cannot be repaired from current DB41 evidence"
+      ]
+    },
+    {
+      "component_id": "db44_a1_view_none_right",
+      "title": "A1_view_none right ROI",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/A1_view_none_right_roi.jpg",
+      "evidence_state": "RED",
+      "claim_level": "diagnostic",
+      "allowed_branch": "diagnostic-only",
+      "segment_type": "T6/T7 object-adjacent seam",
+      "db44_dispatch_operator": "O0 keep/mark risk",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "red_or_no_evidence_boundary",
+      "required_inputs": [],
+      "protected_structures": [
+        "object"
+      ],
+      "reason_codes": [
+        "diagnostic_only",
+        "parallax_residual",
+        "not_final",
+        "A1 smoother regions cannot override long/right seam failures"
+      ]
+    },
+    {
+      "component_id": "db44_best_bmw_right",
+      "title": "BEST right ROI",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/BEST_bmw_pano_right_roi.jpg",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T6/T7 object/building ghost",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "red_or_no_evidence_boundary",
+      "required_inputs": [],
+      "protected_structures": [
+        "object",
+        "building"
+      ],
+      "reason_codes": [
+        "ghosting",
+        "unsafe_donor",
+        "not_source_faithful",
+        "donor ghosting is not a source-faithful improvement"
+      ]
+    },
+    {
+      "component_id": "db44_db19_g_sky_only",
+      "title": "DB19 G sky-only",
+      "artifact": "deliverables/dit360_v2/db19_G_bmw_pano_sky_t50_s0_postcompose_thr45.png",
+      "evidence_state": "YELLOW",
+      "claim_level": "presentation-only",
+      "allowed_branch": "presentation-only",
+      "segment_type": "T8 generated sky",
+      "db44_dispatch_operator": "O9 sky-only generated fill",
+      "readiness": "presentation_only",
+      "candidate_operator": "O9 sky-only generated fill",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "generated_or_presentation_branch_not_source_faithful",
+      "required_inputs": [
+        "generated_mask",
+        "license_caveat",
+        "presentation_flag"
+      ],
+      "protected_structures": [],
+      "reason_codes": [
+        "generated_region",
+        "sky_generated_caveat",
+        "ground_seam_unchanged",
+        "sky-only G output cannot become ground seam repair"
+      ]
+    },
+    {
+      "component_id": "db44_db23_ground_core",
+      "title": "DB23 ground outpaint",
+      "artifact": "deliverables/dit360_v2/db23_d4b_fetch/ground_t50_s0/ground_t50_s0_corecompose.png",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T9 generated ground",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "fake_geometry_reject",
+      "required_inputs": [],
+      "protected_structures": [
+        "lane_marking",
+        "curb",
+        "road_topology"
+      ],
+      "reason_codes": [
+        "fake_road",
+        "fake_lane",
+        "fake_curb",
+        "generated_region",
+        "detector_clean_but_geometry_fake",
+        "prompt-only ground outpaint remains blocked"
+      ]
+    },
+    {
+      "component_id": "db44_db23_full_core",
+      "title": "DB23 full outpaint",
+      "artifact": "deliverables/dit360_v2/db23_d4b_fetch/full_t50_s0/full_t50_s0_corecompose.png",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T8/T9 full generated out-of-FOV",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "fake_geometry_reject",
+      "required_inputs": [],
+      "protected_structures": [
+        "object",
+        "road_topology"
+      ],
+      "reason_codes": [
+        "generated_region",
+        "net_new_object",
+        "traffic_light",
+        "fake_scene",
+        "full outpaint cannot be Bosch training-data truth"
+      ]
+    },
+    {
+      "component_id": "db44_db36_user_redline",
+      "title": "DB36 user red-line DiT",
+      "artifact": "deliverables/dit360_v2/db36_user_redline_mask/G_bmw_pano_user_redline_tau5_fetch/G_bmw_pano_user_redline_tau5/db36_user_redline_tau5/db36_user_redline_tau5_corecompose.png",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T4/T5 ground/curb/right-line",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "red_or_no_evidence_boundary",
+      "required_inputs": [],
+      "protected_structures": [
+        "object",
+        "lane_or_right_line",
+        "curb",
+        "road_topology"
+      ],
+      "reason_codes": [
+        "fake_road",
+        "fake_curb",
+        "fake_slab",
+        "black_hole_or_patchy_hole",
+        "detector_clean_but_geometry_fake",
+        "outside_mask_ok_but_core_fake",
+        "narrow prompt mask cannot bypass fake-geometry gate"
+      ]
+    },
+    {
+      "component_id": "db44_db39_g_v14_raw",
+      "title": "DB39 G v14 raw",
+      "artifact": "deliverables/dit360_v2/db14_g_bmw_pano_fetch/G_bmw_pano/g_r008_h016_w025_tau5/g_r008_h016_w025_tau5_raw.png",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T4/T5 v14 seam",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "fake_geometry_reject",
+      "required_inputs": [],
+      "protected_structures": [
+        "pole"
+      ],
+      "reason_codes": [
+        "vertical_slice",
+        "pole_like_artifact",
+        "detector_clean_but_geometry_fake",
+        "not_source_faithful",
+        "old v14 raw artifact cannot become default route"
+      ]
+    },
+    {
+      "component_id": "db44_db39_best_v14_raw",
+      "title": "DB39 BEST v14 raw",
+      "artifact": "deliverables/dit360_v2/db14_best_bmw_pano_fetch/BEST_bmw_pano/best_r008_h016_w025_tau5/best_r008_h016_w025_tau5_raw.png",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T6/T7 donor ghost + v14 seam",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "fake_geometry_reject",
+      "required_inputs": [],
+      "protected_structures": [
+        "object"
+      ],
+      "reason_codes": [
+        "ghosting",
+        "vertical_slice",
+        "fake_slab",
+        "net_new_object",
+        "BEST donor cannot hide fake slice artifacts"
+      ]
+    },
+    {
+      "component_id": "db44_db39_a1_v14_raw",
+      "title": "DB39 A1 v14 raw",
+      "artifact": "deliverables/dit360_v2/db14_a1_view_none_fetch/A1_view_none_bmw/a1view_r008_h016_w025_tau5/a1view_r008_h016_w025_tau5_raw.png",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T6/T7 object-adjacent v14 seam",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "fake_geometry_reject",
+      "required_inputs": [],
+      "protected_structures": [
+        "object"
+      ],
+      "reason_codes": [
+        "vertical_slice",
+        "object_shape_changed",
+        "mask_source_mismatch",
+        "A1 v14 cannot reopen prompt-only ground seam"
+      ]
+    },
+    {
+      "component_id": "db44_db40_keepout_core",
+      "title": "DB40 A1 keepout",
+      "artifact": "deliverables/dit360_v2/db40_v14_mask_alignment/a1_keepout_strict_fetch/a1_keepout_strict/a1_keepout_strict_tau5/a1_keepout_strict_tau5_corecompose.png",
+      "evidence_state": "YELLOW",
+      "claim_level": "diagnostic",
+      "allowed_branch": "diagnostic-only",
+      "segment_type": "T6/T7 object keepout",
+      "db44_dispatch_operator": "O7 object-aware ownership diagnostic",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "fake_geometry_reject",
+      "required_inputs": [],
+      "protected_structures": [
+        "object",
+        "vehicle"
+      ],
+      "reason_codes": [
+        "root_cause_supported",
+        "partial_pass",
+        "vertical_edit_bands",
+        "not_final",
+        "keepout removing BMW slab does not solve long-source seam"
+      ]
+    },
+    {
+      "component_id": "db44_db40_longsrc_raw",
+      "title": "DB40 A1 longsrc raw",
+      "artifact": "deliverables/dit360_v2/db40_v14_mask_alignment/a1_longsrc_only_fetch/a1_longsrc_only_tau5/a1_longsrc_only_tau5_raw.png",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T1/T2 long-source seam",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "fake_geometry_reject",
+      "required_inputs": [],
+      "protected_structures": [
+        "object",
+        "pole"
+      ],
+      "reason_codes": [
+        "pole_like_artifact",
+        "vertical_slice",
+        "detector_clean_but_geometry_fake",
+        "object gate pass is insufficient"
+      ]
+    },
+    {
+      "component_id": "db44_db35_best_donor",
+      "title": "DB35 BEST donor patch",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/db35_rightline_best_donor_patch.png",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T4/T5 donor right-line",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "red_or_no_evidence_boundary",
+      "required_inputs": [],
+      "protected_structures": [
+        "vehicle",
+        "lane_or_right_line"
+      ],
+      "reason_codes": [
+        "unsafe_donor",
+        "ghosting",
+        "minimal_improvement",
+        "donor patch must not be patched-on-patch"
+      ]
+    },
+    {
+      "component_id": "db44_db35_a1_donor",
+      "title": "DB35 A1 donor patch",
+      "artifact": "deliverables/dit360_v2/db35_seam_first/db35_rightline_a1_donor_patch.png",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T4/T5 donor right-line",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "red_or_no_evidence_boundary",
+      "required_inputs": [],
+      "protected_structures": [
+        "lane_or_right_line"
+      ],
+      "reason_codes": [
+        "blur",
+        "soft_ground",
+        "not_source_faithful",
+        "A1 donor softening is not line repair"
+      ]
+    },
+    {
+      "component_id": "db44_db25_longline_evidence",
+      "title": "DB25 long-line evidence",
+      "artifact": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_evidence_montage.jpg",
+      "evidence_state": "RED",
+      "claim_level": "abstain",
+      "allowed_branch": "evidence-only",
+      "segment_type": "T10 low-support dark-wall/near-ground",
+      "db44_dispatch_operator": "O0 evidence-only abstain",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "red_or_no_evidence_boundary",
+      "required_inputs": [],
+      "protected_structures": [
+        "lane_or_right_line"
+      ],
+      "reason_codes": [
+        "no_source_evidence",
+        "low_lidar_support",
+        "low_key_pair_flow",
+        "low_flow_reliability",
+        "multi_camera_source_boundary",
+        "near_ground_low_texture",
+        "unknown_or_abstain",
+        "red_region_no_repair",
+        "flow/LiDAR weakness blocks geometry warp"
+      ]
+    },
+    {
+      "component_id": "db44_db24_source_boundary",
+      "title": "DB24 long-line source-boundary diagnosis",
+      "artifact": "deliverables/dit360_v2/db24_google_meta_line_diag/db24_longline_source_diag_montage.jpg",
+      "evidence_state": "RED",
+      "claim_level": "abstain",
+      "allowed_branch": "evidence-only",
+      "segment_type": "T10 source-boundary low-evidence seam",
+      "db44_dispatch_operator": "O0 explain/mark risk",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "diagnostic_or_rejected_control",
+      "required_inputs": [],
+      "protected_structures": [
+        "lane_or_right_line"
+      ],
+      "reason_codes": [
+        "source_boundary",
+        "multi_camera_source_boundary",
+        "near_ground_low_texture",
+        "production_overlap_missing",
+        "unknown_or_abstain",
+        "red_region_no_repair",
+        "Google/Meta analogy requires evidence not present here"
+      ]
+    },
+    {
+      "component_id": "db44_db26_photometric_smudge",
+      "title": "DB26 photometric attenuation",
+      "artifact": "deliverables/dit360_v2/db26_photometric_fetch/db26_attenuated_roi_montage.jpg",
+      "evidence_state": "YELLOW",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T1 photometric-only seam attempt",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "diagnostic_or_rejected_control",
+      "required_inputs": [],
+      "protected_structures": [
+        "lane_or_right_line"
+      ],
+      "reason_codes": [
+        "low_frequency_smudge",
+        "donor_blur_or_smudge",
+        "geometry_unchanged",
+        "line_not_fixed",
+        "photometric polish cannot cross into smudge/no geometry fix"
+      ]
+    },
+    {
+      "component_id": "db44_db41_right_roi",
+      "title": "DB41 right ROI",
+      "artifact": "deliverables/dit360_v2/db41_rightline_evidence_gate/right_roi/db25_longline_evidence_montage.jpg",
+      "evidence_state": "RED",
+      "claim_level": "abstain",
+      "allowed_branch": "abstain",
+      "segment_type": "T4/T5 right-line/curb",
+      "db44_dispatch_operator": "O0 abstain",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "red_or_no_evidence_boundary",
+      "required_inputs": [],
+      "protected_structures": [
+        "lane_or_right_line",
+        "curb"
+      ],
+      "reason_codes": [
+        "no_source_evidence",
+        "low_lidar_support",
+        "right_line_boundary",
+        "unknown_or_abstain",
+        "red_region_no_repair",
+        "DB41 right ROI must remain abstain"
+      ]
+    },
+    {
+      "component_id": "db44_db41_lower_right",
+      "title": "DB41 lower-right ROI",
+      "artifact": "deliverables/dit360_v2/db41_rightline_evidence_gate/lower_right_roi/db25_longline_evidence_montage.jpg",
+      "evidence_state": "RED",
+      "claim_level": "abstain",
+      "allowed_branch": "abstain",
+      "segment_type": "T4/T5/T10 lower-right line/curb",
+      "db44_dispatch_operator": "O0 abstain",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "red_or_no_evidence_boundary",
+      "required_inputs": [],
+      "protected_structures": [
+        "lane_or_right_line",
+        "curb"
+      ],
+      "reason_codes": [
+        "no_source_evidence",
+        "zero_lidar_support",
+        "near_ground",
+        "unknown_or_abstain",
+        "red_region_no_repair",
+        "DB41 lower-right must remain abstain"
+      ]
+    },
+    {
+      "component_id": "db44_db30_sky_mask_preview",
+      "title": "DB30 sky-panel mask",
+      "artifact": "deliverables/dit360_v2/db30_sky_panel_a200/opmask_sky_panel_preview.jpg",
+      "evidence_state": "RED",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T8 sky mask with foreground bleed",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "diagnostic_or_rejected_control",
+      "required_inputs": [],
+      "protected_structures": [
+        "object",
+        "road_topology",
+        "building"
+      ],
+      "reason_codes": [
+        "mask_leaks_to_buildings",
+        "mask_leaks_to_objects",
+        "generated_region",
+        "sky branch must not touch buildings/vehicles/road"
+      ]
+    },
+    {
+      "component_id": "db44_db33_s50_sky_halo",
+      "title": "DB33 local sky s50",
+      "artifact": "deliverables/dit360_v2/db33_local_sky_boundary_harmonize/db33_local_sky_boundary_harmonize_s50.png",
+      "evidence_state": "YELLOW",
+      "claim_level": "reject",
+      "allowed_branch": "rejected",
+      "segment_type": "T8 sky harmonization",
+      "db44_dispatch_operator": "O0 reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "diagnostic_or_rejected_control",
+      "required_inputs": [],
+      "protected_structures": [],
+      "reason_codes": [
+        "sky_halo",
+        "diagonal_color_band",
+        "source_safe_but_visual_fail",
+        "source-safe numerically still needs vision gate"
+      ]
+    },
+    {
+      "component_id": "db44_db31_nonbmw_montage",
+      "title": "DB31 relaxed scan failures",
+      "artifact": "deliverables/dit360_v2/db31_multilog_candidate_scan/db31_full_montage.jpg",
+      "evidence_state": "YELLOW",
+      "claim_level": "diagnostic",
+      "allowed_branch": "evidence-only",
+      "segment_type": "T12 dataset mining",
+      "db44_dispatch_operator": "O10 source/frame selection reject",
+      "readiness": "abstain_or_reject",
+      "candidate_operator": "none",
+      "executable_now": false,
+      "source_faithful_candidate": false,
+      "stop_reason": "diagnostic_or_rejected_control",
+      "required_inputs": [],
+      "protected_structures": [
+        "vehicle"
+      ],
+      "reason_codes": [
+        "dataset_mining_control",
+        "no_successor_found",
+        "not_top10_only",
+        "dataset mining must report failures, not cherry-pick"
+      ]
+    }
+  ],
+  "decision": {
+    "db50_status": "operator_readiness_accepted_no_repair_executed",
+    "source_faithful_operator_repair_executed": false,
+    "new_candidate_image_created": false,
+    "accepted_source_faithful_repair": false,
+    "accepted_original_g_repair": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "ready_for_uncaveated_bosch_training_data": false,
+    "next_allowed_step": "Open a follow-up DB50 sub-brief only for a target with raw/source pair evidence and protected-structure checks, or return to DB47f/DB49e when source selection/provenance is the priority. Do not patch-on-patch under Phase0."
+  },
+  "hard_checks": [
+    {
+      "id": "db50_brief_exists",
+      "pass": true,
+      "evidence": "DB50 brief exists before execution."
+    },
+    {
+      "id": "db44_input_accepted",
+      "pass": true,
+      "evidence": "DB44 status=accepted_dry_run_gate."
+    },
+    {
+      "id": "all_db44_components_reviewed",
+      "pass": true,
+      "evidence": "reviewed=29 expected=29."
+    },
+    {
+      "id": "no_phase0_panorama_repair",
+      "pass": true,
+      "evidence": "DB50 Phase0 emits readiness manifest/board only."
+    },
+    {
+      "id": "no_red_promotion",
+      "pass": true,
+      "evidence": "red_promotions=0."
+    },
+    {
+      "id": "db32_not_source_faithful_ceiling",
+      "pass": true,
+      "evidence": "unsafe_db32_source_faithful_claims=0."
+    },
+    {
+      "id": "lpam_not_executable_without_green_raw_pair",
+      "pass": true,
+      "evidence": "lpam_executable_targets=0 under current local artifacts."
+    },
+    {
+      "id": "db49e_stays_paused_not_seam_repair",
+      "pass": true,
+      "evidence": "DB49e status=preflight_paused; DB50 does not rerun source map."
+    },
+    {
+      "id": "strict_secret_scan_pass",
+      "pass": true,
+      "evidence": "Strict token/endpoint scan found no secret-like strings in DB50 inputs or manifest text."
+    }
+  ],
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db50_egsr_operator_v0/db50_egsr_operator_readiness_manifest.json",
+    "board": "deliverables/dit360_v2/db50_egsr_operator_v0/db50_egsr_operator_readiness_board.jpg"
+  },
+  "strict_secret_scan": {
+    "checked_paths": [
+      "agent/decision_briefs.md",
+      "deliverables/dit360_v2/db43_source_faithfulness_gate/db43_source_faithfulness_gate_manifest.json",
+      "deliverables/dit360_v2/db44_layer_aware_dispatcher/db44_layer_aware_dispatcher_manifest.json",
+      "deliverables/dit360_v2/db49_bosch_data_contract/db49e_exact_lineage_preflight_manifest.json"
+    ],
+    "hits": [],
+    "manifest_has_secret_pattern": false
+  }
+}
