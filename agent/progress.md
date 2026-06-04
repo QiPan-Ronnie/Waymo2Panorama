@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-45i current A100 endpoint reachability precheck - DNS failed / no job submitted)
+> **Goal:** before resuming the paused DB45i calibrated residual extractor, independently test whether the current user-provided A100 executor endpoint satisfies the required `/status` reachability gate.
+> **What ran:** one sandboxed and one approved non-sandbox network `GET /status` precheck against the current user-provided executor endpoint. No `/exec` request was sent, no remote job id was created, no DB45i `--run-remote` job was started, and no HF/VGGT/model/checkpoint/inference action occurred. The endpoint URL/token were used only as runtime secrets and were not written to artifacts.
+> **Result:** both `/status` checks failed at DNS resolution: remote name could not be resolved. This is still a Cloudflare/DNS/connectivity blocker before executor contact, not a VGGT model negative, not an A100 negative, and not geometry evidence.
+> **Decision:** DB45 remains paused on executor reachability. `status_reachable=false`, `db45i_run_remote_executed=false`, `exec_job_submitted=false`, `model_inference_ran=false`, `accepted_db45_diagnostic_evidence=false`, `accepted_db45_geometry_evidence=false`, `permission_state_changes=none`, and `red_promotions=[]`. Per the DB45i brief and handoff, do not run DB45i `--run-remote` until `/status` is independently confirmed for a fresh executor endpoint.
+> **Deliverables:** `deliverables/dit360_v2/db45_geometry_evidence_audit/db45i_reachability_precheck_20260604_current_endpoint.json`. No board or vision artifact was produced because the run stopped before executor contact.
+> **Next:** refresh the executor endpoint from the live runtime/Drive path or ask for a new tunnel after the Colab runtime republishes it; then repeat `/status` first. Do not continue DB45i patch-on-patch while DNS fails.
+> ---
+
 > ### 2026-06-04 (DB-49a Bosch data contract inventory - accepted inventory-only / not training-ready)
 > **Goal:** after DB47d narrowed source-selection review evidence without selecting a final candidate and DB45 remained paused on executor DNS, lock the minimum Bosch-facing data contract fields and current blocking gaps without inventing new masks or overstating DB32/DB47.
 > **What ran:** opened the DB49a Phase0 sub-scope in `agent/decision_briefs.md`, then ran CPU/local `scripts/phase3/db49a_bosch_data_contract_inventory.py`. It reads only existing DB32 diagnostics/candidate, DB34 current-best QA, DB38 Bosch handoff, DB41 right-line evidence, DB42 seam decision, DB43 source-faithfulness gate, DB45i paused VGGT residual, and DB47d exact-review artifacts. No A100, executor, HF/model inference, renderer, dataset scan, candidate image change, panorama repair, generation, source replacement, new generated mask, new abstain mask, new risk map, permission change, or RED promotion occurred.

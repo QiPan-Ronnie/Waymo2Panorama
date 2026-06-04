@@ -1,0 +1,44 @@
+{
+  "db": "DB-45i",
+  "status": "reachability_precheck_failed",
+  "created_utc": "2026-06-04T18:08:34.5044783Z",
+  "purpose": "Record the independent /status reachability gate for the current user-provided A100 executor before any DB45i --run-remote job.",
+  "endpoint_policy": {
+    "endpoint_source": "user_provided_runtime_json_current_turn",
+    "url_or_token_stored": false,
+    "token_written_to_artifact": false,
+    "exact_endpoint_written_to_artifact": false
+  },
+  "attempts": [
+    {
+      "environment": "sandbox",
+      "request": "GET /status only",
+      "submitted_exec_job": false,
+      "result": "dns_resolution_failed",
+      "error_class": "WebCmdletWebResponseException",
+      "error_summary": "remote name could not be resolved"
+    },
+    {
+      "environment": "approved_non_sandbox_network",
+      "request": "GET /status only",
+      "submitted_exec_job": false,
+      "result": "dns_resolution_failed",
+      "error_class": "WebCmdletWebResponseException",
+      "error_summary": "remote name could not be resolved"
+    }
+  ],
+  "decision": {
+    "status_reachable": false,
+    "db45i_run_remote_executed": false,
+    "exec_job_submitted": false,
+    "model_inference_ran": false,
+    "pose_or_decode_evidence_created": false,
+    "sim3_or_residual_evidence_created": false,
+    "accepted_db45_diagnostic_evidence": false,
+    "accepted_db45_geometry_evidence": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "claim_boundary": "This is a connectivity/reachability precheck only. It is not a VGGT model negative, not an A100 negative, and not geometry evidence."
+  },
+  "next": "Do not run DB45i --run-remote until /status reachability is independently confirmed for a fresh executor endpoint."
+}
