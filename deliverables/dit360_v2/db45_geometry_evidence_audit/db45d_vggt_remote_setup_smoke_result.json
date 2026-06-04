@@ -1,0 +1,179 @@
+{
+  "clone": {
+    "cmd": [
+      "git",
+      "clone",
+      "--depth",
+      "..."
+    ],
+    "duration_s": 5.55,
+    "returncode": 0,
+    "tail": "Cloning into '/content/vggt_db45d/vggt'...\n"
+  },
+  "confidence_source_inspection": {
+    "conf_score": [
+      "vggt/heads/track_head.py"
+    ],
+    "depth_conf": [
+      "vggt/models/vggt.py"
+    ],
+    "depth_head": [
+      "vggt/models/vggt.py"
+    ],
+    "point_conf": [],
+    "point_head": [
+      "vggt/models/vggt.py"
+    ],
+    "track_head": [
+      "vggt/models/vggt.py"
+    ],
+    "vis_score": [
+      "vggt/dependency/track_predict.py",
+      "vggt/heads/track_head.py"
+    ]
+  },
+  "db": "DB-45d",
+  "deps_after": {
+    "PIL": true,
+    "einops": true,
+    "huggingface_hub": true,
+    "numpy": true,
+    "safetensors": true,
+    "torch": true,
+    "torchvision": true,
+    "vggt": false
+  },
+  "deps_before": {
+    "PIL": true,
+    "einops": true,
+    "huggingface_hub": true,
+    "numpy": true,
+    "safetensors": true,
+    "torch": true,
+    "torchvision": true
+  },
+  "disk_free_gb_after": {
+    "/content": 59.51,
+    "/content/drive/MyDrive/koi_waymo2pano_colab": 56.54
+  },
+  "disk_free_gb_before": {
+    "/content": 64.35,
+    "/content/drive/MyDrive/koi_waymo2pano_colab": 61.13
+  },
+  "editable_install_no_deps": {
+    "cmd": [
+      "/usr/bin/python3",
+      "-m",
+      "pip",
+      "..."
+    ],
+    "duration_s": 6.0,
+    "returncode": 0,
+    "tail": ""
+  },
+  "ended_utc": "2026-06-04T14:28:16Z",
+  "hf_cache_sample": [
+    {
+      "rel": "hub/CACHEDIR.TAG",
+      "size_mb": 0.0
+    },
+    {
+      "rel": "hub/models--facebook--VGGT-1B-Commercial/blobs/a974d30bbbf104dbe14e5c4304efcbcdd66dea5d",
+      "size_mb": 0.0
+    },
+    {
+      "rel": "hub/models--facebook--VGGT-1B-Commercial/blobs/2b766b284359bc47ce26be107254621f685b758a0282082ff109f3ff02788b53",
+      "size_mb": 4793.52
+    },
+    {
+      "rel": "hub/models--facebook--VGGT-1B-Commercial/refs/main",
+      "size_mb": 0.0
+    },
+    {
+      "rel": "hub/models--facebook--VGGT-1B-Commercial/snapshots/ebb29a532abe92960eeb6903a5530f16990ef4ab/config.json",
+      "size_mb": 0.0
+    },
+    {
+      "rel": "hub/models--facebook--VGGT-1B-Commercial/snapshots/ebb29a532abe92960eeb6903a5530f16990ef4ab/model.safetensors",
+      "size_mb": 4793.52
+    },
+    {
+      "rel": "xet/logs/xet_20260604T142746845+0000_32186.log",
+      "size_mb": 0.47
+    }
+  ],
+  "model_load": {
+    "class": "VGGT",
+    "duration_s": 39.74,
+    "heads_present": {
+      "aggregator": true,
+      "camera_head": true,
+      "depth_head": true,
+      "point_head": true,
+      "track_head": true
+    },
+    "model_id": "facebook/VGGT-1B-Commercial",
+    "ok": true
+  },
+  "official_repo": {
+    "head": {
+      "cmd": [
+        "git",
+        "rev-parse",
+        "--short",
+        "..."
+      ],
+      "duration_s": 0.0,
+      "returncode": 0,
+      "tail": "a288dd0\n"
+    },
+    "path": "/content/vggt_db45d/vggt",
+    "remote": {
+      "cmd": [
+        "git",
+        "remote",
+        "get-url",
+        "..."
+      ],
+      "duration_s": 0.0,
+      "returncode": 0,
+      "tail": "https://github.com/facebookresearch/vggt.git\n"
+    }
+  },
+  "runtime": {
+    "cwd": "/content",
+    "hf_home": "/content/drive/MyDrive/koi_waymo2pano_colab/cache/hf_vggt_db45d",
+    "hf_token_present": true,
+    "python": "3.12.13"
+  },
+  "scope": {
+    "av_image_inference": false,
+    "download_or_load_commercial_checkpoint": true,
+    "install_official_vggt_package": true,
+    "panorama_generation": false,
+    "panorama_repair": false,
+    "renderer": false,
+    "source_replacement": false
+  },
+  "secret_policy": "HF token read from env only; not written to output.",
+  "small_dep_install": {
+    "duration_s": 0.0,
+    "returncode": 0,
+    "tail": "all small deps already importable"
+  },
+  "started_utc": "2026-06-04T14:27:13Z",
+  "torch": {
+    "cuda_available": true,
+    "cuda_device": "NVIDIA A100-SXM4-40GB",
+    "cuda_mem_alloc_gb_after_model_to_cuda": 4.69,
+    "cuda_mem_free_gb_after_model_to_cuda": 34.36,
+    "cuda_mem_free_gb_before_load": 39.08,
+    "version": "2.11.0+cu128"
+  },
+  "colab_job": {
+    "job_id": "6a83f5c518f84b0c9f6abd81eaf9f831",
+    "state": "done",
+    "exit_code": 0,
+    "duration_s": 66.51567459106445
+  }
+}

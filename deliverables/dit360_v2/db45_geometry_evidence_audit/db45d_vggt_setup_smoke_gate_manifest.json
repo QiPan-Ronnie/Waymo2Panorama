@@ -1,0 +1,285 @@
+{
+  "db": "DB-45d",
+  "status": "vggt_setup_smoke_gate",
+  "created_utc": "2026-06-04T14:31:03.695370+00:00",
+  "purpose": "Check whether the A100 runtime can load official VGGT Commercial and expose real confidence-capable API fields before any AV seam inference.",
+  "scope": {
+    "official_vggt_setup": true,
+    "commercial_checkpoint_download_or_load": true,
+    "av_image_inference": false,
+    "panorama_generation": false,
+    "panorama_repair": false,
+    "source_replacement": false,
+    "renderer": false,
+    "permission_state_changes": false
+  },
+  "refs": {
+    "db45b_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45b_evidence_permission_calibration_manifest.json",
+    "db45c_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45c_vggt_access_schema_gate_manifest.json",
+    "official_vggt_repo": "https://github.com/facebookresearch/vggt",
+    "official_checkpoint": "facebook/VGGT-1B-Commercial"
+  },
+  "remote_result": {
+    "clone": {
+      "cmd": [
+        "git",
+        "clone",
+        "--depth",
+        "..."
+      ],
+      "duration_s": 5.55,
+      "returncode": 0,
+      "tail": "Cloning into '/content/vggt_db45d/vggt'...\n"
+    },
+    "confidence_source_inspection": {
+      "conf_score": [
+        "vggt/heads/track_head.py"
+      ],
+      "depth_conf": [
+        "vggt/models/vggt.py"
+      ],
+      "depth_head": [
+        "vggt/models/vggt.py"
+      ],
+      "point_conf": [],
+      "point_head": [
+        "vggt/models/vggt.py"
+      ],
+      "track_head": [
+        "vggt/models/vggt.py"
+      ],
+      "vis_score": [
+        "vggt/dependency/track_predict.py",
+        "vggt/heads/track_head.py"
+      ]
+    },
+    "db": "DB-45d",
+    "deps_after": {
+      "PIL": true,
+      "einops": true,
+      "huggingface_hub": true,
+      "numpy": true,
+      "safetensors": true,
+      "torch": true,
+      "torchvision": true,
+      "vggt": false
+    },
+    "deps_before": {
+      "PIL": true,
+      "einops": true,
+      "huggingface_hub": true,
+      "numpy": true,
+      "safetensors": true,
+      "torch": true,
+      "torchvision": true
+    },
+    "disk_free_gb_after": {
+      "/content": 59.51,
+      "/content/drive/MyDrive/koi_waymo2pano_colab": 56.54
+    },
+    "disk_free_gb_before": {
+      "/content": 64.35,
+      "/content/drive/MyDrive/koi_waymo2pano_colab": 61.13
+    },
+    "editable_install_no_deps": {
+      "cmd": [
+        "/usr/bin/python3",
+        "-m",
+        "pip",
+        "..."
+      ],
+      "duration_s": 6.0,
+      "returncode": 0,
+      "tail": ""
+    },
+    "ended_utc": "2026-06-04T14:28:16Z",
+    "hf_cache_sample": [
+      {
+        "rel": "hub/CACHEDIR.TAG",
+        "size_mb": 0.0
+      },
+      {
+        "rel": "hub/models--facebook--VGGT-1B-Commercial/blobs/a974d30bbbf104dbe14e5c4304efcbcdd66dea5d",
+        "size_mb": 0.0
+      },
+      {
+        "rel": "hub/models--facebook--VGGT-1B-Commercial/blobs/2b766b284359bc47ce26be107254621f685b758a0282082ff109f3ff02788b53",
+        "size_mb": 4793.52
+      },
+      {
+        "rel": "hub/models--facebook--VGGT-1B-Commercial/refs/main",
+        "size_mb": 0.0
+      },
+      {
+        "rel": "hub/models--facebook--VGGT-1B-Commercial/snapshots/ebb29a532abe92960eeb6903a5530f16990ef4ab/config.json",
+        "size_mb": 0.0
+      },
+      {
+        "rel": "hub/models--facebook--VGGT-1B-Commercial/snapshots/ebb29a532abe92960eeb6903a5530f16990ef4ab/model.safetensors",
+        "size_mb": 4793.52
+      },
+      {
+        "rel": "xet/logs/xet_20260604T142746845+0000_32186.log",
+        "size_mb": 0.47
+      }
+    ],
+    "model_load": {
+      "class": "VGGT",
+      "duration_s": 39.74,
+      "heads_present": {
+        "aggregator": true,
+        "camera_head": true,
+        "depth_head": true,
+        "point_head": true,
+        "track_head": true
+      },
+      "model_id": "facebook/VGGT-1B-Commercial",
+      "ok": true
+    },
+    "official_repo": {
+      "head": {
+        "cmd": [
+          "git",
+          "rev-parse",
+          "--short",
+          "..."
+        ],
+        "duration_s": 0.0,
+        "returncode": 0,
+        "tail": "a288dd0\n"
+      },
+      "path": "/content/vggt_db45d/vggt",
+      "remote": {
+        "cmd": [
+          "git",
+          "remote",
+          "get-url",
+          "..."
+        ],
+        "duration_s": 0.0,
+        "returncode": 0,
+        "tail": "https://github.com/facebookresearch/vggt.git\n"
+      }
+    },
+    "runtime": {
+      "cwd": "/content",
+      "hf_home": "/content/drive/MyDrive/koi_waymo2pano_colab/cache/hf_vggt_db45d",
+      "hf_token_present": true,
+      "python": "3.12.13"
+    },
+    "scope": {
+      "av_image_inference": false,
+      "download_or_load_commercial_checkpoint": true,
+      "install_official_vggt_package": true,
+      "panorama_generation": false,
+      "panorama_repair": false,
+      "renderer": false,
+      "source_replacement": false
+    },
+    "secret_policy": "HF token read from env only; not written to output.",
+    "small_dep_install": {
+      "duration_s": 0.0,
+      "returncode": 0,
+      "tail": "all small deps already importable"
+    },
+    "started_utc": "2026-06-04T14:27:13Z",
+    "torch": {
+      "cuda_available": true,
+      "cuda_device": "NVIDIA A100-SXM4-40GB",
+      "cuda_mem_alloc_gb_after_model_to_cuda": 4.69,
+      "cuda_mem_free_gb_after_model_to_cuda": 34.36,
+      "cuda_mem_free_gb_before_load": 39.08,
+      "version": "2.11.0+cu128"
+    },
+    "colab_job": {
+      "job_id": "6a83f5c518f84b0c9f6abd81eaf9f831",
+      "state": "done",
+      "exit_code": 0,
+      "duration_s": 66.51567459106445
+    }
+  },
+  "official_confidence_api": {
+    "source": "facebookresearch/vggt current source and README",
+    "forward_outputs": [
+      "depth_conf",
+      "world_points_conf",
+      "conf"
+    ],
+    "note": "VGGT forward exposes depth confidence, world-point confidence, and optional track confidence. The future ROI probe must use these fields or an explicitly documented equivalent, not uniform constants."
+  },
+  "checks": [
+    {
+      "id": "db45c_hf_access_cleared",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45c recorded Commercial config HEAD=200."
+    },
+    {
+      "id": "remote_job_completed",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Colab job 6a83f5c518f84b0c9f6abd81eaf9f831 exit=0 error=None."
+    },
+    {
+      "id": "official_repo_available",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Official facebookresearch/vggt repo cloned or reused and git head recorded."
+    },
+    {
+      "id": "official_code_imported",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Official code was importable from the cloned repo path and the checkpoint loaded; editable package import check may remain false before sys.path insertion."
+    },
+    {
+      "id": "commercial_checkpoint_loaded",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Commercial checkpoint load completed through VGGT.from_pretrained."
+    },
+    {
+      "id": "confidence_api_fields_present",
+      "pass": true,
+      "severity": "blocker",
+      "evidence": "Official API exposes real confidence outputs such as depth_conf, world_points_conf, and optional track conf; uniform confidence remains rejected."
+    },
+    {
+      "id": "db45b_guardrails_active",
+      "pass": true,
+      "severity": "precondition",
+      "evidence": "DB45b guardrails pass with no RED promotions."
+    },
+    {
+      "id": "no_av_inference_or_repair",
+      "pass": true,
+      "severity": "scope",
+      "evidence": "DB45d did not run AV seam inference, renderer, source replacement, or repaired ERP generation."
+    }
+  ],
+  "decision": {
+    "accepted_evidence_type": "setup-and-api-smoke-only",
+    "accepted_db45_geometry_evidence": false,
+    "vggt_model_negative": false,
+    "vggt_setup_ready_for_future_roi_probe": true,
+    "vggt_roi_inference_ran": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "db45_remains_running": true,
+    "why": "DB45d only tests official setup/checkpoint/API readiness. Any ROI-level VGGT evidence still needs a separate bounded sub-scope and must pass DB45b negative controls.",
+    "remaining_roi_probe_requirements": [
+      "sync or upload the current DB45 extractor because /content/waymo2panorama was still stale in DB45c",
+      "write a target-ROI reducer that uses real confidence fields, not uniform constants",
+      "run only the frozen DB45 controls first",
+      "stop immediately on DB45b kill criteria and keep RED controls unpromoted unless target-surface support is proven"
+    ]
+  },
+  "outputs": {
+    "remote_result_json": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45d_vggt_remote_setup_smoke_result.json",
+    "manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45d_vggt_setup_smoke_gate_manifest.json",
+    "board": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45d_vggt_setup_smoke_gate_board.jpg"
+  },
+  "drive_outputs": {
+    "remote_result_json": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db45d_vggt_setup_smoke/db45d_remote_setup_smoke_result.json"
+  }
+}

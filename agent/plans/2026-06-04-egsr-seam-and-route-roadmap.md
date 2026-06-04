@@ -41,7 +41,9 @@ DB45b Existing-evidence permission calibration is completed and accepted as **pe
 
 DB45c VGGT Commercial access update + schema gate is completed and accepted as **readiness-and-schema-only** evidence. Outputs are under `deliverables/dit360_v2/db45_geometry_evidence_audit/`, with script `scripts/phase3/db45c_vggt_access_schema_gate.py`. HF Commercial file access is now cleared (`config.json` HEAD 403 -> 200), but this is not accepted VGGT geometry evidence. Current blockers remain: remote repo stale at `d544214`, `vggt` import missing, VGGT repo cache tarball 0 bytes, no verified checkpoint cache, and existing VGGT wrapper emits uniform `np.ones` confidence. No install/download/inference/repair was run, no DB45 permission state changed, and no RED control was promoted.
 
-DB45 is **not closed** by this phase0 pass. The next DB45 step, if continuing the source-faithful EGSR mainline, must be a scoped foundation-model evidence job with frozen ROI list, output schema, and promotion/kill thresholds. It must compare confidence/tracks/depth/flow against the same 8 controls and kill immediately if DB25/DB41/DB36/DB40 RED controls receive high confidence without target-surface raw/depth/flow support. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
+DB45d VGGT official setup/load smoke is completed and accepted as **setup-and-api-smoke-only** evidence. Outputs are under `deliverables/dit360_v2/db45_geometry_evidence_audit/`, with script `scripts/phase3/db45d_vggt_setup_smoke_gate.py`. One bounded A100 job cloned official VGGT, loaded `facebook/VGGT-1B-Commercial`, cached the checkpoint on Drive, and verified confidence-capable API fields. No AV image inference, renderer, repair, source replacement, or RED promotion was run. This clears the setup/checkpoint/API blocker for a future ROI probe, but still does not create accepted VGGT geometry evidence.
+
+DB45 is **not closed** by these readiness passes. The next DB45 step, if continuing the source-faithful EGSR mainline, must be a scoped foundation-model ROI evidence job with frozen ROI list, output schema, current extractor sync/upload, and promotion/kill thresholds. It must use real VGGT confidence/validity fields rather than the old uniform-confidence wrapper, compare confidence/tracks/depth/flow against the same 8 controls, and kill immediately if DB25/DB41/DB36/DB40 RED controls receive high confidence without target-surface raw/depth/flow support. DB46/DB48 remain side branches for presentation-only or center-preserve experiments and should not jump ahead unless the user explicitly switches priority for meeting/demo needs.
 
 ---
 
@@ -287,6 +289,7 @@ These are roadmap items, not direct execution commands. DB43 and DB44 are comple
 - DB45a VGGT feasibility gate: current-runtime no-go, not a VGGT model negative.
 - DB45b existing-evidence permission calibration: accepted permission-calibration-only guardrails, no RED promotion.
 - DB45c VGGT Commercial access update + schema gate: HF file access cleared, but VGGT route remains not evidence-ready.
+- DB45d VGGT official setup/load smoke: setup/checkpoint/API ready for a future ROI probe, but no geometry evidence accepted.
 
 **Parked future subtracks under DB-45 unless split into separate briefs:**
 
