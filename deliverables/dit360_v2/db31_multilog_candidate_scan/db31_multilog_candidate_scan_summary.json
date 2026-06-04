@@ -1,0 +1,1933 @@
+{
+  "selected_count": 22,
+  "selection": {
+    "per_log_limit": 8,
+    "bmw_limit": 12,
+    "global_limit": 32,
+    "roi": [
+      850,
+      420,
+      1650,
+      720
+    ]
+  },
+  "ranked_by_source_risk": [
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 200,
+      "rank_score_low_is_better": 0.08073060729274881,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.0596461582951389,
+      "roi_lidar_support": 0.31566666666666665,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03352099777246646,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0200_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 201,
+      "rank_score_low_is_better": 0.08073060729274881,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.0596461582951389,
+      "roi_lidar_support": 0.31566666666666665,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03352099777246646,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0201_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 204,
+      "rank_score_low_is_better": 0.08122266670283994,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.05995049025234375,
+      "roi_lidar_support": 0.312175,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03393816988999151,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0204_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 209,
+      "rank_score_low_is_better": 0.08208174860613673,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.06094701398810764,
+      "roi_lidar_support": 0.3007416666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03363274359562019,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0209_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 210,
+      "rank_score_low_is_better": 0.08209006643965248,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.06098623576779514,
+      "roi_lidar_support": 0.3002916666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03356406815968298,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0210_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 211,
+      "rank_score_low_is_better": 0.08209006643965248,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.06098623576779514,
+      "roi_lidar_support": 0.3002916666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03356406815968298,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0211_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 105,
+      "rank_score_low_is_better": 0.08210606086975566,
+      "yolo_edge_object_score": 0,
+      "roi_line_risk": 0.05977943971315105,
+      "roi_lidar_support": 0.3141375,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.036281380348010234,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0105_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 31,
+      "rank_score_low_is_better": 0.10333440443905528,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06338602762126735,
+      "roi_lidar_support": 0.2727583333333333,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03544083737286204,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0031_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 38,
+      "rank_score_low_is_better": 0.10338431050332487,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06343214952886285,
+      "roi_lidar_support": 0.2722291666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03544924660991559,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0038_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 40,
+      "rank_score_low_is_better": 0.10357344232205909,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06362353728715278,
+      "roi_lidar_support": 0.27003333333333335,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.035444233410902894,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0040_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 14,
+      "rank_score_low_is_better": 0.10482087741201222,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06487681841401909,
+      "roi_lidar_support": 0.2556541666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.0354312422177625,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0014_source.jpg"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 52,
+      "rank_score_low_is_better": 0.10614574594208728,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.06602696078689235,
+      "roi_lidar_support": 0.24245833333333333,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.03581952256709984,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0052_source.jpg"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 265,
+      "rank_score_low_is_better": 0.11820426697940258,
+      "yolo_edge_object_score": 1,
+      "roi_line_risk": 0.07583011125900607,
+      "roi_lidar_support": 0.29722916666666666,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.040831457156436664,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0265_source.jpg"
+    },
+    {
+      "log_id": "0bae3b5e",
+      "uuid": "0bae3b5e-417d-3b03-abaa-806b433233b8",
+      "anchor": 280,
+      "rank_score_low_is_better": 0.1263890248607233,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.064549240234375,
+      "roi_lidar_support": 0.31416666666666665,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.04408841028077398,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_0bae3b5e_a0280_source.jpg"
+    },
+    {
+      "log_id": "2c652f9e",
+      "uuid": "2c652f9e-8db8-3572-aa49-fae1344a875b",
+      "anchor": 160,
+      "rank_score_low_is_better": 0.1310984509538267,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.06265394804166667,
+      "roi_lidar_support": 0.244025,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.05876556202702228,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0160_source.jpg"
+    },
+    {
+      "log_id": "2c652f9e",
+      "uuid": "2c652f9e-8db8-3572-aa49-fae1344a875b",
+      "anchor": 155,
+      "rank_score_low_is_better": 0.13124963198275258,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.06275823661111112,
+      "roi_lidar_support": 0.24276666666666666,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.0588697674925366,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0155_source.jpg"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 275,
+      "rank_score_low_is_better": 0.13641694968340523,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.0759398112391276,
+      "roi_lidar_support": 0.2962125,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.04106030765395028,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0275_source.jpg"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 145,
+      "rank_score_low_is_better": 0.13772988933312452,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.07755968430625,
+      "roi_lidar_support": 0.2812,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.04037823339305446,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0145_source.jpg"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 45,
+      "rank_score_low_is_better": 0.1380938335966733,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.07788923383669706,
+      "roi_lidar_support": 0.2781458333333333,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.040454666133280505,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0045_source.jpg"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 50,
+      "rank_score_low_is_better": 0.1380956676710651,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.07789193137719184,
+      "roi_lidar_support": 0.2781208333333333,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.040452747319718346,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0050_source.jpg"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 40,
+      "rank_score_low_is_better": 0.1381037941228362,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.07789507850776911,
+      "roi_lidar_support": 0.2780916666666667,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.0404638124779268,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0040_source.jpg"
+    },
+    {
+      "log_id": "fbee355f",
+      "uuid": "fbee355f-8878-31fa-8ac8-b9a45a3f130a",
+      "anchor": 305,
+      "rank_score_low_is_better": 0.16949129657625064,
+      "yolo_edge_object_score": 2,
+      "roi_line_risk": 0.09832501165277775,
+      "roi_lidar_support": 0.32717083333333336,
+      "roi_active_labels": 4,
+      "midband_line_risk": 0.06481396649660642,
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_fbee355f_a0305_source.jpg"
+    }
+  ],
+  "summaries": [
+    {
+      "log_id": "0bae3b5e",
+      "uuid": "0bae3b5e-417d-3b03-abaa-806b433233b8",
+      "anchor": 280,
+      "timestamp_ns": 315969538349927216,
+      "yolo_edge_object_score": 2,
+      "routed_objects": 26,
+      "valid_frac_full": 0.2742495536804199,
+      "rank_score_low_is_better": 0.1263890248607233,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8366041666666667,
+        "lidar_support_frac": 0.31416666666666665,
+        "camera_label_counts": {
+          "0": 63311,
+          "1": 11360,
+          "5": 54153,
+          "6": 71961
+        },
+        "camera_label_fracs": {
+          "0": 0.31531737928630127,
+          "1": 0.05657793161839779,
+          "5": 0.26970640237069504,
+          "6": 0.35839828672460594
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0032958333333333333,
+        "max_row_horizontal_edge_frac": 0.1125,
+        "max_row_y": 669,
+        "p95_row_horizontal_edge_frac": 0.025437500000000102,
+        "line_risk_score_low_is_better": 0.064549240234375
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640229724702381,
+        "lidar_support_frac": 0.23175804501488095,
+        "camera_label_counts": {
+          "0": 78751,
+          "1": 77554,
+          "2": 83826,
+          "3": 83467,
+          "4": 83461,
+          "5": 84028,
+          "6": 80079
+        },
+        "camera_label_fracs": {
+          "0": 0.13787760475938693,
+          "1": 0.13578189177927258,
+          "2": 0.14676293756981332,
+          "3": 0.1461343987562285,
+          "4": 0.1461238939292605,
+          "5": 0.14711660007773572,
+          "6": 0.14020267312830245
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004929315476190476,
+        "max_row_horizontal_edge_frac": 0.08642578125,
+        "max_row_y": 669,
+        "p95_row_horizontal_edge_frac": 0.032275390624999956,
+        "line_risk_score_low_is_better": 0.04408841028077398
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_0bae3b5e_a0280_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_0bae3b5e_a0280_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "2c652f9e",
+      "uuid": "2c652f9e-8db8-3572-aa49-fae1344a875b",
+      "anchor": 155,
+      "timestamp_ns": 315966686699927214,
+      "yolo_edge_object_score": 2,
+      "routed_objects": 20,
+      "valid_frac_full": 0.27389097213745117,
+      "rank_score_low_is_better": 0.13124963198275258,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8287833333333333,
+        "lidar_support_frac": 0.24276666666666666,
+        "camera_label_counts": {
+          "0": 65450,
+          "1": 10982,
+          "5": 53568,
+          "6": 68908
+        },
+        "camera_label_fracs": {
+          "0": 0.32904659440545375,
+          "1": 0.05521145454179822,
+          "5": 0.2693104349749633,
+          "6": 0.3464315160777847
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.002758333333333333,
+        "max_row_horizontal_edge_frac": 0.1,
+        "max_row_y": 667,
+        "p95_row_horizontal_edge_frac": 0.016312500000000014,
+        "line_risk_score_low_is_better": 0.06275823661111112
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6629127139136904,
+        "lidar_support_frac": 0.17704961867559524,
+        "camera_label_counts": {
+          "0": 81557,
+          "1": 77177,
+          "2": 83548,
+          "3": 83529,
+          "4": 83854,
+          "5": 83796,
+          "6": 76750
+        },
+        "camera_label_fracs": {
+          "0": 0.14302951012870674,
+          "1": 0.1353481430558162,
+          "2": 0.14652120004700014,
+          "3": 0.14648787904828212,
+          "4": 0.1470578435000377,
+          "5": 0.146956126767109,
+          "6": 0.13459929745304808
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004567754836309524,
+        "max_row_horizontal_edge_frac": 0.10791015625,
+        "max_row_y": 389,
+        "p95_row_horizontal_edge_frac": 0.029809570312499978,
+        "line_risk_score_low_is_better": 0.0588697674925366
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0155_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0155_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "2c652f9e",
+      "uuid": "2c652f9e-8db8-3572-aa49-fae1344a875b",
+      "anchor": 160,
+      "timestamp_ns": 315966686949927221,
+      "yolo_edge_object_score": 2,
+      "routed_objects": 29,
+      "valid_frac_full": 0.27389097213745117,
+      "rank_score_low_is_better": 0.1310984509538267,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8287833333333333,
+        "lidar_support_frac": 0.244025,
+        "camera_label_counts": {
+          "0": 65450,
+          "1": 10982,
+          "5": 52987,
+          "6": 69489
+        },
+        "camera_label_fracs": {
+          "0": 0.32904659440545375,
+          "1": 0.05521145454179822,
+          "5": 0.2663894865968186,
+          "6": 0.3493524644559294
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0034416666666666667,
+        "max_row_horizontal_edge_frac": 0.1,
+        "max_row_y": 667,
+        "p95_row_horizontal_edge_frac": 0.016312500000000014,
+        "line_risk_score_low_is_better": 0.06265394804166667
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6629127139136904,
+        "lidar_support_frac": 0.1785063244047619,
+        "camera_label_counts": {
+          "0": 81557,
+          "1": 77177,
+          "2": 83548,
+          "3": 83536,
+          "4": 83847,
+          "5": 83144,
+          "6": 77402
+        },
+        "camera_label_fracs": {
+          "0": 0.14302951012870674,
+          "1": 0.1353481430558162,
+          "2": 0.14652120004700014,
+          "3": 0.14650015520570456,
+          "4": 0.14704556734261529,
+          "5": 0.1458126903900486,
+          "6": 0.13574273383010851
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.00474214099702381,
+        "max_row_horizontal_edge_frac": 0.10791015625,
+        "max_row_y": 389,
+        "p95_row_horizontal_edge_frac": 0.029809570312499978,
+        "line_risk_score_low_is_better": 0.05876556202702228
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0160_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_2c652f9e_a0160_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 265,
+      "timestamp_ns": 315971839799927216,
+      "yolo_edge_object_score": 1,
+      "routed_objects": 23,
+      "valid_frac_full": 0.2735743522644043,
+      "rank_score_low_is_better": 0.11820426697940258,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8380708333333333,
+        "lidar_support_frac": 0.29722916666666666,
+        "camera_label_counts": {
+          "0": 65446,
+          "1": 10528,
+          "5": 54389,
+          "6": 70774
+        },
+        "camera_label_fracs": {
+          "0": 0.3253802134863302,
+          "1": 0.0523424332668778,
+          "5": 0.2704077320433336,
+          "6": 0.3518696212034583
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0028291666666666665,
+        "max_row_horizontal_edge_frac": 0.12875,
+        "max_row_y": 670,
+        "p95_row_horizontal_edge_frac": 0.0129375000000001,
+        "line_risk_score_low_is_better": 0.07583011125900607
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6627836681547619,
+        "lidar_support_frac": 0.25782877604166665,
+        "camera_label_counts": {
+          "0": 81517,
+          "1": 76971,
+          "2": 83631,
+          "3": 83368,
+          "4": 83755,
+          "5": 83474,
+          "6": 77384
+        },
+        "camera_label_fracs": {
+          "0": 0.1429871952289072,
+          "1": 0.13501315558673918,
+          "2": 0.14669531661112087,
+          "3": 0.14623399403613402,
+          "4": 0.1469128223118751,
+          "5": 0.14641992632871426,
+          "6": 0.1357375898965094
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.00457124255952381,
+        "max_row_horizontal_edge_frac": 0.0830078125,
+        "max_row_y": 391,
+        "p95_row_horizontal_edge_frac": 0.030834960937499933,
+        "line_risk_score_low_is_better": 0.040831457156436664
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0265_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0265_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 40,
+      "timestamp_ns": 315971828549927215,
+      "yolo_edge_object_score": 2,
+      "routed_objects": 32,
+      "valid_frac_full": 0.2735743522644043,
+      "rank_score_low_is_better": 0.1381037941228362,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8380708333333333,
+        "lidar_support_frac": 0.2780916666666667,
+        "camera_label_counts": {
+          "0": 65215,
+          "1": 10713,
+          "5": 54394,
+          "6": 70815
+        },
+        "camera_label_fracs": {
+          "0": 0.3242317425436394,
+          "1": 0.05326220436816697,
+          "5": 0.27043259072174686,
+          "6": 0.35207346236644677
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0030666666666666668,
+        "max_row_horizontal_edge_frac": 0.12875,
+        "max_row_y": 670,
+        "p95_row_horizontal_edge_frac": 0.0129375000000001,
+        "line_risk_score_low_is_better": 0.07789507850776911
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6627836681547619,
+        "lidar_support_frac": 0.2645112537202381,
+        "camera_label_counts": {
+          "0": 81074,
+          "1": 77126,
+          "2": 83661,
+          "3": 83368,
+          "4": 83755,
+          "5": 83479,
+          "6": 77637
+        },
+        "camera_label_fracs": {
+          "0": 0.14221013857218032,
+          "1": 0.135285037712682,
+          "2": 0.14674793895807753,
+          "3": 0.14623399403613402,
+          "4": 0.1469128223118751,
+          "5": 0.1464286967198737,
+          "6": 0.13618137168917735
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004688662574404762,
+        "max_row_horizontal_edge_frac": 0.0830078125,
+        "max_row_y": 391,
+        "p95_row_horizontal_edge_frac": 0.030834960937499933,
+        "line_risk_score_low_is_better": 0.0404638124779268
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0040_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0040_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 45,
+      "timestamp_ns": 315971828799927214,
+      "yolo_edge_object_score": 2,
+      "routed_objects": 27,
+      "valid_frac_full": 0.2735743522644043,
+      "rank_score_low_is_better": 0.1380938335966733,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8380708333333333,
+        "lidar_support_frac": 0.2781458333333333,
+        "camera_label_counts": {
+          "0": 65399,
+          "1": 10528,
+          "5": 54394,
+          "6": 70816
+        },
+        "camera_label_fracs": {
+          "0": 0.3251465419092459,
+          "1": 0.0523424332668778,
+          "5": 0.27043259072174686,
+          "6": 0.3520784341021294
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.002958333333333333,
+        "max_row_horizontal_edge_frac": 0.12875,
+        "max_row_y": 670,
+        "p95_row_horizontal_edge_frac": 0.0129375000000001,
+        "line_risk_score_low_is_better": 0.07788923383669706
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6627836681547619,
+        "lidar_support_frac": 0.26467750186011907,
+        "camera_label_counts": {
+          "0": 81243,
+          "1": 76932,
+          "2": 83670,
+          "3": 83368,
+          "4": 83755,
+          "5": 83479,
+          "6": 77653
+        },
+        "camera_label_fracs": {
+          "0": 0.1425065777933696,
+          "1": 0.1349447465356955,
+          "2": 0.14676372566216453,
+          "3": 0.14623399403613402,
+          "4": 0.1469128223118751,
+          "5": 0.1464286967198737,
+          "6": 0.13620943694088755
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004664248511904762,
+        "max_row_horizontal_edge_frac": 0.0830078125,
+        "max_row_y": 391,
+        "p95_row_horizontal_edge_frac": 0.030834960937499933,
+        "line_risk_score_low_is_better": 0.040454666133280505
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0045_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0045_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 50,
+      "timestamp_ns": 315971829049927217,
+      "yolo_edge_object_score": 2,
+      "routed_objects": 32,
+      "valid_frac_full": 0.2735743522644043,
+      "rank_score_low_is_better": 0.1380956676710651,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8380708333333333,
+        "lidar_support_frac": 0.2781208333333333,
+        "camera_label_counts": {
+          "0": 65402,
+          "1": 10528,
+          "5": 54883,
+          "6": 70324
+        },
+        "camera_label_fracs": {
+          "0": 0.32516145711629385,
+          "1": 0.0523424332668778,
+          "5": 0.27286376947055985,
+          "6": 0.3496323401462685
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0033166666666666665,
+        "max_row_horizontal_edge_frac": 0.12875,
+        "max_row_y": 670,
+        "p95_row_horizontal_edge_frac": 0.020062500000000014,
+        "line_risk_score_low_is_better": 0.07789193137719184
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6627836681547619,
+        "lidar_support_frac": 0.2647123790922619,
+        "camera_label_counts": {
+          "0": 81261,
+          "1": 76932,
+          "2": 83670,
+          "3": 83368,
+          "4": 83755,
+          "5": 83968,
+          "6": 77146
+        },
+        "camera_label_fracs": {
+          "0": 0.1425381512015436,
+          "1": 0.1349447465356955,
+          "2": 0.14676372566216453,
+          "3": 0.14623399403613402,
+          "4": 0.1469128223118751,
+          "5": 0.1472864409752675,
+          "6": 0.13532011927731977
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004761904761904762,
+        "max_row_horizontal_edge_frac": 0.0830078125,
+        "max_row_y": 391,
+        "p95_row_horizontal_edge_frac": 0.030834960937499933,
+        "line_risk_score_low_is_better": 0.040452747319718346
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0050_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0050_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 145,
+      "timestamp_ns": 315971833799927209,
+      "yolo_edge_object_score": 2,
+      "routed_objects": 26,
+      "valid_frac_full": 0.2735743522644043,
+      "rank_score_low_is_better": 0.13772988933312452,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8380708333333333,
+        "lidar_support_frac": 0.2812,
+        "camera_label_counts": {
+          "0": 63597,
+          "1": 12333,
+          "5": 54394,
+          "6": 70813
+        },
+        "camera_label_fracs": {
+          "0": 0.31618747420912113,
+          "1": 0.06131641617405052,
+          "5": 0.27043259072174686,
+          "6": 0.3520635188950815
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0037916666666666667,
+        "max_row_horizontal_edge_frac": 0.12875,
+        "max_row_y": 670,
+        "p95_row_horizontal_edge_frac": 0.030062500000000013,
+        "line_risk_score_low_is_better": 0.07755968430625
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6627836681547619,
+        "lidar_support_frac": 0.26606677827380953,
+        "camera_label_counts": {
+          "0": 79441,
+          "1": 78707,
+          "2": 83700,
+          "3": 83368,
+          "4": 83755,
+          "5": 83479,
+          "6": 77650
+        },
+        "camera_label_fracs": {
+          "0": 0.13934572881950535,
+          "1": 0.13805823539729872,
+          "2": 0.14681634800912122,
+          "3": 0.14623399403613402,
+          "4": 0.1469128223118751,
+          "5": 0.1464286967198737,
+          "6": 0.1362041747061919
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004909551711309524,
+        "max_row_horizontal_edge_frac": 0.0830078125,
+        "max_row_y": 391,
+        "p95_row_horizontal_edge_frac": 0.030834960937499933,
+        "line_risk_score_low_is_better": 0.04037823339305446
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0145_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0145_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "9f871fb4",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 275,
+      "timestamp_ns": 315971840299927209,
+      "yolo_edge_object_score": 2,
+      "routed_objects": 21,
+      "valid_frac_full": 0.2735743522644043,
+      "rank_score_low_is_better": 0.13641694968340523,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8380708333333333,
+        "lidar_support_frac": 0.2962125,
+        "camera_label_counts": {
+          "0": 65461,
+          "1": 10513,
+          "5": 54389,
+          "6": 70774
+        },
+        "camera_label_fracs": {
+          "0": 0.32545478952156986,
+          "1": 0.05226785723163814,
+          "5": 0.2704077320433336,
+          "6": 0.3518696212034583
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0028458333333333335,
+        "max_row_horizontal_edge_frac": 0.12875,
+        "max_row_y": 670,
+        "p95_row_horizontal_edge_frac": 0.0129375000000001,
+        "line_risk_score_low_is_better": 0.0759398112391276
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6627836681547619,
+        "lidar_support_frac": 0.2536690848214286,
+        "camera_label_counts": {
+          "0": 81532,
+          "1": 76956,
+          "2": 83657,
+          "3": 83342,
+          "4": 83755,
+          "5": 83474,
+          "6": 77384
+        },
+        "camera_label_fracs": {
+          "0": 0.14301350640238555,
+          "1": 0.13498684441326084,
+          "2": 0.14674092264514998,
+          "3": 0.1461883880021049,
+          "4": 0.1469128223118751,
+          "5": 0.14641992632871426,
+          "6": 0.1357375898965094
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004597981770833333,
+        "max_row_horizontal_edge_frac": 0.0830078125,
+        "max_row_y": 391,
+        "p95_row_horizontal_edge_frac": 0.030834960937499933,
+        "line_risk_score_low_is_better": 0.04106030765395028
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0275_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_9f871fb4_a0275_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "fbee355f",
+      "uuid": "fbee355f-8878-31fa-8ac8-b9a45a3f130a",
+      "anchor": 305,
+      "timestamp_ns": 315967356449927217,
+      "yolo_edge_object_score": 2,
+      "routed_objects": 15,
+      "valid_frac_full": 0.2737712860107422,
+      "rank_score_low_is_better": 0.16949129657625064,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8350666666666666,
+        "lidar_support_frac": 0.32717083333333336,
+        "camera_label_counts": {
+          "0": 66001,
+          "1": 11058,
+          "5": 53495,
+          "6": 69862
+        },
+        "camera_label_fracs": {
+          "0": 0.32932001437011016,
+          "1": 0.05517523551013891,
+          "5": 0.2669198068018521,
+          "6": 0.34858494331789874
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0030791666666666667,
+        "max_row_horizontal_edge_frac": 0.175,
+        "max_row_y": 669,
+        "p95_row_horizontal_edge_frac": 0.015062500000000013,
+        "line_risk_score_low_is_better": 0.09832501165277775
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6632475353422619,
+        "lidar_support_frac": 0.2669049944196429,
+        "camera_label_counts": {
+          "0": 82026,
+          "1": 77002,
+          "2": 83567,
+          "3": 83441,
+          "4": 83743,
+          "5": 83471,
+          "6": 77249
+        },
+        "camera_label_fracs": {
+          "0": 0.1437793931277706,
+          "1": 0.13497306743745388,
+          "2": 0.14648053721391274,
+          "3": 0.1462596779310744,
+          "4": 0.146789039069306,
+          "5": 0.14631226347460732,
+          "6": 0.1354060217458751
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004656110491071429,
+        "max_row_horizontal_edge_frac": 0.13330078125,
+        "max_row_y": 669,
+        "p95_row_horizontal_edge_frac": 0.030786132812499978,
+        "line_risk_score_low_is_better": 0.06481396649660642
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_fbee355f_a0305_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_fbee355f_a0305_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 105,
+      "timestamp_ns": 315966075799927209,
+      "yolo_edge_object_score": 0,
+      "routed_objects": 22,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.08210606086975566,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.3141375,
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.00275,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.05977943971315105
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.2335995628720238,
+        "camera_label_counts": {
+          "0": 81667,
+          "1": 77186,
+          "2": 84172,
+          "3": 83613,
+          "4": 83586,
+          "5": 83597,
+          "6": 77374
+        },
+        "camera_label_fracs": {
+          "0": 0.14297569131382454,
+          "1": 0.13513073468780365,
+          "2": 0.1473612339043584,
+          "3": 0.14638258388116143,
+          "4": 0.14633531455982632,
+          "5": 0.14635457243148137,
+          "6": 0.1354598692215443
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004601469494047619,
+        "max_row_horizontal_edge_frac": 0.0712890625,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.036281380348010234
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0105_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0105_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 200,
+      "timestamp_ns": 315966080549927216,
+      "yolo_edge_object_score": 0,
+      "routed_objects": 11,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.08073060729274881,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.31566666666666665,
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.00275,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.0596461582951389
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.2770542689732143,
+        "camera_label_counts": {
+          "0": 81650,
+          "1": 77203,
+          "2": 84172,
+          "3": 83613,
+          "4": 85574,
+          "5": 81609,
+          "6": 77374
+        },
+        "camera_label_fracs": {
+          "0": 0.14294592914853946,
+          "1": 0.1351604968530887,
+          "2": 0.1473612339043584,
+          "3": 0.14638258388116143,
+          "4": 0.14981573718257338,
+          "5": 0.1428741498087343,
+          "6": 0.1354598692215443
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004701450892857143,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03181152343749993,
+        "line_risk_score_low_is_better": 0.03352099777246646
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0200_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0200_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 201,
+      "timestamp_ns": 315966080599927219,
+      "yolo_edge_object_score": 0,
+      "routed_objects": 13,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.08073060729274881,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.31566666666666665,
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.00275,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.0596461582951389
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.2770542689732143,
+        "camera_label_counts": {
+          "0": 81650,
+          "1": 77203,
+          "2": 84172,
+          "3": 83613,
+          "4": 85503,
+          "5": 81680,
+          "6": 77374
+        },
+        "camera_label_fracs": {
+          "0": 0.14294592914853946,
+          "1": 0.1351604968530887,
+          "2": 0.1473612339043584,
+          "3": 0.14638258388116143,
+          "4": 0.14969143637461813,
+          "5": 0.14299845061668956,
+          "6": 0.1354598692215443
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004701450892857143,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03181152343749993,
+        "line_risk_score_low_is_better": 0.03352099777246646
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0201_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0201_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 204,
+      "timestamp_ns": 315966080749927223,
+      "yolo_edge_object_score": 0,
+      "routed_objects": 15,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.08122266670283994,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.312175,
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.00275,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.05995049025234375
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.2781529017857143,
+        "camera_label_counts": {
+          "0": 81592,
+          "1": 77261,
+          "2": 84172,
+          "3": 83613,
+          "4": 83635,
+          "5": 83548,
+          "6": 77374
+        },
+        "camera_label_fracs": {
+          "0": 0.14284438764344926,
+          "1": 0.1352620383581789,
+          "2": 0.1473612339043584,
+          "3": 0.14638258388116143,
+          "4": 0.1464210996244715,
+          "5": 0.14626878736683618,
+          "6": 0.1354598692215443
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004624720982142857,
+        "max_row_horizontal_edge_frac": 0.07080078125,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.03393816988999151
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0204_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0204_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 209,
+      "timestamp_ns": 315966080999927218,
+      "yolo_edge_object_score": 0,
+      "routed_objects": 14,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.08208174860613673,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.3007416666666667,
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.00275,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.06094701398810764
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.27464425223214284,
+        "camera_label_counts": {
+          "0": 81807,
+          "1": 77046,
+          "2": 83892,
+          "3": 83865,
+          "4": 83614,
+          "5": 83597,
+          "6": 77374
+        },
+        "camera_label_fracs": {
+          "0": 0.143220791498525,
+          "1": 0.13488563450310315,
+          "2": 0.14687103353495742,
+          "3": 0.1468237642136223,
+          "4": 0.14638433459676642,
+          "5": 0.14635457243148137,
+          "6": 0.1354598692215443
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004625883556547619,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.03363274359562019
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0209_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0209_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 210,
+      "timestamp_ns": 315966081049927222,
+      "yolo_edge_object_score": 0,
+      "routed_objects": 17,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.08209006643965248,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.3002916666666667,
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.00275,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.06098623576779514
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.27612537202380955,
+        "camera_label_counts": {
+          "0": 81807,
+          "1": 77046,
+          "2": 84060,
+          "3": 83713,
+          "4": 83598,
+          "5": 83597,
+          "6": 77374
+        },
+        "camera_label_fracs": {
+          "0": 0.143220791498525,
+          "1": 0.13488563450310315,
+          "2": 0.147165153756598,
+          "3": 0.14655765544166177,
+          "4": 0.14635632314708638,
+          "5": 0.14635457243148137,
+          "6": 0.1354598692215443
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004588681175595238,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.03356406815968298
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0210_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0210_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 211,
+      "timestamp_ns": 315966081099927209,
+      "yolo_edge_object_score": 0,
+      "routed_objects": 15,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.08209006643965248,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.3002916666666667,
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.00275,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.06098623576779514
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.27612537202380955,
+        "camera_label_counts": {
+          "0": 81807,
+          "1": 77046,
+          "2": 84060,
+          "3": 83716,
+          "4": 83595,
+          "5": 83597,
+          "6": 77374
+        },
+        "camera_label_fracs": {
+          "0": 0.143220791498525,
+          "1": 0.13488563450310315,
+          "2": 0.147165153756598,
+          "3": 0.1465629075884768,
+          "4": 0.14635107100027137,
+          "5": 0.14635457243148137,
+          "6": 0.1354598692215443
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004588681175595238,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.03356406815968298
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0211_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0211_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 14,
+      "timestamp_ns": 315966071249927215,
+      "yolo_edge_object_score": 1,
+      "routed_objects": 19,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.10482087741201222,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.2556541666666667,
+        "camera_label_counts": {
+          "0": 65134,
+          "1": 12148,
+          "5": 53410,
+          "6": 70930
+        },
+        "camera_label_fracs": {
+          "0": 0.3230500639811132,
+          "1": 0.06025136145857099,
+          "5": 0.2649016476376586,
+          "6": 0.35179692692265724
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0037166666666666667,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.06487681841401909
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.23585611979166668,
+        "camera_label_counts": {
+          "0": 81214,
+          "1": 77639,
+          "2": 84172,
+          "3": 83613,
+          "4": 83586,
+          "5": 83191,
+          "6": 77780
+        },
+        "camera_label_fracs": {
+          "0": 0.1421826171447579,
+          "1": 0.13592380885687025,
+          "2": 0.1473612339043584,
+          "3": 0.14638258388116143,
+          "4": 0.14633531455982632,
+          "5": 0.14564378189584992,
+          "6": 0.13617065975717574
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004824683779761905,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.0354312422177625
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0014_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0014_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 31,
+      "timestamp_ns": 315966072099927217,
+      "yolo_edge_object_score": 1,
+      "routed_objects": 31,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.10333440443905528,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.2727583333333333,
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.00275,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.06338602762126735
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.23564918154761905,
+        "camera_label_counts": {
+          "0": 81807,
+          "1": 77360,
+          "2": 83885,
+          "3": 83586,
+          "4": 83586,
+          "5": 83618,
+          "6": 77353
+        },
+        "camera_label_fracs": {
+          "0": 0.143220791498525,
+          "1": 0.13543535920307426,
+          "2": 0.14685877852572238,
+          "3": 0.14633531455982632,
+          "4": 0.14633531455982632,
+          "5": 0.14639133745918645,
+          "6": 0.13542310419383924
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.00463285900297619,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.03544083737286204
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0031_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0031_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 38,
+      "timestamp_ns": 315966072449927221,
+      "yolo_edge_object_score": 1,
+      "routed_objects": 27,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.10338431050332487,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.2722291666666667,
+        "camera_label_counts": {
+          "0": 65602,
+          "1": 11680,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.32537123924968503,
+          "1": 0.05793018618999911,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0028833333333333332,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.06343214952886285
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.2354678199404762,
+        "camera_label_counts": {
+          "0": 81682,
+          "1": 77661,
+          "2": 83682,
+          "3": 83613,
+          "4": 83586,
+          "5": 83537,
+          "6": 77434
+        },
+        "camera_label_fracs": {
+          "0": 0.1430019520478996,
+          "1": 0.13596232460018032,
+          "2": 0.14650338325790668,
+          "3": 0.14638258388116143,
+          "4": 0.14633531455982632,
+          "5": 0.14624952949518116,
+          "6": 0.13556491215784452
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004773530505952381,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.03544924660991559
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0038_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0038_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 40,
+      "timestamp_ns": 315966072549927223,
+      "yolo_edge_object_score": 1,
+      "routed_objects": 32,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.10357344232205909,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.27003333333333335,
+        "camera_label_counts": {
+          "0": 65614,
+          "1": 11668,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.32543075656426385,
+          "1": 0.05787066887542034,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.0028833333333333332,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.06362353728715278
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.23557593936011906,
+        "camera_label_counts": {
+          "0": 81694,
+          "1": 77449,
+          "2": 83882,
+          "3": 83613,
+          "4": 83772,
+          "5": 83419,
+          "6": 77366
+        },
+        "camera_label_fracs": {
+          "0": 0.14302296063515962,
+          "1": 0.13559117289191958,
+          "2": 0.1468535263789074,
+          "3": 0.14638258388116143,
+          "4": 0.146660947662357,
+          "5": 0.14604294505379073,
+          "6": 0.1354458634967043
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.0047502790178571425,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.035444233410902894
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0040_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0040_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    },
+    {
+      "log_id": "02a00399",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 52,
+      "timestamp_ns": 315966073149927212,
+      "yolo_edge_object_score": 1,
+      "routed_objects": 25,
+      "valid_frac_full": 0.27415895462036133,
+      "rank_score_low_is_better": 0.10614574594208728,
+      "roi_metrics": {
+        "roi": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "valid_frac": 0.8400916666666667,
+        "lidar_support_frac": 0.24245833333333333,
+        "camera_label_counts": {
+          "0": 65727,
+          "1": 11555,
+          "5": 53816,
+          "6": 70524
+        },
+        "camera_label_fracs": {
+          "0": 0.3259912112765472,
+          "1": 0.05731021416313696,
+          "5": 0.26691531678090685,
+          "6": 0.349783257779409
+        },
+        "active_label_count_gt5pct": 4,
+        "horizontal_edge_frac": 0.00275,
+        "max_row_horizontal_edge_frac": 0.10375,
+        "max_row_y": 671,
+        "p95_row_horizontal_edge_frac": 0.025062500000000015,
+        "line_risk_score_low_is_better": 0.06602696078689235
+      },
+      "midband_metrics": {
+        "roi": [
+          0,
+          360,
+          2048,
+          780
+        ],
+        "valid_frac": 0.6640566871279762,
+        "lidar_support_frac": 0.22748209635416666,
+        "camera_label_counts": {
+          "0": 81807,
+          "1": 76782,
+          "2": 84436,
+          "3": 83613,
+          "4": 83883,
+          "5": 83300,
+          "6": 77374
+        },
+        "camera_label_fracs": {
+          "0": 0.143220791498525,
+          "1": 0.1344234455833822,
+          "2": 0.14782342282407934,
+          "3": 0.14638258388116143,
+          "4": 0.14685527709451238,
+          "5": 0.1458346098967953,
+          "6": 0.1354598692215443
+        },
+        "active_label_count_gt5pct": 7,
+        "horizontal_edge_frac": 0.004787481398809524,
+        "max_row_horizontal_edge_frac": 0.06982421875,
+        "max_row_y": 393,
+        "p95_row_horizontal_edge_frac": 0.03173828125,
+        "line_risk_score_low_is_better": 0.03581952256709984
+      },
+      "source_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0052_source.jpg",
+      "roi_image": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db31_multilog_candidate_scan/db31_02a00399_a0052_roi.jpg",
+      "note": "ranking aid only; exact seamroute plus vision decides"
+    }
+  ],
+  "ranking_note": "candidate filter only; exact seamroute and vision review are authoritative"
+}
