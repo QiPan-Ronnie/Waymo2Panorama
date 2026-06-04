@@ -1,7 +1,7 @@
 {
   "db": "DB-45i",
   "status": "vggt_calibrated_residual_extractor_gate",
-  "created_utc": "2026-06-04T16:29:27.269244+00:00",
+  "created_utc": "2026-06-04T16:32:45.860437+00:00",
   "purpose": "Run or prepare one bounded VGGT calibrated residual extractor without repair or RED promotion.",
   "scope": {
     "one_a100_job_if_reachable": true,
@@ -49,6 +49,12 @@
       "source_replacement": false,
       "generated_image": false,
       "red_promotion": false
+    },
+    "db45b_permission_boundary": {
+      "accepted_db45_geometry_evidence": false,
+      "permission_state_changes": "none",
+      "red_promotions": [],
+      "claim": "Connectivity failed before model action; no permission state changed."
     }
   },
   "roi_policy": {

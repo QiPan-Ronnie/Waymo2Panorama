@@ -12,5 +12,11 @@
     "source_replacement": false,
     "generated_image": false,
     "red_promotion": false
+  },
+  "db45b_permission_boundary": {
+    "accepted_db45_geometry_evidence": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "claim": "Connectivity failed before model action; no permission state changed."
   }
 }
