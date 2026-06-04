@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-03 (DB-30 sky-panel harmonization for a200 - rejected before DiT)
+> **Goal:** remove the DB-29 center sky color/panel discontinuity by expanding the generate mask from black upper sky only to black sky plus detected existing sky pixels, while preserving buildings, trees, poles, cars, road, and storefronts.
+> **What ran:** added `scripts/phase3/db30_sky_panel_mask.py` and generated a conservative HSV/connectivity sky-panel mask on Colab for `SR_bmw_db28_a200_final_1024x2048.png`. No DiT run was launched.
+> **Mask metrics:** generated region `40.87%` of pano, with outer black sky `37.26%`, detected blue sky `3.02%`, and detected cloud-like region `1.81%`.
+> **Vision verdict:** **REJECTED before generation.** The preview shows the mask includes non-sky content: white building facades, bright wall/roof areas, and some vehicle/road-adjacent bright regions. This violates DB-30's kill criteria. Running DiT with this mask would risk rewriting real buildings/objects, which is worse for Bosch/world-model use than the DB-29 sky-panel color discontinuity.
+> **Locations:** Drive `results/db30_sky_panel_a200/masks/`; local `deliverables/dit360_v2/db30_sky_panel_a200/opmask_sky_panel.png`, `opmask_sky_panel_preview.jpg`, `opmask_sky_panel_source_pixels.jpg`; script `scripts/phase3/db30_sky_panel_mask.py`.
+> **Conclusion:** do not run automatic color-threshold sky-panel DiT on this sample. The current best a200 result remains DB-29 sky-only corecompose with an explicit caveat. A better next direction would require a stronger sky/foreground segmentation gate or a non-generative low-frequency sky-color harmonizer that cannot touch buildings/vehicles.
+> ---
+
 > ### 2026-06-03 (DB-29 DiT360 sky-only completion for clean-subset anchor 200 - accepted with sky-panel caveat)
 > **Goal:** apply only the already validated DiT360 sky-only operation to the DB-28 accepted source candidate `SR_bmw_db28_a200_final_1024x2048.png`, without touching ground, cars, or buildings.
 > **What ran:** A100/Drive DiT360 run through `scripts/phase3/run_db19_sky_colab.py`, tag `SR_bmw_db28_a200`, using `opmask_sky`, tau `50`, guidance `2.8`, seed `0`, halo `32`. Model weights stayed on Drive/Colab cache; no local weight download.

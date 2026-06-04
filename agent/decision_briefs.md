@@ -20,6 +20,7 @@ Result summary: TBD → archive to progress.md when done, then delete here.
 ```
 
 > **DONE THIS SESSION (2026-06-03, A100) — full record in `progress.md` (top "DiT360 SESSION SYNTHESIS" entry); kept here only as pointers so this queue stays short:**
+> - **DB-30 sky-panel harmonization for a200** = **REJECTED before DiT**: automatic HSV/connectivity sky-panel mask included building/vehicle/road-adjacent regions; no DiT run. Results: `deliverables/dit360_v2/db30_sky_panel_a200/`. Detail in progress.md.
 > - **DB-29 DiT360 sky-only completion for clean-subset anchor 200** = **ACCEPTED with sky-panel caveat**: object gate PASS (`netnew=0`), black sky band filled, source content preserved, but visible center sky color/panel discontinuity remains. Results: `deliverables/dit360_v2/db29_sky_clean_a200/`. Detail in progress.md.
 > - **DB-28 clean-subset source-boundary candidate mining** = **ACCEPTED source candidate**: strict-clean anchor `200` is a better base than BMW anchor 0 for follow-up sky-only completion; no long mid-frame red-line defect, seamcore risk `5.05%`. Results: `deliverables/dit360_v2/db28_clean_subset_refine/`. Detail in progress.md.
 > - **DB-27 temporal/frame-selection scan** = **EXPLORED / REJECTED for current BMW window**: nearby anchors 20/40 modestly improve LiDAR/risk metrics but remain the same source-label partition and are not clean same-scene replacements. Results: `deliverables/dit360_v2/db27_temporal_frame_scan/`. Detail in progress.md.
