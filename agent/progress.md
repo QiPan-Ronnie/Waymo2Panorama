@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-04 (DB-45i latest A100 endpoint reachability recheck - DNS failed / no job submitted)
+> **Goal:** with a fresh user-provided A100/Colab executor endpoint, resume only the already-open DB45i calibrated residual extractor if the required `/status` reachability gate passes.
+> **What ran:** one sandboxed and one approved non-sandbox `GET /status` precheck against the latest user-provided executor endpoint. The endpoint URL/token were used only as runtime secrets and were not written to artifacts. No `/exec` request was sent, no remote job id was created, no DB45i `--run-remote` job was started, and no HF/VGGT/model/checkpoint/inference action occurred.
+> **Result:** both `/status` checks failed at DNS resolution: remote name could not be resolved. This is still a Cloudflare/DNS/connectivity blocker before executor contact, not a VGGT model negative, not an A100 negative, and not geometry evidence.
+> **Decision:** DB45 remains paused on executor reachability. `status_reachable=false`, `db45i_run_remote_executed=false`, `exec_job_submitted=false`, `model_inference_ran=false`, `pose_or_decode_evidence_created=false`, `sim3_or_residual_evidence_created=false`, `accepted_db45_diagnostic_evidence=false`, `accepted_db45_geometry_evidence=false`, `permission_state_changes=none`, and `red_promotions=[]`. Per the DB45i brief and handoff, do not run DB45i `--run-remote` until `/status` is independently confirmed for a fresh executor endpoint.
+> **Deliverables:** updated sanitized reachability record `deliverables/dit360_v2/db45_geometry_evidence_audit/db45i_reachability_precheck_20260604_current_endpoint.json`. No board or vision artifact was produced because the run stopped before executor contact.
+> **Next:** wait for a reachable executor endpoint or fetch a refreshed `runtime/active_url.json`, then repeat `/status` first. Do not continue DB45i patch-on-patch while DNS fails.
+> ---
+
 > ### 2026-06-04 (DB-49c source_id_map feasibility - accepted inventory-only / source map still missing)
 > **Goal:** after DB49b materialized only the sidecars derivable from existing evidence, test whether a real per-pixel `source_id_map` for DB32 could be recovered from existing source-ownership artifacts or scripts without guessing ownership from RGB pixels, DB41 overlays, or ROI camera-label summaries.
 > **What ran:** under the DB49c Phase2 brief, ran CPU/local `scripts/phase3/db49c_source_id_map_feasibility.py`. It reads existing DB28/DB29/DB32/DB34/DB41/DB43/DB49 artifacts and local scripts only, including DB28 ROI camera-label summaries, DB41 right/lower-right evidence, DB34 source-preservation QA, DB49b sidecars, and `_seamroute.py` source-label code paths. No A100, executor, network, model inference, renderer, dataset scan, candidate image edit, panorama repair, generated pixels, source replacement, permission change, or RED promotion occurred.
