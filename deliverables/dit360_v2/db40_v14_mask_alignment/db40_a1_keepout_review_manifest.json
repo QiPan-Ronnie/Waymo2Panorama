@@ -1,0 +1,89 @@
+{
+  "board": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\db40_a1_keepout_review_board.jpg",
+  "inputs": {
+    "A1 input": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\A1_view_none_bmw_1024x2048.png",
+    "DB14 A1 old-mask raw": "deliverables\\dit360_v2\\db14_a1_view_none_fetch\\A1_view_none_bmw\\a1view_r008_h016_w025_tau5\\a1view_r008_h016_w025_tau5_raw.png",
+    "DB40 keepout raw": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\a1_keepout_strict_fetch\\a1_keepout_strict\\a1_keepout_strict_tau5\\a1_keepout_strict_tau5_raw.png",
+    "DB40 keepout soft": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\a1_keepout_strict_fetch\\a1_keepout_strict\\a1_keepout_strict_tau5\\a1_keepout_strict_tau5_softcompose.png",
+    "DB40 keepout core": "deliverables\\dit360_v2\\db40_v14_mask_alignment\\a1_keepout_strict_fetch\\a1_keepout_strict\\a1_keepout_strict_tau5\\a1_keepout_strict_tau5_corecompose.png",
+    "Old v14 reference raw": "deliverables\\dit360_seam_completion\\runs_v14_trimap_clamp_bmw\\trimap_r008_h016_w025_tau5\\trimap_r008_h016_w025_tau5_raw_fullres_1024x2048.png"
+  },
+  "rois_xyxy": {
+    "full": [
+      0,
+      0,
+      2048,
+      1024
+    ],
+    "right_bmw_user_roi": [
+      1320,
+      300,
+      1960,
+      735
+    ],
+    "right_seam": [
+      1530,
+      300,
+      1900,
+      735
+    ],
+    "long_source": [
+      820,
+      360,
+      1680,
+      735
+    ]
+  },
+  "object_gate": {
+    "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db14_inputs/A1_view_none_bmw_1024x2048.png",
+    "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/a1_keepout_strict/a1_keepout_strict_tau5/a1_keepout_strict_tau5_corecompose.png",
+    "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db40_v14_mask_alignment/masks/a1keep_r008_h016_w025_tau5_rightbmw_keepout_preserve_nonseam.png",
+    "conf": 0.5,
+    "src_salient": 9,
+    "gen_salient": 8,
+    "netnew_count": 0,
+    "PASS": true,
+    "netnew": []
+  },
+  "diagnostics_subset": {
+    "core_fraction": 0.011279106140136719,
+    "halo_fraction": 0.022574424743652344,
+    "far_fraction": 0.9661464691162109,
+    "raw_core_mae_vs_init": 38.797019958496094,
+    "soft_halo_mae_vs_init": 9.650275230407715,
+    "corecompose_halo_mae_vs_init": 0.0,
+    "case_runtime_s": 139.167
+  },
+  "roi_mae_vs_a1_input": {
+    "DB14 A1 old-mask raw": {
+      "right_bmw_user_roi": 7.553873538970947,
+      "right_seam": 9.069116592407227,
+      "long_source": 7.412668704986572
+    },
+    "DB40 keepout raw": {
+      "right_bmw_user_roi": 5.006748199462891,
+      "right_seam": 5.623284816741943,
+      "long_source": 6.853997707366943
+    },
+    "DB40 keepout soft": {
+      "right_bmw_user_roi": 0.0,
+      "right_seam": 0.0,
+      "long_source": 1.8552237749099731
+    },
+    "DB40 keepout core": {
+      "right_bmw_user_roi": 0.0,
+      "right_seam": 0.0,
+      "long_source": 1.1775803565979004
+    },
+    "Old v14 reference raw": {
+      "right_bmw_user_roi": 6.391580581665039,
+      "right_seam": 7.621161937713623,
+      "long_source": 7.122469425201416
+    }
+  },
+  "vision_verdict": {
+    "right_bmw_user_roi": "PASS as root-cause evidence: the white BMW is preserved and the user-marked vertical slab/ghost is removed.",
+    "global_seam": "FAIL as final seam solution: raw/soft/core still show visible vertical edit bands away from the BMW, especially in the long_source/dark-wall region.",
+    "interpretation": "Keepout proves the A1 BMW artifact was mask intrusion / candidate-mask mismatch, but prompt tuning alone is not enough. Next tests should shrink or reroute the edited seam support, not repeat the same broad v14 strip."
+  }
+}

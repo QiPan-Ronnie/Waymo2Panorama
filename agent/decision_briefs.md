@@ -19,6 +19,8 @@ Expected evidence: CPU forensic board comparing old reference, A1/G init, old ma
 Kill criteria: Reject if the white BMW gets ghosted, sliced, covered, or shape-shifted; reject if a pole/vertical slab remains in G right seam; reject if prompt changes broad source content or invents road/curb/sidewalk geometry; reject if improvement is only numeric and not visible in right-BMW/long seam crops.
 Max scope: A1 first, then G only if A1 root cause is supported. At most 4 A100 cases total in this DB: 2 masks x 2 prompts or fewer. Use existing Drive/Colab cache only; no local model-weight downloads; no new model family.
 Required vision check: Yes, including the two user-marked screenshots' right-BMW/pole ROI plus full ERP.
+Current evidence: A1 keepout + strict prompt A100 case supports the root-cause hypothesis: the right white BMW slab/ghost is removed and object gate passes (`netnew_count=0`), but the result still fails as a final seam solution because visible vertical edit bands remain in the long_source/dark-wall region. Evidence board/manifest: `deliverables/dit360_v2/db40_v14_mask_alignment/db40_a1_keepout_review_board.jpg`, `deliverables/dit360_v2/db40_v14_mask_alignment/db40_a1_keepout_review_manifest.json`.
+Next bounded test: do not repeat prompt-only variants. If continuing DB-40, change the edited seam support itself: shrink/reroute the A1 mask to only the necessary seam strip or construct a source-preserving hybrid that removes the right-BMW slab without touching unrelated vertical strips. Proceed to G only if A1 no longer creates non-BMW vertical bands.
 
 ### Template
 ```markdown
