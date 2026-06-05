@@ -316,6 +316,39 @@ Required vision check:
 
 Result summary: DB54 accepted only `local-exact-asset-recovery-audit-only` evidence and paused with `status=paused_no_local_exact_assets_found`. CPU/local script `scripts/phase3/db54_local_exact_asset_recovery.py` scanned bounded local artifact roots by filename plus zip member names only (`2084` files, `18` zip files, `238` zip members) and found `0` local file matches and `0` zip-entry-only matches for the fixed DB47f 15 required assets. All `15` required compare/final assets remain missing. No A100/executor/network/HF/VGGT/model/dataset scan/seamroute/renderer/zip extraction/image copy/exact fetch/repair/generation/source replacement/`source_id_map`/permission change/RED promotion occurred. Detail archived in `progress.md` 2026-06-04 DB54 entry.
 
+# DB-55: EGSR O3 photometric polish acceptance audit
+Status: accepted
+Route: A (geometry-adjacent) / source-derived bounded photometric operator
+
+Question: Can the existing risk-gated local Y seam repair be accepted as EGSR's O3 photometric-only operator, with a precise allowed-use contract and explicit no-geometry/no-DB41/no-G-family claim boundary?
+
+Hypothesis: The 14-anchor evidence from the existing three-anchor and fresh11 risk-gated local Y repair runs is enough to accept O3 as a bounded source-derived luminance polish: it reduces seam Y discontinuity while changing only a small local fraction and never moving structure. It should be part of EGSR for T1/YELLOW photometric seams, but must remain forbidden for RED/no-evidence, lane/curb/object geometry, original-G repair, and Bosch training-ready claims.
+
+Why now: DB50 found no executable new source-faithful geometry/LPAM target from current local artifacts, DB54 confirmed DB47f local exact assets are absent, and DB43/DB44 already need a concrete operator library rather than only a dispatcher. O3 is the one existing positive local operator that can be formalized without A100 or new data.
+
+Expected evidence:
+- One CPU/local manifest and board under `deliverables/dit360_v2/db55_egsr_o3_photometric_operator/`.
+- Aggregate metrics over existing `deliverables/seam_risk_gated_color_repair/three_anchor_v1/three_anchor_repair_summary.json` and `fresh11_v1/fresh11_repair_summary.json`: improvement distribution, changed fraction, max Y delta, and per-anchor wins/limits.
+- Acceptance contract: allowed only for T1/YELLOW photometric seams with low structure-risk; source labels and geometry remain unchanged; output must be labeled source-faithful photometric polish, not geometry repair.
+- Rejection/abstain contract for DB41 lower-right/right-line, DB25 dark-wall low-evidence line, G/A1/BEST classic BMW geometry seam, fake generated geometry controls, lane/curb/object-adjacent seams, and any high-structure-risk region.
+
+Kill criteria:
+- Any claim that O3 fixes geometry, DB41 lower-right/right-line, lane/curb/object seams, original `G_bmw_pano`/A1/BEST, or DB32 source-faithfulness.
+- Any new repair run, dataset scan, A100/executor/network/model/generation/source replacement, or prompt-only DiT/FLUX use.
+- The audit hides cases where p95 improvement is weak or unchanged, or treats mean Y improvement as sufficient for geometry acceptance.
+- The operator changes source ownership, creates a `source_id_map`, fills abstain regions, or promotes RED controls.
+- It ignores the earlier DB26 long-line photometric attenuation rejection and fails to distinguish O3's low-structure local-Y gate from unsafe broad low-frequency wash.
+
+Max scope:
+- CPU/local existing-artifact audit only. Read the two risk-gated Y summary JSON files, existing review boards, DB43/DB44/DB50/DB54 manifests if needed, and `scripts/phase3/seam_risk_gated_color_repair.py`.
+- No new panorama repair run, no raw data load, no A100, no executor, no network, no HF/VGGT, no model inference, no renderer, no image copy/extraction, no generation, no source replacement, no permission change, no RED promotion.
+- Output location: `deliverables/dit360_v2/db55_egsr_o3_photometric_operator/`.
+
+Required vision check:
+- Board must show three-anchor and fresh11 review panels, aggregate metric table, allowed/forbidden operator contract, DB26 unsafe photometric-control distinction, DB41/DB25 abstain boundary, and explicit `photometric-only / no geometry repair / no source replacement / no RED promotion`.
+
+Result summary: DB55 accepted `O3` only as `source-derived bounded photometric polish` for T1/YELLOW-GREEN low-structure photometric seams. CPU/local script `scripts/phase3/db55_egsr_o3_photometric_operator_audit.py` reads existing O3 summaries/boards only and aggregates 14 anchors: mean seam dY improvement mean/median/min/max `17.71/18.87/7.13/23.63%`, p95 improvement mean/median/min/max `5.39/5.87/0.00/11.63%`, changed fraction mean/max `0.034/0.039`, and max Y delta `9.10`. Weak p95 case `9f871fb4_a017` is disclosed. Accepted geometry repair, DB41/DB25 repair, original-G/A1/BEST repair, `source_id_map`, permission change, RED promotion, and uncaveated Bosch training-data claims remain false. No new repair run/raw data load/A100/executor/network/model/generation/source replacement occurred. Detail archived in `progress.md` 2026-06-04/05 DB55 entry.
+
 # DB-48: Koi center-preserve DiT360 outpainting side branch
 Status: proposed
 Route: B (generative) / presentation-demo side branch

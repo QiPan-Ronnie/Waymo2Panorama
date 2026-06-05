@@ -12,6 +12,8 @@
 
 > **DB54 update (2026-06-04):** DB54 is accepted only as `local-exact-asset-recovery-audit-only` and paused. It scanned bounded local artifact roots plus zip member names for the fixed DB47f 15 required compare/final assets and found `0` local file matches and `0` zip-entry-only matches. It ran no remote/status/exec/A100/HF/VGGT/model/dataset scan/`_seamroute.py`/renderer/zip extraction/image copy/exact fetch/repair/generation/source replacement/`source_id_map`/RED promotion. DB47f gaps are confirmed not hidden in current local artifacts; do not repeat local recovery or add more infra-only layers. The next DB47 action still requires approved env/non-repo runtime secret source or local target data, then the actual bounded closure batch.
 
+> **DB55 update (2026-06-04/05):** DB55 accepts O3 only as `source-derived bounded photometric polish` for T1/YELLOW-GREEN low-structure photometric seams. It is an existing-artifact acceptance audit over the old risk-gated local Y evidence, not a new repair run: 14-anchor mean seam dY improvement mean `17.71%`, changed fraction mean `0.034`, max Y delta `9.10`, with weak p95 cases disclosed. It ran no raw-data load/remote/A100/model/dataset scan/seamroute/generation/source replacement/`source_id_map`/RED promotion. O3 does not repair geometry, DB41/DB25, original G/A1/BEST, or make DB32 source-faithful; it is only a bounded O3 sub-operator for photometric seams.
+
 ---
 
 ## Current Seam State (2026-05-28)

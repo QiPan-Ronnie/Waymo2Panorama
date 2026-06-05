@@ -1,0 +1,369 @@
+{
+  "db": "DB55",
+  "created_utc": "2026-06-05T00:04:55.789236+00:00",
+  "status": "accepted_o3_photometric_operator_with_strict_boundaries",
+  "evidence_type": "egsr-o3-photometric-operator-acceptance-audit-only",
+  "purpose": "Formalize existing risk-gated local Y repair evidence as a bounded EGSR O3 photometric-only operator.",
+  "scope": {
+    "cpu_local_existing_artifact_audit": true,
+    "new_repair_run": false,
+    "raw_data_load": false,
+    "remote_status": false,
+    "remote_exec": false,
+    "a100": false,
+    "network": false,
+    "hf_or_vggt": false,
+    "model_inference": false,
+    "dataset_scan": false,
+    "renderer_or_seamroute_execution": false,
+    "image_copy_or_extraction": false,
+    "panorama_repair": false,
+    "generation": false,
+    "source_replacement": false,
+    "source_id_map_created": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "output_location": "deliverables/dit360_v2/db55_egsr_o3_photometric_operator"
+  },
+  "inputs": {
+    "o3_script": "scripts/phase3/seam_risk_gated_color_repair.py",
+    "three_anchor_summary": "deliverables/seam_risk_gated_color_repair/three_anchor_v1/three_anchor_repair_summary.json",
+    "three_anchor_board": "deliverables/seam_risk_gated_color_repair/three_anchor_v1/three_anchor_repair_compact_crop_review_q55_w900.jpg",
+    "fresh11_summary": "deliverables/seam_risk_gated_color_repair/fresh11_v1/fresh11_repair_summary.json",
+    "fresh11_board": "deliverables/seam_risk_gated_color_repair/fresh11_v1/fresh11_repair_compact_crop_review_q45_w620.jpg",
+    "confidence_board": "deliverables/seam_confidence_map/three_anchor_v1/three_anchor_compact_crop_review_q55_w900.jpg",
+    "db26_unsafe_photometric_control": "deliverables/dit360_v2/db26_photometric_fetch/db26_attenuated_roi_montage.jpg",
+    "db41_abstain_control": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_board.jpg",
+    "db50_manifest": "deliverables/dit360_v2/db50_egsr_operator_v0/db50_egsr_operator_readiness_manifest.json",
+    "db54_manifest": "deliverables/dit360_v2/db54_local_artifact_recovery/db54_local_exact_asset_recovery_manifest.json"
+  },
+  "records": [
+    {
+      "name": "02a00399_a000",
+      "source": "three_anchor_v1",
+      "mean_before": 15.395956993103027,
+      "mean_after": 13.829964637756348,
+      "mean_improve_pct": 10.171451869138124,
+      "p95_before": 69.0,
+      "p95_after": 66.0,
+      "p95_improve_pct": 4.3478260869565215,
+      "changed_fraction": 0.031233787536621094,
+      "max_abs_delta_y_applied": 3.25,
+      "high_structure_frac_of_band": 0.007968036268303015,
+      "high_color_frac_of_band": 0.07641758921109572
+    },
+    {
+      "name": "fbee355f_a095",
+      "source": "three_anchor_v1",
+      "mean_before": 28.068689346313477,
+      "mean_after": 22.8122501373291,
+      "mean_improve_pct": 18.727056130516306,
+      "p95_before": 85.0,
+      "p95_after": 78.0,
+      "p95_improve_pct": 8.235294117647058,
+      "changed_fraction": 0.03626728057861328,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "high_structure_frac_of_band": 0.0063878013599835155,
+      "high_color_frac_of_band": 0.08527371385397349
+    },
+    {
+      "name": "0bae3b5e_a030",
+      "source": "three_anchor_v1",
+      "mean_before": 24.411699295043945,
+      "mean_after": 19.78965187072754,
+      "mean_improve_pct": 18.933738976765017,
+      "p95_before": 68.0,
+      "p95_after": 64.1500244140625,
+      "p95_improve_pct": 5.6617288028492645,
+      "changed_fraction": 0.032543182373046875,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "high_structure_frac_of_band": 0.008845214453651076,
+      "high_color_frac_of_band": 0.09636147823506586
+    },
+    {
+      "name": "02a00399_a042",
+      "mean_before": 27.694412231445312,
+      "mean_after": 23.345422744750977,
+      "mean_improve_pct": 15.703490835441253,
+      "p95_before": 91.949951171875,
+      "p95_after": 85.0,
+      "p95_improve_pct": 7.558406593260706,
+      "changed_fraction": 0.03402423858642578,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "02a00399_a127",
+      "mean_before": 24.180143356323242,
+      "mean_after": 20.99286651611328,
+      "mean_improve_pct": 13.181381074717534,
+      "p95_before": 80.949951171875,
+      "p95_after": 76.0,
+      "p95_improve_pct": 6.114829101459416,
+      "changed_fraction": 0.036362648010253906,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "02a00399_a222",
+      "mean_before": 25.240785598754883,
+      "mean_after": 23.4405460357666,
+      "mean_improve_pct": 7.132264389889221,
+      "p95_before": 85.0,
+      "p95_after": 82.0,
+      "p95_improve_pct": 3.5294117647058822,
+      "changed_fraction": 0.024702072143554688,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "0bae3b5e_a017",
+      "mean_before": 25.120359420776367,
+      "mean_after": 19.86501693725586,
+      "mean_improve_pct": 20.920650041232918,
+      "p95_before": 74.1500244140625,
+      "p95_after": 72.1500244140625,
+      "p95_improve_pct": 2.697234445712066,
+      "changed_fraction": 0.033809661865234375,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "0bae3b5e_a082",
+      "mean_before": 23.129358291625977,
+      "mean_after": 20.3824520111084,
+      "mean_improve_pct": 11.876275363472146,
+      "p95_before": 73.0,
+      "p95_after": 71.1500244140625,
+      "p95_improve_pct": 2.534213131421233,
+      "changed_fraction": 0.037322044372558594,
+      "max_abs_delta_y_applied": 8.125,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "2c652f9e_a017",
+      "mean_before": 42.768150329589844,
+      "mean_after": 32.75520706176758,
+      "mean_improve_pct": 23.412149439847642,
+      "p95_before": 116.0,
+      "p95_after": 106.199951171875,
+      "p95_improve_pct": 8.448317955280173,
+      "changed_fraction": 0.038680076599121094,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "2c652f9e_a047",
+      "mean_before": 43.02588653564453,
+      "mean_after": 32.85931396484375,
+      "mean_improve_pct": 23.62896709258587,
+      "p95_before": 115.0,
+      "p95_after": 106.0,
+      "p95_improve_pct": 7.826086956521739,
+      "changed_fraction": 0.038698673248291016,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "9f871fb4_a017",
+      "mean_before": 33.24943542480469,
+      "mean_after": 26.994369506835938,
+      "mean_improve_pct": 18.81254775623154,
+      "p95_before": 92.0,
+      "p95_after": 92.0,
+      "p95_improve_pct": 0.0,
+      "changed_fraction": 0.032357215881347656,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "9f871fb4_a047",
+      "mean_before": 33.2179069519043,
+      "mean_after": 26.913850784301758,
+      "mean_improve_pct": 18.977884960452464,
+      "p95_before": 93.0,
+      "p95_after": 92.25,
+      "p95_improve_pct": 0.8064516129032258,
+      "changed_fraction": 0.03229093551635742,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "fbee355f_a017",
+      "mean_before": 30.1877498626709,
+      "mean_after": 23.156267166137695,
+      "mean_improve_pct": 23.292503510598138,
+      "p95_before": 89.39990234375,
+      "p95_after": 79.0,
+      "p95_improve_pct": 11.6330130918505,
+      "changed_fraction": 0.03408193588256836,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    },
+    {
+      "name": "fbee355f_a047",
+      "mean_before": 36.65998840332031,
+      "mean_after": 28.170005798339844,
+      "mean_improve_pct": 23.15871601370045,
+      "p95_before": 93.699951171875,
+      "p95_after": 88.0,
+      "p95_improve_pct": 6.08319545590745,
+      "changed_fraction": 0.0390162467956543,
+      "max_abs_delta_y_applied": 9.09999942779541,
+      "source": "fresh11_v1"
+    }
+  ],
+  "aggregate": {
+    "record_count": 14,
+    "sources": {
+      "three_anchor_v1": 3,
+      "fresh11_v1": 11
+    },
+    "mean_improve_pct": {
+      "mean": 17.709219818184902,
+      "median": 18.87314336649828,
+      "min": 7.132264389889221,
+      "max": 23.62896709258587
+    },
+    "p95_improve_pct": {
+      "mean": 5.39114350831966,
+      "median": 5.872462129378357,
+      "min": 0.0,
+      "max": 11.6330130918505
+    },
+    "changed_fraction": {
+      "mean": 0.03438499995640346,
+      "median": 0.03405308723449707,
+      "min": 0.024702072143554688,
+      "max": 0.0390162467956543
+    },
+    "max_abs_delta_y_applied": {
+      "mean": 8.612499509538923,
+      "median": 9.09999942779541,
+      "min": 3.25,
+      "max": 9.09999942779541
+    },
+    "weak_p95_cases": [
+      "9f871fb4_a017"
+    ],
+    "low_mean_improve_cases_lt5pct": [],
+    "high_changed_fraction_cases_gt5pct": [],
+    "high_delta_cases_gt12y": []
+  },
+  "o3_operator_contract": {
+    "accepted_operator_id": "O3",
+    "accepted_label": "source-derived bounded photometric polish",
+    "allowed_segment_types": [
+      "T1 photometric-only seam",
+      "low-risk source boundary with low structure risk"
+    ],
+    "allowed_evidence_states": [
+      "YELLOW",
+      "GREEN"
+    ],
+    "required_gates": [
+      "structure_risk <= operator threshold in edit band",
+      "source labels unchanged",
+      "no object/lane/curb/line geometry target",
+      "edit mask/operator map emitted if packaged",
+      "same-ROI vision review for any handoff use"
+    ],
+    "forbidden_targets": [
+      "DB41 lower-right/right-line",
+      "DB25 dark-wall low-evidence long line as geometry repair",
+      "G/A1/BEST classic BMW geometry seam repair",
+      "lane/curb/object-adjacent structure repair",
+      "generated fake-geometry controls DB23/DB36/DB40",
+      "source_id_map creation or source ownership claim",
+      "uncaveated Bosch training-data claim"
+    ],
+    "must_disclose": [
+      "not byte-exact source pixels where edited",
+      "not geometry repair",
+      "not source replacement",
+      "not original-G repair",
+      "not RED promotion",
+      "p95 improvement can be weak; use as color-seam polish only"
+    ]
+  },
+  "decision": {
+    "accepted_o3_photometric_operator": true,
+    "accepted_source_derived_photometric_polish": true,
+    "accepted_geometry_repair": false,
+    "accepted_db41_or_db25_repair": false,
+    "accepted_original_g_a1_best_repair": false,
+    "accepted_source_id_map_evidence": false,
+    "ready_for_uncaveated_bosch_training_data": false,
+    "permission_state_changes": "none",
+    "red_promotions": [],
+    "recommended_next": "Keep O3 as a bounded EGSR operator for T1/YELLOW photometric seams; pursue actual geometry/source-selection only through fresh evidence or approved DB47f runtime/data."
+  },
+  "hard_checks": [
+    {
+      "id": "db55_brief_running",
+      "pass": true,
+      "evidence": "DB55 decision brief exists before O3 acceptance audit."
+    },
+    {
+      "id": "existing_artifacts_only",
+      "pass": true,
+      "evidence": "Uses existing O3 summaries and review boards only; no repair rerun."
+    },
+    {
+      "id": "record_count_14",
+      "pass": true,
+      "evidence": "records=14 from three_anchor_v1 + fresh11_v1."
+    },
+    {
+      "id": "all_mean_improvements_positive",
+      "pass": true,
+      "evidence": "min_mean_improve_pct=7.132."
+    },
+    {
+      "id": "weak_p95_cases_disclosed",
+      "pass": true,
+      "evidence": "p95_improve_pct<=0 cases=['9f871fb4_a017']; O3 acceptance is not based on p95 alone."
+    },
+    {
+      "id": "small_local_edit_fraction",
+      "pass": true,
+      "evidence": "max_changed_fraction=0.0390."
+    },
+    {
+      "id": "bounded_y_delta",
+      "pass": true,
+      "evidence": "max_abs_delta_y_applied=9.100."
+    },
+    {
+      "id": "script_forbids_geometry_motion_and_generation",
+      "pass": true,
+      "evidence": "O3 script docstring and implementation state no warp/depth/DL and high-structure gating."
+    },
+    {
+      "id": "db50_no_geometry_target_preserved",
+      "pass": true,
+      "evidence": "DB55 does not reopen geometry/LPAM target execution."
+    },
+    {
+      "id": "db54_db47_gap_preserved",
+      "pass": true,
+      "evidence": "DB55 does not touch DB47f closure or local exact assets."
+    },
+    {
+      "id": "no_remote_model_repair_rerun_or_red_promotion",
+      "pass": true,
+      "evidence": "This script audits existing summaries/boards only; no A100, network, model, repair run, source replacement, source_id_map, or RED promotion."
+    },
+    {
+      "id": "strict_secret_scan_zero",
+      "pass": true,
+      "evidence": "hits=0 across DB55 script, brief, and manifest."
+    }
+  ],
+  "hard_checks_pass": true,
+  "token_scan_hits": [],
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db55_egsr_o3_photometric_operator/db55_egsr_o3_photometric_operator_manifest.json",
+    "board": "deliverables/dit360_v2/db55_egsr_o3_photometric_operator/db55_egsr_o3_photometric_operator_board.jpg"
+  }
+}
