@@ -18,6 +18,8 @@
 
 > **DB57 update (2026-06-04/05):** DB57 is accepted as `db47f-exact-candidate-visual-review-only` with no candidate promotion. It reviewed exactly the DB56 fixed 8 anchors using existing exact assets and selected no new final candidate: `a201/a209/a210/a211` are held as near-duplicates with no clear win over `a200`/DB32, `a031/a038/a040` are rejected for relaxed context/lighting shift, and `a105` is rejected for different context/no clear win. Keep `a200`/DB32 as the current caveated source-sidestep handoff base; DB47f patch-on-patch should stop unless a fresh brief brings genuinely new evidence.
 
+> **DB58 prepared next attempt (2026-06-05):** DB58 is opened in `decision_briefs.md` as the primary prepared next seam-quality attempt, but nothing has run yet. It tests one fixed ROI only: can VGGT provide target-surface geometry evidence for a raw-camera-backed local warp/composite of the DB25 longline seam ROI, without prompt inpainting, generation, source replacement, or overclaiming source faithfulness? DB58 must recover/prove raw owner/UV evidence, gate VGGT against rig/LiDAR/flow and protected structure masks, and stop as abstain/no-repair if any gate fails. DB41 right/lower-right remains no-evidence/abstain unless a separate fresh brief changes that evidence state.
+
 ---
 
 ## Current Seam State (2026-05-28)

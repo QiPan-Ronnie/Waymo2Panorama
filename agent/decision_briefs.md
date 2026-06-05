@@ -65,6 +65,49 @@ Shared hard constraints for all briefs below:
 - `G_bmw_pano` is the classic BMW failure / diagnostic reference and has been visually rejected as the default repair base. Any classic BMW presentation attempt must choose its base from existing same-ROI boards before generation.
 - If any brief hits its kill criteria, stop that direction, write the result to `progress.md`, and do not continue patch-on-patch under the same direction.
 
+# DB-58: VGGT-assisted raw-camera-backed seam ROI repair feasibility
+Status: proposed / primary prepared next attempt / not running yet
+Route: A (geometry) / target-specific EGSR / raw-camera-backed repair
+
+Question: Can one fixed BMW seam ROI be repaired by using VGGT only as geometry evidence for a raw-camera-backed local warp/composite, without generation, prompt inpainting, source replacement, or overclaiming source faithfulness?
+
+Hypothesis: DB37 showed the Google/Meta-style gap is not the seamline algorithm shape but the missing reliable overlap/depth/visibility evidence. DB45 proved official VGGT can produce diagnostic pose/depth/point outputs but has not yet passed the coordinate/reflection/no-promotion gate. A narrow DB58 pass may still become useful if it treats VGGT as a target-surface evidence gate, combines it with raw camera owner/UV mapping and existing LiDAR/flow checks, and attempts a local source-backed warp/composite only when those gates pass. If VGGT pose/depth cannot align to the Waymo-style rig/LiDAR or the target ROI remains low-evidence, the accepted result must be abstain/no-repair rather than another patch.
+
+Why now: DB57 stopped DB47f patch-on-patch after no candidate displaced `a200`/DB32, DB50 found `0` executable new source-faithful repair targets under current local artifacts, and the user explicitly reframed the remaining seam problem as a Google/Meta-style geometry/overlap deficiency rather than a prompt-tuning problem. The next credible seam-quality attempt is therefore not DiT/FLUX repair, but a single-ROI test of whether VGGT can supply the missing geometry evidence needed for source-backed compositing.
+
+Expected evidence:
+- One fixed target ROI, defaulting to DB25 longline ROI `[850, 420, 1650, 720]` on `02a00399-3857-444e-8db3-a8f58489c394` / anchor `0`, because it is the user-visible long seam and has nonzero but weak existing evidence (`near_ground=62.3%`, LiDAR support `9.4%`, key `6-5` flow reliability `10.5%`). DB41 right/lower-right may appear only as negative controls unless a separate brief changes their evidence state.
+- A source/provenance preflight showing ERP ROI owner camera labels, raw `u_img/v_img` mapping or an explicit blocker if raw-UV ownership cannot be recovered, and any required DB49d sidecar/reproducibility dependency.
+- A VGGT evidence audit for the same raw camera pixels: pose/decode convention, coordinate/reflection state, point/depth confidence, alignment to the known rig and available LiDAR, and target-surface support. VGGT confidence alone is not sufficient.
+- If and only if raw-owner, geometry, visibility, and protected-structure gates pass, one local source-backed warp/composite candidate inside the fixed ROI, using raw camera texture and preserving lane/curb/object/building-edge masks. No generated pixels are allowed in the source-faithful branch.
+- One manifest and one review board under `deliverables/dit360_v2/db58_vggt_raw_camera_seam_roi/` with before/after same-ROI, raw camera crops, source-id/UV maps, VGGT/LiDAR/flow evidence, protected masks, abstain regions, and explicit claim labels.
+
+Kill criteria:
+- The target expands beyond the single fixed ROI, or any DB41 lower-right/right-line region is promoted from no-evidence/abstain without a fresh brief and new target-surface evidence.
+- VGGT pose/depth is used despite unresolved reflection/scale/axis ambiguity, undocumented coordinate convention, missing pose/decode artifacts, or failure to align against the known rig/LiDAR sanity checks.
+- Raw camera owner/UV mapping is guessed, inferred from RGB similarity, or replaced by ROI-level camera labels as if it were a per-pixel `source_id_map`.
+- VGGT confidence, detector-clean output, flow-only support, case-level depth/parallax, or visually plausible geometry is treated as source truth without target-surface raw/LiDAR/visibility support.
+- Any DiT/FLUX/inpainting/refiner/generation/prompt-only ground/curb/lane/right-line repair is run under DB58.
+- The candidate changes lane markings, curb geometry, object boundaries, BMW shape/wheels/windows, building edges, or creates fake slabs, poles, repeated texture, warped white lines, melted asphalt, or new objects.
+- The output is described as a fixed `G_bmw_pano`/A1/BEST seam, fully source-faithful panorama, source-faithful ceiling, `source_id_map` completion, RED promotion, or uncaveated Bosch training data.
+- Endpoint URLs, bearer tokens, HF tokens, Cloudflare JSON tokens, or other secret-like values are written to repo files, manifests, boards, logs, shell output captures, or prompts.
+- If any gate fails, stop with a DB58 abstain/no-repair result and write `progress.md`; do not continue with patch-on-patch or presentation-only fallback under the same brief.
+
+Max scope:
+- Start CPU/local with existing artifacts and source inspection. No experiment may run until this brief is reviewed as the active brief.
+- At most one fixed ROI, one target UUID, one anchor, one manifest, one board, and one bounded script family.
+- Optional A100/VGGT use is allowed only if a secure runtime secret source is available via process env or non-repo secret file, and only for the exact DB58 target evidence extraction. No broad VGGT rerun, no model sweep, no dataset scan, no prompt sweep.
+- No full-panorama repair, no source replacement, no generation, no DB49e exact-lineage rerun unless DB58 explicitly depends on already existing source/provenance sidecar support and a separate DB49 brief authorizes it.
+- Use brainstorming before changing scope, and use read-only adversarial audit / multi-position reasoning before any remote/model action. Any subagent/audit result must be summarized in `progress.md`.
+
+Required vision check:
+- Board must show `G_bmw_pano` as diagnostic reference only, current `a200`/DB32 caveated handoff context, the fixed DB25 longline ROI, raw camera crops, source-owner/UV evidence or blocker, VGGT/LiDAR/flow evidence, protected lane/curb/object/building-edge masks, before/after same-ROI if a composite is attempted, abstain regions, and explicit labels: `source-backed candidate`, `diagnostic`, `abstain`, `rejected`, or `presentation-only` if applicable.
+- Rectilinear/cubemap or same-ROI crop review is mandatory before any visual improvement claim.
+
+Output location: `deliverables/dit360_v2/db58_vggt_raw_camera_seam_roi/`
+
+Result summary: TBD -> archive to `progress.md` when done, then delete or mark closed here.
+
 # DB-45: Geometry foundation evidence audit
 Status: paused
 Route: A (geometry) / evidence-only
