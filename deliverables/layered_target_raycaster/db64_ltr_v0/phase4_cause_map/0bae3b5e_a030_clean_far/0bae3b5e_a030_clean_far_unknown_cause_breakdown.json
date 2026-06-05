@@ -1,0 +1,128 @@
+{
+  "case": "0bae3b5e_a030_clean_far",
+  "case_label": "Clean control",
+  "inputs": {
+    "phase3_case_dir": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/0bae3b5e_a030_clean_far",
+    "uses_phase3_sidecars_only": true,
+    "uses_rgb_similarity": false,
+    "uses_model_or_remote": false
+  },
+  "taxonomy": {
+    "cause_codes": {
+      "0": "explainable_source_visible",
+      "10": "out_of_fov_or_no_source_projection",
+      "20": "no_target_surface_support",
+      "30": "single_source_only_no_consensus",
+      "40": "z_mismatch_or_occlusion_conflict_proxy",
+      "50": "disocclusion_candidate",
+      "60": "source_boundary_or_protected_risk_proxy",
+      "70": "layer_ambiguous_or_insufficient_layer_evidence",
+      "255": "unknown_unclassified"
+    },
+    "flag_bits": {
+      "0": "near_source_boundary",
+      "1": "near_car_person_bike_mask_unavailable",
+      "2": "near_lane_curb_road_marking_mask_unavailable",
+      "3": "z_buffer_conflict_proxy",
+      "4": "out_of_fov_or_no_source_projection",
+      "5": "no_lidar_local_surface",
+      "6": "disocclusion_proxy",
+      "7": "layer_ambiguous"
+    },
+    "repairability_codes": {
+      "0": "non_target_or_keep_control",
+      "1": "repairable_now_source_visible_no_rgb_edit",
+      "2": "repairable_later_needs_local_layer_fit",
+      "3": "needs_multiframe_or_dense_surface",
+      "4": "presentation_only_or_abstain",
+      "5": "abstain_required_protected_or_occlusion"
+    },
+    "z_mismatch_note": "Phase3 did not persist z residual cause maps; z/occlusion is only represented as a conservative disocclusion proxy flag.",
+    "protected_mask_note": "No semantic car/person/lane/curb masks are used in Phase4a; source-boundary risk is a proxy only."
+  },
+  "counts": {
+    "cause_primary": {
+      "0": 15028,
+      "10": 1522009,
+      "20": 306321,
+      "30": 100343,
+      "50": 152379,
+      "60": 1072
+    },
+    "cause_flags": {
+      "near_source_boundary": 11128,
+      "near_car_person_bike_mask_unavailable": 0,
+      "near_lane_curb_road_marking_mask_unavailable": 0,
+      "z_buffer_conflict_proxy": 152379,
+      "out_of_fov_or_no_source_projection": 1522009,
+      "no_lidar_local_surface": 306321,
+      "disocclusion_proxy": 152379,
+      "layer_ambiguous": 0
+    },
+    "repairability": {
+      "0": 2015444,
+      "1": 9102,
+      "2": 6007,
+      "3": 36162,
+      "5": 30437
+    }
+  },
+  "fractions": {
+    "source_valid_frac": 0.2742495536804199,
+    "seam_band_frac": 0.03896141052246094,
+    "phase3_unknown_frac_seam": 0.7889557938023205,
+    "cause_primary_frac_seam": {
+      "explainable_source_visible": 0.11139668086356293,
+      "out_of_fov_or_no_source_projection": 0.0,
+      "no_target_surface_support": 0.5062050227639888,
+      "single_source_only_no_consensus": 0.08683360258481422,
+      "z_mismatch_or_occlusion_conflict_proxy": 0.0,
+      "disocclusion_candidate": 0.2827507710383316,
+      "source_boundary_or_protected_risk_proxy": 0.012813922749302395,
+      "layer_ambiguous_or_insufficient_layer_evidence": 0.0,
+      "unknown_unclassified": 0.0
+    },
+    "cause_primary_frac_of_phase3_unknown": {
+      "explainable_source_visible": 0.0,
+      "out_of_fov_or_no_source_projection": 0.0,
+      "no_target_surface_support": 0.6416139240506329,
+      "single_source_only_no_consensus": 0.0,
+      "z_mismatch_or_occlusion_conflict_proxy": 0.0,
+      "disocclusion_candidate": 0.3583860759493671,
+      "source_boundary_or_protected_risk_proxy": 0.0,
+      "layer_ambiguous_or_insufficient_layer_evidence": 0.0,
+      "unknown_unclassified": 0.0
+    },
+    "cause_flag_frac_seam": {
+      "near_source_boundary": 0.12708669897684438,
+      "near_car_person_bike_mask_unavailable": 0.0,
+      "near_lane_curb_road_marking_mask_unavailable": 0.0,
+      "z_buffer_conflict_proxy": 0.2827507710383316,
+      "out_of_fov_or_no_source_projection": 0.0,
+      "no_lidar_local_surface": 0.5062050227639888,
+      "disocclusion_proxy": 0.2827507710383316,
+      "layer_ambiguous": 0.0
+    },
+    "repairability_frac_seam": {
+      "non_target_or_keep_control": 0.0,
+      "repairable_now_source_visible_no_rgb_edit": 0.11139668086356293,
+      "repairable_later_needs_local_layer_fit": 0.07351789298477505,
+      "needs_multiframe_or_dense_surface": 0.44257600234983113,
+      "presentation_only_or_abstain": 0.0,
+      "abstain_required_protected_or_occlusion": 0.3725094238018309
+    },
+    "unknown_unclassified_frac_of_phase3_unknown": 0.0
+  },
+  "outputs": {
+    "cause_primary_map": "0bae3b5e_a030_clean_far_cause_primary_map.png",
+    "cause_flag_map": "0bae3b5e_a030_clean_far_cause_flag_map.png",
+    "repairability_map": "0bae3b5e_a030_clean_far_repairability_map.png",
+    "cause_overlay_board": "0bae3b5e_a030_clean_far_cause_overlay_board.jpg",
+    "phase3_vs_phase4_review_board": "0bae3b5e_a030_clean_far_phase3_vs_phase4_review_board.jpg"
+  },
+  "claim_boundary": [
+    "cause maps are evidence/policy maps, not semantic layer truth",
+    "repairability map is action triage, not repair permission",
+    "no RGB repair or source replacement was created"
+  ]
+}

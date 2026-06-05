@@ -1,0 +1,1215 @@
+{
+  "created_utc": "2026-06-05T10:53:23.845724+00:00",
+  "status": "db64_ltr_v0_phase2_lidar_zbuffer",
+  "accepted_evidence_type": "diagnostic_lidar_zbuffer_target_ray_visibility_precursor",
+  "scope": {
+    "remote_status_used": true,
+    "remote_exec_used": true,
+    "exec_count": 1,
+    "fixed_cases_only": [
+      "02a00399:0:bmw",
+      "0bae3b5e:30:clean_far"
+    ],
+    "a100_used_or_needed": false,
+    "model_inference_used": false,
+    "vggt_used": false,
+    "dit_flux_generation_used": false,
+    "bounded_dependency_bootstrap_allowed": true,
+    "source_replacement_used": false,
+    "complete_ltr_sidecars_created": false,
+    "red_promotion": false,
+    "diagnostic_only": true
+  },
+  "runtime": {
+    "secret_source_kind": "non_repo_file",
+    "status": {
+      "version": "0.1.0a1",
+      "runtime_type": "colab-cpu",
+      "gpu_name": null,
+      "active_jobs": 0
+    }
+  },
+  "job": {
+    "cmd": [
+      "bash",
+      "-lc",
+      "set +x\npython - <<'PY'\nimport base64\ncode = base64.b64decode('CmltcG9ydCBqc29uCmltcG9ydCBvcwppbXBvcnQgc3VicHJvY2VzcwppbXBvcnQgc3lzCmltcG9ydCB0aW1lCmZyb20gZGF0ZXRpbWUgaW1wb3J0IGRhdGV0aW1lLCB0aW1lem9uZQpmcm9tIHBhdGhsaWIgaW1wb3J0IFBhdGgKClJFTU9URV9PVVQgPSBQYXRoKCIvY29udGVudC9kcml2ZS9NeURyaXZlL2tvaV93YXltbzJwYW5vX2NvbGFiL3Jlc3VsdHMvbGF5ZXJlZF90YXJnZXRfcmF5Y2FzdGVyL2RiNjRfbHRyX3YwL3BoYXNlMl9saWRhcl96YnVmZmVyIikKUkVNT1RFX1JFU1VMVCA9IFJFTU9URV9PVVQgLyAiZGI2NF9waGFzZTJfbGlkYXJfemJ1ZmZlcl9yZW1vdGVfcmVzdWx0Lmpzb24iCkFWMl9ST09UID0gUGF0aCgiL2NvbnRlbnQvZHJpdmUvTXlEcml2ZS9rb2lfd2F5bW8ycGFub19jb2xhYi9kYXRhL2FyZ292ZXJzZTIvdmFsIikKV09SS0RJUl9DQU5ESURBVEVTID0gWwogICAgUGF0aCgiL2NvbnRlbnQvd2F5bW8ycGFub3JhbWEiKSwKICAgIFBhdGgoIi9jb250ZW50L2RyaXZlL015RHJpdmUva29pX3dheW1vMnBhbm9fY29sYWIvV2F5bW8yUGFub3JhbWEiKSwKXQpDQVNFUyA9IFsiMDJhMDAzOTk6MDpibXciLCAiMGJhZTNiNWU6MzA6Y2xlYW5fZmFyIl0KUlVOX05BTUVTID0gWyIwMmEwMDM5OV9hMDAwX2JtdyIsICIwYmFlM2I1ZV9hMDMwX2NsZWFuX2ZhciJdCgpkZWYgdGFpbCh0ZXh0LCBsaW1pdD0xNjAwMCk6CiAgICBpZiB0ZXh0IGlzIE5vbmU6CiAgICAgICAgcmV0dXJuICIiCiAgICByZXR1cm4gdGV4dFstbGltaXQ6XQoKZGVmIGZpbmRfd29ya2RpcigpOgogICAgZm9yIGNhbmQgaW4gV09SS0RJUl9DQU5ESURBVEVTOgogICAgICAgIHNjcmlwdCA9IGNhbmQgLyAic2NyaXB0cyIgLyAicGhhc2UzIiAvICJ0ZXN0X2xpZGFyX3pidWZmZXJfc2VhbS5weSIKICAgICAgICBpZiBzY3JpcHQuZXhpc3RzKCk6CiAgICAgICAgICAgIHJldHVybiBjYW5kCiAgICByZXR1cm4gTm9uZQoKZGVmIGZpbGVfcm93KHBhdGgpOgogICAgcmV0dXJuIHsKICAgICAgICAiZXhpc3RzIjogcGF0aC5leGlzdHMoKSwKICAgICAgICAiYnl0ZXMiOiBpbnQocGF0aC5zdGF0KCkuc3Rfc2l6ZSkgaWYgcGF0aC5leGlzdHMoKSBhbmQgcGF0aC5pc19maWxlKCkgZWxzZSBOb25lLAogICAgICAgICJwYXRoIjogc3RyKHBhdGgpLAogICAgfQoKZGVmIG1haW4oKToKICAgIHQwID0gdGltZS50aW1lKCkKICAgIFJFTU9URV9PVVQubWtkaXIocGFyZW50cz1UcnVlLCBleGlzdF9vaz1UcnVlKQogICAgcmVzdWx0ID0gewogICAgICAgICJjcmVhdGVkX3V0YyI6IGRhdGV0aW1lLm5vdyh0aW1lem9uZS51dGMpLmlzb2Zvcm1hdCgpLAogICAgICAgICJzdGF0dXMiOiAiZGI2NF9waGFzZTJfbGlkYXJfemJ1ZmZlcl9zdGFydCIsCiAgICAgICAgInNjb3BlIjogewogICAgICAgICAgICAiZml4ZWRfY2FzZXNfb25seSI6IENBU0VTLAogICAgICAgICAgICAiYTEwMF9yZXF1aXJlZCI6IEZhbHNlLAogICAgICAgICAgICAibW9kZWxfaW5mZXJlbmNlIjogRmFsc2UsCiAgICAgICAgICAgICJ2Z2d0IjogRmFsc2UsCiAgICAgICAgICAgICJkaXRfZmx1eF9nZW5lcmF0aW9uIjogRmFsc2UsCiAgICAgICAgICAgICJzb3VyY2VfcmVwbGFjZW1lbnQiOiBGYWxzZSwKICAgICAgICAgICAgImRpYWdub3N0aWNfbGlkYXJfemJ1ZmZlcl9vbmx5IjogVHJ1ZSwKICAgICAgICAgICAgImJvdW5kZWRfZGVwZW5kZW5jeV9ib290c3RyYXAiOiAiYXYyPj0wLjMgb25seSBpZiBtaXNzaW5nIiwKICAgICAgICB9LAogICAgICAgICJwYXRocyI6IHsKICAgICAgICAgICAgInJlbW90ZV9vdXQiOiBzdHIoUkVNT1RFX09VVCksCiAgICAgICAgICAgICJhdjJfcm9vdF9leGlzdHMiOiBBVjJfUk9PVC5leGlzdHMoKSwKICAgICAgICB9LAogICAgfQogICAgd29ya2RpciA9IGZpbmRfd29ya2RpcigpCiAgICByZXN1bHRbIndvcmtkaXIiXSA9IHN0cih3b3JrZGlyKSBpZiB3b3JrZGlyIGVsc2UgTm9uZQogICAgaWYgd29ya2RpciBpcyBOb25lOgogICAgICAgIHJlc3VsdFsic3RhdHVzIl0gPSAiYmxvY2tlZF9yZW1vdGVfc2NyaXB0X21pc3NpbmciCiAgICAgICAgcmVzdWx0WyJtZXNzYWdlIl0gPSAiTm8gdGVzdF9saWRhcl96YnVmZmVyX3NlYW0ucHkgZm91bmQgaW4gYWxsb3dlZCByZW1vdGUgd29ya2RpciBjYW5kaWRhdGVzLiIKICAgICAgICBSRU1PVEVfUkVTVUxULndyaXRlX3RleHQoanNvbi5kdW1wcyhyZXN1bHQsIGluZGVudD0yKSwgZW5jb2Rpbmc9InV0Zi04IikKICAgICAgICBwcmludCgiREI2NF9QSEFTRTJfSlNPTl9CRUdJTiIpCiAgICAgICAgcHJpbnQoanNvbi5kdW1wcyhyZXN1bHQsIGVuc3VyZV9hc2NpaT1GYWxzZSkpCiAgICAgICAgcHJpbnQoIkRCNjRfUEhBU0UyX0pTT05fRU5EIikKICAgICAgICByZXR1cm4KCiAgICBkZXAgPSB7Im5hbWUiOiAiYXYyIiwgImltcG9ydF9iZWZvcmUiOiBGYWxzZSwgImluc3RhbGxfYXR0ZW1wdGVkIjogRmFsc2UsICJpbXBvcnRfYWZ0ZXIiOiBGYWxzZX0KICAgIHRyeToKICAgICAgICBpbXBvcnQgYXYyICAjIG5vcWE6IEY0MDEKICAgICAgICBkZXBbImltcG9ydF9iZWZvcmUiXSA9IFRydWUKICAgICAgICBkZXBbImltcG9ydF9hZnRlciJdID0gVHJ1ZQogICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBleGM6CiAgICAgICAgZGVwWyJpbXBvcnRfYmVmb3JlX2Vycm9yIl0gPSByZXByKGV4YykKICAgICAgICBkZXBbImluc3RhbGxfYXR0ZW1wdGVkIl0gPSBUcnVlCiAgICAgICAgZGVwX3QwID0gdGltZS50aW1lKCkKICAgICAgICBwcm9jX2RlcCA9IHN1YnByb2Nlc3MucnVuKAogICAgICAgICAgICBbc3lzLmV4ZWN1dGFibGUsICItbSIsICJwaXAiLCAiaW5zdGFsbCIsICItcSIsICJhdjI+PTAuMyJdLAogICAgICAgICAgICBzdGRvdXQ9c3VicHJvY2Vzcy5QSVBFLAogICAgICAgICAgICBzdGRlcnI9c3VicHJvY2Vzcy5QSVBFLAogICAgICAgICAgICB0ZXh0PVRydWUsCiAgICAgICAgICAgIHRpbWVvdXQ9OTAwLAogICAgICAgICkKICAgICAgICBkZXBbImluc3RhbGxfcmV0dXJuY29kZSJdID0gaW50KHByb2NfZGVwLnJldHVybmNvZGUpCiAgICAgICAgZGVwWyJpbnN0YWxsX2R1cmF0aW9uX3MiXSA9IHJvdW5kKHRpbWUudGltZSgpIC0gZGVwX3QwLCAyKQogICAgICAgIGRlcFsiaW5zdGFsbF9zdGRvdXRfdGFpbCJdID0gdGFpbChwcm9jX2RlcC5zdGRvdXQsIDMwMDApCiAgICAgICAgZGVwWyJpbnN0YWxsX3N0ZGVycl90YWlsIl0gPSB0YWlsKHByb2NfZGVwLnN0ZGVyciwgMzAwMCkKICAgICAgICB0cnk6CiAgICAgICAgICAgIGltcG9ydCBhdjIgICMgbm9xYTogRjQwMQogICAgICAgICAgICBkZXBbImltcG9ydF9hZnRlciJdID0gVHJ1ZQogICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZXhjX2FmdGVyOgogICAgICAgICAgICBkZXBbImltcG9ydF9hZnRlcl9lcnJvciJdID0gcmVwcihleGNfYWZ0ZXIpCiAgICByZXN1bHRbImRlcGVuZGVuY3kiXSA9IGRlcAogICAgaWYgbm90IGRlcC5nZXQoImltcG9ydF9hZnRlciIpOgogICAgICAgIHJlc3VsdFsic3RhdHVzIl0gPSAiYmxvY2tlZF9taXNzaW5nX2F2Ml9hZnRlcl9ib290c3RyYXAiCiAgICAgICAgcmVzdWx0WyJydW50aW1lX3MiXSA9IHJvdW5kKHRpbWUudGltZSgpIC0gdDAsIDIpCiAgICAgICAgUkVNT1RFX1JFU1VMVC53cml0ZV90ZXh0KGpzb24uZHVtcHMocmVzdWx0LCBpbmRlbnQ9MiksIGVuY29kaW5nPSJ1dGYtOCIpCiAgICAgICAgcHJpbnQoIkRCNjRfUEhBU0UyX0pTT05fQkVHSU4iKQogICAgICAgIHByaW50KGpzb24uZHVtcHMocmVzdWx0LCBlbnN1cmVfYXNjaWk9RmFsc2UpKQogICAgICAgIHByaW50KCJEQjY0X1BIQVNFMl9KU09OX0VORCIpCiAgICAgICAgcmV0dXJuCgogICAgY21kID0gWwogICAgICAgIHN5cy5leGVjdXRhYmxlLAogICAgICAgICJzY3JpcHRzL3BoYXNlMy90ZXN0X2xpZGFyX3pidWZmZXJfc2VhbS5weSIsCiAgICAgICAgIi0tYXYyLXJvb3QiLAogICAgICAgIHN0cihBVjJfUk9PVCksCiAgICAgICAgIi0tb3V0LWRpciIsCiAgICAgICAgc3RyKFJFTU9URV9PVVQpLAogICAgICAgICItLWNhc2VzIiwKICAgICAgICAqQ0FTRVMsCiAgICAgICAgIi0tcmV2aWV3LXciLAogICAgICAgICI3NjgiLAogICAgICAgICItLW1heC1zYW1wbGUtcGVyLXBhaXIiLAogICAgICAgICI4MDAwIiwKICAgIF0KICAgIGVudiA9IG9zLmVudmlyb24uY29weSgpCiAgICBlbnZbIlBZVEhPTlVOQlVGRkVSRUQiXSA9ICIxIgogICAgZW52WyJNUExCQUNLRU5EIl0gPSAiQWdnIgogICAgcnVuX3QwID0gdGltZS50aW1lKCkKICAgIHRyeToKICAgICAgICBwcm9jID0gc3VicHJvY2Vzcy5ydW4oCiAgICAgICAgICAgIGNtZCwKICAgICAgICAgICAgY3dkPXN0cih3b3JrZGlyKSwKICAgICAgICAgICAgZW52PWVudiwKICAgICAgICAgICAgc3Rkb3V0PXN1YnByb2Nlc3MuUElQRSwKICAgICAgICAgICAgc3RkZXJyPXN1YnByb2Nlc3MuUElQRSwKICAgICAgICAgICAgdGV4dD1UcnVlLAogICAgICAgICAgICB0aW1lb3V0PTMzMDAsCiAgICAgICAgKQogICAgICAgIHJlc3VsdFsicnVuIl0gPSB7CiAgICAgICAgICAgICJyZXR1cm5jb2RlIjogaW50KHByb2MucmV0dXJuY29kZSksCiAgICAgICAgICAgICJkdXJhdGlvbl9zIjogcm91bmQodGltZS50aW1lKCkgLSBydW5fdDAsIDIpLAogICAgICAgICAgICAic3Rkb3V0X3RhaWwiOiB0YWlsKHByb2Muc3Rkb3V0KSwKICAgICAgICAgICAgInN0ZGVycl90YWlsIjogdGFpbChwcm9jLnN0ZGVyciksCiAgICAgICAgfQogICAgZXhjZXB0IHN1YnByb2Nlc3MuVGltZW91dEV4cGlyZWQgYXMgZXhjOgogICAgICAgIHJlc3VsdFsicnVuIl0gPSB7CiAgICAgICAgICAgICJyZXR1cm5jb2RlIjogTm9uZSwKICAgICAgICAgICAgInRpbWVvdXQiOiBUcnVlLAogICAgICAgICAgICAiZHVyYXRpb25fcyI6IHJvdW5kKHRpbWUudGltZSgpIC0gcnVuX3QwLCAyKSwKICAgICAgICAgICAgInN0ZG91dF90YWlsIjogdGFpbChleGMuc3Rkb3V0LmRlY29kZSgidXRmLTgiLCAicmVwbGFjZSIpIGlmIGlzaW5zdGFuY2UoZXhjLnN0ZG91dCwgYnl0ZXMpIGVsc2UgZXhjLnN0ZG91dCksCiAgICAgICAgICAgICJzdGRlcnJfdGFpbCI6IHRhaWwoZXhjLnN0ZGVyci5kZWNvZGUoInV0Zi04IiwgInJlcGxhY2UiKSBpZiBpc2luc3RhbmNlKGV4Yy5zdGRlcnIsIGJ5dGVzKSBlbHNlIGV4Yy5zdGRlcnIpLAogICAgICAgIH0KCiAgICBzdW1tYXJ5X3BhdGggPSBSRU1PVEVfT1VUIC8gImJhdGNoX3N1bW1hcnkuanNvbiIKICAgIGlmIHN1bW1hcnlfcGF0aC5leGlzdHMoKToKICAgICAgICB0cnk6CiAgICAgICAgICAgIHJlc3VsdFsiYmF0Y2hfc3VtbWFyeSJdID0ganNvbi5sb2FkcyhzdW1tYXJ5X3BhdGgucmVhZF90ZXh0KGVuY29kaW5nPSJ1dGYtOCIpKQogICAgICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZXhjOgogICAgICAgICAgICByZXN1bHRbImJhdGNoX3N1bW1hcnlfZXJyb3IiXSA9IHJlcHIoZXhjKQoKICAgIG91dHB1dHMgPSB7CiAgICAgICAgImJhdGNoX3N1bW1hcnkiOiBmaWxlX3JvdyhzdW1tYXJ5X3BhdGgpLAogICAgICAgICJjb21wYWN0X3JldmlldyI6IGZpbGVfcm93KFJFTU9URV9PVVQgLyAibGlkYXJfemJ1ZmZlcl90aHJlZV9hbmNob3JfY29tcGFjdF9yZXZpZXcuanBnIiksCiAgICB9CiAgICBmb3IgcnVuX25hbWUgaW4gUlVOX05BTUVTOgogICAgICAgIGNhc2VfZGlyID0gUkVNT1RFX09VVCAvIHJ1bl9uYW1lCiAgICAgICAgb3V0cHV0c1tydW5fbmFtZV0gPSB7CiAgICAgICAgICAgICJkaWFnbm9zdGljcyI6IGZpbGVfcm93KGNhc2VfZGlyIC8gZiJ7cnVuX25hbWV9X2xpZGFyX3pidWZmZXJfZGlhZ25vc3RpY3MuanNvbiIpLAogICAgICAgICAgICAiY3JvcF9yZXZpZXciOiBmaWxlX3JvdyhjYXNlX2RpciAvIGYie3J1bl9uYW1lfV9saWRhcl96YnVmZmVyX2Nyb3BfcmV2aWV3LmpwZyIpLAogICAgICAgICAgICAicmV2aWV3IjogZmlsZV9yb3coY2FzZV9kaXIgLyBmIntydW5fbmFtZX1fbGlkYXJfemJ1ZmZlcl9yZXZpZXdfNzY4LmpwZyIpLAogICAgICAgICAgICAiaGFyZF9zZWxlY3QiOiBmaWxlX3JvdyhjYXNlX2RpciAvIGYie3J1bl9uYW1lfV9oYXJkX3NlbGVjdC5qcGciKSwKICAgICAgICAgICAgImxpZGFyX3dpbm5lciI6IGZpbGVfcm93KGNhc2VfZGlyIC8gZiJ7cnVuX25hbWV9X2xpZGFyX3dpbm5lci5qcGciKSwKICAgICAgICAgICAgImxpZGFyX2NvbnNlbnN1cyI6IGZpbGVfcm93KGNhc2VfZGlyIC8gZiJ7cnVuX25hbWV9X2xpZGFyX2NvbnNlbnN1cy5qcGciKSwKICAgICAgICAgICAgImxpZGFyX2Jlc3QiOiBmaWxlX3JvdyhjYXNlX2RpciAvIGYie3J1bl9uYW1lfV9saWRhcl9iZXN0LmpwZyIpLAogICAgICAgIH0KICAgIHJlc3VsdFsib3V0cHV0cyJdID0gb3V0cHV0cwogICAgcmVzdWx0WyJzdGF0dXMiXSA9ICJkYjY0X3BoYXNlMl9saWRhcl96YnVmZmVyX2NvbXBsZXRlZCIgaWYgcmVzdWx0LmdldCgicnVuIiwge30pLmdldCgicmV0dXJuY29kZSIpID09IDAgZWxzZSAiZGI2NF9waGFzZTJfbGlkYXJfemJ1ZmZlcl9mYWlsZWRfb3JfYmxvY2tlZCIKICAgIHJlc3VsdFsicnVudGltZV9zIl0gPSByb3VuZCh0aW1lLnRpbWUoKSAtIHQwLCAyKQogICAgUkVNT1RFX1JFU1VMVC53cml0ZV90ZXh0KGpzb24uZHVtcHMocmVzdWx0LCBpbmRlbnQ9MiksIGVuY29kaW5nPSJ1dGYtOCIpCiAgICBwcmludCgiREI2NF9QSEFTRTJfSlNPTl9CRUdJTiIpCiAgICBwcmludChqc29uLmR1bXBzKHJlc3VsdCwgZW5zdXJlX2FzY2lpPUZhbHNlKSkKICAgIHByaW50KCJEQjY0X1BIQVNFMl9KU09OX0VORCIpCgppZiBfX25hbWVfXyA9PSAiX19tYWluX18iOgogICAgbWFpbigpCg==').decode('utf-8')\nexec(compile(code, '<db64_phase2_lidar_zbuffer_remote>', 'exec'))\nPY"
+    ],
+    "cwd": "/content",
+    "duration_s": 65.05946278572083,
+    "elapsed_s": 65.05946278572083,
+    "exit_code": 0,
+    "finished_at": 1780656735.6229632,
+    "job_id": "0b9406ba6c694b5c912e09e3a3d581c3",
+    "started_at": 1780656670.5635004,
+    "state": "done",
+    "timeout_s": 3600
+  },
+  "remote_result": {
+    "created_utc": "2026-06-05T10:51:10.624051+00:00",
+    "status": "db64_phase2_lidar_zbuffer_completed",
+    "scope": {
+      "fixed_cases_only": [
+        "02a00399:0:bmw",
+        "0bae3b5e:30:clean_far"
+      ],
+      "a100_required": false,
+      "model_inference": false,
+      "vggt": false,
+      "dit_flux_generation": false,
+      "source_replacement": false,
+      "diagnostic_lidar_zbuffer_only": true,
+      "bounded_dependency_bootstrap": "av2>=0.3 only if missing"
+    },
+    "paths": {
+      "remote_out": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer",
+      "av2_root_exists": true
+    },
+    "workdir": "/content/waymo2panorama",
+    "dependency": {
+      "name": "av2",
+      "import_before": false,
+      "install_attempted": true,
+      "import_after": true,
+      "import_before_error": "ModuleNotFoundError(\"No module named 'av2'\")",
+      "install_returncode": 0,
+      "install_duration_s": 14.4,
+      "install_stdout_tail": "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 15.2/15.2 MB 24.1 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 36.3/36.3 MB 28.0 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 37.8 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 75.5/75.5 kB 5.6 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 83.5/83.5 kB 6.2 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 43.8/43.8 kB 3.5 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.7/3.7 MB 82.3 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.6/7.6 MB 58.8 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 469.2/469.2 kB 27.4 MB/s eta 0:00:00\n",
+      "install_stderr_tail": ""
+    },
+    "run": {
+      "returncode": 0,
+      "duration_s": 50.52,
+      "stdout_tail": "[case] 02a00399_a000_bmw\n{\n  \"case\": \"02a00399_a000_bmw\",\n  \"visible_any_support_frac\": 0.4414736225829931,\n  \"winner_changed\": 0.005307674407958984,\n  \"consensus_changed\": 0.0030088424682617188,\n  \"best_changed\": 0.006759166717529297,\n  \"hard_ncc\": 1.0,\n  \"winner_ncc\": 0.8292881750082107,\n  \"consensus_ncc\": 0.8949142677419836,\n  \"best_ncc\": 0.7796403562995069\n}\n[case] 0bae3b5e_a030_clean_far\n{\n  \"case\": \"0bae3b5e_a030_clean_far\",\n  \"visible_any_support_frac\": 0.4079508156566894,\n  \"winner_changed\": 0.007320880889892578,\n  \"consensus_changed\": 0.0034809112548828125,\n  \"best_changed\": 0.008214950561523438,\n  \"hard_ncc\": 0.9999833354837773,\n  \"winner_ncc\": 0.8271601319023166,\n  \"consensus_ncc\": 0.9125549412175473,\n  \"best_ncc\": 0.8029074718622791\n}\n{\n  \"n_cases\": 2,\n  \"mean_visible_any_support_frac\": 0.42471221911984125,\n  \"mean_visible_ge2_support_frac\": 0.05566294713237617,\n  \"mean_changed_frac\": {\n    \"lidar_winner\": 0.006314277648925781,\n    \"lidar_consensus\": 0.0032448768615722656,\n    \"lidar_best\": 0.007487058639526367\n  },\n  \"mean_ncc_pano_vs_winner\": {\n    \"hard_select\": 0.9999916677418886,\n    \"lidar_winner\": 0.8282241534552637,\n    \"lidar_consensus\": 0.9037346044797654,\n    \"lidar_best\": 0.791273914080893\n  },\n  \"mean_seam_dy\": {\n    \"hard_select\": 19.903828144073486,\n    \"lidar_winner\": 22.84843158721924,\n    \"lidar_consensus\": 20.069218635559082,\n    \"lidar_best\": 19.36256694793701\n  }\n}\n[saved] /content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer\n",
+      "stderr_tail": ""
+    },
+    "batch_summary": {
+      "run": "phase2_lidar_zbuffer",
+      "cases": [
+        {
+          "case": "02a00399_a000_bmw",
+          "log_short": "02a00399",
+          "anchor_idx": 0,
+          "anchor_ts_ns": 315966070549927210,
+          "lidar_sweep_ts_ns": 315966070559696000,
+          "lidar_delta_ms": 9.76879,
+          "seam": {
+            "band_pixels": 81527,
+            "core_pixels": 8237,
+            "pair_diags": [
+              {
+                "pair": [
+                  0,
+                  1
+                ],
+                "band_pixels": 14361,
+                "core_pixels": 1259,
+                "overlap_pixels": 15031
+              },
+              {
+                "pair": [
+                  1,
+                  2
+                ],
+                "band_pixels": 11212,
+                "core_pixels": 1258,
+                "overlap_pixels": 11212
+              },
+              {
+                "pair": [
+                  2,
+                  3
+                ],
+                "band_pixels": 11637,
+                "core_pixels": 1219,
+                "overlap_pixels": 11637
+              },
+              {
+                "pair": [
+                  0,
+                  6
+                ],
+                "band_pixels": 13594,
+                "core_pixels": 1171,
+                "overlap_pixels": 13863
+              },
+              {
+                "pair": [
+                  6,
+                  5
+                ],
+                "band_pixels": 12596,
+                "core_pixels": 1265,
+                "overlap_pixels": 12596
+              },
+              {
+                "pair": [
+                  5,
+                  4
+                ],
+                "band_pixels": 11785,
+                "core_pixels": 1207,
+                "overlap_pixels": 11785
+              },
+              {
+                "pair": [
+                  3,
+                  4
+                ],
+                "band_pixels": 6342,
+                "core_pixels": 858,
+                "overlap_pixels": 12164
+              }
+            ]
+          },
+          "lidar_depth_summary": {
+            "n_input_pts": 98981,
+            "n_after_range_filter": 95669,
+            "n_hit_pixels": 71344,
+            "n_densified_pixels": 181448,
+            "n_far_fill_pixels": 1844360,
+            "hit_pct": 3.402,
+            "densified_pct": 8.652,
+            "far_fill_pct": 87.946,
+            "erp_hw": [
+              1024,
+              2048
+            ],
+            "min_range_m": 0.5,
+            "max_range_m": 80.0,
+            "densify_radius_px": 8,
+            "fill_far_m": 1000.0
+          },
+          "lidar_surface_render": {
+            "support_pixels": 252792,
+            "support_frac": 0.12054061889648438,
+            "visible_any_pixels": 111601,
+            "visible_any_frac": 0.05321550369262695,
+            "visible_any_support_frac": 0.4414736225829931,
+            "visible_ge2_pixels": 13823,
+            "visible_ge2_support_frac": 0.0546813190290832,
+            "per_cam": [
+              {
+                "cam_index": 0,
+                "zbuffer_projected_points": 10900,
+                "zbuffer_hit_pixels": 10889,
+                "zbuffer_support_pixels": 573420,
+                "erp_geom_valid_pixels": 21561,
+                "erp_visible_pixels": 9016,
+                "erp_visible_frac": 0.004299163818359375,
+                "erp_visible_support_frac": 0.03566568562296275
+              },
+              {
+                "cam_index": 1,
+                "zbuffer_projected_points": 17646,
+                "zbuffer_hit_pixels": 17633,
+                "zbuffer_support_pixels": 865309,
+                "erp_geom_valid_pixels": 32588,
+                "erp_visible_pixels": 18388,
+                "erp_visible_frac": 0.008768081665039062,
+                "erp_visible_support_frac": 0.07273964365960948
+              },
+              {
+                "cam_index": 2,
+                "zbuffer_projected_points": 17323,
+                "zbuffer_hit_pixels": 17262,
+                "zbuffer_support_pixels": 888660,
+                "erp_geom_valid_pixels": 44342,
+                "erp_visible_pixels": 22435,
+                "erp_visible_frac": 0.01069784164428711,
+                "erp_visible_support_frac": 0.08874885281179784
+              },
+              {
+                "cam_index": 3,
+                "zbuffer_projected_points": 12230,
+                "zbuffer_hit_pixels": 12170,
+                "zbuffer_support_pixels": 696668,
+                "erp_geom_valid_pixels": 36668,
+                "erp_visible_pixels": 16459,
+                "erp_visible_frac": 0.007848262786865234,
+                "erp_visible_support_frac": 0.06510886420456344
+              },
+              {
+                "cam_index": 4,
+                "zbuffer_projected_points": 14516,
+                "zbuffer_hit_pixels": 14484,
+                "zbuffer_support_pixels": 798358,
+                "erp_geom_valid_pixels": 51118,
+                "erp_visible_pixels": 24242,
+                "erp_visible_frac": 0.011559486389160156,
+                "erp_visible_support_frac": 0.09589702205766006
+              },
+              {
+                "cam_index": 5,
+                "zbuffer_projected_points": 16583,
+                "zbuffer_hit_pixels": 16369,
+                "zbuffer_support_pixels": 865979,
+                "erp_geom_valid_pixels": 44471,
+                "erp_visible_pixels": 18254,
+                "erp_visible_frac": 0.008704185485839844,
+                "erp_visible_support_frac": 0.07220956359378461
+              },
+              {
+                "cam_index": 6,
+                "zbuffer_projected_points": 19659,
+                "zbuffer_hit_pixels": 19540,
+                "zbuffer_support_pixels": 944852,
+                "erp_geom_valid_pixels": 41787,
+                "erp_visible_pixels": 16630,
+                "erp_visible_frac": 0.007929801940917969,
+                "erp_visible_support_frac": 0.06578530966169815
+              }
+            ],
+            "params": {
+              "depth_support_max_m": 120.0,
+              "min_cam_cos": 0.03,
+              "z_tolerance_abs_m": 0.9,
+              "z_tolerance_rel": 0.05
+            }
+          },
+          "consensus": {
+            "pair_diags": [
+              {
+                "pair": [
+                  0,
+                  1
+                ],
+                "band_pixels": 4574,
+                "both_visible_pixels": 1959,
+                "replace_pixels": 1509,
+                "replace_frac_band": 0.32990817665063404,
+                "ydiff_visible_mean": 18.933639526367188,
+                "ydiff_visible_p90": 56.0
+              },
+              {
+                "pair": [
+                  1,
+                  2
+                ],
+                "band_pixels": 4993,
+                "both_visible_pixels": 731,
+                "replace_pixels": 611,
+                "replace_frac_band": 0.1223713198477869,
+                "ydiff_visible_mean": 13.663475036621094,
+                "ydiff_visible_p90": 43.0
+              },
+              {
+                "pair": [
+                  2,
+                  3
+                ],
+                "band_pixels": 7249,
+                "both_visible_pixels": 1662,
+                "replace_pixels": 1421,
+                "replace_frac_band": 0.1960270382121672,
+                "ydiff_visible_mean": 17.125751495361328,
+                "ydiff_visible_p90": 46.0
+              },
+              {
+                "pair": [
+                  0,
+                  6
+                ],
+                "band_pixels": 6729,
+                "both_visible_pixels": 1764,
+                "replace_pixels": 1618,
+                "replace_frac_band": 0.24045177589537822,
+                "ydiff_visible_mean": 9.741497039794922,
+                "ydiff_visible_p90": 23.0
+              },
+              {
+                "pair": [
+                  6,
+                  5
+                ],
+                "band_pixels": 2789,
+                "both_visible_pixels": 0,
+                "replace_pixels": 0,
+                "replace_frac_band": 0.0,
+                "ydiff_visible_mean": null,
+                "ydiff_visible_p90": null
+              },
+              {
+                "pair": [
+                  5,
+                  4
+                ],
+                "band_pixels": 6287,
+                "both_visible_pixels": 672,
+                "replace_pixels": 645,
+                "replace_frac_band": 0.10259265150310164,
+                "ydiff_visible_mean": 8.6369047164917,
+                "ydiff_visible_p90": 12.0
+              },
+              {
+                "pair": [
+                  3,
+                  4
+                ],
+                "band_pixels": 2225,
+                "both_visible_pixels": 644,
+                "replace_pixels": 569,
+                "replace_frac_band": 0.25573033707865167,
+                "ydiff_visible_mean": 13.413043022155762,
+                "ydiff_visible_p90": 33.70001220703125
+              }
+            ],
+            "band_half_width": 48,
+            "y_agree_thresh": 28.0
+          },
+          "method_stats": {
+            "multiband": {
+              "name": "multiband",
+              "replace_pixels": 0,
+              "replace_frac_erp": 0.0,
+              "changed_pixels": 670241,
+              "changed_frac_erp": 0.3195958137512207,
+              "seam_gap_y": {
+                "n": 1682,
+                "mean_delta_y": 5.517836093902588,
+                "median_delta_y": 2.0,
+                "p90_delta_y": 17.0,
+                "p95_delta_y": 33.0,
+                "p99_delta_y": 41.1900634765625
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88288,
+                "mean_ncc_pano_vs_winner": 0.6765338795907031,
+                "mean_ncc_winner_vs_loser": 0.22640407342325672,
+                "mean_ssd_pano_vs_winner": 397.82444313377
+              }
+            },
+            "hard_select": {
+              "name": "hard_select",
+              "replace_pixels": 0,
+              "replace_frac_erp": 0.0,
+              "changed_pixels": 0,
+              "changed_frac_erp": 0.0,
+              "seam_gap_y": {
+                "n": 1682,
+                "mean_delta_y": 15.395956993103027,
+                "median_delta_y": 8.0,
+                "p90_delta_y": 38.0,
+                "p95_delta_y": 69.0,
+                "p99_delta_y": 108.1900634765625
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88288,
+                "mean_ncc_pano_vs_winner": 1.0,
+                "mean_ncc_winner_vs_loser": 0.22640407342325672,
+                "mean_ssd_pano_vs_winner": 0.0
+              }
+            },
+            "lidar_winner": {
+              "name": "lidar_winner",
+              "replace_pixels": 11249,
+              "replace_frac_erp": 0.005363941192626953,
+              "changed_pixels": 11131,
+              "changed_frac_erp": 0.005307674407958984,
+              "seam_gap_y": {
+                "n": 1682,
+                "mean_delta_y": 18.791913986206055,
+                "median_delta_y": 8.0,
+                "p90_delta_y": 54.0,
+                "p95_delta_y": 83.89990234375,
+                "p99_delta_y": 148.1900634765625
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88288,
+                "mean_ncc_pano_vs_winner": 0.8292881750082107,
+                "mean_ncc_winner_vs_loser": 0.22640407342325672,
+                "mean_ssd_pano_vs_winner": 766.6038457594648
+              }
+            },
+            "lidar_consensus": {
+              "name": "lidar_consensus",
+              "replace_pixels": 6373,
+              "replace_frac_erp": 0.0030388832092285156,
+              "changed_pixels": 6310,
+              "changed_frac_erp": 0.0030088424682617188,
+              "seam_gap_y": {
+                "n": 1682,
+                "mean_delta_y": 15.772294998168945,
+                "median_delta_y": 8.0,
+                "p90_delta_y": 40.0,
+                "p95_delta_y": 70.0,
+                "p99_delta_y": 112.380126953125
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88288,
+                "mean_ncc_pano_vs_winner": 0.8949142677419836,
+                "mean_ncc_winner_vs_loser": 0.22640407342325672,
+                "mean_ssd_pano_vs_winner": 406.1442699722727
+              }
+            },
+            "lidar_best": {
+              "name": "lidar_best",
+              "replace_pixels": 14294,
+              "replace_frac_erp": 0.006815910339355469,
+              "changed_pixels": 14175,
+              "changed_frac_erp": 0.006759166717529297,
+              "seam_gap_y": {
+                "n": 1682,
+                "mean_delta_y": 15.98216438293457,
+                "median_delta_y": 7.5,
+                "p90_delta_y": 43.0,
+                "p95_delta_y": 70.949951171875,
+                "p99_delta_y": 114.9503173828125
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88288,
+                "mean_ncc_pano_vs_winner": 0.7796403562995069,
+                "mean_ncc_winner_vs_loser": 0.22640407342325672,
+                "mean_ssd_pano_vs_winner": 967.3150888763074
+              }
+            }
+          },
+          "params": {
+            "av2_root": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val",
+            "out_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer",
+            "cases": [
+              "02a00399:0:bmw",
+              "0bae3b5e:30:clean_far"
+            ],
+            "erp_h": 1024,
+            "erp_w": 2048,
+            "band_half_width": 48,
+            "core_half_width": 2,
+            "ncc_win": 21,
+            "max_sample_per_pair": 8000,
+            "min_range_m": 0.5,
+            "max_range_m": 80.0,
+            "densify_radius_px": 8,
+            "fill_far_m": 1000.0,
+            "depth_support_max_m": 120.0,
+            "lidar_max_delta_ms": 75.0,
+            "zbuffer_dilation_px": 5,
+            "min_cam_cos": 0.03,
+            "z_tolerance_abs_m": 0.9,
+            "z_tolerance_rel": 0.05,
+            "consensus_y_thresh": 28.0,
+            "review_w": 768
+          },
+          "runtime_s": 23.022,
+          "outputs": {
+            "review": "02a00399_a000_bmw_lidar_zbuffer_review_768.jpg",
+            "crop_review": "02a00399_a000_bmw_lidar_zbuffer_crop_review.jpg",
+            "hard_select": "02a00399_a000_bmw_hard_select.jpg",
+            "lidar_winner": "02a00399_a000_bmw_lidar_winner.jpg",
+            "lidar_consensus": "02a00399_a000_bmw_lidar_consensus.jpg",
+            "lidar_best": "02a00399_a000_bmw_lidar_best.jpg"
+          }
+        },
+        {
+          "case": "0bae3b5e_a030_clean_far",
+          "log_short": "0bae3b5e",
+          "anchor_idx": 30,
+          "anchor_ts_ns": 315969525849927212,
+          "lidar_sweep_ts_ns": 315969525860042000,
+          "lidar_delta_ms": 10.114788,
+          "seam": {
+            "band_pixels": 81708,
+            "core_pixels": 8361,
+            "pair_diags": [
+              {
+                "pair": [
+                  0,
+                  1
+                ],
+                "band_pixels": 13585,
+                "core_pixels": 1152,
+                "overlap_pixels": 13857
+              },
+              {
+                "pair": [
+                  1,
+                  2
+                ],
+                "band_pixels": 11788,
+                "core_pixels": 1262,
+                "overlap_pixels": 11788
+              },
+              {
+                "pair": [
+                  2,
+                  3
+                ],
+                "band_pixels": 11523,
+                "core_pixels": 1215,
+                "overlap_pixels": 11523
+              },
+              {
+                "pair": [
+                  0,
+                  6
+                ],
+                "band_pixels": 14249,
+                "core_pixels": 1218,
+                "overlap_pixels": 14774
+              },
+              {
+                "pair": [
+                  6,
+                  5
+                ],
+                "band_pixels": 11945,
+                "core_pixels": 1264,
+                "overlap_pixels": 11945
+              },
+              {
+                "pair": [
+                  5,
+                  4
+                ],
+                "band_pixels": 11584,
+                "core_pixels": 1205,
+                "overlap_pixels": 11584
+              },
+              {
+                "pair": [
+                  3,
+                  4
+                ],
+                "band_pixels": 7034,
+                "core_pixels": 1045,
+                "overlap_pixels": 12944
+              }
+            ]
+          },
+          "lidar_depth_summary": {
+            "n_input_pts": 99928,
+            "n_after_range_filter": 94261,
+            "n_hit_pixels": 71479,
+            "n_densified_pixels": 214303,
+            "n_far_fill_pixels": 1811370,
+            "hit_pct": 3.408,
+            "densified_pct": 10.219,
+            "far_fill_pct": 86.373,
+            "erp_hw": [
+              1024,
+              2048
+            ],
+            "min_range_m": 0.5,
+            "max_range_m": 80.0,
+            "densify_radius_px": 8,
+            "fill_far_m": 1000.0
+          },
+          "lidar_surface_render": {
+            "support_pixels": 285782,
+            "support_frac": 0.13627147674560547,
+            "visible_any_pixels": 116585,
+            "visible_any_frac": 0.05559206008911133,
+            "visible_any_support_frac": 0.4079508156566894,
+            "visible_ge2_pixels": 16188,
+            "visible_ge2_support_frac": 0.056644575235669146,
+            "per_cam": [
+              {
+                "cam_index": 0,
+                "zbuffer_projected_points": 12023,
+                "zbuffer_hit_pixels": 12007,
+                "zbuffer_support_pixels": 644577,
+                "erp_geom_valid_pixels": 31057,
+                "erp_visible_pixels": 12853,
+                "erp_visible_frac": 0.006128787994384766,
+                "erp_visible_support_frac": 0.044974840962691845
+              },
+              {
+                "cam_index": 1,
+                "zbuffer_projected_points": 16359,
+                "zbuffer_hit_pixels": 16321,
+                "zbuffer_support_pixels": 870195,
+                "erp_geom_valid_pixels": 39470,
+                "erp_visible_pixels": 16744,
+                "erp_visible_frac": 0.007984161376953125,
+                "erp_visible_support_frac": 0.058590114142948124
+              },
+              {
+                "cam_index": 2,
+                "zbuffer_projected_points": 16294,
+                "zbuffer_hit_pixels": 16247,
+                "zbuffer_support_pixels": 866544,
+                "erp_geom_valid_pixels": 43218,
+                "erp_visible_pixels": 19768,
+                "erp_visible_frac": 0.009426116943359375,
+                "erp_visible_support_frac": 0.06917160632929996
+              },
+              {
+                "cam_index": 3,
+                "zbuffer_projected_points": 15570,
+                "zbuffer_hit_pixels": 15544,
+                "zbuffer_support_pixels": 851210,
+                "erp_geom_valid_pixels": 53754,
+                "erp_visible_pixels": 24556,
+                "erp_visible_frac": 0.011709213256835938,
+                "erp_visible_support_frac": 0.08592563562435702
+              },
+              {
+                "cam_index": 4,
+                "zbuffer_projected_points": 15719,
+                "zbuffer_hit_pixels": 15670,
+                "zbuffer_support_pixels": 829865,
+                "erp_geom_valid_pixels": 51617,
+                "erp_visible_pixels": 22304,
+                "erp_visible_frac": 0.0106353759765625,
+                "erp_visible_support_frac": 0.07804550321573787
+              },
+              {
+                "cam_index": 5,
+                "zbuffer_projected_points": 15221,
+                "zbuffer_hit_pixels": 15148,
+                "zbuffer_support_pixels": 834977,
+                "erp_geom_valid_pixels": 45614,
+                "erp_visible_pixels": 18237,
+                "erp_visible_frac": 0.00869607925415039,
+                "erp_visible_support_frac": 0.06381437599288968
+              },
+              {
+                "cam_index": 6,
+                "zbuffer_projected_points": 16453,
+                "zbuffer_hit_pixels": 16425,
+                "zbuffer_support_pixels": 865643,
+                "erp_geom_valid_pixels": 40282,
+                "erp_visible_pixels": 18311,
+                "erp_visible_frac": 0.008731365203857422,
+                "erp_visible_support_frac": 0.06407331462443401
+              }
+            ],
+            "params": {
+              "depth_support_max_m": 120.0,
+              "min_cam_cos": 0.03,
+              "z_tolerance_abs_m": 0.9,
+              "z_tolerance_rel": 0.05
+            }
+          },
+          "consensus": {
+            "pair_diags": [
+              {
+                "pair": [
+                  0,
+                  1
+                ],
+                "band_pixels": 6525,
+                "both_visible_pixels": 2396,
+                "replace_pixels": 2032,
+                "replace_frac_band": 0.3114176245210728,
+                "ydiff_visible_mean": 13.366861343383789,
+                "ydiff_visible_p90": 40.0
+              },
+              {
+                "pair": [
+                  1,
+                  2
+                ],
+                "band_pixels": 3741,
+                "both_visible_pixels": 1046,
+                "replace_pixels": 478,
+                "replace_frac_band": 0.12777332264100508,
+                "ydiff_visible_mean": 34.53346252441406,
+                "ydiff_visible_p90": 67.0
+              },
+              {
+                "pair": [
+                  2,
+                  3
+                ],
+                "band_pixels": 7108,
+                "both_visible_pixels": 989,
+                "replace_pixels": 793,
+                "replace_frac_band": 0.11156443444006753,
+                "ydiff_visible_mean": 20.239635467529297,
+                "ydiff_visible_p90": 48.0
+              },
+              {
+                "pair": [
+                  0,
+                  6
+                ],
+                "band_pixels": 6547,
+                "both_visible_pixels": 2435,
+                "replace_pixels": 1290,
+                "replace_frac_band": 0.19703681075301666,
+                "ydiff_visible_mean": 28.82464027404785,
+                "ydiff_visible_p90": 46.0
+              },
+              {
+                "pair": [
+                  6,
+                  5
+                ],
+                "band_pixels": 6055,
+                "both_visible_pixels": 991,
+                "replace_pixels": 757,
+                "replace_frac_band": 0.1250206440957886,
+                "ydiff_visible_mean": 20.85771942138672,
+                "ydiff_visible_p90": 52.0
+              },
+              {
+                "pair": [
+                  5,
+                  4
+                ],
+                "band_pixels": 7166,
+                "both_visible_pixels": 1110,
+                "replace_pixels": 889,
+                "replace_frac_band": 0.12405805191180574,
+                "ydiff_visible_mean": 20.2747745513916,
+                "ydiff_visible_p90": 47.0999755859375
+              },
+              {
+                "pair": [
+                  3,
+                  4
+                ],
+                "band_pixels": 3205,
+                "both_visible_pixels": 1182,
+                "replace_pixels": 1067,
+                "replace_frac_band": 0.3329173166926677,
+                "ydiff_visible_mean": 17.207275390625,
+                "ydiff_visible_p90": 28.0
+              }
+            ],
+            "band_half_width": 48,
+            "y_agree_thresh": 28.0
+          },
+          "method_stats": {
+            "multiband": {
+              "name": "multiband",
+              "replace_pixels": 0,
+              "replace_frac_erp": 0.0,
+              "changed_pixels": 625778,
+              "changed_frac_erp": 0.29839420318603516,
+              "seam_gap_y": {
+                "n": 1778,
+                "mean_delta_y": 8.445444107055664,
+                "median_delta_y": 3.0,
+                "p90_delta_y": 21.0,
+                "p95_delta_y": 34.0,
+                "p99_delta_y": 87.22998046875
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88415,
+                "mean_ncc_pano_vs_winner": 0.7265126927253692,
+                "mean_ncc_winner_vs_loser": 0.1714335552832764,
+                "mean_ssd_pano_vs_winner": 431.858628009144
+              }
+            },
+            "hard_select": {
+              "name": "hard_select",
+              "replace_pixels": 0,
+              "replace_frac_erp": 0.0,
+              "changed_pixels": 0,
+              "changed_frac_erp": 0.0,
+              "seam_gap_y": {
+                "n": 1778,
+                "mean_delta_y": 24.411699295043945,
+                "median_delta_y": 17.0,
+                "p90_delta_y": 47.0,
+                "p95_delta_y": 68.0,
+                "p99_delta_y": 170.0
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88415,
+                "mean_ncc_pano_vs_winner": 0.9999833354837773,
+                "mean_ncc_winner_vs_loser": 0.1714335552832764,
+                "mean_ssd_pano_vs_winner": 0.0
+              }
+            },
+            "lidar_winner": {
+              "name": "lidar_winner",
+              "replace_pixels": 15368,
+              "replace_frac_erp": 0.007328033447265625,
+              "changed_pixels": 15353,
+              "changed_frac_erp": 0.007320880889892578,
+              "seam_gap_y": {
+                "n": 1778,
+                "mean_delta_y": 26.904949188232422,
+                "median_delta_y": 18.0,
+                "p90_delta_y": 58.0,
+                "p95_delta_y": 88.0,
+                "p99_delta_y": 172.4599609375
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88415,
+                "mean_ncc_pano_vs_winner": 0.8271601319023166,
+                "mean_ncc_winner_vs_loser": 0.1714335552832764,
+                "mean_ssd_pano_vs_winner": 475.37744851626064
+              }
+            },
+            "lidar_consensus": {
+              "name": "lidar_consensus",
+              "replace_pixels": 7306,
+              "replace_frac_erp": 0.0034837722778320312,
+              "changed_pixels": 7300,
+              "changed_frac_erp": 0.0034809112548828125,
+              "seam_gap_y": {
+                "n": 1778,
+                "mean_delta_y": 24.36614227294922,
+                "median_delta_y": 17.0,
+                "p90_delta_y": 49.0,
+                "p95_delta_y": 72.0,
+                "p99_delta_y": 170.0
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88415,
+                "mean_ncc_pano_vs_winner": 0.9125549412175473,
+                "mean_ncc_winner_vs_loser": 0.1714335552832764,
+                "mean_ssd_pano_vs_winner": 241.15569652558884
+              }
+            },
+            "lidar_best": {
+              "name": "lidar_best",
+              "replace_pixels": 17244,
+              "replace_frac_erp": 0.008222579956054688,
+              "changed_pixels": 17228,
+              "changed_frac_erp": 0.008214950561523438,
+              "seam_gap_y": {
+                "n": 1778,
+                "mean_delta_y": 22.742969512939453,
+                "median_delta_y": 15.0,
+                "p90_delta_y": 47.0,
+                "p95_delta_y": 72.0,
+                "p99_delta_y": 158.4599609375
+              },
+              "ncc_aggregate": {
+                "total_overlap_px": 88415,
+                "mean_ncc_pano_vs_winner": 0.8029074718622791,
+                "mean_ncc_winner_vs_loser": 0.1714335552832764,
+                "mean_ssd_pano_vs_winner": 573.5529477274391
+              }
+            }
+          },
+          "params": {
+            "av2_root": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val",
+            "out_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer",
+            "cases": [
+              "02a00399:0:bmw",
+              "0bae3b5e:30:clean_far"
+            ],
+            "erp_h": 1024,
+            "erp_w": 2048,
+            "band_half_width": 48,
+            "core_half_width": 2,
+            "ncc_win": 21,
+            "max_sample_per_pair": 8000,
+            "min_range_m": 0.5,
+            "max_range_m": 80.0,
+            "densify_radius_px": 8,
+            "fill_far_m": 1000.0,
+            "depth_support_max_m": 120.0,
+            "lidar_max_delta_ms": 75.0,
+            "zbuffer_dilation_px": 5,
+            "min_cam_cos": 0.03,
+            "z_tolerance_abs_m": 0.9,
+            "z_tolerance_rel": 0.05,
+            "consensus_y_thresh": 28.0,
+            "review_w": 768
+          },
+          "runtime_s": 26.087,
+          "outputs": {
+            "review": "0bae3b5e_a030_clean_far_lidar_zbuffer_review_768.jpg",
+            "crop_review": "0bae3b5e_a030_clean_far_lidar_zbuffer_crop_review.jpg",
+            "hard_select": "0bae3b5e_a030_clean_far_hard_select.jpg",
+            "lidar_winner": "0bae3b5e_a030_clean_far_lidar_winner.jpg",
+            "lidar_consensus": "0bae3b5e_a030_clean_far_lidar_consensus.jpg",
+            "lidar_best": "0bae3b5e_a030_clean_far_lidar_best.jpg"
+          }
+        }
+      ],
+      "aggregate": {
+        "n_cases": 2,
+        "mean_visible_any_support_frac": 0.42471221911984125,
+        "mean_visible_ge2_support_frac": 0.05566294713237617,
+        "mean_changed_frac": {
+          "lidar_winner": 0.006314277648925781,
+          "lidar_consensus": 0.0032448768615722656,
+          "lidar_best": 0.007487058639526367
+        },
+        "mean_ncc_pano_vs_winner": {
+          "hard_select": 0.9999916677418886,
+          "lidar_winner": 0.8282241534552637,
+          "lidar_consensus": 0.9037346044797654,
+          "lidar_best": 0.791273914080893
+        },
+        "mean_seam_dy": {
+          "hard_select": 19.903828144073486,
+          "lidar_winner": 22.84843158721924,
+          "lidar_consensus": 20.069218635559082,
+          "lidar_best": 19.36256694793701
+        }
+      }
+    },
+    "outputs": {
+      "batch_summary": {
+        "exists": true,
+        "bytes": 26992,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/batch_summary.json"
+      },
+      "compact_review": {
+        "exists": true,
+        "bytes": 344039,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/lidar_zbuffer_three_anchor_compact_review.jpg"
+      },
+      "02a00399_a000_bmw": {
+        "diagnostics": {
+          "exists": true,
+          "bytes": 11428,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/02a00399_a000_bmw/02a00399_a000_bmw_lidar_zbuffer_diagnostics.json"
+        },
+        "crop_review": {
+          "exists": true,
+          "bytes": 980283,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/02a00399_a000_bmw/02a00399_a000_bmw_lidar_zbuffer_crop_review.jpg"
+        },
+        "review": {
+          "exists": true,
+          "bytes": 228779,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/02a00399_a000_bmw/02a00399_a000_bmw_lidar_zbuffer_review_768.jpg"
+        },
+        "hard_select": {
+          "exists": true,
+          "bytes": 200544,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/02a00399_a000_bmw/02a00399_a000_bmw_hard_select.jpg"
+        },
+        "lidar_winner": {
+          "exists": true,
+          "bytes": 205914,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/02a00399_a000_bmw/02a00399_a000_bmw_lidar_winner.jpg"
+        },
+        "lidar_consensus": {
+          "exists": true,
+          "bytes": 203769,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/02a00399_a000_bmw/02a00399_a000_bmw_lidar_consensus.jpg"
+        },
+        "lidar_best": {
+          "exists": true,
+          "bytes": 207399,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/02a00399_a000_bmw/02a00399_a000_bmw_lidar_best.jpg"
+        }
+      },
+      "0bae3b5e_a030_clean_far": {
+        "diagnostics": {
+          "exists": true,
+          "bytes": 11474,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_zbuffer_diagnostics.json"
+        },
+        "crop_review": {
+          "exists": true,
+          "bytes": 1159037,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_zbuffer_crop_review.jpg"
+        },
+        "review": {
+          "exists": true,
+          "bytes": 243565,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_zbuffer_review_768.jpg"
+        },
+        "hard_select": {
+          "exists": true,
+          "bytes": 241010,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_hard_select.jpg"
+        },
+        "lidar_winner": {
+          "exists": true,
+          "bytes": 243752,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_winner.jpg"
+        },
+        "lidar_consensus": {
+          "exists": true,
+          "bytes": 242902,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_consensus.jpg"
+        },
+        "lidar_best": {
+          "exists": true,
+          "bytes": 244086,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_best.jpg"
+        }
+      }
+    },
+    "runtime_s": 64.97
+  },
+  "dependency": {
+    "name": "av2",
+    "import_before": false,
+    "install_attempted": true,
+    "import_after": true,
+    "import_before_error": "ModuleNotFoundError(\"No module named 'av2'\")",
+    "install_returncode": 0,
+    "install_duration_s": 14.4,
+    "install_stdout_tail": "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 15.2/15.2 MB 24.1 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 36.3/36.3 MB 28.0 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 37.8 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 75.5/75.5 kB 5.6 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 83.5/83.5 kB 6.2 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 43.8/43.8 kB 3.5 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.7/3.7 MB 82.3 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.6/7.6 MB 58.8 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 469.2/469.2 kB 27.4 MB/s eta 0:00:00\n",
+    "install_stderr_tail": ""
+  },
+  "aggregate": {
+    "n_cases": 2,
+    "mean_visible_any_support_frac": 0.42471221911984125,
+    "mean_visible_ge2_support_frac": 0.05566294713237617,
+    "mean_changed_frac": {
+      "lidar_winner": 0.006314277648925781,
+      "lidar_consensus": 0.0032448768615722656,
+      "lidar_best": 0.007487058639526367
+    },
+    "mean_ncc_pano_vs_winner": {
+      "hard_select": 0.9999916677418886,
+      "lidar_winner": 0.8282241534552637,
+      "lidar_consensus": 0.9037346044797654,
+      "lidar_best": 0.791273914080893
+    },
+    "mean_seam_dy": {
+      "hard_select": 19.903828144073486,
+      "lidar_winner": 22.84843158721924,
+      "lidar_consensus": 20.069218635559082,
+      "lidar_best": 19.36256694793701
+    }
+  },
+  "fetched_outputs": {
+    "batch_summary": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_phase2_lidar_zbuffer_batch_summary.json",
+      "bytes": 26992
+    },
+    "compact_review": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/lidar_zbuffer_two_case_compact_review.jpg",
+      "bytes": 344039,
+      "size": [
+        768,
+        2012
+      ]
+    },
+    "02a00399_a000_bmw_diagnostics": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_zbuffer_diagnostics.json",
+      "bytes": 11428
+    },
+    "02a00399_a000_bmw_crop_review": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_zbuffer_crop_review.jpg",
+      "bytes": 980283,
+      "size": [
+        2151,
+        2712
+      ]
+    },
+    "02a00399_a000_bmw_review": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_zbuffer_review_768.jpg",
+      "bytes": 228779,
+      "size": [
+        768,
+        2954
+      ]
+    },
+    "02a00399_a000_bmw_hard_select": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_hard_select.jpg",
+      "bytes": 200544,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "02a00399_a000_bmw_lidar_winner": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_winner.jpg",
+      "bytes": 205914,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "02a00399_a000_bmw_lidar_consensus": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_consensus.jpg",
+      "bytes": 203769,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "02a00399_a000_bmw_lidar_best": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_best.jpg",
+      "bytes": 207399,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "0bae3b5e_a030_clean_far_diagnostics": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_zbuffer_diagnostics.json",
+      "bytes": 11474
+    },
+    "0bae3b5e_a030_clean_far_crop_review": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_zbuffer_crop_review.jpg",
+      "bytes": 1159037,
+      "size": [
+        2151,
+        2712
+      ]
+    },
+    "0bae3b5e_a030_clean_far_review": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_zbuffer_review_768.jpg",
+      "bytes": 243565,
+      "size": [
+        768,
+        2954
+      ]
+    },
+    "0bae3b5e_a030_clean_far_hard_select": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_hard_select.jpg",
+      "bytes": 241010,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "0bae3b5e_a030_clean_far_lidar_winner": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_winner.jpg",
+      "bytes": 243752,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "0bae3b5e_a030_clean_far_lidar_consensus": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_consensus.jpg",
+      "bytes": 242902,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "0bae3b5e_a030_clean_far_lidar_best": {
+      "fetched": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_best.jpg",
+      "bytes": 244086,
+      "size": [
+        2048,
+        1024
+      ]
+    }
+  },
+  "local_outputs": {
+    "remote_result_json": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_phase2_lidar_zbuffer_remote_result.json",
+    "batch_summary": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_phase2_lidar_zbuffer_batch_summary.json",
+    "fetch_dir": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch",
+    "manifest": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_ltr_v0_phase2_lidar_zbuffer_manifest.json",
+    "board": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_ltr_v0_phase2_lidar_zbuffer_board.jpg"
+  },
+  "decision": {
+    "run_ok": true,
+    "a100_needed_now": false,
+    "source_faithful_repair_claim_allowed": false,
+    "complete_ltr_v0_sidecar_claim_allowed": false,
+    "summary": "CPU LiDAR-zbuffer diagnostic completed; use it only as target-ray visibility precursor evidence.",
+    "next_allowed_step": "Inspect visual board and diagnostics; if useful, open a later sidecar-instrumentation sub-scope."
+  },
+  "strict_secret_scan": {
+    "hits": [],
+    "hit_count": 0
+  }
+}

@@ -1,0 +1,214 @@
+{
+  "case": "0bae3b5e_a030_clean_far",
+  "status": "z_cause_maps_complete",
+  "anchor_idx": 30,
+  "anchor_ts_ns": 315969525849927212,
+  "lidar_sweep_ts_ns": 315969525860042000,
+  "lidar_delta_ms": 10.114788,
+  "counts": {
+    "z_cause_primary": {
+      "0": 15028,
+      "1": 100343,
+      "20": 306321,
+      "41": 4619,
+      "42": 124906,
+      "43": 22854,
+      "60": 1072,
+      "255": 1522009
+    },
+    "z_repairability": {
+      "0": 2015444,
+      "1": 9102,
+      "2": 6007,
+      "3": 36162,
+      "5": 30437
+    }
+  },
+  "fractions": {
+    "seam_source_valid_frac": 1.0,
+    "seam_lidar_support_frac": 0.4937949772360112,
+    "seam_visible_ge2_frac": 0.12421060361286533,
+    "seam_single_visible_frac": 0.08683360258481422,
+    "seam_no_surface_frac": 0.5062050227639888,
+    "seam_no_camera_geom_valid_frac": 0.018835364958143634,
+    "seam_no_raw_zbuffer_support_frac": 0.22599990209037057,
+    "seam_z_mismatch_conflict_frac": 0.0379155039898174,
+    "seam_mixed_no_visible_frac": 0.0,
+    "seam_source_boundary_proxy_frac": 0.12708669897684438,
+    "supported_no_visible_no_zbuf_frac": 0.8197061274847584,
+    "supported_no_visible_z_conflict_frac": 0.14998129663536314,
+    "supported_no_visible_no_geom_frac": 0.03031257587987846
+  },
+  "z_residual_min_m_seam": {
+    "n": 20342,
+    "mean": 1.6399189233779907,
+    "p50": 0.013585090637207031,
+    "p90": 5.326924800872803,
+    "p95": 10.470126152038574
+  },
+  "per_cam": [
+    {
+      "cam_index": 0,
+      "geom_valid_pixels": 31057,
+      "zbuffer_hit_pixels": 13698,
+      "z_mismatch_pixels": 845,
+      "visible_pixels": 12853
+    },
+    {
+      "cam_index": 1,
+      "geom_valid_pixels": 39470,
+      "zbuffer_hit_pixels": 21725,
+      "z_mismatch_pixels": 4981,
+      "visible_pixels": 16744
+    },
+    {
+      "cam_index": 2,
+      "geom_valid_pixels": 43218,
+      "zbuffer_hit_pixels": 23748,
+      "z_mismatch_pixels": 3980,
+      "visible_pixels": 19768
+    },
+    {
+      "cam_index": 3,
+      "geom_valid_pixels": 53754,
+      "zbuffer_hit_pixels": 28256,
+      "z_mismatch_pixels": 3700,
+      "visible_pixels": 24556
+    },
+    {
+      "cam_index": 4,
+      "geom_valid_pixels": 51617,
+      "zbuffer_hit_pixels": 25329,
+      "z_mismatch_pixels": 3025,
+      "visible_pixels": 22304
+    },
+    {
+      "cam_index": 5,
+      "geom_valid_pixels": 45614,
+      "zbuffer_hit_pixels": 24900,
+      "z_mismatch_pixels": 6663,
+      "visible_pixels": 18237
+    },
+    {
+      "cam_index": 6,
+      "geom_valid_pixels": 40282,
+      "zbuffer_hit_pixels": 21108,
+      "z_mismatch_pixels": 2797,
+      "visible_pixels": 18311
+    }
+  ],
+  "seam": {
+    "band_pixels": 81708,
+    "core_pixels": 8361,
+    "pair_diags": [
+      {
+        "pair": [
+          0,
+          1
+        ],
+        "band_pixels": 13585,
+        "core_pixels": 1152,
+        "overlap_pixels": 13857
+      },
+      {
+        "pair": [
+          1,
+          2
+        ],
+        "band_pixels": 11788,
+        "core_pixels": 1262,
+        "overlap_pixels": 11788
+      },
+      {
+        "pair": [
+          2,
+          3
+        ],
+        "band_pixels": 11523,
+        "core_pixels": 1215,
+        "overlap_pixels": 11523
+      },
+      {
+        "pair": [
+          0,
+          6
+        ],
+        "band_pixels": 14249,
+        "core_pixels": 1218,
+        "overlap_pixels": 14774
+      },
+      {
+        "pair": [
+          6,
+          5
+        ],
+        "band_pixels": 11945,
+        "core_pixels": 1264,
+        "overlap_pixels": 11945
+      },
+      {
+        "pair": [
+          5,
+          4
+        ],
+        "band_pixels": 11584,
+        "core_pixels": 1205,
+        "overlap_pixels": 11584
+      },
+      {
+        "pair": [
+          3,
+          4
+        ],
+        "band_pixels": 7034,
+        "core_pixels": 1045,
+        "overlap_pixels": 12944
+      }
+    ]
+  },
+  "depth_summary": {
+    "n_input_pts": 99928,
+    "n_after_range_filter": 94261,
+    "n_hit_pixels": 71479,
+    "n_densified_pixels": 214303,
+    "n_far_fill_pixels": 1811370,
+    "hit_pct": 3.408,
+    "densified_pct": 10.219,
+    "far_fill_pct": 86.373,
+    "erp_hw": [
+      1024,
+      2048
+    ],
+    "min_range_m": 0.5,
+    "max_range_m": 80.0,
+    "densify_radius_px": 8,
+    "fill_far_m": 1000.0
+  },
+  "map_policy": {
+    "0": "multi_source_visible",
+    "1": "single_source_visible",
+    "20": "no_target_surface_support",
+    "41": "no_camera_geom_valid",
+    "42": "no_raw_camera_zbuffer_support",
+    "43": "z_mismatch_or_occlusion_conflict",
+    "44": "mixed_no_visible_source",
+    "60": "source_boundary_risk_proxy",
+    "255": "invalid_or_unclassified"
+  },
+  "claim_boundary": [
+    "z-cause maps are raw projection/zbuffer evidence only",
+    "no RGB repair was created",
+    "source-boundary is a proxy, not semantic protected mask"
+  ],
+  "outputs": {
+    "review": "0bae3b5e_a030_clean_far_z_visibility_review_768.jpg",
+    "z_cause_primary_map": "0bae3b5e_a030_clean_far_z_cause_primary_map.png",
+    "camera_geom_valid_count_map": "0bae3b5e_a030_clean_far_camera_geom_valid_count_map.png",
+    "camera_zbuffer_hit_count_map": "0bae3b5e_a030_clean_far_camera_zbuffer_hit_count_map.png",
+    "camera_z_mismatch_count_map": "0bae3b5e_a030_clean_far_camera_z_mismatch_count_map.png",
+    "camera_visible_count_map": "0bae3b5e_a030_clean_far_camera_visible_count_map.png",
+    "z_residual_min_cm_u16": "0bae3b5e_a030_clean_far_z_residual_min_cm_u16.png",
+    "z_repairability_map": "0bae3b5e_a030_clean_far_z_repairability_map.png"
+  },
+  "runtime_s": 9.127
+}

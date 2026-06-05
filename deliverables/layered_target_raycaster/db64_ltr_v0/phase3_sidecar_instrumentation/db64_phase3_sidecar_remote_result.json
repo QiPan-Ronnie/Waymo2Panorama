@@ -1,0 +1,252 @@
+{
+  "created_utc": "2026-06-05T11:21:51.348105+00:00",
+  "status": "db64_phase3_sidecar_completed",
+  "scope": {
+    "fixed_cases_only": [
+      "02a00399:0:bmw",
+      "0bae3b5e:30:clean_far"
+    ],
+    "sidecar_only": true,
+    "rgb_repair_created": false,
+    "phase2_rgb_copy_rejected_diagnostic": true,
+    "a100_required": false,
+    "model_inference": false,
+    "vggt": false,
+    "dit_flux_generation": false,
+    "source_replacement": false,
+    "bounded_dependency_bootstrap": "av2>=0.3 only if missing"
+  },
+  "paths": {
+    "remote_out": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation",
+    "av2_root_exists": true
+  },
+  "workdir": "/content/waymo2panorama",
+  "dependency": {
+    "name": "av2",
+    "import_before": true,
+    "install_attempted": false,
+    "import_after": true
+  },
+  "batch_summary": {
+    "n_cases": 2,
+    "all_required_sidecars_complete": true,
+    "mean_lidar_support_frac_seam": 0.4606058306396671,
+    "mean_visible_any_frac_seam": 0.19318631250185964,
+    "mean_visible_ge2_frac_seam": 0.10768529371095509,
+    "mean_unknown_frac_seam": 0.8068136874981404,
+    "mean_disocclusion_frac_seam": 0.2674195181378075,
+    "mean_boundary_risk_frac_seam": 0.12474393334407738,
+    "mean_risk_mean_seam_u8": 183.840581072649,
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "source_valid_frac": 0.27415895462036133,
+        "seam_band_frac": 0.03887510299682617,
+        "lidar_support_frac_total": 0.40794638866133404,
+        "lidar_support_frac_seam": 0.42741668404332306,
+        "visible_any_frac_total": 0.18866063834783017,
+        "visible_any_frac_seam": 0.17532841880603972,
+        "visible_ge2_frac_total": 0.023572361566945473,
+        "visible_ge2_frac_seam": 0.09115998380904486,
+        "unknown_frac_total": 0.8113393616521698,
+        "unknown_frac_seam": 0.8246715811939603,
+        "disocclusion_frac_total": 0.2192857503135039,
+        "disocclusion_frac_seam": 0.25208826523728334,
+        "boundary_risk_frac_total": 0.018411939758554176,
+        "boundary_risk_frac_seam": 0.12240116771131036,
+        "risk_mean_total_u8": 183.67463949227155,
+        "risk_p90_total_u8": 230.0,
+        "risk_mean_seam_u8": 185.3447324199345,
+        "risk_p90_seam_u8": 230.0,
+        "layer_id_counts": {
+          "0": 1522132,
+          "1": 106829,
+          "2": 334316,
+          "3": 7796,
+          "4": 126079
+        },
+        "operator_counts": {
+          "0": 493426,
+          "1": 12668,
+          "2": 1581079,
+          "3": 9979
+        }
+      },
+      "0bae3b5e_a030_clean_far": {
+        "source_valid_frac": 0.2742495536804199,
+        "seam_band_frac": 0.03896141052246094,
+        "lidar_support_frac_total": 0.4674002813213409,
+        "lidar_support_frac_seam": 0.4937949772360112,
+        "visible_any_frac_total": 0.20245921449100485,
+        "visible_any_frac_seam": 0.21104420619767955,
+        "visible_ge2_frac_total": 0.027993038253095317,
+        "visible_ge2_frac_seam": 0.12421060361286533,
+        "unknown_frac_total": 0.7975407855089952,
+        "unknown_frac_seam": 0.7889557938023205,
+        "disocclusion_frac_total": 0.2649410668303361,
+        "disocclusion_frac_seam": 0.2827507710383316,
+        "boundary_risk_frac_total": 0.019216090607031642,
+        "boundary_risk_frac_seam": 0.12708669897684438,
+        "risk_mean_total_u8": 184.28157866826163,
+        "risk_p90_total_u8": 230.0,
+        "risk_mean_seam_u8": 182.3364297253635,
+        "risk_p90_seam_u8": 230.0,
+        "layer_id_counts": {
+          "0": 1521933,
+          "1": 114210,
+          "2": 300766,
+          "3": 7864,
+          "4": 152379
+        },
+        "operator_counts": {
+          "0": 493435,
+          "1": 15109,
+          "2": 1578224,
+          "3": 10384
+        }
+      }
+    },
+    "bmw_minus_clean": {
+      "unknown_frac_seam_bmw_minus_clean": 0.03571578739163983,
+      "disocclusion_frac_seam_bmw_minus_clean": -0.03066250580104829,
+      "boundary_risk_frac_seam_bmw_minus_clean": -0.004685531265534018,
+      "risk_mean_seam_u8_bmw_minus_clean": 3.0083026945710003,
+      "risk_p90_seam_u8_bmw_minus_clean": 0.0,
+      "visible_any_frac_seam_bmw_minus_clean": -0.03571578739163983,
+      "visible_ge2_frac_seam_bmw_minus_clean": -0.03305061980382047
+    },
+    "errors": [],
+    "status": "sidecars_complete"
+  },
+  "outputs": {
+    "batch_summary": {
+      "exists": true,
+      "bytes": 3308,
+      "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/batch_summary.json"
+    },
+    "02a00399_a000_bmw": {
+      "diagnostics": {
+        "exists": true,
+        "bytes": 8834,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_sidecar_diagnostics.json"
+      },
+      "hard_select_reference": {
+        "exists": true,
+        "bytes": 200544,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_hard_select_reference.jpg"
+      },
+      "sidecar_review": {
+        "exists": true,
+        "bytes": 258177,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_sidecar_review_768.jpg"
+      },
+      "sidecar_crop_review": {
+        "exists": true,
+        "bytes": 1255711,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_sidecar_crop_review.jpg"
+      },
+      "source_id_map": {
+        "exists": true,
+        "bytes": 26141,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_source_id_map.png"
+      },
+      "visibility_count_map": {
+        "exists": true,
+        "bytes": 23347,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_visibility_count_map.png"
+      },
+      "lidar_support_map": {
+        "exists": true,
+        "bytes": 8750,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_lidar_support_map.png"
+      },
+      "risk_map": {
+        "exists": true,
+        "bytes": 33033,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_risk_map.png"
+      },
+      "unknown_mask": {
+        "exists": true,
+        "bytes": 21267,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_unknown_mask.png"
+      },
+      "disocclusion_mask": {
+        "exists": true,
+        "bytes": 23484,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_disocclusion_mask.png"
+      },
+      "layer_id_map": {
+        "exists": true,
+        "bytes": 27837,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_layer_id_map.png"
+      },
+      "operator_map": {
+        "exists": true,
+        "bytes": 11199,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/02a00399_a000_bmw/02a00399_a000_bmw_operator_map.png"
+      }
+    },
+    "0bae3b5e_a030_clean_far": {
+      "diagnostics": {
+        "exists": true,
+        "bytes": 8964,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_sidecar_diagnostics.json"
+      },
+      "hard_select_reference": {
+        "exists": true,
+        "bytes": 241010,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_hard_select_reference.jpg"
+      },
+      "sidecar_review": {
+        "exists": true,
+        "bytes": 272871,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_sidecar_review_768.jpg"
+      },
+      "sidecar_crop_review": {
+        "exists": true,
+        "bytes": 1441581,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_sidecar_crop_review.jpg"
+      },
+      "source_id_map": {
+        "exists": true,
+        "bytes": 31452,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_source_id_map.png"
+      },
+      "visibility_count_map": {
+        "exists": true,
+        "bytes": 27931,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_visibility_count_map.png"
+      },
+      "lidar_support_map": {
+        "exists": true,
+        "bytes": 8549,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_support_map.png"
+      },
+      "risk_map": {
+        "exists": true,
+        "bytes": 38023,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_risk_map.png"
+      },
+      "unknown_mask": {
+        "exists": true,
+        "bytes": 26623,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_unknown_mask.png"
+      },
+      "disocclusion_mask": {
+        "exists": true,
+        "bytes": 28642,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_disocclusion_mask.png"
+      },
+      "layer_id_map": {
+        "exists": true,
+        "bytes": 32793,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_layer_id_map.png"
+      },
+      "operator_map": {
+        "exists": true,
+        "bytes": 11761,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_operator_map.png"
+      }
+    }
+  },
+  "runtime_s": 21.55
+}

@@ -1,0 +1,173 @@
+{
+  "created_utc": "2026-06-05T10:37:57.424440+00:00",
+  "status": "db64_drive_data_preflight_remote",
+  "scope": {
+    "drive_data_presence_only": true,
+    "fixed_logs_only": [
+      "02a00399-3857-444e-8db3-a8f58489c394",
+      "0bae3b5e-417d-3b03-abaa-806b433233b8"
+    ],
+    "model_inference": false,
+    "renderer_or_ltr_prototype": false,
+    "a100_required": false,
+    "secrets_read": false
+  },
+  "workspace": {
+    "base": "/content/drive/MyDrive/koi_waymo2pano_colab",
+    "base_exists": true,
+    "top_level": {
+      "data": true,
+      "outputs": true,
+      "results": true,
+      "runtime": true,
+      "hf_cache": true,
+      "cache": true
+    }
+  },
+  "logs": [
+    {
+      "label": "bmw_near_field_target",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "log_exists": true,
+      "log_path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+      "calibration_dir_exists": true,
+      "intrinsics": {
+        "exists": true,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394/calibration/intrinsics.feather",
+        "bytes": 5330
+      },
+      "extrinsics": {
+        "exists": true,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394/calibration/egovehicle_SE3_sensor.feather",
+        "bytes": 4586
+      },
+      "camera_root_exists": true,
+      "camera_rows": {
+        "ring_front_center": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315966070549927210",
+          "last_stem": "315966086449927219"
+        },
+        "ring_front_left": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315966070537425446",
+          "last_stem": "315966086437425439"
+        },
+        "ring_side_left": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315966070522412936",
+          "last_stem": "315966086422412941"
+        },
+        "ring_rear_left": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315966070557428279",
+          "last_stem": "315966086457428279"
+        },
+        "ring_rear_right": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315966070542441195",
+          "last_stem": "315966086442441195"
+        },
+        "ring_side_right": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315966070527482489",
+          "last_stem": "315966086427482493"
+        },
+        "ring_front_right": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315966070562451239",
+          "last_stem": "315966086462451248"
+        }
+      },
+      "all_7_camera_dirs_exist": true,
+      "min_camera_jpg_count": 319,
+      "lidar_dir_exists": true,
+      "lidar_feather_count": 159,
+      "first_lidar_stem": "315966070559696000",
+      "last_lidar_stem": "315966086359938000",
+      "ltr_min_inputs_present": true
+    },
+    {
+      "label": "clean_far_control",
+      "uuid": "0bae3b5e-417d-3b03-abaa-806b433233b8",
+      "log_exists": true,
+      "log_path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8",
+      "calibration_dir_exists": true,
+      "intrinsics": {
+        "exists": true,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8/calibration/intrinsics.feather",
+        "bytes": 5330
+      },
+      "extrinsics": {
+        "exists": true,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8/calibration/egovehicle_SE3_sensor.feather",
+        "bytes": 4586
+      },
+      "camera_root_exists": true,
+      "camera_rows": {
+        "ring_front_center": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315969524349927218",
+          "last_stem": "315969540249927220"
+        },
+        "ring_front_left": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315969524337425442",
+          "last_stem": "315969540237425440"
+        },
+        "ring_side_left": {
+          "dir_exists": true,
+          "jpg_count": 320,
+          "first_stem": "315969524322412938",
+          "last_stem": "315969540272412938"
+        },
+        "ring_rear_left": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315969524357428270",
+          "last_stem": "315969540257428269"
+        },
+        "ring_rear_right": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315969524342441182",
+          "last_stem": "315969540242441184"
+        },
+        "ring_side_right": {
+          "dir_exists": true,
+          "jpg_count": 320,
+          "first_stem": "315969524327482497",
+          "last_stem": "315969540277482494"
+        },
+        "ring_front_right": {
+          "dir_exists": true,
+          "jpg_count": 319,
+          "first_stem": "315969524362451247",
+          "last_stem": "315969540262451244"
+        }
+      },
+      "all_7_camera_dirs_exist": true,
+      "min_camera_jpg_count": 319,
+      "lidar_dir_exists": true,
+      "lidar_feather_count": 157,
+      "first_lidar_stem": "315969524359750000",
+      "last_lidar_stem": "315969539960542000",
+      "ltr_min_inputs_present": true
+    }
+  ],
+  "decision": {
+    "target_log_ready_for_ltr_data_stage": true,
+    "clean_control_ready_for_ltr_data_stage": true,
+    "a100_needed_now": false,
+    "next": "If target log is ready, the next DB64 sub-brief may run a CPU/GPU bounded LTR prototype; do not run model/refiner/generation here."
+  }
+}

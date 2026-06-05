@@ -1,0 +1,281 @@
+{
+  "case": "0bae3b5e_a030_clean_far",
+  "log_short": "0bae3b5e",
+  "anchor_idx": 30,
+  "anchor_ts_ns": 315969525849927212,
+  "lidar_sweep_ts_ns": 315969525860042000,
+  "lidar_delta_ms": 10.114788,
+  "status": "sidecars_complete",
+  "claim": {
+    "sidecar_evidence_only": true,
+    "rgb_repair_created": false,
+    "phase2_rgb_copy_rejected_diagnostic": true,
+    "semantic_layer_truth": false,
+    "source_truth_overclaim": false
+  },
+  "map_policy": {
+    "source_id_map": "argmax of LiDAR-zbuffer per-camera visibility weights; 255 where no visible source",
+    "unknown_mask": "hard-select-valid target ray with no admissible LiDAR-supported visible source",
+    "disocclusion_mask": "LiDAR-supported target ray with zero zbuffer-visible source cameras; conservative proxy",
+    "risk_map": "policy map from source validity, LiDAR support, visibility count, disocclusion proxy, and source-boundary risk",
+    "layer_id_map": {
+      "0": "invalid/out-of-FOV",
+      "1": "lidar_supported_surface_candidate",
+      "2": "hard_select_source_only_no_lidar_surface",
+      "3": "source-boundary/protected-structure-risk-proxy",
+      "4": "possible_disocclusion",
+      "250": "mixed_diagnostic_composite_or_reserved",
+      "255": "unknown/no_admissible_support"
+    },
+    "operator_map": {
+      "0": "keep_hard_select_control",
+      "1": "evidence_supported_no_rgb_edit",
+      "2": "unknown_or_disocclusion_abstain",
+      "3": "boundary_or_protected_risk_abstain"
+    }
+  },
+  "seam": {
+    "band_pixels": 81708,
+    "core_pixels": 8361,
+    "pair_diags": [
+      {
+        "pair": [
+          0,
+          1
+        ],
+        "band_pixels": 13585,
+        "core_pixels": 1152,
+        "overlap_pixels": 13857
+      },
+      {
+        "pair": [
+          1,
+          2
+        ],
+        "band_pixels": 11788,
+        "core_pixels": 1262,
+        "overlap_pixels": 11788
+      },
+      {
+        "pair": [
+          2,
+          3
+        ],
+        "band_pixels": 11523,
+        "core_pixels": 1215,
+        "overlap_pixels": 11523
+      },
+      {
+        "pair": [
+          0,
+          6
+        ],
+        "band_pixels": 14249,
+        "core_pixels": 1218,
+        "overlap_pixels": 14774
+      },
+      {
+        "pair": [
+          6,
+          5
+        ],
+        "band_pixels": 11945,
+        "core_pixels": 1264,
+        "overlap_pixels": 11945
+      },
+      {
+        "pair": [
+          5,
+          4
+        ],
+        "band_pixels": 11584,
+        "core_pixels": 1205,
+        "overlap_pixels": 11584
+      },
+      {
+        "pair": [
+          3,
+          4
+        ],
+        "band_pixels": 7034,
+        "core_pixels": 1045,
+        "overlap_pixels": 12944
+      }
+    ]
+  },
+  "lidar_depth_summary": {
+    "n_input_pts": 99928,
+    "n_after_range_filter": 94261,
+    "n_hit_pixels": 71479,
+    "n_densified_pixels": 214303,
+    "n_far_fill_pixels": 1811370,
+    "hit_pct": 3.408,
+    "densified_pct": 10.219,
+    "far_fill_pct": 86.373,
+    "erp_hw": [
+      1024,
+      2048
+    ],
+    "min_range_m": 0.5,
+    "max_range_m": 80.0,
+    "densify_radius_px": 8,
+    "fill_far_m": 1000.0
+  },
+  "lidar_surface_render": {
+    "support_pixels": 285782,
+    "support_frac": 0.13627147674560547,
+    "visible_any_pixels": 116585,
+    "visible_any_frac": 0.05559206008911133,
+    "visible_any_support_frac": 0.4079508156566894,
+    "visible_ge2_pixels": 16188,
+    "visible_ge2_support_frac": 0.056644575235669146,
+    "per_cam": [
+      {
+        "cam_index": 0,
+        "zbuffer_projected_points": 12023,
+        "zbuffer_hit_pixels": 12007,
+        "zbuffer_support_pixels": 644577,
+        "erp_geom_valid_pixels": 31057,
+        "erp_visible_pixels": 12853,
+        "erp_visible_frac": 0.006128787994384766,
+        "erp_visible_support_frac": 0.044974840962691845
+      },
+      {
+        "cam_index": 1,
+        "zbuffer_projected_points": 16359,
+        "zbuffer_hit_pixels": 16321,
+        "zbuffer_support_pixels": 870195,
+        "erp_geom_valid_pixels": 39470,
+        "erp_visible_pixels": 16744,
+        "erp_visible_frac": 0.007984161376953125,
+        "erp_visible_support_frac": 0.058590114142948124
+      },
+      {
+        "cam_index": 2,
+        "zbuffer_projected_points": 16294,
+        "zbuffer_hit_pixels": 16247,
+        "zbuffer_support_pixels": 866544,
+        "erp_geom_valid_pixels": 43218,
+        "erp_visible_pixels": 19768,
+        "erp_visible_frac": 0.009426116943359375,
+        "erp_visible_support_frac": 0.06917160632929996
+      },
+      {
+        "cam_index": 3,
+        "zbuffer_projected_points": 15570,
+        "zbuffer_hit_pixels": 15544,
+        "zbuffer_support_pixels": 851210,
+        "erp_geom_valid_pixels": 53754,
+        "erp_visible_pixels": 24556,
+        "erp_visible_frac": 0.011709213256835938,
+        "erp_visible_support_frac": 0.08592563562435702
+      },
+      {
+        "cam_index": 4,
+        "zbuffer_projected_points": 15719,
+        "zbuffer_hit_pixels": 15670,
+        "zbuffer_support_pixels": 829865,
+        "erp_geom_valid_pixels": 51617,
+        "erp_visible_pixels": 22304,
+        "erp_visible_frac": 0.0106353759765625,
+        "erp_visible_support_frac": 0.07804550321573787
+      },
+      {
+        "cam_index": 5,
+        "zbuffer_projected_points": 15221,
+        "zbuffer_hit_pixels": 15148,
+        "zbuffer_support_pixels": 834977,
+        "erp_geom_valid_pixels": 45614,
+        "erp_visible_pixels": 18237,
+        "erp_visible_frac": 0.00869607925415039,
+        "erp_visible_support_frac": 0.06381437599288968
+      },
+      {
+        "cam_index": 6,
+        "zbuffer_projected_points": 16453,
+        "zbuffer_hit_pixels": 16425,
+        "zbuffer_support_pixels": 865643,
+        "erp_geom_valid_pixels": 40282,
+        "erp_visible_pixels": 18311,
+        "erp_visible_frac": 0.008731365203857422,
+        "erp_visible_support_frac": 0.06407331462443401
+      }
+    ],
+    "params": {
+      "depth_support_max_m": 120.0,
+      "min_cam_cos": 0.03,
+      "z_tolerance_abs_m": 0.9,
+      "z_tolerance_rel": 0.05
+    }
+  },
+  "sidecar_stats": {
+    "source_valid_frac": 0.2742495536804199,
+    "seam_band_frac": 0.03896141052246094,
+    "lidar_support_frac_total": 0.4674002813213409,
+    "lidar_support_frac_seam": 0.4937949772360112,
+    "visible_any_frac_total": 0.20245921449100485,
+    "visible_any_frac_seam": 0.21104420619767955,
+    "visible_ge2_frac_total": 0.027993038253095317,
+    "visible_ge2_frac_seam": 0.12421060361286533,
+    "unknown_frac_total": 0.7975407855089952,
+    "unknown_frac_seam": 0.7889557938023205,
+    "disocclusion_frac_total": 0.2649410668303361,
+    "disocclusion_frac_seam": 0.2827507710383316,
+    "boundary_risk_frac_total": 0.019216090607031642,
+    "boundary_risk_frac_seam": 0.12708669897684438,
+    "risk_mean_total_u8": 184.28157866826163,
+    "risk_p90_total_u8": 230.0,
+    "risk_mean_seam_u8": 182.3364297253635,
+    "risk_p90_seam_u8": 230.0,
+    "layer_id_counts": {
+      "0": 1521933,
+      "1": 114210,
+      "2": 300766,
+      "3": 7864,
+      "4": 152379
+    },
+    "operator_counts": {
+      "0": 493435,
+      "1": 15109,
+      "2": 1578224,
+      "3": 10384
+    }
+  },
+  "outputs": {
+    "hard_select_reference": "0bae3b5e_a030_clean_far_hard_select_reference.jpg",
+    "sidecar_review": "0bae3b5e_a030_clean_far_sidecar_review_768.jpg",
+    "sidecar_crop_review": "0bae3b5e_a030_clean_far_sidecar_crop_review.jpg",
+    "source_id_map": "0bae3b5e_a030_clean_far_source_id_map.png",
+    "source_id_map_viz": "0bae3b5e_a030_clean_far_source_id_map_viz.png",
+    "visibility_count_map": "0bae3b5e_a030_clean_far_visibility_count_map.png",
+    "visibility_count_map_viz": "0bae3b5e_a030_clean_far_visibility_count_map_viz.png",
+    "lidar_support_map": "0bae3b5e_a030_clean_far_lidar_support_map.png",
+    "lidar_support_map_viz": "0bae3b5e_a030_clean_far_lidar_support_viz.png",
+    "risk_map": "0bae3b5e_a030_clean_far_risk_map.png",
+    "risk_map_viz": "0bae3b5e_a030_clean_far_risk_map_viz.png",
+    "unknown_mask": "0bae3b5e_a030_clean_far_unknown_mask.png",
+    "unknown_mask_viz": "0bae3b5e_a030_clean_far_unknown_mask_viz.png",
+    "disocclusion_mask": "0bae3b5e_a030_clean_far_disocclusion_mask.png",
+    "disocclusion_mask_viz": "0bae3b5e_a030_clean_far_disocclusion_mask_viz.png",
+    "layer_id_map": "0bae3b5e_a030_clean_far_layer_id_map.png",
+    "layer_id_map_viz": "0bae3b5e_a030_clean_far_layer_id_map_viz.png",
+    "operator_map": "0bae3b5e_a030_clean_far_operator_map.png",
+    "operator_map_viz": "0bae3b5e_a030_clean_far_operator_map_viz.png",
+    "diagnostics": "0bae3b5e_a030_clean_far_sidecar_diagnostics.json"
+  },
+  "required_sidecars_complete": true,
+  "params": {
+    "erp_h": 1024,
+    "erp_w": 2048,
+    "band_half_width": 48,
+    "core_half_width": 2,
+    "min_range_m": 0.5,
+    "max_range_m": 80.0,
+    "densify_radius_px": 8,
+    "zbuffer_dilation_px": 5,
+    "min_cam_cos": 0.03,
+    "z_tolerance_abs_m": 0.9,
+    "z_tolerance_rel": 0.05
+  },
+  "runtime_s": 9.488
+}

@@ -1,0 +1,235 @@
+{
+  "created_utc": "2026-06-05T10:38:16.463033+00:00",
+  "status": "db64_ltr_v0_drive_data_preflight",
+  "accepted_evidence_type": "cpu_colab_drive_data_presence_only",
+  "scope": {
+    "remote_status_used": true,
+    "remote_exec_used": true,
+    "exec_count": 1,
+    "fixed_logs_only": [
+      "02a00399-3857-444e-8db3-a8f58489c394",
+      "0bae3b5e-417d-3b03-abaa-806b433233b8"
+    ],
+    "a100_used_or_needed": false,
+    "model_inference_used": false,
+    "renderer_or_ltr_prototype_ran": false,
+    "generation_or_inpainting_used": false,
+    "source_replacement_used": false,
+    "sidecars_created": false,
+    "red_promotion": false
+  },
+  "runtime": {
+    "secret_source_kind": "non_repo_file",
+    "status": {
+      "active_jobs": 0,
+      "version": "0.1.0a1",
+      "gpu_name": null,
+      "runtime_type": "colab-cpu"
+    }
+  },
+  "job": {
+    "cmd": [
+      "python",
+      "-c",
+      "\nimport json\nimport os\nfrom pathlib import Path\nfrom datetime import datetime, timezone\n\nBASE = Path(\"/content/drive/MyDrive/koi_waymo2pano_colab\")\nTARGET_UUID = \"02a00399-3857-444e-8db3-a8f58489c394\"\nCLEAN_UUID = \"0bae3b5e-417d-3b03-abaa-806b433233b8\"\nRING_CAMS_7 = [\n    \"ring_front_center\",\n    \"ring_front_left\",\n    \"ring_side_left\",\n    \"ring_rear_left\",\n    \"ring_rear_right\",\n    \"ring_side_right\",\n    \"ring_front_right\",\n]\n\ndef stat_file(path):\n    return {\"exists\": path.exists(), \"path\": str(path), \"bytes\": path.stat().st_size if path.exists() and path.is_file() else None}\n\ndef count_files(path, suffix):\n    if not path.exists() or not path.is_dir():\n        return 0\n    return len(list(path.glob(\"*\" + suffix)))\n\ndef inspect_log(uuid, label):\n    log = BASE / \"data\" / \"argoverse2\" / \"val\" / uuid\n    cams_root = log / \"sensors\" / \"cameras\"\n    cam_rows = {}\n    for cam in RING_CAMS_7:\n        cam_dir = cams_root / cam\n        jpgs = sorted(cam_dir.glob(\"*.jpg\")) if cam_dir.exists() else []\n        cam_rows[cam] = {\n            \"dir_exists\": cam_dir.exists(),\n            \"jpg_count\": len(jpgs),\n            \"first_stem\": jpgs[0].stem if jpgs else None,\n            \"last_stem\": jpgs[-1].stem if jpgs else None,\n        }\n    lidar_dir = log / \"sensors\" / \"lidar\"\n    lidar_files = sorted(lidar_dir.glob(\"*.feather\")) if lidar_dir.exists() else []\n    calib = log / \"calibration\"\n    intr = calib / \"intrinsics.feather\"\n    extr = calib / \"egovehicle_SE3_sensor.feather\"\n    return {\n        \"label\": label,\n        \"uuid\": uuid,\n        \"log_exists\": log.exists(),\n        \"log_path\": str(log),\n        \"calibration_dir_exists\": calib.exists(),\n        \"intrinsics\": stat_file(intr),\n        \"extrinsics\": stat_file(extr),\n        \"camera_root_exists\": cams_root.exists(),\n        \"camera_rows\": cam_rows,\n        \"all_7_camera_dirs_exist\": all(v[\"dir_exists\"] for v in cam_rows.values()),\n        \"min_camera_jpg_count\": min([v[\"jpg_count\"] for v in cam_rows.values()] or [0]),\n        \"lidar_dir_exists\": lidar_dir.exists(),\n        \"lidar_feather_count\": len(lidar_files),\n        \"first_lidar_stem\": lidar_files[0].stem if lidar_files else None,\n        \"last_lidar_stem\": lidar_files[-1].stem if lidar_files else None,\n        \"ltr_min_inputs_present\": (\n            log.exists()\n            and intr.exists()\n            and extr.exists()\n            and all(v[\"dir_exists\"] and v[\"jpg_count\"] > 0 for v in cam_rows.values())\n            and len(lidar_files) > 0\n        ),\n    }\n\ndef main():\n    out = {\n        \"created_utc\": datetime.now(timezone.utc).isoformat(),\n        \"status\": \"db64_drive_data_preflight_remote\",\n        \"scope\": {\n            \"drive_data_presence_only\": True,\n            \"fixed_logs_only\": [TARGET_UUID, CLEAN_UUID],\n            \"model_inference\": False,\n            \"renderer_or_ltr_prototype\": False,\n            \"a100_required\": False,\n            \"secrets_read\": False,\n        },\n        \"workspace\": {\n            \"base\": str(BASE),\n            \"base_exists\": BASE.exists(),\n            \"top_level\": {name: (BASE / name).exists() for name in [\"data\", \"outputs\", \"results\", \"runtime\", \"hf_cache\", \"cache\"]},\n        },\n        \"logs\": [\n            inspect_log(TARGET_UUID, \"bmw_near_field_target\"),\n            inspect_log(CLEAN_UUID, \"clean_far_control\"),\n        ],\n    }\n    out[\"decision\"] = {\n        \"target_log_ready_for_ltr_data_stage\": out[\"logs\"][0][\"ltr_min_inputs_present\"],\n        \"clean_control_ready_for_ltr_data_stage\": out[\"logs\"][1][\"ltr_min_inputs_present\"],\n        \"a100_needed_now\": False,\n        \"next\": \"If target log is ready, the next DB64 sub-brief may run a CPU/GPU bounded LTR prototype; do not run model/refiner/generation here.\",\n    }\n    result_path = Path(\"/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/db64_drive_data_preflight.json\")\n    result_path.parent.mkdir(parents=True, exist_ok=True)\n    result_path.write_text(json.dumps(out, indent=2), encoding=\"utf-8\")\n    print(\"DB64_RESULT_PATH=\" + str(result_path))\n    print(\"DB64_JSON_BEGIN\")\n    print(json.dumps(out, ensure_ascii=False))\n    print(\"DB64_JSON_END\")\n\nif __name__ == \"__main__\":\n    main()\n"
+    ],
+    "cwd": "/content",
+    "duration_s": 15.005203485488892,
+    "elapsed_s": 15.005203485488892,
+    "exit_code": 0,
+    "finished_at": 1780655892.3665137,
+    "job_id": "5492329d357545da8e47eb7fd29b9824",
+    "started_at": 1780655877.3613102,
+    "state": "done",
+    "timeout_s": 180
+  },
+  "remote_result": {
+    "created_utc": "2026-06-05T10:37:57.424440+00:00",
+    "status": "db64_drive_data_preflight_remote",
+    "scope": {
+      "drive_data_presence_only": true,
+      "fixed_logs_only": [
+        "02a00399-3857-444e-8db3-a8f58489c394",
+        "0bae3b5e-417d-3b03-abaa-806b433233b8"
+      ],
+      "model_inference": false,
+      "renderer_or_ltr_prototype": false,
+      "a100_required": false,
+      "secrets_read": false
+    },
+    "workspace": {
+      "base": "/content/drive/MyDrive/koi_waymo2pano_colab",
+      "base_exists": true,
+      "top_level": {
+        "data": true,
+        "outputs": true,
+        "results": true,
+        "runtime": true,
+        "hf_cache": true,
+        "cache": true
+      }
+    },
+    "logs": [
+      {
+        "label": "bmw_near_field_target",
+        "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+        "log_exists": true,
+        "log_path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+        "calibration_dir_exists": true,
+        "intrinsics": {
+          "exists": true,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394/calibration/intrinsics.feather",
+          "bytes": 5330
+        },
+        "extrinsics": {
+          "exists": true,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394/calibration/egovehicle_SE3_sensor.feather",
+          "bytes": 4586
+        },
+        "camera_root_exists": true,
+        "camera_rows": {
+          "ring_front_center": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315966070549927210",
+            "last_stem": "315966086449927219"
+          },
+          "ring_front_left": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315966070537425446",
+            "last_stem": "315966086437425439"
+          },
+          "ring_side_left": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315966070522412936",
+            "last_stem": "315966086422412941"
+          },
+          "ring_rear_left": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315966070557428279",
+            "last_stem": "315966086457428279"
+          },
+          "ring_rear_right": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315966070542441195",
+            "last_stem": "315966086442441195"
+          },
+          "ring_side_right": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315966070527482489",
+            "last_stem": "315966086427482493"
+          },
+          "ring_front_right": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315966070562451239",
+            "last_stem": "315966086462451248"
+          }
+        },
+        "all_7_camera_dirs_exist": true,
+        "min_camera_jpg_count": 319,
+        "lidar_dir_exists": true,
+        "lidar_feather_count": 159,
+        "first_lidar_stem": "315966070559696000",
+        "last_lidar_stem": "315966086359938000",
+        "ltr_min_inputs_present": true
+      },
+      {
+        "label": "clean_far_control",
+        "uuid": "0bae3b5e-417d-3b03-abaa-806b433233b8",
+        "log_exists": true,
+        "log_path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8",
+        "calibration_dir_exists": true,
+        "intrinsics": {
+          "exists": true,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8/calibration/intrinsics.feather",
+          "bytes": 5330
+        },
+        "extrinsics": {
+          "exists": true,
+          "path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8/calibration/egovehicle_SE3_sensor.feather",
+          "bytes": 4586
+        },
+        "camera_root_exists": true,
+        "camera_rows": {
+          "ring_front_center": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315969524349927218",
+            "last_stem": "315969540249927220"
+          },
+          "ring_front_left": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315969524337425442",
+            "last_stem": "315969540237425440"
+          },
+          "ring_side_left": {
+            "dir_exists": true,
+            "jpg_count": 320,
+            "first_stem": "315969524322412938",
+            "last_stem": "315969540272412938"
+          },
+          "ring_rear_left": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315969524357428270",
+            "last_stem": "315969540257428269"
+          },
+          "ring_rear_right": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315969524342441182",
+            "last_stem": "315969540242441184"
+          },
+          "ring_side_right": {
+            "dir_exists": true,
+            "jpg_count": 320,
+            "first_stem": "315969524327482497",
+            "last_stem": "315969540277482494"
+          },
+          "ring_front_right": {
+            "dir_exists": true,
+            "jpg_count": 319,
+            "first_stem": "315969524362451247",
+            "last_stem": "315969540262451244"
+          }
+        },
+        "all_7_camera_dirs_exist": true,
+        "min_camera_jpg_count": 319,
+        "lidar_dir_exists": true,
+        "lidar_feather_count": 157,
+        "first_lidar_stem": "315969524359750000",
+        "last_lidar_stem": "315969539960542000",
+        "ltr_min_inputs_present": true
+      }
+    ],
+    "decision": {
+      "target_log_ready_for_ltr_data_stage": true,
+      "clean_control_ready_for_ltr_data_stage": true,
+      "a100_needed_now": false,
+      "next": "If target log is ready, the next DB64 sub-brief may run a CPU/GPU bounded LTR prototype; do not run model/refiner/generation here."
+    }
+  },
+  "local_outputs": {
+    "remote_result_json": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_drive_data_preflight_remote_result.json",
+    "manifest": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_ltr_v0_drive_data_preflight_manifest.json",
+    "board": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_ltr_v0_drive_data_preflight_board.jpg"
+  },
+  "decision": {
+    "target_log_ready_for_ltr_data_stage": true,
+    "clean_control_ready_for_ltr_data_stage": true,
+    "a100_needed_now": false,
+    "summary": "Drive target data is ready for a bounded LTR prototype preflight.",
+    "next_allowed_step": "Open or extend DB64 with a prototype sub-scope before rendering sidecars. A CPU/GPU choice should be based on expected runtime; no model/refiner/generation."
+  },
+  "strict_secret_scan": {
+    "hits": [],
+    "hit_count": 0
+  }
+}

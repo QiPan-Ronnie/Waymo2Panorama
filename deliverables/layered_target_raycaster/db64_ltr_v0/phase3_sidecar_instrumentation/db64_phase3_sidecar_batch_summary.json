@@ -1,0 +1,90 @@
+{
+  "n_cases": 2,
+  "all_required_sidecars_complete": true,
+  "mean_lidar_support_frac_seam": 0.4606058306396671,
+  "mean_visible_any_frac_seam": 0.19318631250185964,
+  "mean_visible_ge2_frac_seam": 0.10768529371095509,
+  "mean_unknown_frac_seam": 0.8068136874981404,
+  "mean_disocclusion_frac_seam": 0.2674195181378075,
+  "mean_boundary_risk_frac_seam": 0.12474393334407738,
+  "mean_risk_mean_seam_u8": 183.840581072649,
+  "by_case": {
+    "02a00399_a000_bmw": {
+      "source_valid_frac": 0.27415895462036133,
+      "seam_band_frac": 0.03887510299682617,
+      "lidar_support_frac_total": 0.40794638866133404,
+      "lidar_support_frac_seam": 0.42741668404332306,
+      "visible_any_frac_total": 0.18866063834783017,
+      "visible_any_frac_seam": 0.17532841880603972,
+      "visible_ge2_frac_total": 0.023572361566945473,
+      "visible_ge2_frac_seam": 0.09115998380904486,
+      "unknown_frac_total": 0.8113393616521698,
+      "unknown_frac_seam": 0.8246715811939603,
+      "disocclusion_frac_total": 0.2192857503135039,
+      "disocclusion_frac_seam": 0.25208826523728334,
+      "boundary_risk_frac_total": 0.018411939758554176,
+      "boundary_risk_frac_seam": 0.12240116771131036,
+      "risk_mean_total_u8": 183.67463949227155,
+      "risk_p90_total_u8": 230.0,
+      "risk_mean_seam_u8": 185.3447324199345,
+      "risk_p90_seam_u8": 230.0,
+      "layer_id_counts": {
+        "0": 1522132,
+        "1": 106829,
+        "2": 334316,
+        "3": 7796,
+        "4": 126079
+      },
+      "operator_counts": {
+        "0": 493426,
+        "1": 12668,
+        "2": 1581079,
+        "3": 9979
+      }
+    },
+    "0bae3b5e_a030_clean_far": {
+      "source_valid_frac": 0.2742495536804199,
+      "seam_band_frac": 0.03896141052246094,
+      "lidar_support_frac_total": 0.4674002813213409,
+      "lidar_support_frac_seam": 0.4937949772360112,
+      "visible_any_frac_total": 0.20245921449100485,
+      "visible_any_frac_seam": 0.21104420619767955,
+      "visible_ge2_frac_total": 0.027993038253095317,
+      "visible_ge2_frac_seam": 0.12421060361286533,
+      "unknown_frac_total": 0.7975407855089952,
+      "unknown_frac_seam": 0.7889557938023205,
+      "disocclusion_frac_total": 0.2649410668303361,
+      "disocclusion_frac_seam": 0.2827507710383316,
+      "boundary_risk_frac_total": 0.019216090607031642,
+      "boundary_risk_frac_seam": 0.12708669897684438,
+      "risk_mean_total_u8": 184.28157866826163,
+      "risk_p90_total_u8": 230.0,
+      "risk_mean_seam_u8": 182.3364297253635,
+      "risk_p90_seam_u8": 230.0,
+      "layer_id_counts": {
+        "0": 1521933,
+        "1": 114210,
+        "2": 300766,
+        "3": 7864,
+        "4": 152379
+      },
+      "operator_counts": {
+        "0": 493435,
+        "1": 15109,
+        "2": 1578224,
+        "3": 10384
+      }
+    }
+  },
+  "bmw_minus_clean": {
+    "unknown_frac_seam_bmw_minus_clean": 0.03571578739163983,
+    "disocclusion_frac_seam_bmw_minus_clean": -0.03066250580104829,
+    "boundary_risk_frac_seam_bmw_minus_clean": -0.004685531265534018,
+    "risk_mean_seam_u8_bmw_minus_clean": 3.0083026945710003,
+    "risk_p90_seam_u8_bmw_minus_clean": 0.0,
+    "visible_any_frac_seam_bmw_minus_clean": -0.03571578739163983,
+    "visible_ge2_frac_seam_bmw_minus_clean": -0.03305061980382047
+  },
+  "errors": [],
+  "status": "sidecars_complete"
+}

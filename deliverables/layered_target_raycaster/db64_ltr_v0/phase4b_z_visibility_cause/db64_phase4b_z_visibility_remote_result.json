@@ -1,0 +1,185 @@
+{
+  "created_utc": "2026-06-05T11:59:45.668031+00:00",
+  "status": "db64_phase4b_z_visibility_completed",
+  "scope": {
+    "fixed_cases_only": [
+      "02a00399:0:bmw",
+      "0bae3b5e:30:clean_far"
+    ],
+    "z_visibility_cause_only": true,
+    "rgb_repair_created": false,
+    "a100_required": false,
+    "model_inference": false,
+    "vggt": false,
+    "dit_flux_generation": false,
+    "source_replacement": false,
+    "bounded_dependency_bootstrap": "av2>=0.3 only if missing"
+  },
+  "paths": {
+    "remote_out": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause",
+    "av2_root_exists": true
+  },
+  "workdir": "/content/waymo2panorama",
+  "dependency": {
+    "name": "av2",
+    "import_before": true,
+    "install_attempted": false,
+    "import_after": true
+  },
+  "batch_summary": {
+    "status": "z_cause_maps_complete",
+    "n_cases": 2,
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "seam_source_valid_frac": 1.0,
+        "seam_lidar_support_frac": 0.42741668404332306,
+        "seam_visible_ge2_frac": 0.09115998380904486,
+        "seam_single_visible_frac": 0.08416843499699486,
+        "seam_no_surface_frac": 0.5725833159566769,
+        "seam_no_camera_geom_valid_frac": 0.0197848565505906,
+        "seam_no_raw_zbuffer_support_frac": 0.19571430323696445,
+        "seam_z_mismatch_conflict_frac": 0.036589105449728314,
+        "seam_mixed_no_visible_frac": 0.0,
+        "seam_source_boundary_proxy_frac": 0.12240116771131036,
+        "supported_no_visible_no_zbuf_frac": 0.8238168132678717,
+        "supported_no_visible_z_conflict_frac": 0.12619072169036874,
+        "supported_no_visible_no_geom_frac": 0.04999246504175953
+      },
+      "0bae3b5e_a030_clean_far": {
+        "seam_source_valid_frac": 1.0,
+        "seam_lidar_support_frac": 0.4937949772360112,
+        "seam_visible_ge2_frac": 0.12421060361286533,
+        "seam_single_visible_frac": 0.08683360258481422,
+        "seam_no_surface_frac": 0.5062050227639888,
+        "seam_no_camera_geom_valid_frac": 0.018835364958143634,
+        "seam_no_raw_zbuffer_support_frac": 0.22599990209037057,
+        "seam_z_mismatch_conflict_frac": 0.0379155039898174,
+        "seam_mixed_no_visible_frac": 0.0,
+        "seam_source_boundary_proxy_frac": 0.12708669897684438,
+        "supported_no_visible_no_zbuf_frac": 0.8197061274847584,
+        "supported_no_visible_z_conflict_frac": 0.14998129663536314,
+        "supported_no_visible_no_geom_frac": 0.03031257587987846
+      }
+    },
+    "mean": {
+      "seam_no_surface_frac": 0.5393941693603328,
+      "seam_no_camera_geom_valid_frac": 0.019310110754367116,
+      "seam_no_raw_zbuffer_support_frac": 0.21085710266366753,
+      "seam_z_mismatch_conflict_frac": 0.03725230471977285,
+      "seam_single_visible_frac": 0.08550101879090455,
+      "seam_visible_ge2_frac": 0.10768529371095509
+    },
+    "bmw_minus_clean": {
+      "seam_no_surface_frac_bmw_minus_clean": 0.06637829319268806,
+      "seam_no_camera_geom_valid_frac_bmw_minus_clean": 0.0009494915924469667,
+      "seam_no_raw_zbuffer_support_frac_bmw_minus_clean": -0.03028559885340612,
+      "seam_z_mismatch_conflict_frac_bmw_minus_clean": -0.001326398540089084,
+      "seam_single_visible_frac_bmw_minus_clean": -0.0026651675878193587,
+      "seam_visible_ge2_frac_bmw_minus_clean": -0.03305061980382047,
+      "seam_source_boundary_proxy_frac_bmw_minus_clean": -0.004685531265534018
+    },
+    "errors": []
+  },
+  "outputs": {
+    "batch_summary": {
+      "exists": true,
+      "bytes": 2505,
+      "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/batch_summary.json"
+    },
+    "02a00399_a000_bmw": {
+      "diagnostics": {
+        "exists": true,
+        "bytes": 5459,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/02a00399_a000_bmw/02a00399_a000_bmw_z_cause_breakdown.json"
+      },
+      "review": {
+        "exists": true,
+        "bytes": 227696,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/02a00399_a000_bmw/02a00399_a000_bmw_z_visibility_review_768.jpg"
+      },
+      "z_cause_primary_map": {
+        "exists": true,
+        "bytes": 35106,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/02a00399_a000_bmw/02a00399_a000_bmw_z_cause_primary_map.png"
+      },
+      "camera_geom_valid_count_map": {
+        "exists": true,
+        "bytes": 10784,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/02a00399_a000_bmw/02a00399_a000_bmw_camera_geom_valid_count_map.png"
+      },
+      "camera_zbuffer_hit_count_map": {
+        "exists": true,
+        "bytes": 20278,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/02a00399_a000_bmw/02a00399_a000_bmw_camera_zbuffer_hit_count_map.png"
+      },
+      "camera_z_mismatch_count_map": {
+        "exists": true,
+        "bytes": 13314,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/02a00399_a000_bmw/02a00399_a000_bmw_camera_z_mismatch_count_map.png"
+      },
+      "camera_visible_count_map": {
+        "exists": true,
+        "bytes": 23347,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/02a00399_a000_bmw/02a00399_a000_bmw_camera_visible_count_map.png"
+      },
+      "z_residual_min_cm_u16": {
+        "exists": true,
+        "bytes": 120345,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/02a00399_a000_bmw/02a00399_a000_bmw_z_residual_min_cm_u16.png"
+      },
+      "z_repairability_map": {
+        "exists": true,
+        "bytes": 10174,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/02a00399_a000_bmw/02a00399_a000_bmw_z_repairability_map.png"
+      }
+    },
+    "0bae3b5e_a030_clean_far": {
+      "diagnostics": {
+        "exists": true,
+        "bytes": 5521,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_z_cause_breakdown.json"
+      },
+      "review": {
+        "exists": true,
+        "bytes": 244769,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_z_visibility_review_768.jpg"
+      },
+      "z_cause_primary_map": {
+        "exists": true,
+        "bytes": 43058,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_z_cause_primary_map.png"
+      },
+      "camera_geom_valid_count_map": {
+        "exists": true,
+        "bytes": 9827,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_camera_geom_valid_count_map.png"
+      },
+      "camera_zbuffer_hit_count_map": {
+        "exists": true,
+        "bytes": 23061,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_camera_zbuffer_hit_count_map.png"
+      },
+      "camera_z_mismatch_count_map": {
+        "exists": true,
+        "bytes": 20020,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_camera_z_mismatch_count_map.png"
+      },
+      "camera_visible_count_map": {
+        "exists": true,
+        "bytes": 27931,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_camera_visible_count_map.png"
+      },
+      "z_residual_min_cm_u16": {
+        "exists": true,
+        "bytes": 152465,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_z_residual_min_cm_u16.png"
+      },
+      "z_repairability_map": {
+        "exists": true,
+        "bytes": 10695,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_z_repairability_map.png"
+      }
+    }
+  },
+  "runtime_s": 17.78
+}

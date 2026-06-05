@@ -1,0 +1,417 @@
+{
+  "created_utc": "2026-06-05T10:34:11.858750+00:00",
+  "status": "db64_ltr_v0_cpu_local_preflight",
+  "accepted_evidence_type": "route_preflight_only_no_ltr_run",
+  "target": {
+    "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+    "anchor": 0
+  },
+  "scope": {
+    "cpu_local_preflight": true,
+    "remote_status_or_exec_used": false,
+    "a100_used": false,
+    "model_inference_used": false,
+    "renderer_or_ltr_prototype_ran": false,
+    "generation_or_inpainting_used": false,
+    "source_replacement_used": false,
+    "sidecars_created": false,
+    "red_promotion": false
+  },
+  "artifact_retention_contract": {
+    "local_output_dir": "deliverables/layered_target_raycaster/db64_ltr_v0",
+    "git_expected_for_small_artifacts": [
+      "scripts/phase3/db64_ltr_v0_preflight.py",
+      "agent/decision_briefs.md",
+      "agent/progress.md",
+      "agent/handoff.md",
+      "agent/README.md",
+      "agent/plans/2026-06-04-egsr-seam-and-route-roadmap.md",
+      "deliverables/layered_target_raycaster/db64_ltr_v0/db64_ltr_v0_preflight_manifest.json",
+      "deliverables/layered_target_raycaster/db64_ltr_v0/db64_ltr_v0_preflight_board.jpg"
+    ],
+    "drive_expected_for_large_or_remote_artifacts": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/",
+    "drive_raw_data_expected": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+    "note": "This preflight creates local/git-sized artifacts only. A real LTR run should write full outputs to Drive/results and commit code/docs/small boards."
+  },
+  "drive_workspace": {
+    "checked_by_connector_in_current_session": true,
+    "workspace_title": "koi_waymo2pano_colab",
+    "workspace_url": "https://drive.google.com/drive/folders/1o0Ewp6tTXjH_C0g8wv2mJPh2MHt7mpJ1",
+    "top_level_folders_seen": [
+      "data",
+      "outputs",
+      "results",
+      "runtime",
+      "hf_cache",
+      "cache",
+      "deliverables_share",
+      "worker",
+      "external"
+    ],
+    "secrets_folder_seen_but_not_read": true,
+    "expected_target_log_drive_path": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+    "future_db64_drive_output_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/"
+  },
+  "runtime_secret_status_sanitized": {
+    "env_colab_url_and_token_present": false,
+    "non_repo_runtime_file_present": true,
+    "repo_runtime_file_present_but_not_used": false,
+    "usable_secure_runtime_source_present": true,
+    "safe_runtime_file_summary": {
+      "kind": "default_non_repo_file",
+      "path": "C:/Users/14294/.waymo2panorama/runtime/active_url.json",
+      "exists": true,
+      "parse_ok": true,
+      "has_url": true,
+      "has_token": true,
+      "runtime_type": "colab-cpu",
+      "version": "0.1.0a1",
+      "active_jobs": 0,
+      "timestamp_present": true,
+      "uptime_present": true
+    },
+    "secret_policy": "Runtime URL/token values may be read only from env or non-repo files. Values are never written to repo artifacts."
+  },
+  "local_data": {
+    "target_log": {
+      "exists": false,
+      "path": "data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+      "bytes": 0
+    },
+    "calibration_intrinsics": {
+      "exists": false,
+      "path": "data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394/calibration/intrinsics.feather",
+      "bytes": 0
+    },
+    "calibration_extrinsics": {
+      "exists": false,
+      "path": "data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394/calibration/egovehicle_SE3_sensor.feather",
+      "bytes": 0
+    },
+    "lidar_dir": {
+      "exists": false,
+      "path": "data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394/sensors/lidar",
+      "bytes": 0
+    },
+    "camera_root": {
+      "exists": false,
+      "path": "data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394/sensors/cameras",
+      "bytes": 0
+    },
+    "raw_thumbnail_pack": {
+      "exists": true,
+      "path": "deliverables/raw_av2_anchor0",
+      "jpg_count": 8,
+      "files": [
+        "deliverables/raw_av2_anchor0/7cam_grid.jpg",
+        "deliverables/raw_av2_anchor0/ring_front_center_315966070549927210_full.jpg",
+        "deliverables/raw_av2_anchor0/ring_front_left_315966070537425446_full.jpg",
+        "deliverables/raw_av2_anchor0/ring_front_right_315966070562451239_full.jpg",
+        "deliverables/raw_av2_anchor0/ring_rear_left_315966070557428279_full.jpg",
+        "deliverables/raw_av2_anchor0/ring_rear_right_315966070542441195_full.jpg",
+        "deliverables/raw_av2_anchor0/ring_side_left_315966070572412939_full.jpg",
+        "deliverables/raw_av2_anchor0/ring_side_right_315966070527482489_full.jpg"
+      ],
+      "is_raw_executable_data": false,
+      "why_not_raw_executable": "These are review/export JPGs, not the AV2 log with calibration and LiDAR sweeps."
+    }
+  },
+  "code_components": {
+    "av2_loader": {
+      "exists": true,
+      "path": "code/waymo2panorama/data_io/av2_loader.py",
+      "bytes": 7013
+    },
+    "lidar_to_erp_depth": {
+      "exists": true,
+      "path": "code/waymo2panorama/depth/lidar_to_erp_depth.py",
+      "bytes": 9961
+    },
+    "lidar_zbuffer_layer": {
+      "exists": true,
+      "path": "code/waymo2panorama/projection/lidar_zbuffer_layer.py",
+      "bytes": 9413
+    },
+    "sphere_projection": {
+      "exists": true,
+      "path": "code/waymo2panorama/projection/sphere_projection.py",
+      "bytes": 8968
+    },
+    "old_lidar_zbuffer_probe": {
+      "exists": true,
+      "path": "scripts/phase3/test_lidar_zbuffer_seam.py",
+      "bytes": 20207
+    },
+    "dibr_single_center_probe": {
+      "exists": true,
+      "path": "scripts/phase3/dibr_lidar_single_center.py",
+      "bytes": 18326
+    }
+  },
+  "control_images": {
+    "l1_baseline_blend": {
+      "exists": true,
+      "path": "deliverables/e1_seam_confined/bmw_L1.png",
+      "size": [
+        2048,
+        1024
+      ],
+      "bytes": 911027
+    },
+    "l1_hard_select": {
+      "exists": true,
+      "path": "deliverables/freqhybrid/erp_hard_select.png",
+      "size": [
+        4096,
+        2048
+      ],
+      "bytes": 2580719
+    },
+    "a1_view_none": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db40_v14_mask_alignment/A1_view_none_bmw_1024x2048.png",
+      "size": [
+        2048,
+        1024
+      ],
+      "bytes": 973019
+    },
+    "g_bmw_pano": {
+      "exists": true,
+      "path": "deliverables/ghostkill/G_bmw_pano.jpg",
+      "size": [
+        2048,
+        1024
+      ],
+      "bytes": 278458
+    },
+    "db63_vggt_no_repair_board": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db63_vggt_component_gate/db63_vggt_component_gate_board.jpg",
+      "size": [
+        2400,
+        1720
+      ],
+      "bytes": 644843
+    }
+  },
+  "sidecar_state": {
+    "db49b_partial_generated_mask": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_generated_mask_sky_core_only.png",
+      "size": [
+        2048,
+        1024
+      ],
+      "bytes": 3566
+    },
+    "db49b_partial_unknown_mask": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_unknown_or_abstain_mask_partial.png",
+      "size": [
+        2048,
+        1024
+      ],
+      "bytes": 3554
+    },
+    "db49b_partial_risk_map": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49b_risk_map_partial.png",
+      "size": [
+        2048,
+        1024
+      ],
+      "bytes": 4839
+    },
+    "db49c_source_id_status": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_manifest.json",
+      "status": "source_id_map_feasibility_inventory_only",
+      "decision_source_id_map_status": null,
+      "decision_ready_for_uncaveated_bosch_training_data": null
+    },
+    "db49d_future_instrumentation": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49d_seamroute_source_map_instrumentation_manifest.json",
+      "status": "accepted",
+      "source_id_map_status": "missing_until_exact_seamroute_rerun_not_fabricated",
+      "ready_for_uncaveated_bosch_training_data": null
+    }
+  },
+  "geometry_evidence": {
+    "db25_longline": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_summary.json",
+      "roi": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "near_ground_frac": 0.6233333333333333,
+      "lidar_support_frac": 0.09380416666666666,
+      "best_flow_pair": "0-1",
+      "best_flow_reliable_frac": 0.6823972206137812,
+      "key_dark_wall_pair_6_5_flow_frac": 0.10466278101582015,
+      "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence",
+      "target_surface_permission": false
+    },
+    "depth_visibility_prior": {
+      "exists": true,
+      "path": "deliverables/depth_visibility_seam_probe/batch_summary.json",
+      "run": "depth_visibility_seam_probe_v1",
+      "cases": [
+        {
+          "case": "02a00399_a000_bmw",
+          "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394",
+          "anchor_idx": 0,
+          "lidar_delta_ms": 9.76879
+        },
+        {
+          "case": "fbee355f_a095_ped_obj",
+          "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/fbee355f-8878-31fa-8ac8-b9a45a3f130a",
+          "anchor_idx": 95,
+          "lidar_delta_ms": 9.912783
+        },
+        {
+          "case": "0bae3b5e_a030_clean_far",
+          "log_dir": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val/0bae3b5e-417d-3b03-abaa-806b433233b8",
+          "anchor_idx": 30,
+          "lidar_delta_ms": 10.114788
+        }
+      ],
+      "aggregate": {
+        "n_cases": 3,
+        "mean_lidar_supported_frac_of_band": 0.49257085094264924,
+        "mean_high_depth_risk_frac_supported": 0.28598696130309703,
+        "mean_source_gate_dY_reduction": 0.1594408232547315,
+        "mean_depth_gate_dY_reduction": 0.10850833405728065
+      },
+      "role_for_db64": "prior Drive-run evidence and metadata; not a current local executable LTR sidecar pack."
+    },
+    "db41_negative_boundary": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_manifest.json",
+      "status": null,
+      "decision": null,
+      "right_roi_lidar_support_frac": null,
+      "lower_right_roi_lidar_support_frac": null
+    },
+    "db45k_vggt_coordinate_audit": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45k_vggt_pose_reflection_audit_manifest.json",
+      "status": "vggt_pose_reflection_coordinate_audit",
+      "decision_accepted_evidence_type": "vggt-pose-reflection-coordinate-audit-diagnostic-only",
+      "decision_accepted_db45_geometry_evidence": false,
+      "decision_permission_state_changes": "none",
+      "decision_route_recommendation": "pause_vggt_residual_route_after_coordinate_audit; official camera-from-world extraction fails the no-reflection contract, reflected fits are not admissible, and the translation-column improvement is an undocumented convention conflict that cannot promote geometry or RED controls."
+    },
+    "db62_vggt_source_composite": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db62_vggt_raw_source_composite/db62_vggt_raw_source_composite_manifest.json",
+      "status": "vggt_raw_source_composite_created",
+      "vision_verdict": null,
+      "hard_checks_secret_scan_hits": null,
+      "operator_stats_alpha_gt_0_05_frac": null
+    },
+    "db63_component_gate": {
+      "exists": true,
+      "path": "deliverables/dit360_v2/db63_vggt_component_gate/db63_vggt_component_gate_manifest.json",
+      "status": null,
+      "vision_verdict": null,
+      "component_gate_selected_component_fraction": null
+    }
+  },
+  "hard_checks": [
+    {
+      "id": "local_av2_target_log_present",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394"
+    },
+    {
+      "id": "local_calibration_present",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "intrinsics.feather and egovehicle_SE3_sensor.feather required."
+    },
+    {
+      "id": "local_lidar_present",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "LTR-v0 needs target-ray depth/visibility evidence."
+    },
+    {
+      "id": "local_raw_cameras_present",
+      "pass": false,
+      "severity": "blocker",
+      "evidence": "Raw camera images are required; review thumbnails are not enough."
+    },
+    {
+      "id": "drive_workspace_visible",
+      "pass": true,
+      "severity": "info",
+      "evidence": "Drive workspace and top-level data/outputs/results/runtime folders were visible via connector; secrets folder was not read."
+    },
+    {
+      "id": "source_id_map_not_ready",
+      "pass": true,
+      "severity": "info",
+      "evidence": "DB49c says exact DB32 source_id_map is missing; DB64 must generate its own sidecars only from a true LTR run."
+    },
+    {
+      "id": "protected_masks_not_complete",
+      "pass": true,
+      "severity": "warning",
+      "evidence": "Existing partial masks/risk sidecars are not full lane/curb/object protected masks."
+    },
+    {
+      "id": "no_generation_or_repair_ran",
+      "pass": true,
+      "severity": "scope",
+      "evidence": "DB64 preflight only; no renderer, no model, no A100, no image repair."
+    }
+  ],
+  "decision": {
+    "preflight_state": "paused_needs_drive_or_remote_target_data",
+    "executable_local_now": false,
+    "needs_drive_or_remote_data": true,
+    "a100_needed_now": false,
+    "cpu_colab_may_be_useful_next": true,
+    "why": "Local repo has review artifacts and reusable LTR components, but not the AV2 target log with calibration, raw cameras, and LiDAR sweeps. Drive has the project workspace and data folder, so the next execution step should be a bounded Drive/Colab data preflight or a local target-log sync, not an A100 model run.",
+    "next_allowed_step": "Use the approved non-repo runtime source only if needed to query/run a CPU Colab Drive data preflight. Do not run model inference or LTR prototype until the target log/cameras/calibration/LiDAR are confirmed."
+  },
+  "git_status_summary": {
+    "git_status_exit": 0,
+    "dirty_count_total": 195,
+    "relevant_lines": [
+      " M agent/README.md",
+      " M agent/decision_briefs.md",
+      " M agent/handoff.md",
+      " M agent/plans/2026-06-04-egsr-seam-and-route-roadmap.md",
+      " M agent/progress.md",
+      "?? scripts/phase3/db64_ltr_v0_preflight.py"
+    ],
+    "note": "GitHub retention requires committing code/docs/small evidence after user-approved result packaging."
+  },
+  "strict_secret_scan": {
+    "hits": [],
+    "hit_count": 0
+  },
+  "outputs": {
+    "manifest": {
+      "exists": false,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_ltr_v0_preflight_manifest.json",
+      "bytes": 0
+    },
+    "board": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db64_ltr_v0/db64_ltr_v0_preflight_board.jpg",
+      "size": [
+        1800,
+        1500
+      ],
+      "bytes": 406879
+    }
+  }
+}
