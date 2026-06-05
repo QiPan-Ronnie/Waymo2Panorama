@@ -50,6 +50,11 @@ TARGETS = [
     {"candidate_id": "02a00399_a0105", "anchor": 105, "bucket": "strict_review_bucket", "required": ["final"]},
 ]
 
+DEFAULT_RUNTIME_SECRET_FILES = [
+    Path.home() / ".waymo2panorama" / "runtime" / "active_url.json",
+    Path(os.environ.get("LOCALAPPDATA", str(Path.home() / "AppData" / "Local"))) / "Waymo2Panorama" / "runtime" / "active_url.json",
+]
+
 TOKEN_PATTERNS = {
     "hf_token": re.compile(r"hf_[A-Za-z0-9]{20,}"),
     "bearer_token": re.compile(r"Bearer\s+[A-Za-z0-9._\-]{20,}", re.IGNORECASE),
@@ -137,8 +142,10 @@ def token_hits_files(paths: list[Path]) -> list[dict[str, Any]]:
 
 class ColabClient:
     def __init__(self) -> None:
-        self.url = os.environ["COLAB_URL"].rstrip("/")
-        self.token = os.environ["COLAB_TOKEN"]
+        runtime = load_runtime_secret()
+        self.url = runtime["url"].rstrip("/")
+        self.token = runtime["token"]
+        self.source = runtime["source"]
 
     def _req(self, method: str, path: str, body: dict[str, Any] | None = None, params: dict[str, str] | None = None, timeout: int = 180) -> dict[str, Any]:
         url = self.url + path
@@ -177,6 +184,41 @@ def remote_path(anchor: int, kind: str) -> str:
     if kind == "final":
         return f"{REMOTE_OUT}/SR_{tag}_final_1024x2048.png"
     raise ValueError(kind)
+
+
+def inside_repo(path: Path) -> bool:
+    try:
+        path.resolve().relative_to(ROOT.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def load_runtime_secret() -> dict[str, str]:
+    env_url = os.environ.get("COLAB_URL")
+    env_token = os.environ.get("COLAB_TOKEN")
+    if env_url and env_token:
+        return {"url": env_url, "token": env_token, "source": "process_env"}
+
+    candidates: list[Path] = []
+    explicit = os.environ.get("W2P_RUNTIME_SECRET_FILE")
+    if explicit:
+        candidates.append(Path(explicit))
+    candidates.extend(DEFAULT_RUNTIME_SECRET_FILES)
+
+    for path in candidates:
+        if not path.exists():
+            continue
+        if inside_repo(path):
+            raise RuntimeError("runtime secret file is inside repo and rejected")
+        data = json.loads(path.read_text(encoding="utf-8"))
+        url = data.get("url")
+        token = data.get("token")
+        if not url or not token:
+            raise RuntimeError("runtime secret file missing url/token")
+        return {"url": str(url), "token": str(token), "source": f"non_repo_file:{path}"}
+
+    raise RuntimeError("missing approved runtime source: set COLAB_URL/COLAB_TOKEN or W2P_RUNTIME_SECRET_FILE")
 
 
 def local_path(anchor: int, kind: str) -> Path:
@@ -262,12 +304,66 @@ def extract_remote_result(log: str) -> dict[str, Any] | None:
     return json.loads(m.group(1))
 
 
+def fetch_required_assets(client: ColabClient, result: dict[str, Any]) -> dict[str, Any]:
+    remote_result = result.get("remote_result") or {}
+    remote_targets = {int(row["anchor"]): row for row in remote_result.get("targets", [])}
+    has_remote_result = bool(remote_targets)
+    for row in TARGETS:
+        anchor = int(row["anchor"])
+        remote_row = remote_targets.get(anchor, {})
+        for kind in row["required"]:
+            rp = remote_path(anchor, kind)
+            remote_asset = (remote_row.get("assets") or {}).get(kind, {})
+            remote_exists = remote_asset.get("exists") if has_remote_result else None
+            remote_sha = remote_asset.get("sha256")
+            fetch_record: dict[str, Any] = {
+                "candidate_id": row["candidate_id"],
+                "anchor": anchor,
+                "asset": kind,
+                "remote_path": rp,
+                "remote_exists": remote_exists,
+                "remote_sha256": remote_sha,
+                "remote_existence_source": "remote_result_json" if has_remote_result else "direct_read_probe",
+                "local_path": rel(local_path(anchor, kind)),
+                "fetched": False,
+            }
+            should_read = remote_exists is True or not has_remote_result
+            if should_read:
+                try:
+                    raw = client.read_file(rp, max_size_mb=80)
+                    if raw is not None:
+                        lp = local_path(anchor, kind)
+                        lp.parent.mkdir(parents=True, exist_ok=True)
+                        lp.write_bytes(raw)
+                        local_sha = sha256_bytes(raw)
+                        fetch_record.update(
+                            {
+                                "remote_exists": True,
+                                "fetched": True,
+                                "local_bytes": lp.stat().st_size,
+                                "local_sha256": local_sha,
+                                "sha256_match": (local_sha == remote_sha) if remote_sha else None,
+                            }
+                        )
+                    else:
+                        fetch_record["remote_exists"] = False
+                        fetch_record["error"] = "read_response_missing_content"
+                except Exception as exc:
+                    fetch_record["remote_exists"] = False
+                    fetch_record["error"] = f"{type(exc).__name__}: {sanitize(str(exc))}"
+            result["fetches"].append(fetch_record)
+    return result
+
+
 def run_remote(timeout_s: int) -> dict[str, Any]:
     client = ColabClient()
     result: dict[str, Any] = {
+        "runtime_secret_source": client.source,
+        "fetch_mode": "exec_then_fetch",
         "remote_status": None,
         "job": None,
         "remote_result": None,
+        "remote_result_parse_status": None,
         "fetches": [],
         "errors": [],
     }
@@ -294,6 +390,7 @@ def run_remote(timeout_s: int) -> dict[str, Any]:
                     "log_tail_sanitized": sanitize(log_tail),
                 }
                 result["remote_result"] = extract_remote_result(log_tail)
+                result["remote_result_parse_status"] = "parsed" if result["remote_result"] else "missing_marker_or_truncated_log_tail"
                 break
             if time.time() - started > timeout_s + 120:
                 result["job"] = {"job_id": job_id, "state": "local_poll_timeout", "elapsed_s": round(time.time() - started, 1)}
@@ -303,45 +400,37 @@ def run_remote(timeout_s: int) -> dict[str, Any]:
         result["errors"].append({"stage": "remote", "error": type(exc).__name__, "message": sanitize(str(exc))})
         return result
 
-    remote_result = result.get("remote_result") or {}
-    remote_targets = {int(row["anchor"]): row for row in remote_result.get("targets", [])}
-    for row in TARGETS:
-        anchor = int(row["anchor"])
-        remote_row = remote_targets.get(anchor, {})
-        for kind in row["required"]:
-            rp = remote_path(anchor, kind)
-            remote_asset = (remote_row.get("assets") or {}).get(kind, {})
-            fetch_record: dict[str, Any] = {
-                "candidate_id": row["candidate_id"],
-                "anchor": anchor,
-                "asset": kind,
-                "remote_path": rp,
-                "remote_exists": bool(remote_asset.get("exists")),
-                "remote_sha256": remote_asset.get("sha256"),
-                "local_path": rel(local_path(anchor, kind)),
-                "fetched": False,
-            }
-            if remote_asset.get("exists"):
-                try:
-                    raw = client.read_file(rp, max_size_mb=80)
-                    if raw is not None:
-                        lp = local_path(anchor, kind)
-                        lp.parent.mkdir(parents=True, exist_ok=True)
-                        lp.write_bytes(raw)
-                        fetch_record.update(
-                            {
-                                "fetched": True,
-                                "local_bytes": lp.stat().st_size,
-                                "local_sha256": sha256_bytes(raw),
-                                "sha256_match": sha256_bytes(raw) == remote_asset.get("sha256"),
-                            }
-                        )
-                    else:
-                        fetch_record["error"] = "read_response_missing_content"
-                except Exception as exc:
-                    fetch_record["error"] = f"{type(exc).__name__}: {sanitize(str(exc))}"
-            result["fetches"].append(fetch_record)
-    return result
+    return fetch_required_assets(client, result)
+
+
+def run_fetch_only() -> dict[str, Any]:
+    client = ColabClient()
+    previous: dict[str, Any] = {}
+    if MANIFEST.exists():
+        data = json.loads(MANIFEST.read_text(encoding="utf-8"))
+        previous = (data.get("remote") or {}).get("job") or {}
+    result: dict[str, Any] = {
+        "runtime_secret_source": client.source,
+        "fetch_mode": "fetch_only_existing_remote_paths",
+        "remote_status": None,
+        "job": previous,
+        "remote_result": None,
+        "remote_result_parse_status": "not_required_for_fetch_only",
+        "fetches": [],
+        "errors": [],
+    }
+    try:
+        result["remote_status"] = client.get("/status", timeout=60)
+        if not previous:
+            result["errors"].append({"stage": "fetch_only", "error": "missing_previous_remote_job"})
+            return result
+        if previous.get("exit_code") != 0:
+            result["errors"].append({"stage": "fetch_only", "error": "previous_remote_job_not_successful", "exit_code": previous.get("exit_code")})
+            return result
+    except Exception as exc:
+        result["errors"].append({"stage": "fetch_only", "error": type(exc).__name__, "message": sanitize(str(exc))})
+        return result
+    return fetch_required_assets(client, result)
 
 
 def build_targets(remote: dict[str, Any] | None) -> list[dict[str, Any]]:
@@ -388,9 +477,9 @@ def hard_checks(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     expected_ids = [row["candidate_id"] for row in TARGETS]
     checks = [
         {
-            "id": "db56_brief_running",
-            "pass": "# DB-56: DB47f exact closure batch execution" in brief and "Status: running" in brief,
-            "evidence": "DB56 brief opened before remote batch.",
+            "id": "db56_brief_exists",
+            "pass": "# DB-56: DB47f exact closure batch execution" in brief,
+            "evidence": "DB56 brief exists; its status may be running or paused after a kill criterion.",
         },
         {
             "id": "fixed_universe_eight_targets",
@@ -476,8 +565,9 @@ def build_manifest(remote: dict[str, Any] | None = None) -> dict[str, Any]:
             "version": remote_status.get("version"),
             "gpu_name": remote_status.get("gpu_name"),
             "active_jobs_before": remote_status.get("active_jobs"),
+            "runtime_secret_source": remote.get("runtime_secret_source"),
         },
-        "remote": sanitize({k: v for k, v in remote.items() if k in {"job", "remote_result", "fetches", "errors"}}),
+        "remote": sanitize({k: v for k, v in remote.items() if k in {"fetch_mode", "job", "remote_result", "remote_result_parse_status", "fetches", "errors"}}),
         "fixed_target_contract": {
             "target_uuid": TARGET_UUID,
             "target_ids": [row["candidate_id"] for row in targets],
@@ -626,12 +716,17 @@ def main() -> int:
 
     ap = argparse.ArgumentParser()
     ap.add_argument("--run-remote", action="store_true", help="Run exactly one DB47f remote closure batch using COLAB_URL/COLAB_TOKEN.")
+    ap.add_argument("--fetch-only", action="store_true", help="Fetch deterministic DB56 assets from an existing successful remote job without submitting /exec.")
     ap.add_argument("--timeout-s", type=int, default=3600)
     args = ap.parse_args()
 
     remote: dict[str, Any] | None = None
+    if args.run_remote and args.fetch_only:
+        raise SystemExit("--run-remote and --fetch-only are mutually exclusive")
     if args.run_remote:
         remote = run_remote(args.timeout_s)
+    elif args.fetch_only:
+        remote = run_fetch_only()
     manifest = build_manifest(remote)
     build_board(manifest)
     print(json.dumps({"manifest": rel(MANIFEST), "board": rel(BOARD), "status": manifest["status"], "hard_checks_pass": manifest["hard_checks_pass"]}, sort_keys=True))

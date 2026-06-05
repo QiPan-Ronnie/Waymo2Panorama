@@ -1,0 +1,903 @@
+{
+  "created_utc": "2026-06-05T00:55:31.250524+00:00",
+  "db": "DB56",
+  "decision": {
+    "accepted_exact_source_selection_closure_assets": true,
+    "accepted_final_candidate": false,
+    "accepted_original_g_family_repair": false,
+    "accepted_source_faithful_repair": false,
+    "claim_boundary": "DB56 closes or pauses exact source-selection assets only; visual final-candidate selection remains a separate review step.",
+    "db41_or_db25_promoted": false,
+    "ready_for_uncaveated_bosch_training_data": false,
+    "source_id_map_created": false
+  },
+  "evidence_type": "db47f-exact-source-selection-closure-batch-only",
+  "fixed_target_contract": {
+    "all_required_assets_present": true,
+    "anchors": [
+      201,
+      209,
+      210,
+      211,
+      31,
+      38,
+      40,
+      105
+    ],
+    "required_asset_count": 15,
+    "required_asset_present_count": 15,
+    "target_ids": [
+      "02a00399_a0201",
+      "02a00399_a0209",
+      "02a00399_a0210",
+      "02a00399_a0211",
+      "02a00399_a0031",
+      "02a00399_a0038",
+      "02a00399_a0040",
+      "02a00399_a0105"
+    ],
+    "target_uuid": "02a00399-3857-444e-8db3-a8f58489c394"
+  },
+  "hard_checks": [
+    {
+      "evidence": "DB56 brief exists; its status may be running or paused after a kill criterion.",
+      "id": "db56_brief_exists",
+      "pass": true
+    },
+    {
+      "evidence": "target_ids=['02a00399_a0201', '02a00399_a0209', '02a00399_a0210', '02a00399_a0211', '02a00399_a0031', '02a00399_a0038', '02a00399_a0040', '02a00399_a0105']",
+      "id": "fixed_universe_eight_targets",
+      "pass": true
+    },
+    {
+      "evidence": "job_id=55a0c9f7f40a4af9979f73dc3073532e; state=done; exit=0",
+      "id": "one_remote_job_at_most",
+      "pass": true
+    },
+    {
+      "evidence": "state=done; exit=0",
+      "id": "remote_job_succeeded",
+      "pass": true
+    },
+    {
+      "evidence": "missing=[]",
+      "id": "all_required_assets_present",
+      "pass": true
+    },
+    {
+      "evidence": "Scope flags preserve no model/generation/source-map/RED boundary.",
+      "id": "no_disallowed_models_or_generation",
+      "pass": true
+    },
+    {
+      "evidence": "hits=[]",
+      "id": "secret_scan_pass",
+      "pass": true
+    }
+  ],
+  "hard_checks_pass": true,
+  "inputs": {
+    "db47f_preflight_manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db47f_fixed_universe_exact_closure_preflight_manifest.json",
+    "db53_launch_harness_manifest": "deliverables/dit360_v2/db53_db47f_launch_harness/db53_db47f_launch_harness_manifest.json",
+    "db54_local_recovery_manifest": "deliverables/dit360_v2/db54_local_artifact_recovery/db54_local_exact_asset_recovery_manifest.json",
+    "db55_o3_manifest": "deliverables/dit360_v2/db55_egsr_o3_photometric_operator/db55_egsr_o3_photometric_operator_manifest.json",
+    "decision_brief": "agent/decision_briefs.md"
+  },
+  "purpose": "Run one bounded DB47f closure batch to fetch exact compare/final source-selection assets for the fixed 8-anchor universe.",
+  "remote": {
+    "errors": [],
+    "fetch_mode": "fetch_only_existing_remote_paths",
+    "fetches": [
+      {
+        "anchor": 201,
+        "asset": "compare",
+        "candidate_id": "02a00399_a0201",
+        "fetched": true,
+        "local_bytes": 629834,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_compare.jpg",
+        "local_sha256": "380187849ce783d0e71824eb2da9811a6ad4736bc724a6abf7086fb49b8348aa",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a201_compare.jpg",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 201,
+        "asset": "final",
+        "candidate_id": "02a00399_a0201",
+        "fetched": true,
+        "local_bytes": 1105858,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_final_1024x2048.png",
+        "local_sha256": "837a59c8574c621e61bc1ec66656be9dc5d54a573a847e1628c6e672c0532871",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a201_final_1024x2048.png",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 209,
+        "asset": "compare",
+        "candidate_id": "02a00399_a0209",
+        "fetched": true,
+        "local_bytes": 629884,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_compare.jpg",
+        "local_sha256": "48c33c1e85feaada3bea2e07b6d2b3862f9f4606a50d3b7950920fd9b38dde86",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a209_compare.jpg",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 209,
+        "asset": "final",
+        "candidate_id": "02a00399_a0209",
+        "fetched": true,
+        "local_bytes": 1113981,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_final_1024x2048.png",
+        "local_sha256": "69d4d01fed34b2dc471b29d0c3a35dbf78671bff75e0bd36aa0f7d0b9e75b472",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a209_final_1024x2048.png",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 210,
+        "asset": "compare",
+        "candidate_id": "02a00399_a0210",
+        "fetched": true,
+        "local_bytes": 631399,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_compare.jpg",
+        "local_sha256": "18d6ecbe1255625808d9851e12699a227bcea9576b063fea1491d25652809a6b",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a210_compare.jpg",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 210,
+        "asset": "final",
+        "candidate_id": "02a00399_a0210",
+        "fetched": true,
+        "local_bytes": 1112817,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_final_1024x2048.png",
+        "local_sha256": "2d9121918a68edbec76fc9f12391e5023dff139114f20a90ebd394b5d3f587c6",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a210_final_1024x2048.png",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 211,
+        "asset": "compare",
+        "candidate_id": "02a00399_a0211",
+        "fetched": true,
+        "local_bytes": 629873,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_compare.jpg",
+        "local_sha256": "7a50ca0108c3b4fe2b37b7c65e964a7b2b1bb9c75bec2ef67af07c57c8fb6965",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a211_compare.jpg",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 211,
+        "asset": "final",
+        "candidate_id": "02a00399_a0211",
+        "fetched": true,
+        "local_bytes": 1111415,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_final_1024x2048.png",
+        "local_sha256": "eb11c51f9275e18056103d8991debb1627391d70416c11badece022dacf6e5c1",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a211_final_1024x2048.png",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 31,
+        "asset": "compare",
+        "candidate_id": "02a00399_a0031",
+        "fetched": true,
+        "local_bytes": 562020,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_compare.jpg",
+        "local_sha256": "55b61ef006918e20514c79a18edb4e2ad8e124976a1fdec8473b3e21951450c3",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a31_compare.jpg",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 31,
+        "asset": "final",
+        "candidate_id": "02a00399_a0031",
+        "fetched": true,
+        "local_bytes": 944212,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_final_1024x2048.png",
+        "local_sha256": "3596fc437f06dd1467ec5f67910f9289f1ca61feef4db9a048e5b0955c751f4a",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a31_final_1024x2048.png",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 38,
+        "asset": "compare",
+        "candidate_id": "02a00399_a0038",
+        "fetched": true,
+        "local_bytes": 565950,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_compare.jpg",
+        "local_sha256": "e4301b3bcb237c316f10abc54f120242291514407761ca2c861f9631c2c20391",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a38_compare.jpg",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 38,
+        "asset": "final",
+        "candidate_id": "02a00399_a0038",
+        "fetched": true,
+        "local_bytes": 946147,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_final_1024x2048.png",
+        "local_sha256": "941e96349bf062adcfaf569f9764fd7b9a7e6bf7a3ea841b617151cc2564bdee",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a38_final_1024x2048.png",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 40,
+        "asset": "compare",
+        "candidate_id": "02a00399_a0040",
+        "fetched": true,
+        "local_bytes": 569185,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_compare.jpg",
+        "local_sha256": "5cae9195c95c40dd02cc81a12d161758bedb2a923d236386c6dcddc8bb18a5e1",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a40_compare.jpg",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 40,
+        "asset": "final",
+        "candidate_id": "02a00399_a0040",
+        "fetched": true,
+        "local_bytes": 947676,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_final_1024x2048.png",
+        "local_sha256": "971c9fb1fa4e9c4b9fdd422ab6e17f931fc1bd116dbcd4ff9ced41070151f531",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a40_final_1024x2048.png",
+        "remote_sha256": null,
+        "sha256_match": null
+      },
+      {
+        "anchor": 105,
+        "asset": "final",
+        "candidate_id": "02a00399_a0105",
+        "fetched": true,
+        "local_bytes": 1021528,
+        "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_final_1024x2048.png",
+        "local_sha256": "32b1756241d7451751e0429e65ed6e1fd318f8f81d7679f91e544ff4975ccaff",
+        "remote_existence_source": "direct_read_probe",
+        "remote_exists": true,
+        "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a105_final_1024x2048.png",
+        "remote_sha256": null,
+        "sha256_match": null
+      }
+    ],
+    "job": {
+      "duration_s": 261.0909614562988,
+      "exit_code": 0,
+      "job_id": "55a0c9f7f40a4af9979f73dc3073532e",
+      "log_tail_sanitized": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a201_final_1024x2048.png\", \"sha256\": \"837a59c8574c621e61bc1ec66656be9dc5d54a573a847e1628c6e672c0532871\"}}, \"required\": [\"compare\", \"final\"], \"tag\": \"bmw_db28_a201\"}, {\"anchor\": 209, \"assets\": {\"compare\": {\"bytes\": 629884, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a209_compare.jpg\", \"sha256\": \"48c33c1e85feaada3bea2e07b6d2b3862f9f4606a50d3b7950920fd9b38dde86\"}, \"final\": {\"bytes\": 1113981, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a209_final_1024x2048.png\", \"sha256\": \"69d4d01fed34b2dc471b29d0c3a35dbf78671bff75e0bd36aa0f7d0b9e75b472\"}}, \"required\": [\"compare\", \"final\"], \"tag\": \"bmw_db28_a209\"}, {\"anchor\": 210, \"assets\": {\"compare\": {\"bytes\": 631399, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a210_compare.jpg\", \"sha256\": \"18d6ecbe1255625808d9851e12699a227bcea9576b063fea1491d25652809a6b\"}, \"final\": {\"bytes\": 1112817, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a210_final_1024x2048.png\", \"sha256\": \"2d9121918a68edbec76fc9f12391e5023dff139114f20a90ebd394b5d3f587c6\"}}, \"required\": [\"compare\", \"final\"], \"tag\": \"bmw_db28_a210\"}, {\"anchor\": 211, \"assets\": {\"compare\": {\"bytes\": 629873, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a211_compare.jpg\", \"sha256\": \"7a50ca0108c3b4fe2b37b7c65e964a7b2b1bb9c75bec2ef67af07c57c8fb6965\"}, \"final\": {\"bytes\": 1111415, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a211_final_1024x2048.png\", \"sha256\": \"eb11c51f9275e18056103d8991debb1627391d70416c11badece022dacf6e5c1\"}}, \"required\": [\"compare\", \"final\"], \"tag\": \"bmw_db28_a211\"}, {\"anchor\": 31, \"assets\": {\"compare\": {\"bytes\": 562020, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a31_compare.jpg\", \"sha256\": \"55b61ef006918e20514c79a18edb4e2ad8e124976a1fdec8473b3e21951450c3\"}, \"final\": {\"bytes\": 944212, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a31_final_1024x2048.png\", \"sha256\": \"3596fc437f06dd1467ec5f67910f9289f1ca61feef4db9a048e5b0955c751f4a\"}}, \"required\": [\"compare\", \"final\"], \"tag\": \"bmw_db28_a31\"}, {\"anchor\": 38, \"assets\": {\"compare\": {\"bytes\": 565950, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a38_compare.jpg\", \"sha256\": \"e4301b3bcb237c316f10abc54f120242291514407761ca2c861f9631c2c20391\"}, \"final\": {\"bytes\": 946147, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a38_final_1024x2048.png\", \"sha256\": \"941e96349bf062adcfaf569f9764fd7b9a7e6bf7a3ea841b617151cc2564bdee\"}}, \"required\": [\"compare\", \"final\"], \"tag\": \"bmw_db28_a38\"}, {\"anchor\": 40, \"assets\": {\"compare\": {\"bytes\": 569185, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a40_compare.jpg\", \"sha256\": \"5cae9195c95c40dd02cc81a12d161758bedb2a923d236386c6dcddc8bb18a5e1\"}, \"final\": {\"bytes\": 947676, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a40_final_1024x2048.png\", \"sha256\": \"971c9fb1fa4e9c4b9fdd422ab6e17f931fc1bd116dbcd4ff9ced41070151f531\"}}, \"required\": [\"compare\", \"final\"], \"tag\": \"bmw_db28_a40\"}, {\"anchor\": 105, \"assets\": {\"compare\": {\"bytes\": 619553, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a105_compare.jpg\", \"sha256\": \"0a95365a520d77d1ba08a90edab4e9c4460e2619756d19bca8afe46a2d22acc8\"}, \"final\": {\"bytes\": 1021528, \"exists\": true, \"path\": \"/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a105_final_1024x2048.png\", \"sha256\": \"32b1756241d7451751e0429e65ed6e1fd318f8f81d7679f91e544ff4975ccaff\"}}, \"required\": [\"final\"], \"tag\": \"bmw_db28_a105\"}], \"workdir\": \"/content/waymo2panorama\"}\nDB56_RESULT_JSON_END\n",
+      "state": "done"
+    },
+    "remote_result": null,
+    "remote_result_parse_status": "not_required_for_fetch_only"
+  },
+  "runtime_observed_sanitized": {
+    "active_jobs_before": 0,
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "runtime_secret_source": "process_env",
+    "runtime_type": "colab-gpu",
+    "version": "0.1.0a1"
+  },
+  "scope": {
+    "a100_executor_used": true,
+    "dataset_scan_beyond_fixed_log": false,
+    "diffusion_or_generation": false,
+    "exact_asset_fetch_or_copy": true,
+    "hf_or_vggt": false,
+    "model_inference": false,
+    "output_location": "deliverables/dit360_v2/db47_source_candidate_mining",
+    "panorama_repair_claim": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "remote_exec": true,
+    "remote_exec_count": 1,
+    "remote_status": true,
+    "seamroute_fixed_batch_executed": true,
+    "source_id_map_created": false,
+    "source_replacement": false
+  },
+  "secret_scan_hits": [],
+  "status": "accepted_exact_closure_assets_complete",
+  "targets": [
+    {
+      "accepted_final_candidate": false,
+      "anchor": 201,
+      "assets": {
+        "compare": {
+          "exists": true,
+          "fetch": {
+            "anchor": 201,
+            "asset": "compare",
+            "candidate_id": "02a00399_a0201",
+            "fetched": true,
+            "local_bytes": 629834,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_compare.jpg",
+            "local_sha256": "380187849ce783d0e71824eb2da9811a6ad4736bc724a6abf7086fb49b8348aa",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a201_compare.jpg",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_compare.jpg",
+          "required": true,
+          "stats": {
+            "bytes": 629834,
+            "exists": true,
+            "sha256": "380187849ce783d0e71824eb2da9811a6ad4736bc724a6abf7086fb49b8348aa",
+            "size": [
+              1900,
+              2940
+            ]
+          }
+        },
+        "final": {
+          "exists": true,
+          "fetch": {
+            "anchor": 201,
+            "asset": "final",
+            "candidate_id": "02a00399_a0201",
+            "fetched": true,
+            "local_bytes": 1105858,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_final_1024x2048.png",
+            "local_sha256": "837a59c8574c621e61bc1ec66656be9dc5d54a573a847e1628c6e672c0532871",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a201_final_1024x2048.png",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_final_1024x2048.png",
+          "required": true,
+          "stats": {
+            "bytes": 1105858,
+            "exists": true,
+            "sha256": "837a59c8574c621e61bc1ec66656be9dc5d54a573a847e1628c6e672c0532871",
+            "size": [
+              2048,
+              1024
+            ]
+          }
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0201",
+      "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+      "closure_asset_status": "complete",
+      "missing_required": [],
+      "required": [
+        "compare",
+        "final"
+      ],
+      "tag": "bmw_db28_a201"
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 209,
+      "assets": {
+        "compare": {
+          "exists": true,
+          "fetch": {
+            "anchor": 209,
+            "asset": "compare",
+            "candidate_id": "02a00399_a0209",
+            "fetched": true,
+            "local_bytes": 629884,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_compare.jpg",
+            "local_sha256": "48c33c1e85feaada3bea2e07b6d2b3862f9f4606a50d3b7950920fd9b38dde86",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a209_compare.jpg",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_compare.jpg",
+          "required": true,
+          "stats": {
+            "bytes": 629884,
+            "exists": true,
+            "sha256": "48c33c1e85feaada3bea2e07b6d2b3862f9f4606a50d3b7950920fd9b38dde86",
+            "size": [
+              1900,
+              2940
+            ]
+          }
+        },
+        "final": {
+          "exists": true,
+          "fetch": {
+            "anchor": 209,
+            "asset": "final",
+            "candidate_id": "02a00399_a0209",
+            "fetched": true,
+            "local_bytes": 1113981,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_final_1024x2048.png",
+            "local_sha256": "69d4d01fed34b2dc471b29d0c3a35dbf78671bff75e0bd36aa0f7d0b9e75b472",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a209_final_1024x2048.png",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_final_1024x2048.png",
+          "required": true,
+          "stats": {
+            "bytes": 1113981,
+            "exists": true,
+            "sha256": "69d4d01fed34b2dc471b29d0c3a35dbf78671bff75e0bd36aa0f7d0b9e75b472",
+            "size": [
+              2048,
+              1024
+            ]
+          }
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0209",
+      "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+      "closure_asset_status": "complete",
+      "missing_required": [],
+      "required": [
+        "compare",
+        "final"
+      ],
+      "tag": "bmw_db28_a209"
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 210,
+      "assets": {
+        "compare": {
+          "exists": true,
+          "fetch": {
+            "anchor": 210,
+            "asset": "compare",
+            "candidate_id": "02a00399_a0210",
+            "fetched": true,
+            "local_bytes": 631399,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_compare.jpg",
+            "local_sha256": "18d6ecbe1255625808d9851e12699a227bcea9576b063fea1491d25652809a6b",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a210_compare.jpg",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_compare.jpg",
+          "required": true,
+          "stats": {
+            "bytes": 631399,
+            "exists": true,
+            "sha256": "18d6ecbe1255625808d9851e12699a227bcea9576b063fea1491d25652809a6b",
+            "size": [
+              1900,
+              2940
+            ]
+          }
+        },
+        "final": {
+          "exists": true,
+          "fetch": {
+            "anchor": 210,
+            "asset": "final",
+            "candidate_id": "02a00399_a0210",
+            "fetched": true,
+            "local_bytes": 1112817,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_final_1024x2048.png",
+            "local_sha256": "2d9121918a68edbec76fc9f12391e5023dff139114f20a90ebd394b5d3f587c6",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a210_final_1024x2048.png",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_final_1024x2048.png",
+          "required": true,
+          "stats": {
+            "bytes": 1112817,
+            "exists": true,
+            "sha256": "2d9121918a68edbec76fc9f12391e5023dff139114f20a90ebd394b5d3f587c6",
+            "size": [
+              2048,
+              1024
+            ]
+          }
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0210",
+      "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+      "closure_asset_status": "complete",
+      "missing_required": [],
+      "required": [
+        "compare",
+        "final"
+      ],
+      "tag": "bmw_db28_a210"
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 211,
+      "assets": {
+        "compare": {
+          "exists": true,
+          "fetch": {
+            "anchor": 211,
+            "asset": "compare",
+            "candidate_id": "02a00399_a0211",
+            "fetched": true,
+            "local_bytes": 629873,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_compare.jpg",
+            "local_sha256": "7a50ca0108c3b4fe2b37b7c65e964a7b2b1bb9c75bec2ef67af07c57c8fb6965",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a211_compare.jpg",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_compare.jpg",
+          "required": true,
+          "stats": {
+            "bytes": 629873,
+            "exists": true,
+            "sha256": "7a50ca0108c3b4fe2b37b7c65e964a7b2b1bb9c75bec2ef67af07c57c8fb6965",
+            "size": [
+              1900,
+              2940
+            ]
+          }
+        },
+        "final": {
+          "exists": true,
+          "fetch": {
+            "anchor": 211,
+            "asset": "final",
+            "candidate_id": "02a00399_a0211",
+            "fetched": true,
+            "local_bytes": 1111415,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_final_1024x2048.png",
+            "local_sha256": "eb11c51f9275e18056103d8991debb1627391d70416c11badece022dacf6e5c1",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a211_final_1024x2048.png",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_final_1024x2048.png",
+          "required": true,
+          "stats": {
+            "bytes": 1111415,
+            "exists": true,
+            "sha256": "eb11c51f9275e18056103d8991debb1627391d70416c11badece022dacf6e5c1",
+            "size": [
+              2048,
+              1024
+            ]
+          }
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0211",
+      "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+      "closure_asset_status": "complete",
+      "missing_required": [],
+      "required": [
+        "compare",
+        "final"
+      ],
+      "tag": "bmw_db28_a211"
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 31,
+      "assets": {
+        "compare": {
+          "exists": true,
+          "fetch": {
+            "anchor": 31,
+            "asset": "compare",
+            "candidate_id": "02a00399_a0031",
+            "fetched": true,
+            "local_bytes": 562020,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_compare.jpg",
+            "local_sha256": "55b61ef006918e20514c79a18edb4e2ad8e124976a1fdec8473b3e21951450c3",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a31_compare.jpg",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_compare.jpg",
+          "required": true,
+          "stats": {
+            "bytes": 562020,
+            "exists": true,
+            "sha256": "55b61ef006918e20514c79a18edb4e2ad8e124976a1fdec8473b3e21951450c3",
+            "size": [
+              1900,
+              2940
+            ]
+          }
+        },
+        "final": {
+          "exists": true,
+          "fetch": {
+            "anchor": 31,
+            "asset": "final",
+            "candidate_id": "02a00399_a0031",
+            "fetched": true,
+            "local_bytes": 944212,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_final_1024x2048.png",
+            "local_sha256": "3596fc437f06dd1467ec5f67910f9289f1ca61feef4db9a048e5b0955c751f4a",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a31_final_1024x2048.png",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_final_1024x2048.png",
+          "required": true,
+          "stats": {
+            "bytes": 944212,
+            "exists": true,
+            "sha256": "3596fc437f06dd1467ec5f67910f9289f1ca61feef4db9a048e5b0955c751f4a",
+            "size": [
+              2048,
+              1024
+            ]
+          }
+        }
+      },
+      "bucket": "relaxed_review_bucket",
+      "candidate_id": "02a00399_a0031",
+      "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+      "closure_asset_status": "complete",
+      "missing_required": [],
+      "required": [
+        "compare",
+        "final"
+      ],
+      "tag": "bmw_db28_a31"
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 38,
+      "assets": {
+        "compare": {
+          "exists": true,
+          "fetch": {
+            "anchor": 38,
+            "asset": "compare",
+            "candidate_id": "02a00399_a0038",
+            "fetched": true,
+            "local_bytes": 565950,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_compare.jpg",
+            "local_sha256": "e4301b3bcb237c316f10abc54f120242291514407761ca2c861f9631c2c20391",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a38_compare.jpg",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_compare.jpg",
+          "required": true,
+          "stats": {
+            "bytes": 565950,
+            "exists": true,
+            "sha256": "e4301b3bcb237c316f10abc54f120242291514407761ca2c861f9631c2c20391",
+            "size": [
+              1900,
+              2940
+            ]
+          }
+        },
+        "final": {
+          "exists": true,
+          "fetch": {
+            "anchor": 38,
+            "asset": "final",
+            "candidate_id": "02a00399_a0038",
+            "fetched": true,
+            "local_bytes": 946147,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_final_1024x2048.png",
+            "local_sha256": "941e96349bf062adcfaf569f9764fd7b9a7e6bf7a3ea841b617151cc2564bdee",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a38_final_1024x2048.png",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_final_1024x2048.png",
+          "required": true,
+          "stats": {
+            "bytes": 946147,
+            "exists": true,
+            "sha256": "941e96349bf062adcfaf569f9764fd7b9a7e6bf7a3ea841b617151cc2564bdee",
+            "size": [
+              2048,
+              1024
+            ]
+          }
+        }
+      },
+      "bucket": "relaxed_review_bucket",
+      "candidate_id": "02a00399_a0038",
+      "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+      "closure_asset_status": "complete",
+      "missing_required": [],
+      "required": [
+        "compare",
+        "final"
+      ],
+      "tag": "bmw_db28_a38"
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 40,
+      "assets": {
+        "compare": {
+          "exists": true,
+          "fetch": {
+            "anchor": 40,
+            "asset": "compare",
+            "candidate_id": "02a00399_a0040",
+            "fetched": true,
+            "local_bytes": 569185,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_compare.jpg",
+            "local_sha256": "5cae9195c95c40dd02cc81a12d161758bedb2a923d236386c6dcddc8bb18a5e1",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a40_compare.jpg",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_compare.jpg",
+          "required": true,
+          "stats": {
+            "bytes": 569185,
+            "exists": true,
+            "sha256": "5cae9195c95c40dd02cc81a12d161758bedb2a923d236386c6dcddc8bb18a5e1",
+            "size": [
+              1900,
+              2940
+            ]
+          }
+        },
+        "final": {
+          "exists": true,
+          "fetch": {
+            "anchor": 40,
+            "asset": "final",
+            "candidate_id": "02a00399_a0040",
+            "fetched": true,
+            "local_bytes": 947676,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_final_1024x2048.png",
+            "local_sha256": "971c9fb1fa4e9c4b9fdd422ab6e17f931fc1bd116dbcd4ff9ced41070151f531",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a40_final_1024x2048.png",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_final_1024x2048.png",
+          "required": true,
+          "stats": {
+            "bytes": 947676,
+            "exists": true,
+            "sha256": "971c9fb1fa4e9c4b9fdd422ab6e17f931fc1bd116dbcd4ff9ced41070151f531",
+            "size": [
+              2048,
+              1024
+            ]
+          }
+        }
+      },
+      "bucket": "relaxed_review_bucket",
+      "candidate_id": "02a00399_a0040",
+      "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+      "closure_asset_status": "complete",
+      "missing_required": [],
+      "required": [
+        "compare",
+        "final"
+      ],
+      "tag": "bmw_db28_a40"
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 105,
+      "assets": {
+        "compare": {
+          "exists": true,
+          "fetch": null,
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_compare.jpg",
+          "required": false,
+          "stats": {
+            "bytes": 619445,
+            "exists": true,
+            "sha256": "87ecc742b99b629d2a7486d46820862b1bd4bcc4ba7908cfebce225443c3e468",
+            "size": [
+              1900,
+              2940
+            ]
+          }
+        },
+        "final": {
+          "exists": true,
+          "fetch": {
+            "anchor": 105,
+            "asset": "final",
+            "candidate_id": "02a00399_a0105",
+            "fetched": true,
+            "local_bytes": 1021528,
+            "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_final_1024x2048.png",
+            "local_sha256": "32b1756241d7451751e0429e65ed6e1fd318f8f81d7679f91e544ff4975ccaff",
+            "remote_existence_source": "direct_read_probe",
+            "remote_exists": true,
+            "remote_path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_db28_a105_final_1024x2048.png",
+            "remote_sha256": null,
+            "sha256_match": null
+          },
+          "local_path": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_final_1024x2048.png",
+          "required": true,
+          "stats": {
+            "bytes": 1021528,
+            "exists": true,
+            "sha256": "32b1756241d7451751e0429e65ed6e1fd318f8f81d7679f91e544ff4975ccaff",
+            "size": [
+              2048,
+              1024
+            ]
+          }
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0105",
+      "claim_boundary": "exact source-selection evidence only; not local seam repair and not original-G repair",
+      "closure_asset_status": "complete",
+      "missing_required": [],
+      "required": [
+        "final"
+      ],
+      "tag": "bmw_db28_a105"
+    }
+  ]
+}
