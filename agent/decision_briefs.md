@@ -349,6 +349,42 @@ Required vision check:
 
 Result summary: DB55 accepted `O3` only as `source-derived bounded photometric polish` for T1/YELLOW-GREEN low-structure photometric seams. CPU/local script `scripts/phase3/db55_egsr_o3_photometric_operator_audit.py` reads existing O3 summaries/boards only and aggregates 14 anchors: mean seam dY improvement mean/median/min/max `17.71/18.87/7.13/23.63%`, p95 improvement mean/median/min/max `5.39/5.87/0.00/11.63%`, changed fraction mean/max `0.034/0.039`, and max Y delta `9.10`. Weak p95 case `9f871fb4_a017` is disclosed. Accepted geometry repair, DB41/DB25 repair, original-G/A1/BEST repair, `source_id_map`, permission change, RED promotion, and uncaveated Bosch training-data claims remain false. No new repair run/raw data load/A100/executor/network/model/generation/source replacement occurred. Detail archived in `progress.md` 2026-06-04/05 DB55 entry.
 
+# DB-56: DB47f exact closure batch execution
+Status: paused / waiting for approved runtime secret source
+Route: sidestep / source-selection evidence
+
+Question: With a reachable A100 executor and the DB53 token-free launch harness, can DB47f close the fixed 8 exact source-selection gaps by producing the missing compare/final assets, without expanding the target universe or turning source selection into repair?
+
+Hypothesis: One bounded remote `_seamroute.py` batch over the exact DB47f target universe can produce the missing `SR_bmw_db28_a<anchor>_compare.jpg` and `SR_bmw_db28_a<anchor>_final_1024x2048.png` assets for review. The result may close source-selection evidence gaps, but it still remains source-sidestep/exact-candidate evidence only, not source-faithful local seam repair, not original `G_bmw_pano`/A1/BEST repair, and not Bosch training-ready data.
+
+Why now: DB51 ranked DB47f as the next seam-quality route if secure runtime/data preconditions are satisfied; DB52/DB53 defined the token-safe env/harness contract; DB54 proved the exact assets are not hidden locally; DB55 has now formalized the only existing photometric operator. The user has provided a reachable A100 executor, so the next useful DB47 action is the actual bounded closure batch, not another infra-only layer.
+
+Expected evidence:
+- One remote `/status` check and at most one `/exec` batch using process-only `COLAB_URL`/`COLAB_TOKEN`; no endpoint/token value may be written to repo files, manifests, boards, logs, progress, or shell output.
+- Exactly 8 fixed anchors: `a201`, `a209`, `a210`, `a211`, `a031`, `a038`, `a040`, and `a105`.
+- Required local evidence after fetch: compare+final for the first 7 anchors, final for `a105`, copied only into the expected DB28 exact-asset paths from DB53; no arbitrary candidate image destinations.
+- A DB56 manifest/board under `deliverables/dit360_v2/db47_source_candidate_mining/` reporting job state, output existence/hash/size, missing assets, visual review labels, DB41/DB25 abstain boundary, DB32/G claim boundary, and secret-scan status.
+
+Kill criteria:
+- Executor `/status` is unreachable, unauthorized, or reports active jobs that make the one-batch run unsafe.
+- Remote repo/data path lacks `_seamroute.py` or the target AV2 log; stop before widening the run or changing dataset/log.
+- More than one batch, more than 8 anchors, or any anchor outside the DB47f fixed universe is submitted.
+- Any remote command runs HF/VGGT, DiT/FLUX, model inference, dataset scan beyond the fixed target log/anchors, source replacement, generation, or prompt-only repair.
+- Any endpoint URL, bearer token, HF token, or secret-like string is echoed, stored, committed, included in a command artifact, or written to manifest/board/progress.
+- Output is promoted from source-selection exact evidence into source-faithful repair, original-G/A1/BEST repair, `source_id_map`, RED promotion, DB41/DB25 repair, or uncaveated Bosch training-data readiness.
+- Visual review shows the newly closed assets are worse than current a200/DB32 or move the seam into DB41/no-evidence regions; then mark the candidate rejected/hold rather than patching again.
+
+Max scope:
+- One bounded remote closure batch only: `/status`, `/exec`, polling, and file fetch for expected outputs.
+- No HF/VGGT/model inference, no diffusion/generation, no new scan, no source replacement, no `--save-source-id-map`, no Bosch data-contract promotion, no RED promotion.
+- CPU/local postprocessing may build the DB56 manifest/board and copy exact fetched assets into the DB28 expected local paths only.
+- Output location: `deliverables/dit360_v2/db47_source_candidate_mining/` plus exact compare/final assets under `deliverables/dit360_v2/db28_clean_subset_refine/`.
+
+Required vision check:
+- Board must show all 8 anchors, each required compare/final availability, same-ROI crops/thumbnails for every fetched exact asset, explicit pass/hold/reject labels, current a200/DB32 context, inherited DB41/DB25 abstain boundary, and the claim line `source-selection exact closure only / no repair / no source_id_map / no RED promotion / no token in artifacts`.
+
+Result summary: DB56 brief/script are prepared but paused before remote execution because the current process has no `COLAB_URL`/`COLAB_TOKEN` env pair and no `W2P_RUNTIME_SECRET_FILE` / default non-repo runtime secret file. Per DB52 and the adversarial audit, the chat-pasted endpoint/token is not allowed as a command/artifact secret. `scripts/phase3/db56_db47f_exact_closure_batch.py` passes `py_compile`; no `/exec` batch, asset fetch, model/generation/source replacement, `source_id_map`, or RED promotion occurred. Detail archived in `progress.md` 2026-06-04/05 DB56 entry.
+
 # DB-48: Koi center-preserve DiT360 outpainting side branch
 Status: proposed
 Route: B (generative) / presentation-demo side branch
