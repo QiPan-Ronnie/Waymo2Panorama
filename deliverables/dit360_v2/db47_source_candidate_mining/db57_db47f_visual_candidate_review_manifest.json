@@ -1,0 +1,500 @@
+{
+  "aggregate_counts": {
+    "accepted_final_candidates": 0,
+    "exact_compare_final_candidates": 8,
+    "hold_candidates": 4,
+    "reason_counts": {
+      "different_scene_context_risk": 1,
+      "exact_assets_present": 7,
+      "exact_final_now_available": 1,
+      "lighting_or_context_shift_risk": 3,
+      "near_duplicate_of_a200": 4,
+      "no_clear_visual_win": 5,
+      "not_db32_lineage": 8,
+      "not_handoff_base": 3,
+      "relaxed_bucket": 3,
+      "strict_bucket": 5
+    },
+    "reject_candidates": 4,
+    "reviewed_candidates": 8,
+    "verdict_counts": {
+      "hold_near_duplicate_no_clear_win": 4,
+      "reject_different_context_no_clear_win": 1,
+      "reject_relaxed_context_shift": 3
+    }
+  },
+  "candidate_review": [
+    {
+      "accepted_final_candidate": false,
+      "anchor": 201,
+      "asset_stats": {
+        "compare": {
+          "bytes": 629834,
+          "exists": true,
+          "sha256": "380187849ce783d0e71824eb2da9811a6ad4736bc724a6abf7086fb49b8348aa",
+          "size": [
+            1900,
+            2940
+          ]
+        },
+        "final": {
+          "bytes": 1105858,
+          "exists": true,
+          "sha256": "837a59c8574c621e61bc1ec66656be9dc5d54a573a847e1628c6e672c0532871",
+          "size": [
+            2048,
+            1024
+          ]
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0201",
+      "claim_boundary": "exact source-selection visual review only; not local repair and not source_id_map evidence",
+      "db57_verdict": "hold_near_duplicate_no_clear_win",
+      "diagnostic_mae_vs_a200": {
+        "center_roi": 10.133757816257816,
+        "full": 4.345192591349284,
+        "right_roi": 10.356264358813702
+      },
+      "displaces_a200_db32": false,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a201_final_1024x2048.png"
+      },
+      "note": "Strict same-log candidate with exact assets, but visual review shows no clear improvement over current a200/DB32.",
+      "visual_reason_codes": [
+        "exact_assets_present",
+        "strict_bucket",
+        "near_duplicate_of_a200",
+        "not_db32_lineage",
+        "no_clear_visual_win"
+      ]
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 209,
+      "asset_stats": {
+        "compare": {
+          "bytes": 629884,
+          "exists": true,
+          "sha256": "48c33c1e85feaada3bea2e07b6d2b3862f9f4606a50d3b7950920fd9b38dde86",
+          "size": [
+            1900,
+            2940
+          ]
+        },
+        "final": {
+          "bytes": 1113981,
+          "exists": true,
+          "sha256": "69d4d01fed34b2dc471b29d0c3a35dbf78671bff75e0bd36aa0f7d0b9e75b472",
+          "size": [
+            2048,
+            1024
+          ]
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0209",
+      "claim_boundary": "exact source-selection visual review only; not local repair and not source_id_map evidence",
+      "db57_verdict": "hold_near_duplicate_no_clear_win",
+      "diagnostic_mae_vs_a200": {
+        "center_roi": 20.715797258297258,
+        "full": 9.629540284474691,
+        "right_roi": 24.865183792815372
+      },
+      "displaces_a200_db32": false,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a209_final_1024x2048.png"
+      },
+      "note": "Strict same-log candidate with exact assets, but visual review shows no clear improvement over current a200/DB32.",
+      "visual_reason_codes": [
+        "exact_assets_present",
+        "strict_bucket",
+        "near_duplicate_of_a200",
+        "not_db32_lineage",
+        "no_clear_visual_win"
+      ]
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 210,
+      "asset_stats": {
+        "compare": {
+          "bytes": 631399,
+          "exists": true,
+          "sha256": "18d6ecbe1255625808d9851e12699a227bcea9576b063fea1491d25652809a6b",
+          "size": [
+            1900,
+            2940
+          ]
+        },
+        "final": {
+          "bytes": 1112817,
+          "exists": true,
+          "sha256": "2d9121918a68edbec76fc9f12391e5023dff139114f20a90ebd394b5d3f587c6",
+          "size": [
+            2048,
+            1024
+          ]
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0210",
+      "claim_boundary": "exact source-selection visual review only; not local repair and not source_id_map evidence",
+      "db57_verdict": "hold_near_duplicate_no_clear_win",
+      "diagnostic_mae_vs_a200": {
+        "center_roi": 20.61994348244348,
+        "full": 9.902931372324625,
+        "right_roi": 25.69044747284879
+      },
+      "displaces_a200_db32": false,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a210_final_1024x2048.png"
+      },
+      "note": "Strict same-log candidate with exact assets, but visual review shows no clear improvement over current a200/DB32.",
+      "visual_reason_codes": [
+        "exact_assets_present",
+        "strict_bucket",
+        "near_duplicate_of_a200",
+        "not_db32_lineage",
+        "no_clear_visual_win"
+      ]
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 211,
+      "asset_stats": {
+        "compare": {
+          "bytes": 629873,
+          "exists": true,
+          "sha256": "7a50ca0108c3b4fe2b37b7c65e964a7b2b1bb9c75bec2ef67af07c57c8fb6965",
+          "size": [
+            1900,
+            2940
+          ]
+        },
+        "final": {
+          "bytes": 1111415,
+          "exists": true,
+          "sha256": "eb11c51f9275e18056103d8991debb1627391d70416c11badece022dacf6e5c1",
+          "size": [
+            2048,
+            1024
+          ]
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0211",
+      "claim_boundary": "exact source-selection visual review only; not local repair and not source_id_map evidence",
+      "db57_verdict": "hold_near_duplicate_no_clear_win",
+      "diagnostic_mae_vs_a200": {
+        "center_roi": 20.46873617123617,
+        "full": 10.157854557037354,
+        "right_roi": 26.452677266081867
+      },
+      "displaces_a200_db32": false,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a211_final_1024x2048.png"
+      },
+      "note": "Strict same-log candidate with exact assets, but visual review shows no clear improvement over current a200/DB32.",
+      "visual_reason_codes": [
+        "exact_assets_present",
+        "strict_bucket",
+        "near_duplicate_of_a200",
+        "not_db32_lineage",
+        "no_clear_visual_win"
+      ]
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 31,
+      "asset_stats": {
+        "compare": {
+          "bytes": 562020,
+          "exists": true,
+          "sha256": "55b61ef006918e20514c79a18edb4e2ad8e124976a1fdec8473b3e21951450c3",
+          "size": [
+            1900,
+            2940
+          ]
+        },
+        "final": {
+          "bytes": 944212,
+          "exists": true,
+          "sha256": "3596fc437f06dd1467ec5f67910f9289f1ca61feef4db9a048e5b0955c751f4a",
+          "size": [
+            2048,
+            1024
+          ]
+        }
+      },
+      "bucket": "relaxed_review_bucket",
+      "candidate_id": "02a00399_a0031",
+      "claim_boundary": "exact source-selection visual review only; not local repair and not source_id_map evidence",
+      "db57_verdict": "reject_relaxed_context_shift",
+      "diagnostic_mae_vs_a200": {
+        "center_roi": 34.91581529581529,
+        "full": 16.629699389139812,
+        "right_roi": 35.838583437761066
+      },
+      "displaces_a200_db32": false,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a31_final_1024x2048.png"
+      },
+      "note": "Relaxed candidate has exact assets but visible context/lighting shift versus the a200/DB32 handoff base, so it is not promoted.",
+      "visual_reason_codes": [
+        "exact_assets_present",
+        "relaxed_bucket",
+        "lighting_or_context_shift_risk",
+        "not_db32_lineage",
+        "not_handoff_base"
+      ]
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 38,
+      "asset_stats": {
+        "compare": {
+          "bytes": 565950,
+          "exists": true,
+          "sha256": "e4301b3bcb237c316f10abc54f120242291514407761ca2c861f9631c2c20391",
+          "size": [
+            1900,
+            2940
+          ]
+        },
+        "final": {
+          "bytes": 946147,
+          "exists": true,
+          "sha256": "941e96349bf062adcfaf569f9764fd7b9a7e6bf7a3ea841b617151cc2564bdee",
+          "size": [
+            2048,
+            1024
+          ]
+        }
+      },
+      "bucket": "relaxed_review_bucket",
+      "candidate_id": "02a00399_a0038",
+      "claim_boundary": "exact source-selection visual review only; not local repair and not source_id_map evidence",
+      "db57_verdict": "reject_relaxed_context_shift",
+      "diagnostic_mae_vs_a200": {
+        "center_roi": 36.29232082732083,
+        "full": 17.057512442270916,
+        "right_roi": 37.601451545530495
+      },
+      "displaces_a200_db32": false,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a38_final_1024x2048.png"
+      },
+      "note": "Relaxed candidate has exact assets but visible context/lighting shift versus the a200/DB32 handoff base, so it is not promoted.",
+      "visual_reason_codes": [
+        "exact_assets_present",
+        "relaxed_bucket",
+        "lighting_or_context_shift_risk",
+        "not_db32_lineage",
+        "not_handoff_base"
+      ]
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 40,
+      "asset_stats": {
+        "compare": {
+          "bytes": 569185,
+          "exists": true,
+          "sha256": "5cae9195c95c40dd02cc81a12d161758bedb2a923d236386c6dcddc8bb18a5e1",
+          "size": [
+            1900,
+            2940
+          ]
+        },
+        "final": {
+          "bytes": 947676,
+          "exists": true,
+          "sha256": "971c9fb1fa4e9c4b9fdd422ab6e17f931fc1bd116dbcd4ff9ced41070151f531",
+          "size": [
+            2048,
+            1024
+          ]
+        }
+      },
+      "bucket": "relaxed_review_bucket",
+      "candidate_id": "02a00399_a0040",
+      "claim_boundary": "exact source-selection visual review only; not local repair and not source_id_map evidence",
+      "db57_verdict": "reject_relaxed_context_shift",
+      "diagnostic_mae_vs_a200": {
+        "center_roi": 36.36341029341029,
+        "full": 17.09447987874349,
+        "right_roi": 37.62591374269005
+      },
+      "displaces_a200_db32": false,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a40_final_1024x2048.png"
+      },
+      "note": "Relaxed candidate has exact assets but visible context/lighting shift versus the a200/DB32 handoff base, so it is not promoted.",
+      "visual_reason_codes": [
+        "exact_assets_present",
+        "relaxed_bucket",
+        "lighting_or_context_shift_risk",
+        "not_db32_lineage",
+        "not_handoff_base"
+      ]
+    },
+    {
+      "accepted_final_candidate": false,
+      "anchor": 105,
+      "asset_stats": {
+        "compare": {
+          "bytes": 619445,
+          "exists": true,
+          "sha256": "87ecc742b99b629d2a7486d46820862b1bd4bcc4ba7908cfebce225443c3e468",
+          "size": [
+            1900,
+            2940
+          ]
+        },
+        "final": {
+          "bytes": 1021528,
+          "exists": true,
+          "sha256": "32b1756241d7451751e0429e65ed6e1fd318f8f81d7679f91e544ff4975ccaff",
+          "size": [
+            2048,
+            1024
+          ]
+        }
+      },
+      "bucket": "strict_review_bucket",
+      "candidate_id": "02a00399_a0105",
+      "claim_boundary": "exact source-selection visual review only; not local repair and not source_id_map evidence",
+      "db57_verdict": "reject_different_context_no_clear_win",
+      "diagnostic_mae_vs_a200": {
+        "center_roi": 45.2078823953824,
+        "full": 18.277609666188557,
+        "right_roi": 37.00039160401003
+      },
+      "displaces_a200_db32": false,
+      "exact_assets": {
+        "compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_compare.jpg",
+        "final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a105_final_1024x2048.png"
+      },
+      "note": "a105 final is now available after DB56, but visual review shows a different scene context and no reason to displace a200/DB32.",
+      "visual_reason_codes": [
+        "exact_final_now_available",
+        "strict_bucket",
+        "different_scene_context_risk",
+        "not_db32_lineage",
+        "no_clear_visual_win"
+      ]
+    }
+  ],
+  "context": {
+    "current_a200_compare": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_compare.jpg",
+    "current_a200_final": "deliverables/dit360_v2/db28_clean_subset_refine/SR_bmw_db28_a200_final_1024x2048.png",
+    "current_db32_s40": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+    "db41_board": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_board.jpg",
+    "db47e_claim_boundary": "DB47e confirms the existing a200/DB32 source-sidestep base under local exact evidence; it does not repair original G/A1/BEST, does not fill DB49 source_id_map, and does not make DB32 fully source-faithful.",
+    "db47e_confirmed_base": 200,
+    "g_bmw_claim": "classic BMW failure / diagnostic reference only; not a default repair base",
+    "g_bmw_pano": "deliverables/ghostkill/G_bmw_pano.jpg"
+  },
+  "created_utc": "2026-06-05T02:00:35.669009+00:00",
+  "db": "DB57",
+  "decision": {
+    "accepted_db47_visual_review_evidence": true,
+    "accepted_original_g_family_repair": false,
+    "accepted_source_faithful_repair": false,
+    "accepted_source_id_map_evidence": false,
+    "claim_boundary": "DB57 is visual source-selection review only; it may recommend accept/hold/reject but cannot claim repair, source ownership, or Bosch training readiness.",
+    "current_a200_db32_displaced": false,
+    "db32_claim_changed": false,
+    "db41_or_db25_promoted": false,
+    "next_recommended_step": "Preserve a200/DB32 as the current caveated source-sidestep handoff base; do not run another DB47f patch-on-patch batch. Move to a fresh brief for either source/provenance packaging or a new EGSR target/evidence source.",
+    "ready_for_uncaveated_bosch_training_data": false,
+    "selected_final_candidate_anchor": null
+  },
+  "evidence_type": "db47f-exact-candidate-visual-review-only",
+  "hard_checks": [
+    {
+      "evidence": "DB57 brief exists before CPU/local review.",
+      "id": "db57_brief_exists",
+      "pass": true
+    },
+    {
+      "evidence": "anchors=[201, 209, 210, 211, 31, 38, 40, 105]",
+      "id": "fixed_db56_eight_anchor_universe",
+      "pass": true
+    },
+    {
+      "evidence": "Each DB57 candidate has DB28 exact compare and final assets.",
+      "id": "all_exact_assets_available",
+      "pass": true
+    },
+    {
+      "evidence": "Default DB57 pass is conservative hold pending visual superiority over a200/DB32.",
+      "id": "no_candidate_promotion_without_manual_accept",
+      "pass": true
+    },
+    {
+      "evidence": "CPU/local review only; no image-modifying operation was allowed.",
+      "id": "no_remote_model_generation_or_repair",
+      "pass": true
+    },
+    {
+      "evidence": "DB41/DB25 remain abstain boundaries; DB32 remains caveated handoff/source-sidestep.",
+      "id": "db41_and_db32_boundaries_preserved",
+      "pass": true
+    },
+    {
+      "evidence": "hits=[]",
+      "id": "secret_scan_pass",
+      "pass": true
+    }
+  ],
+  "hard_checks_pass": true,
+  "outputs": {
+    "board": "deliverables/dit360_v2/db47_source_candidate_mining/db57_db47f_visual_candidate_review_board.jpg",
+    "manifest": "deliverables/dit360_v2/db47_source_candidate_mining/db57_db47f_visual_candidate_review_manifest.json"
+  },
+  "purpose": "Review DB56 exact source-selection candidates against the current a200/DB32 source-sidestep base without creating or modifying imagery.",
+  "scope": {
+    "candidate_image_modified": false,
+    "cpu_local_only": true,
+    "dataset_scan": false,
+    "diffusion_or_generation": false,
+    "hf_or_vggt": false,
+    "inputs": [
+      "deliverables/dit360_v2/db47_source_candidate_mining/db47e_final_candidate_review_manifest.json",
+      "deliverables/dit360_v2/db47_source_candidate_mining/db56_db47f_exact_closure_manifest.json",
+      "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+      "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_board.jpg",
+      "deliverables/ghostkill/G_bmw_pano.jpg"
+    ],
+    "model_inference": false,
+    "output_location": "deliverables/dit360_v2/db47_source_candidate_mining",
+    "panorama_repair": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "remote_or_a100": false,
+    "reviewed_anchors": [
+      201,
+      209,
+      210,
+      211,
+      31,
+      38,
+      40,
+      105
+    ],
+    "seamroute_or_renderer": false,
+    "source_id_map_created": false,
+    "source_replacement": false
+  },
+  "secret_scan_hits": [],
+  "status": "accepted_visual_review_no_candidate_promotion"
+}

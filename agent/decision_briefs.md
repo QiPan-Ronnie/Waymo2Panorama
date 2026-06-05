@@ -385,6 +385,43 @@ Required vision check:
 
 Result summary: DB56 accepted `accepted_exact_closure_assets_complete` evidence. `scripts/phase3/db56_db47f_exact_closure_batch.py` ran exactly one fixed 8-anchor remote `_seamroute.py` batch through an approved process-env runtime source; `/status` reported `colab-gpu` on `NVIDIA A100-SXM4-40GB` with `active_jobs_before=0`, job `55a0c9f7f40a4af9979f73dc3073532e` completed `state=done`, `exit=0`, and a fetch-only follow-up used the existing completed job plus deterministic remote paths to fetch all `15/15` required exact assets without a second `/exec`. Outputs are `deliverables/dit360_v2/db47_source_candidate_mining/db56_db47f_exact_closure_manifest.json`, `db56_db47f_exact_closure_board.jpg`, and the fetched `SR_bmw_db28_a<anchor>_*` compare/final assets under `deliverables/dit360_v2/db28_clean_subset_refine/`. Secret scan hits are `0`; endpoint/token values are absent from artifacts. This closes asset availability only: no final candidate is selected, no local seam repair/source replacement/model/generation/source_id_map/RED promotion occurred, and DB41/DB25 plus DB32/G claim boundaries remain unchanged. Detail archived in `progress.md` 2026-06-04/05 DB56 entry.
 
+# DB-57: DB47f exact-candidate visual final review
+Status: accepted visual review / no candidate promotion
+Route: sidestep / source-selection evidence
+
+Question: Now that DB56 has closed the fixed DB47f exact asset gaps, do any of the 8 newly available same-log source-selection candidates deserve a visual final-candidate accept/hold/reject decision, without turning source selection into local seam repair?
+
+Hypothesis: The DB56 exact assets may reveal one or more candidates that are visually competitive with the current `a200`/DB32 source-sidestep base. A CPU-only review can make the next DB47 decision by comparing the fixed candidates side by side with current DB32/a200 and DB41/DB25 boundaries. If the evidence is ambiguous or worse than current a200/DB32, the correct outcome is hold/reject, not another patch.
+
+Why now: DB56 completed the exact asset availability precondition that blocked DB47f. The next seam-quality step is therefore not another remote batch, infra layer, or presentation branch; it is the required visual accounting over the exact assets that now exist.
+
+Expected evidence:
+- One CPU/local manifest and board under `deliverables/dit360_v2/db47_source_candidate_mining/`.
+- Review exactly the DB56 fixed anchors: `a201`, `a209`, `a210`, `a211`, `a031`, `a038`, `a040`, and `a105`.
+- Include current context: DB47e `a200` current source-sidestep base, DB32 `s40` caveated handoff, DB41 lower-right/right-line abstain, and `G_bmw_pano` diagnostic reference boundary.
+- For every candidate, report exact compare/final availability, image size/hash, source-selection verdict (`accept`, `hold`, or `reject`), visual reason codes, and whether it is allowed to displace the current a200/DB32 base.
+
+Kill criteria:
+- Any target outside the fixed DB56 8-anchor universe is added, or any missing/alternate non-DB28 asset is treated as exact evidence.
+- Any `/status`, `/exec`, A100, network, HF/VGGT/model inference, `_seamroute.py` rerun, renderer/dataset scan, diffusion/generation, prompt-only repair, local seam repair, source replacement, `source_id_map`, permission change, or RED promotion occurs.
+- A candidate is promoted from metrics or thumbnail appearance alone without visual same-ROI/source-boundary accounting.
+- DB41 lower-right/right-line, DB25 low-evidence line, or generated/fake-geometry controls are promoted.
+- Output is described as source-faithful local repair, original `G_bmw_pano`/A1/BEST repair, Bosch training-ready data, or a source-faithful ceiling.
+- If visual review shows no candidate beats the current a200/DB32 source-sidestep base, the branch must stop with hold/reject decisions rather than patch-on-patch.
+- Any endpoint URL, bearer token, HF token, or secret-like value is written to outputs.
+
+Max scope:
+- CPU/local existing-asset review only.
+- Read DB56/DB47e/DB32/DB41 context plus the exact DB28 compare/final images for the 8 fixed anchors.
+- Create one manifest and one board; do not modify candidate images or create a new panorama.
+- Output location: `deliverables/dit360_v2/db47_source_candidate_mining/`.
+
+Required vision check:
+- Board must show all 8 candidates with compare/final thumbnails, current `a200`/DB32 context, DB41 abstain context, and explicit labels for `source-selection exact review only / no repair / no source_id_map / no RED promotion / no token in artifacts`.
+- Manual visual review must inspect the board before any candidate is accepted; if evidence is insufficient, verdicts must be `hold` or `reject`.
+
+Result summary: DB57 accepted `db47f-exact-candidate-visual-review-only` evidence and selected no new final candidate. CPU/local script `scripts/phase3/db57_db47f_visual_candidate_review.py` reviewed exactly the 8 DB56 fixed anchors using existing DB56/DB47e/DB32/DB41/G diagnostic context plus DB28 exact compare/final assets. All `8/8` candidates have exact compare+final assets, but visual review found no clear improvement over the current `a200`/DB32 source-sidestep base: `a201/a209/a210/a211` are held as near-duplicates with no clear win and no DB32 lineage, `a031/a038/a040` are rejected for relaxed context/lighting shift, and `a105` is rejected for different context/no clear win. No `/status`, `/exec`, A100, network, HF/VGGT/model inference, `_seamroute.py` rerun, renderer/dataset scan, diffusion/generation, repair, source replacement, `source_id_map`, permission change, RED promotion, final-candidate selection, source-faithful/original-G claim, or uncaveated Bosch training-data claim occurred. Detail archived in `progress.md` 2026-06-04/05 DB57 entry.
+
 # DB-48: Koi center-preserve DiT360 outpainting side branch
 Status: proposed
 Route: B (generative) / presentation-demo side branch
