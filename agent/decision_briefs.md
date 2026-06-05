@@ -207,7 +207,7 @@ Required vision check:
 Result summary: TBD -> archive to `progress.md` when done, then delete this brief.
 
 # DB-47: Source/frame/dataset-level candidate mining
-Status: DB56 exact assets complete / visual final-candidate review pending
+Status: DB57 visual review complete / no candidate promotion / DB47f paused
 Route: sidestep / dataset-level source selection
 
 Question: Is the right solution for some hard seams to avoid them by choosing better frames, sources, anchors, or logs rather than locally repairing them?
@@ -350,7 +350,7 @@ Required vision check:
 Result summary: DB55 accepted `O3` only as `source-derived bounded photometric polish` for T1/YELLOW-GREEN low-structure photometric seams. CPU/local script `scripts/phase3/db55_egsr_o3_photometric_operator_audit.py` reads existing O3 summaries/boards only and aggregates 14 anchors: mean seam dY improvement mean/median/min/max `17.71/18.87/7.13/23.63%`, p95 improvement mean/median/min/max `5.39/5.87/0.00/11.63%`, changed fraction mean/max `0.034/0.039`, and max Y delta `9.10`. Weak p95 case `9f871fb4_a017` is disclosed. Accepted geometry repair, DB41/DB25 repair, original-G/A1/BEST repair, `source_id_map`, permission change, RED promotion, and uncaveated Bosch training-data claims remain false. No new repair run/raw data load/A100/executor/network/model/generation/source replacement occurred. Detail archived in `progress.md` 2026-06-04/05 DB55 entry.
 
 # DB-56: DB47f exact closure batch execution
-Status: accepted exact-closure assets complete / visual final-candidate review pending
+Status: accepted exact-closure assets complete / DB57 follow-up completed with no candidate promotion
 Route: sidestep / source-selection evidence
 
 Question: With a reachable A100 executor and the DB53 token-free launch harness, can DB47f close the fixed 8 exact source-selection gaps by producing the missing compare/final assets, without expanding the target universe or turning source selection into repair?
