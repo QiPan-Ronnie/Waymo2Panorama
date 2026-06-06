@@ -69,35 +69,56 @@ Result summary: **Batteries 1–2 complete + v1.1 metric-clean re-run (measureme
 
 ---
 
-## ⏭ PROPOSED — NOT active until DB-76a (Battery 4) closes (one active brief at a time)
+## ⭐ ACTIVE BRIEF — DB-77B (COURSE-CORRECTED 2026-06-06 by mid-term review wf_0f49813b-238)
 
-# DB-77B: Branch B leashed renderer (plausible / make the seam disappear)
-Status: **ACTIVE** (2026-06-06; DB-76a closed, all 4 batteries done — single active brief). Phasing: **Phase 0+1 (geometry-skeleton fusion + IBR single-centre render) runs on L4/CPU** (geometry/numpy/cv2, GPU-light); **Phase 2 (band-confined single-step refiner, Difix-style) needs A100 — tell user before**.
-Route: B (plausible multi-center renderer — geometry owns POSITION, learned owns APPEARANCE, real pixels + geometry are the LEASH)
+# DB-77B: StreetCrafter zero-shot BAKE-OFF gate (adopt/fine-tune a learned LiDAR-conditioned renderer vs hand-built — DECISION GATE before any training)
+Status: **ACTIVE** (2026-06-06). **COURSE-CORRECTED:** the original "hand-built leashed renderer (surfel-densify + IBR + Difix refiner)" is **REJECTED** by the mid-term review. Do NOT run hand-built Option-B. First spend ~1 A100 hour on a zero-shot bake-off, then a vision-led decision gate.
+Route: B (plausible renderer) — but **ADOPT/FINE-TUNE a learned LiDAR-conditioned backbone instead of hand-building it.**
 
-**Question:** Can a leashed renderer produce a GENERAL, PLAUSIBLE single-center ERP where the near-field seam visibly DISAPPEARS — without hallucinating salient objects — by letting geometry own position, a single-step refiner own appearance, and real pixels + geometry + hard object-protection act as the leash?
+**Why course-corrected (mid-term review findings — verified):**
+- **Gate metric was invalid:** the tear-attribution `bad_densify_share=0.65` (`db77b:329-333`) measured "a LiDAR point is within 4px in ERP", NOT "denser geometry will fix it" — near-field 4px spans large depth discontinuities (`d_px(Z)`). The 0.65 that greenlit hand-built Option-B does NOT mean fixable. MUST re-derive from real LiDAR-depth-at-pixel vs densified depth.
+- **"IBR validated" was over-stated:** the full-IBR ROI sheet (`02a00399_a000_bmw_p01_roi_sheet.jpg`) shows IBR tears the right curb into gray scramble, ghosts the centre lane, and is globally softer than hard_select (DrivingForward blur returning). The leash did not prevent it. (Leader had only eyeballed the safe road-only D board.)
+- **LOCK contradiction:** generated_band = 0.48–0.57 = generating ~half the visible band = naked generation with a thin leash = the DiT360 failure we swore off. Re-honor the LOCK (abstain is valid, seam = provenance boundary): keep the generated band SMALL; abstain the ~35% no-geometry near-field.
+- **We are hand-building what the 2025 field already ships, trained + validated:** StreetCrafter (CVPR2025, code released, LiDAR-conditioned diffusion — its LiDAR render IS the condition → sidesteps the whole bad-densification bug class); Difix3D+ (CVPR2025 Oral, `nvidia/difix`, single-step non-hallucinating refiner = our C-step); DeSiRe-GS (CVPR2025, arXiv 2411.11921) + PGSR (TVCG2024, arXiv 2406.06521) = the proven geometry recipe (2DGS disks + normal-from-scale + LiDAR-depth-L1 + unbiased depth) that cures our edge bug. DrivingForward "soft" is a STALE 2024 NEG.
 
-**Hypothesis:** The reason source-faithful single-center repair is impossible (DB76a: GREEN 22–37% wrong where checkable, 81% single-source, forward-stereo recovers only ~1%) does NOT forbid a PLAUSIBLE result. Past generative attempts failed for a specific, fixable reason — no leash: DiT360 seam-completion = naked generation (invents cars); DrivingForward = leash mis-tuned (blur). B's entire bet is that a STRONG leash (multi-frame-LiDAR geometry skeleton + forward-stereo depth + validated-GREEN + band-confined edits + hard object-protection) keeps a single-step refiner from inventing/rewriting while still closing the seam.
+**Question:** Does a released, learned, LiDAR-conditioned driving renderer (StreetCrafter; optionally XYZCylinder) produce a SHARP, seam-reduced single-center ERP on BMW + clean — ZERO-SHOT (no training) — better than our hand-built IBR and than hard_select, without inventing salient objects?
 
-**Why now:** DB76a proved source-faithful single-center repair hits a physical wall; leader (2026-06-06) re-set the goal to a GENERAL method that makes the seam disappear (plausible, NOT sensor truth, Bosch source-faithful constraint set aside for now). Battery 4 supplies the geometry skeleton this renderer stands on.
+**Phase 0 (de-risk bake-off, ~1 A100 hour, DO FIRST):**
+- Run **StreetCrafter** (released code, LiDAR-conditioned) [optionally **XYZCylinder** zero-shot] on BMW `02a00399:0` + clean `0bae3b5e:30`; render the virtual-center ERP; **eyeball the four marked ROIs (left road / lower-center road / center lane / right curb-wall-base) vs hard_select AND vs our IBR.**
+- IN PARALLEL (CPU): **re-derive `tear_bad_densify_share` from REAL LiDAR depth-at-pixel vs densified depth** (fix the gate-invalidating metric); fix the 3 renderer bugs below so any IBR comparison is fair.
 
-**Architecture:** ① geometry skeleton from DB76a evidence maps + Battery-4 multi-frame-LiDAR base + forward-stereo depth + validated-GREEN; ② IBR/3DGS render a single-center ERP from the virtual centre; ③ band-confined single-step refiner (Difix-style, NOT iterative diffusion) ONLY in narrow geometry-missing bands, leashed by real pixels + geometry + hard object-protection; ④ outputs `erp_presentation_rgb` + `generated_mask` + residual/leash sidecars.
+**Decision gate (on that 1 session, VISION-led):**
+- Learned render SHARP + seam-reduced → **ADOPT/FINE-TUNE:** StreetCrafter backbone + Difix3D+ single-step refiner + our leash (hard object-protection masks + band-confinement + abstain on the no-LiDAR ~35%). Stop hand-building. (Likely win.)
+- Learned render TEARS too / re-derived fixable-share collapses → **PIVOT to Framing-B fallback:** keep hard_select's sharp multi-center mosaic + train a thin-seam inpainter on our own clean AV2 seams (self-supervised) + honest abstain on the lemma-bounded geometric residual. Finishable + shippable.
 
-**Quality bar:** PLAUSIBLE (coherent, seam gone), NOT source-faithful sensor truth. Generated/completed pixels MUST carry `generated_mask` and stay strictly separate from any source-faithful layer; never mixed into training truth.
+**Must-fix renderer bugs before any renderer A100 (or the eval is confounded by our own bugs):**
+1. [GATE] re-derive tear-attribution from real LiDAR depth, NOT 4px ERP proximity (`db77b:329-333`).
+2. IBR has no per-camera occlusion/z-buffer test (`db77b:274-288`) — it blends occluded cameras' foreground; add a per-camera depth buffer, drop occluded cams (wv=0).
+3. Blend weight reuses the L1 infinite-radius cos² feather (`db77b:284`), not depth-correct — recompute ULR-style from the depth-correct projection.
+4. (2 min) confirm AV2 `stereo_front` k1,k2,k3 magnitudes (`db77b:234`) — avoid double-undistort.
 
-**Expected evidence:** per fixed case — seam-gone full ERP + same-ROI before/after + `generated_mask` overlay + leash/residual sidecars + object/lane/curb protection overlay.
+**Quality bar:** PLAUSIBLE (coherent, seam reduced where geometry allows), NOT source-faithful sensor truth. Generated pixels carry `generated_mask`, kept separate; keep the generated band SMALL (single-step refiner, not iterative; abstain the no-geometry near-field). Re-honor the LOCK — do NOT chase "seam fully disappears" everywhere.
 
-**Kill criteria:** invents a new car/person/sign/fake lane/fake curb; leash fails and large real structure is rewritten; seam not gone; generated region exceeds the band; output mistaken/used as source-faithful truth; any secret written.
+**Kill criteria:** invents new car/person/sign/fake lane/fake curb; large real structure rewritten; generated band stays ~half (not shrunk to single digits by geometry+abstain); iterative-diffusion drift; output used as source-faithful truth; any secret written.
 
-**Distinction from prior NEG (keep explicit, do NOT re-walk):** DiT360 seam-completion = no leash (invents); DrivingForward = leash mis-tuned (blur). B = geometry + real-pixels + band-confined + object-protection leash — the un-tried wall-breaker (memory: band-confined 3DGS / EPI-Mix).
+**Do NOT chase (review-confirmed NEG):** Splatter-360 / PanSplat (360-in→360-out, inverse problem); naive generative pano (invents cars); iterative video-diffusion refit loops (drift past ~2 iters at our baseline → stay single-step). **WATCH:** DriveFix (Mar 2026, cross-camera consistency, no public code yet).
 
-**Max scope:** fixed cases BMW `02a00399:0` + clean `0bae3b5e:30` first; geometry skeleton from existing DB76a/Battery-4/stereo evidence (no new dataset scan); single-step refiner only (no iterative diffusion); band-confined; presentation-only branch (`generated_mask`), never source-faithful. A100 with user go; one bounded `/status`+`/exec` per run; secret-scan 0.
+**Max scope:** Phase 0 bake-off = ~1 A100 hour, fixed cases only, ZERO-SHOT (no training); tell user before A100; one bounded `/status`+`/exec`; secret-scan 0. No training/fine-tune until the gate decides. Generality (more AV2 + Waymo scenes) only AFTER the gate picks a backbone.
 
-**Required vision check:** did the seam disappear? any hallucinated salient object? same-ROI before/after + `generated_mask` overlay + protected/object/lane/curb. Metrics alone don't count; looks better but sidecars don't support → presentation-only or rejected.
+**Required vision check:** eyeball the 4 ROIs — is the learned render sharp + seam-reduced vs hard_select, WITHOUT hallucinated salient objects? Metrics alone don't count; looks better but no geometry/leash support → presentation-only or rejected.
 
-**Output location:** `deliverables/db77b_leashed_renderer/`.
+**Agent reality-check (2026-06-06, repo-verified; user kept all 3 C-routes open, relaying agent judgement to leader):**
+- Agent ACCEPTS the 3 mid-term critiques (tear metric invalid; IBR seam-close over-stated; generated band violates LOCK).
+- BUT StreetCrafter ([zju3dv/street_crafter](https://github.com/zju3dv/street_crafter)) reality ≠ "zero-shot ~1h AV2 ERP": it needs **per-scene training** (`train.py` distills diffusion into Street Gaussians), is **Waymo-only** (AV2 needs a self-written colorized-point-cloud + tracklet adapter), needs an **80GB A100** (we have 40GB), renders **perspective** (ERP needs multi-view stitching), and needs Vista weights. The zero-shot bake-off premise does NOT hold on AV2.
+- The genuinely zero-shot option is **Difix3D+** ([nv-tlabs/Difix3D](https://github.com/nv-tlabs/Difix3D), HF `nvidia/difix`): single-step (`num_inference_steps=1`), near-real-time, zero-shot refine of one rendered image (NeRF/3DGS-general) — the real ~1h option, BUT perspective-artifact-designed (seam/ERP fix must be tested; needs a reference view).
+- **3 C-routes kept open (user 2026-06-06):** (C1) Difix3D+ zero-shot refine of our hard_select / bug-fixed-IBR virtual-centre ERP [real ~1h, L4/40GB likely OK]; (C2) StreetCrafter Waymo per-scene [80GB GPU + hours, not the AV2 pain]; (C3) Framing-B fallback [hard_select sharp base + self-supervised thin-seam inpainter on our own clean AV2 seams + abstain on no-geometry].
+- **A+B (CPU, no A100) are uncontested prerequisites, on standby:** re-derive tear-attribution from REAL LiDAR depth-at-pixel vs densified depth (fix the gate metric); fix the 3 renderer bugs (per-camera z-buffer occlusion, ULR depth-correct blend weight, stereo k1-3 double-undistort check). Await leader's reality-based pick before any A100.
 
-Result summary: TBD (proposed; activate after DB-76a Battery 4).
+**Output location:** `deliverables/db77b_streetcrafter_bakeoff/`.
+
+**Source methods (frontier review wf_0f49813b-238, web-verified):** StreetCrafter (CVPR2025, code released); Difix3D+ (CVPR2025 Oral, `nvidia/difix`); DeSiRe-GS (CVPR2025, arXiv 2411.11921); PGSR (TVCG2024, arXiv 2406.06521); TCLC-GS (ECCV2024, arXiv 2404.02410); RoGS (arXiv 2405.14342, road-only fallback). Full review: `deliverables/.../midterm-review` + workflow `wf_0f49813b-238`.
+
+Result summary: TBD — Phase 0 bake-off + gate decision; archive to progress.md when done.
 
 ---
 
