@@ -1,0 +1,95 @@
+{
+  "phase": "db79_fair_metric_wall_step12",
+  "started_utc": "2026-06-06T23:28:43Z",
+  "scope": {
+    "measurement_only": true,
+    "rgb_repair": false,
+    "generation": false,
+    "model_inference": false,
+    "a100": false
+  },
+  "workdir_found": true,
+  "status": "db79_step12_completed",
+  "summary": {
+    "status": "db79_step12_complete",
+    "measurement_only": true,
+    "pre_registered": {
+      "lidar_window_frames": 10,
+      "depth_min_m": 1.5,
+      "depth_max_m": 80.0,
+      "train_test_split": "even_odd_index",
+      "fair_radius_px": 4.0,
+      "silhouette_depth_span_m": 1.0,
+      "reopen_surface_p90_lt_m": 1.0,
+      "kill_surface_p90_gt_m": 2.0,
+      "lidar_only": true,
+      "stereo_excluded": true,
+      "dynamic_removed_by_boxes": true
+    },
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "case": "02a00399_a000_bmw",
+        "metrics": {
+          "n_test_pts": 400000,
+          "n_train_pts": 508133,
+          "fair_has_neighbor_frac": 0.999255,
+          "OLD_single_near_p50_m": 0.10109949111938477,
+          "OLD_single_near_p90_m": 11.849364280700684,
+          "FAIR_overall_p90_m": 0.4161285161972046,
+          "FAIR_surface_p50_m": 0.00604248046875,
+          "FAIR_surface_p90_m": 0.0381656289100647,
+          "FAIR_silhouette_p50_m": 0.03148841857910156,
+          "FAIR_silhouette_p90_m": 0.8447132110595703,
+          "silhouette_fraction": 0.51967,
+          "surface_fraction": 0.48033,
+          "curbwall_FAIR_surface_p90_m": 0.06388196349143982,
+          "curbwall_FAIR_silhouette_p90_m": 0.06096572428941727,
+          "curbwall_OLD_single_near_p90_m": 2.5389010906219482,
+          "curbwall_n_test": 1663,
+          "n_lidar_accumulated": 1050570
+        }
+      },
+      "0bae3b5e_a030_clean_far": {
+        "case": "0bae3b5e_a030_clean_far",
+        "metrics": {
+          "n_test_pts": 400000,
+          "n_train_pts": 876266,
+          "fair_has_neighbor_frac": 0.9996875,
+          "OLD_single_near_p50_m": 0.38337087631225586,
+          "OLD_single_near_p90_m": 11.53018569946289,
+          "FAIR_overall_p90_m": 0.3580598533153534,
+          "FAIR_surface_p50_m": 0.012508392333984375,
+          "FAIR_surface_p90_m": 0.07450559735298157,
+          "FAIR_silhouette_p50_m": 0.039223670959472656,
+          "FAIR_silhouette_p90_m": 0.5177899599075317,
+          "silhouette_fraction": 0.65127,
+          "surface_fraction": 0.34873,
+          "curbwall_FAIR_surface_p90_m": 0.12057685852050781,
+          "curbwall_FAIR_silhouette_p90_m": 0.7611873149871826,
+          "curbwall_OLD_single_near_p90_m": 13.111809730529785,
+          "curbwall_n_test": 23444,
+          "n_lidar_accumulated": 1864654
+        }
+      }
+    },
+    "verdict": {
+      "surface_p90_all_m": [
+        0.0381656289100647,
+        0.07450559735298157
+      ],
+      "silhouette_p90_all_m": [
+        0.8447132110595703,
+        0.5177899599075317
+      ],
+      "curbwall_surface_p90_all_m": [
+        0.06388196349143982,
+        0.12057685852050781
+      ],
+      "reopen_thr_m": 1.0,
+      "kill_thr_m": 2.0,
+      "call": "SURFACES_REOPEN_candidate (surface p90 < 1.0m on all cases) \u2014 needs depth-aware LOO <3px (step3) + EXP-B cross-check before declaring"
+    },
+    "runtime_s": 102.03
+  },
+  "ended_utc": "2026-06-06T23:30:25Z"
+}
