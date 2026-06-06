@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-06-06T10:05:30.029420+00:00",
+  "created_utc": "2026-06-06T10:27:12.977257+00:00",
   "status": "db77b_phase0_phase1",
   "brief": "DB-77B Branch B leashed renderer Phase 0+1 (geometry skeleton + IBR single-centre render)",
   "scope": {
@@ -16,20 +16,20 @@
   "runtime": {
     "secret_source_kind": "non_repo_file",
     "status": {
-      "gpu_name": "NVIDIA L4",
-      "version": "0.1.0a1",
       "runtime_type": "colab-gpu",
-      "active_jobs": 0
+      "version": "0.1.0a1",
+      "active_jobs": 0,
+      "gpu_name": "NVIDIA L4"
     }
   },
   "job": {
     "cwd": "/content",
-    "duration_s": 16.50404644012451,
-    "elapsed_s": 16.50404644012451,
+    "duration_s": 17.504380226135254,
+    "elapsed_s": 17.504380226135254,
     "exit_code": 0,
-    "finished_at": 1780740275.319594,
-    "job_id": "2eac97f3ee16443a8a2cb28454f91c7d",
-    "started_at": 1780740258.8155475,
+    "finished_at": 1780741548.6040416,
+    "job_id": "d083ab99c6724a6eaea2f2c45375d38c",
+    "started_at": 1780741531.0996614,
     "state": "done",
     "timeout_s": 1500
   },
@@ -57,7 +57,11 @@
           "ibr_covered_frac_of_band": 0.5820945364229771,
           "generated_band_frac_of_band": 0.5732555530625981,
           "multi_source_blend_frac_of_band": 0.07672453226611567,
-          "mean_confidence_in_band": 0.54030841588974
+          "mean_confidence_in_band": 0.54030841588974,
+          "road_only_ibr_frac_of_band": 0.12156297993053346,
+          "tear_frac_of_band": 0.2397952528293617,
+          "tear_bad_densify_share": 0.648468495912846,
+          "tear_no_geom_share": 0.35153150408715395
         }
       },
       "0bae3b5e_a030_clean_far": {
@@ -69,22 +73,26 @@
           "ibr_covered_frac_of_band": 0.6052286127102303,
           "generated_band_frac_of_band": 0.47797678142653216,
           "multi_source_blend_frac_of_band": 0.0847371870995561,
-          "mean_confidence_in_band": 0.6346741914749146
+          "mean_confidence_in_band": 0.6346741914749146,
+          "road_only_ibr_frac_of_band": 0.14574288481299433,
+          "tear_frac_of_band": 0.2767589973276211,
+          "tear_bad_densify_share": 0.8552922551138362,
+          "tear_no_geom_share": 0.14470774488616375
         }
       }
     },
-    "runtime_s": 16.15
+    "runtime_s": 16.9
   },
   "fetched_outputs": {
     "summary": {
       "path": "deliverables/db77b_leashed_renderer/DB77b_p01_summary.json",
       "exists": true,
-      "bytes": 1270
+      "bytes": 1694
     },
     "remote_result": {
       "path": "deliverables/db77b_leashed_renderer/DB77b_p01_remote_result.json",
       "exists": true,
-      "bytes": 1761
+      "bytes": 2201
     },
     "board": {
       "path": "deliverables/db77b_leashed_renderer/DB77b_p01_review_board.jpg",
@@ -95,6 +103,26 @@
       "path": "deliverables/db77b_leashed_renderer/fetch/02a00399_a000_bmw_p01_board.jpg",
       "exists": true,
       "bytes": 201609
+    },
+    "bmw_pD_board": {
+      "path": "deliverables/db77b_leashed_renderer/fetch/02a00399_a000_bmw_pD_board.jpg",
+      "exists": true,
+      "bytes": 216109
+    },
+    "bmw_pD_attr": {
+      "path": "deliverables/db77b_leashed_renderer/fetch/02a00399_a000_bmw_pD_tear_attribution.png",
+      "exists": true,
+      "bytes": 975235
+    },
+    "bmw_pD_road": {
+      "path": "deliverables/db77b_leashed_renderer/fetch/02a00399_a000_bmw_pD_road_only_ibr.png",
+      "exists": true,
+      "bytes": 982806
+    },
+    "clean_pD_board": {
+      "path": "deliverables/db77b_leashed_renderer/fetch/0bae3b5e_a030_clean_far_pD_board.jpg",
+      "exists": true,
+      "bytes": 222697
     },
     "bmw_ibr": {
       "path": "deliverables/db77b_leashed_renderer/fetch/02a00399_a000_bmw_p01_ibr_rgb.png",

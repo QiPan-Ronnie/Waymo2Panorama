@@ -21,7 +21,11 @@
         "ibr_covered_frac_of_band": 0.5820945364229771,
         "generated_band_frac_of_band": 0.5732555530625981,
         "multi_source_blend_frac_of_band": 0.07672453226611567,
-        "mean_confidence_in_band": 0.54030841588974
+        "mean_confidence_in_band": 0.54030841588974,
+        "road_only_ibr_frac_of_band": 0.12156297993053346,
+        "tear_frac_of_band": 0.2397952528293617,
+        "tear_bad_densify_share": 0.648468495912846,
+        "tear_no_geom_share": 0.35153150408715395
       }
     },
     "0bae3b5e_a030_clean_far": {
@@ -33,9 +37,13 @@
         "ibr_covered_frac_of_band": 0.6052286127102303,
         "generated_band_frac_of_band": 0.47797678142653216,
         "multi_source_blend_frac_of_band": 0.0847371870995561,
-        "mean_confidence_in_band": 0.6346741914749146
+        "mean_confidence_in_band": 0.6346741914749146,
+        "road_only_ibr_frac_of_band": 0.14574288481299433,
+        "tear_frac_of_band": 0.2767589973276211,
+        "tear_bad_densify_share": 0.8552922551138362,
+        "tear_no_geom_share": 0.14470774488616375
       }
     }
   },
-  "runtime_s": 16.15
+  "runtime_s": 16.9
 }

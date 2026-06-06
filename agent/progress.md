@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-06 (DB-77B Option-D baseline + tear attribution on L4 / leader's A100-gate evidence: tearing = bad-densification (geometry EXISTS), not no-geometry → B on-target)
+> **What ran:** `db77b --phase01` on L4 (extended), secret-scan 0. Per leader's "走 B but go via L4 first": added **Option-D baseline** (road-only IBR + facade hard_select) + **tear attribution** (RED = geometry-exists-but-densify-wrong / BLUE = no-geometry) + real-geometry-coverage overlay.
+> **Option-D baseline:** road-only IBR (12-15% of band, height<0.5m planar) + facade hard_select → **no tearing, deliverable floor** (planar road improves, facades keep hard_select). This is the保底 D.
+> **Tear attribution (answers leader's question b):** tear = 24% (BMW) / 28% (clean) of band; of that **bad-densification (RED, real geometry near but EDT-nearest depth wrong at structure edges) = 65% (BMW) / 86% (clean)**; no-geometry (BLUE) = 35% / 14%. Vision (BMW pD board): facade tears are RED-dominant and real-geometry-coverage (green) blankets the facades → **tearing is a densification-method problem (naive nearest), NOT missing geometry.**
+> **Leader's A100 gate — both YES:** (a) depth-correct IBR closes the seam where geometry is dense (clean ROIs + D road) ✓; (b) BMW tearing is mainly bad-densification, geometry exists ✓ → **LiDAR-supervised surfel densify (B) is on-target** (normals + surface fit replace nearest densify). Pre-registered kill for B (leader): if LiDAR-supervised 3DGS still soft / edge-wrong on curb/wall (LiDAR itself too sparse to hold a surface) → B fails, fall back to D + honestly label curb/wall generated/uncertainty. C only as post-B band-confined finish on the small residual with hard object-protection; never on the 46-57% band.
+> **Deliverables:** `deliverables/db77b_leashed_renderer/` (pD boards + tear_attribution + road_only_ibr + geom_coverage). secret-scan 0.
+> **Status:** L4 D-baseline + attribution DONE; boards synced local + GitHub. **A100 for B (LiDAR-supervised surfel densify) = conditional GO — awaiting leader's second look at the synced boards (confirm a+b), then A100 released for B.** D stays the deliverable floor.
+> ---
+
 > ### 2026-06-06 (DB-77B Phase 0+1 leashed IBR — v0+v0.1 on L4 / MIXED: works where geometry is dense, tears where sparse → needs denser geometry or refiner)
 > **What ran:** `db77b --phase01` on L4, 2 runs (v0 = full IBR; v0.1 = conf-gate ≥0.45 + hard_select fallback on low-conf), secret-scan 0. Skeleton = Battery-4 multi-frame LiDAR + Battery-3 stereo z-buffer → scipy EDT nearest densify → Z(d)+conf; IBR = per-ERP-pixel `X=Z·d` reproject + ULR depth-correct blend of ring cams.
 > **Metrics:** geom_valid_sparse 8% (BMW) / 12% (clean); ibr_covered ~58-60% of band; multi-source-blend only ~8%; generated_band 46-57%; mean_conf 0.54-0.64.

@@ -55,6 +55,10 @@ FETCH = {
     "remote_result": ("DB77b_p01_remote_result.json", 16),
     "board": ("DB77b_p01_review_board.jpg", 70),
     "bmw_board": ("02a00399_a000_bmw_p01_board.jpg", 70),
+    "bmw_pD_board": ("02a00399_a000_bmw_pD_board.jpg", 70),
+    "bmw_pD_attr": ("02a00399_a000_bmw_pD_tear_attribution.png", 30),
+    "bmw_pD_road": ("02a00399_a000_bmw_pD_road_only_ibr.png", 40),
+    "clean_pD_board": ("0bae3b5e_a030_clean_far_pD_board.jpg", 70),
     "bmw_ibr": ("02a00399_a000_bmw_p01_ibr_rgb.png", 40),
     "bmw_roi": ("02a00399_a000_bmw_p01_roi_sheet.jpg", 60),
     "bmw_genmask": ("02a00399_a000_bmw_p01_generated_mask.png", 20),
@@ -316,6 +320,22 @@ def run_case(case_spec, run_name, workdir):
     highconf = has & (conf >= GEN_THR)
     ibr = np.where(highconf[..., None], ibr_raw, base).astype(np.uint8)
     gen = (~highconf) & valid_any     # generated_mask = IBR not trusted -> refiner zone (Phase 2)
+    # ---- Option-D baseline (road-only IBR + facade hard_select) + tear attribution (leader request) ----
+    Xh = (Zd * dirs[..., 2]).astype(np.float32)                      # ego height of each ray's surface point
+    road_mask = valid_any & has & (conf >= GEN_THR) & (Xh < 0.5)     # near-ground planar surface
+    ibr_D = base.copy(); ibr_D[road_mask] = ibr_raw[road_mask]       # IBR only on road; facade/others = hard_select
+    gb = 0.299 * base[..., 0] + 0.587 * base[..., 1] + 0.114 * base[..., 2]
+    gi = 0.299 * ibr_raw[..., 0] + 0.587 * ibr_raw[..., 1] + 0.114 * ibr_raw[..., 2]
+    tear = (np.abs(gi - gb) > 18) & valid_any & (~road_mask)         # IBR changed a non-road region = candidate tear
+    dist = -CONF_SCALE * np.log(np.clip(conf, 1e-6, 1.0))            # px distance to nearest real geometry
+    near_geom = dist < 4.0
+    tear_bad_densify = tear & near_geom                             # geometry EXISTS but densified depth wrong -> 3DGS/surfel-fixable
+    tear_no_geom = tear & (~near_geom)                              # NO geometry near -> needs B to feed geometry
+    attr = overlay(overlay(base, tear_no_geom, (40, 120, 255), 0.7), tear_bad_densify, (255, 40, 40), 0.7)
+    geomcov = overlay(base, cv2.dilate(geomvalid.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0, (40, 255, 120), 0.6)
+    save_rgb(REMOTE_OUT / f"{run_name}_pD_road_only_ibr.png", ibr_D)
+    save_rgb(REMOTE_OUT / f"{run_name}_pD_tear_attribution.png", attr)
+    save_rgb(REMOTE_OUT / f"{run_name}_pD_geom_coverage.png", geomcov)
     # metrics
     co = (viscount >= 2) & valid_any
     metrics = {
@@ -325,6 +345,10 @@ def run_case(case_spec, run_name, workdir):
         "generated_band_frac_of_band": float(gen.sum() / max(valid_any.sum(), 1)),
         "multi_source_blend_frac_of_band": float((co).sum() / max(valid_any.sum(), 1)),
         "mean_confidence_in_band": float(conf[valid_any].mean()),
+        "road_only_ibr_frac_of_band": float(road_mask.sum() / max(valid_any.sum(), 1)),
+        "tear_frac_of_band": float(tear.sum() / max(valid_any.sum(), 1)),
+        "tear_bad_densify_share": float(tear_bad_densify.sum() / max(tear.sum(), 1)),
+        "tear_no_geom_share": float(tear_no_geom.sum() / max(tear.sum(), 1)),
     }
     save_rgb(REMOTE_OUT / f"{run_name}_p01_ibr_rgb.png", ibr)
     save_rgb(REMOTE_OUT / f"{run_name}_p01_depth_heat.png", heat(Zd, valid_any))
@@ -356,6 +380,19 @@ def run_case(case_spec, run_name, workdir):
     yo = 72
     for o in ims: board.paste(o, (0, yo)); yo += o.height
     board.save(REMOTE_OUT / f"{run_name}_p01_board.jpg", quality=90)
+    tilesD = [("hard_select base", base), ("OPTION-D: road-only IBR + facade hard_select", ibr_D),
+              ("tear: RED=geometry-exists(densify-fixable) BLUE=no-geometry(needs B)", attr),
+              ("real LiDAR/stereo geometry coverage (green)", geomcov)]
+    imsD = []
+    for t, a in tilesD:
+        im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).resize((900, 450))
+        bar = Image.new("RGB", (900, 24), (15, 15, 22)); ImageDraw.Draw(bar).text((6, 4), t, (235, 235, 245), font=f)
+        o = Image.new("RGB", (900, 474)); o.paste(bar, (0, 0)); o.paste(im, (0, 24)); imsD.append(o)
+    boardD = Image.new("RGB", (900, 474 * 4 + 50), (10, 10, 14)); dd = ImageDraw.Draw(boardD)
+    dd.text((8, 6), f"{run_name} DB-77B Option-D + tear attribution  tear={metrics['tear_frac_of_band']:.3f} bad_densify_share={metrics['tear_bad_densify_share']:.2f} no_geom_share={metrics['tear_no_geom_share']:.2f}", (240, 240, 250), font=f)
+    yo = 50
+    for o in imsD: boardD.paste(o, (0, yo)); yo += o.height
+    boardD.save(REMOTE_OUT / f"{run_name}_pD_board.jpg", quality=90)
     return {"case": run_name, "metrics": metrics}
 
 
