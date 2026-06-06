@@ -1,0 +1,50 @@
+{
+  "phase": "db77c_expA_difix_seamband",
+  "scope": {
+    "presentation_render": true,
+    "source_faithful": false,
+    "single_step": true,
+    "band_only": true,
+    "red_promotion": false
+  },
+  "started": "2026-06-06T13:29:42Z",
+  "cuda": "NVIDIA A100-SXM4-40GB",
+  "safe_band_frac": 0.016130447387695312,
+  "diffusers_version": "0.25.1",
+  "difix_api": "repo.pipeline_difix@diffusers0.25.1",
+  "difix_call_kwargs": {
+    "prompt": "remove degradation",
+    "image": "PIL",
+    "num_inference_steps": "1",
+    "timesteps": "[199]",
+    "guidance_scale": "0.0"
+  },
+  "smoke_ok": true,
+  "n_patches": 12,
+  "changed_in_band_px": 31379,
+  "changed_outside_band_px": 0,
+  "object_gate": {
+    "n_obj_a1": 3,
+    "n_obj_difix": 3,
+    "n_obj_a1_inband": 0,
+    "n_obj_difix_inband": 0,
+    "net_new_inband": 0
+  },
+  "status": "db77c_expA_completed",
+  "summary": {
+    "status": "db77c_expA_complete",
+    "difix_api": "repo.pipeline_difix@diffusers0.25.1",
+    "safe_band_frac": 0.016130447387695312,
+    "n_patches": 12,
+    "changed_outside_band_px": 0,
+    "object_gate": {
+      "n_obj_a1": 3,
+      "n_obj_difix": 3,
+      "n_obj_a1_inband": 0,
+      "n_obj_difix_inband": 0,
+      "net_new_inband": 0
+    },
+    "requires_vision": true
+  },
+  "ended": "2026-06-06T13:30:06Z"
+}

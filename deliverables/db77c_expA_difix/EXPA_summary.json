@@ -1,0 +1,15 @@
+{
+  "status": "db77c_expA_complete",
+  "difix_api": "repo.pipeline_difix@diffusers0.25.1",
+  "safe_band_frac": 0.016130447387695312,
+  "n_patches": 12,
+  "changed_outside_band_px": 0,
+  "object_gate": {
+    "n_obj_a1": 3,
+    "n_obj_difix": 3,
+    "n_obj_a1_inband": 0,
+    "n_obj_difix_inband": 0,
+    "net_new_inband": 0
+  },
+  "requires_vision": true
+}

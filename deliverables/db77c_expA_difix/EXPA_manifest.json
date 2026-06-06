@@ -1,0 +1,70 @@
+{
+  "created": "2026-06-06T13:30:33.389339+00:00",
+  "status": "db77c_expA_difix_seamband",
+  "scope": {
+    "exec_count": 1,
+    "a100_used": true,
+    "band_only": true,
+    "single_step": true,
+    "red_promotion": false
+  },
+  "runtime": {
+    "secret": "non_repo_file",
+    "status": {
+      "gpu_name": "NVIDIA A100-SXM4-40GB",
+      "runtime_type": "colab-gpu",
+      "version": "0.1.0a1",
+      "active_jobs": 0
+    }
+  },
+  "uploads": {
+    "A1_base.png": 973019,
+    "mask_seam_band.png": 11620,
+    "mask_abstain.png": 5858,
+    "mask_protected.png": 25044
+  },
+  "remote_status": "db77c_expA_completed",
+  "difix_api": "repo.pipeline_difix@diffusers0.25.1",
+  "object_gate": {
+    "n_obj_a1": 3,
+    "n_obj_difix": 3,
+    "n_obj_a1_inband": 0,
+    "n_obj_difix_inband": 0,
+    "net_new_inband": 0
+  },
+  "job": {
+    "cwd": "/content",
+    "duration_s": 26.50660514831543,
+    "elapsed_s": 26.50660514831543,
+    "exit_code": 0,
+    "finished_at": 1780752608.9117568,
+    "job_id": "1c1705ef924446a984f683aaf3062692",
+    "started_at": 1780752582.4051516,
+    "state": "done",
+    "timeout_s": 2000
+  },
+  "fetched": {
+    "summary": {
+      "exists": true
+    },
+    "remote_result": {
+      "exists": true
+    },
+    "board": {
+      "exists": true
+    },
+    "roi": {
+      "exists": true
+    },
+    "difix_full": {
+      "exists": true
+    },
+    "gate": {
+      "exists": true
+    }
+  },
+  "drive_output": "results/db77c_expA_difix/",
+  "strict_secret_scan": {
+    "hit_count": 0
+  }
+}
