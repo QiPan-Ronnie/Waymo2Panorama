@@ -1,11 +1,11 @@
 {
   "generated_frac": 0.000530242919921875,
   "seam_band_frac": 0.046120643615722656,
-  "protected_frac": 0.21350336074829102,
+  "protected_frac": 0.18967676162719727,
   "abstain_frac": 0.16747283935546875,
-  "safe_seam_frac": 0.011234760284423828,
-  "safe_seam_px": 23561,
+  "safe_seam_frac": 0.016130447387695312,
+  "safe_seam_px": 33828,
   "out_of_band_changed_px": 0,
-  "in_band_mean_tone_delta": 20.255167437714867,
-  "in_band_max_tone_delta": 55
+  "in_band_mean_tone_delta": 20.245063261203736,
+  "in_band_max_tone_delta": 52
 }

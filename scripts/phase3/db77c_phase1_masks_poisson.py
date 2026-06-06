@@ -69,10 +69,11 @@ def structure_protected(a1):
     road_band = (yy > 390) & (yy < 800)
     lane = ((val > 168) & (sat < 98) & road_band)
     lane = cv2.dilate(lane.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))) > 0
-    strong_edge = edge > np.percentile(edge, 90)
-    wall_base = (np.abs(gy) > np.percentile(np.abs(gy), 90)) & (yy > 430) & (yy < 800)
-    curb = (edge > np.percentile(edge, 85)) & road_band & (yy > 500)
-    return (lane | strong_edge | wall_base | curb)
+    curb = (edge > np.percentile(edge, 88)) & road_band & (yy > 520)
+    # protected = lane/curb (object-moat) ONLY. Poisson is low-freq tone-harmonize and preserves
+    # high-freq structure, so facade walls/windows can be safely tone-harmonized (NOT protected).
+    # Full YOLO object-moat (car/person/bike/pole/sign/window) is added at the Difix/A100 step.
+    return (lane | curb)
 
 
 def main():
