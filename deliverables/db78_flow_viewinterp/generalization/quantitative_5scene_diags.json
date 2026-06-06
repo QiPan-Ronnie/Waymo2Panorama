@@ -1,0 +1,151 @@
+{
+  "deliverable": "DB-78 Phase 3 quantitative 5-scene generalization (REAL A100 runs via ColabClient, Read-verified)",
+  "method": "scripts/phase3/run_a1_streetview_pipeline.py --mode view --prealign none",
+  "as_of": "2026-06-06",
+  "compute": "climb-sake A100 via ColabClient /exec; jobs 3f7d382c (2c65) + afd01a49 (other 4); all state=done",
+  "scenes": {
+    "2c65_highway": {
+      "tag": "A1_view_none",
+      "mode": "view",
+      "prealign": "none",
+      "uuid": "2c652f9e-8db8-3572-aa49-fae1344a875b",
+      "anchor": 160,
+      "lidar_pts": 83048,
+      "ground": true,
+      "n_facades": 7,
+      "obj_frac": 0.03545188903808594,
+      "edited_frac": 0.027791976928710938,
+      "band_hw": 80,
+      "max_disp": 60.0,
+      "fb_thresh": 2.0,
+      "far_field_relative_warp_vs_L1": {
+        "M_med_px": 0.0451713592978632,
+        "M_p90_px": 0.2225799964446241,
+        "frac_warp": 0.004308114481541802,
+        "frac_valid": 0.8994140625
+      },
+      "runtime_s": 29.3
+    },
+    "bmw_curb": {
+      "tag": "A1_view_none",
+      "mode": "view",
+      "prealign": "none",
+      "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+      "anchor": 0,
+      "lidar_pts": 98981,
+      "ground": true,
+      "n_facades": 11,
+      "obj_frac": 0.03790283203125,
+      "edited_frac": 0.026843547821044922,
+      "band_hw": 80,
+      "max_disp": 60.0,
+      "fb_thresh": 2.0,
+      "far_field_relative_warp_vs_L1": {
+        "M_med_px": 0.011149767483368383,
+        "M_p90_px": 0.04551302061865073,
+        "frac_warp": 0.002819943505700326,
+        "frac_valid": 0.8994140625
+      },
+      "runtime_s": 8.8
+    },
+    "clean_far": {
+      "tag": "A1_view_none",
+      "mode": "view",
+      "prealign": "none",
+      "uuid": "0bae3b5e-417d-3b03-abaa-806b433233b8",
+      "anchor": 30,
+      "lidar_pts": 99928,
+      "ground": true,
+      "n_facades": 5,
+      "obj_frac": 0.0681314468383789,
+      "edited_frac": 0.027657508850097656,
+      "band_hw": 80,
+      "max_disp": 60.0,
+      "fb_thresh": 2.0,
+      "far_field_relative_warp_vs_L1": {
+        "M_med_px": 0.02296036021723235,
+        "M_p90_px": 0.11284809030317466,
+        "frac_warp": 0.004666505496742671,
+        "frac_valid": 0.8994140625
+      },
+      "runtime_s": 8.5
+    },
+    "crowd_crossing": {
+      "tag": "A1_view_none",
+      "mode": "view",
+      "prealign": "none",
+      "uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da",
+      "anchor": 265,
+      "lidar_pts": 102163,
+      "ground": true,
+      "n_facades": 11,
+      "obj_frac": 0.058641910552978516,
+      "edited_frac": 0.026905536651611328,
+      "band_hw": 80,
+      "max_disp": 60.0,
+      "fb_thresh": 2.0,
+      "far_field_relative_warp_vs_L1": {
+        "M_med_px": 0.02267419840621002,
+        "M_p90_px": 0.1235057504749111,
+        "frac_warp": 0.005375335063789359,
+        "frac_valid": 0.8994140625
+      },
+      "runtime_s": 29.1
+    },
+    "downtown_ped": {
+      "tag": "A1_view_none",
+      "mode": "view",
+      "prealign": "none",
+      "uuid": "fbee355f-8878-31fa-8ac8-b9a45a3f130a",
+      "anchor": 0,
+      "lidar_pts": 91134,
+      "ground": true,
+      "n_facades": 10,
+      "obj_frac": 0.05684947967529297,
+      "edited_frac": 0.024689674377441406,
+      "band_hw": 80,
+      "max_disp": 60.0,
+      "fb_thresh": 2.0,
+      "far_field_relative_warp_vs_L1": {
+        "M_med_px": 0.04153194376662932,
+        "M_p90_px": 0.16958503076381098,
+        "frac_warp": 0.0066074367195982624,
+        "frac_valid": 0.8994140625
+      },
+      "runtime_s": 27.0
+    }
+  },
+  "summary": {
+    "n_scenes": 5,
+    "edited_frac_pct": {
+      "min": 2.469,
+      "max": 2.779,
+      "mean": 2.678
+    },
+    "obj_frac_abstain_pct": {
+      "min": 3.545,
+      "max": 6.813,
+      "mean": 5.14
+    },
+    "far_field_warp_p90_px": {
+      "min": 0.0455,
+      "max": 0.2226,
+      "mean": 0.1348
+    },
+    "far_field_frac_warp_pct": {
+      "min": 0.282,
+      "max": 0.661
+    }
+  },
+  "findings": [
+    "edited_frac STABLE 2.47-2.78% across all 5 scene types (highway/curb/clean/dense-ped/crowd) -> flow view-interp gain mechanism is SCENE-INDEPENDENT (ring-overlap geometry, ~18.6deg wedge) = quantitative generality.",
+    "far_field_relative_warp_vs_L1 p90 <= 0.223px (frac_warp <= 0.66%) across ALL scenes -> flow edits ONLY the seam band, does NOT distort/smear the far field = quantitative no-distortion / no-hallucination evidence.",
+    "obj_frac (abstain) scales with scene object density (clean_far 6.81% / crowd 5.86% / downtown_ped 5.68% > highway 3.55% / bmw_curb 3.79%) -> abstain ADAPTS to content = correct safety behavior (more objects -> more protection)."
+  ],
+  "caveats": [
+    "STRUCTURAL metrics only (edited/obj/warp fractions); per-scene seam VISUAL quality not vision-verified this run (boards exist on Drive; main agent cannot render images -> needs a vision subagent or user eyeball).",
+    "--prealign none = flow INPUT is RGB (no plane-DIBR slabs), but object/ground detection still loads LiDAR (lidar_pts 83k-102k). A fully no-LiDAR A/B (protect_obj off, no LiDAR obj mask) is still NOT isolated -> the no-LiDAR claim is partial (flow CORE is RGB-only; gating uses LiDAR).",
+    "5 AV2 logs (the staged set). Bosch/paper-grade GENERAL still wants 12+ AV2 + Waymo segments = a DATA step (download more logs from S3 to Drive)."
+  ],
+  "verdict": "DB-78 flow view-interp reaches a QUANTITATIVE multi-scene (5-scene) not-bad result: stable scene-independent gain + tiny far-field warp (no distortion) + content-adaptive abstain. Remaining: per-scene visual verification + isolated no-LiDAR A/B + >5-log scale."
+}

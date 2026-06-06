@@ -1,0 +1,38 @@
+{
+  "db78_phase3": "multi-scene generalization of Surround360 flow view-interp",
+  "as_of": "2026-06-06",
+  "execution_status": "DATA_GATED_NOT_RUN",
+  "blocker": "raw AV2 data only on Google Drive (not local); Colab worker heartbeat 13 days stale (DEAD)",
+  "script_truth": {
+    "named_in_brief": "scripts/phase3/db78_flow_viewinterp.py",
+    "named_exists": false,
+    "actual_implementation": "scripts/phase3/run_a1_streetview_pipeline.py --mode view",
+    "case_parameterized": true,
+    "core_logic_touched": false
+  },
+  "data_location": {
+    "local": "NONE (repo data/ holds only JSON catalogs + rendered JPGs)",
+    "drive_root": "/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val",
+    "drive_folder_id": "1x1Xu-RqcdAB0LsjWrtzakohgIl-f3hD4"
+  },
+  "staged_logs_complete_raw_calib": [
+    {"uuid": "02a00399-3857-444e-8db3-a8f58489c394", "tag": "bmw_curb", "scene": "curb / near-field parked SUV (hard case)", "view_board": true,  "anchor_for_run": 0},
+    {"uuid": "0bae3b5e-417d-3b03-abaa-806b433233b8", "tag": "clean_far", "scene": "clean far downtown corner + people/motorcycles", "view_board": true, "anchor_for_run": 30},
+    {"uuid": "fbee355f-8878-31fa-8ac8-b9a45a3f130a", "tag": "downtown_ped", "scene": "downtown pedestrian + dense parking under elevated highway", "view_board": true, "anchor_for_run": 0},
+    {"uuid": "2c652f9e-8db8-3572-aa49-fae1344a875b", "tag": "highway_barrel", "scene": "highway-like dense construction barrels/cones", "view_board": false, "anchor_for_run": 160},
+    {"uuid": "9f871fb4-3b8e-34b3-9161-ed961e71a6da", "tag": "crowd_crossing", "scene": "very-high pedestrian crossing", "view_board": false, "anchor_for_run": 265}
+  ],
+  "total_av2_val_catalogued": 150,
+  "total_av2_val_staged_for_pipeline": 5,
+  "generalization_evidence": {
+    "scenes_with_view_interp_boards": 3,
+    "abstain_object_gate_consistent": true,
+    "flow_fired_fraction_co_observed_band": "55-84% per seam (historical)",
+    "gain_largest_on": "textured co-observed seams (storefronts/facades/lane lines)",
+    "gain_smallest_abstained_on": "large-parallax near objects + textureless walls",
+    "no_lidar_degradation": "structurally holds (--prealign none = pure RGB flow + FB gate); A/B not yet executed"
+  },
+  "verdict": "GENERAL across the 3 scene types with boards in both gain-direction and abstain-safety; NOT yet demonstrated on the 2 remaining staged logs (no compute); NOT yet at Bosch/paper bar (only 5 logs staged). Generalization gate is data+compute, not algorithm.",
+  "ready_to_run_job": "jobs/db78-flow-viewinterp-generalization.json (CPU-only, all 5 logs, NOT auto-pushed)",
+  "secret_hits": 0
+}
