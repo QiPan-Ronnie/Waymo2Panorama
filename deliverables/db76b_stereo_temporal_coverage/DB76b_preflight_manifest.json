@@ -1,0 +1,52 @@
+{
+  "created_utc": "2026-06-06T08:29:14.149871+00:00",
+  "status": "db76b_preflight",
+  "brief": "DB-76a batteries 3+4 (forward-stereo + ring-temporal coverage), preflight step",
+  "scope": {
+    "measurement_only": true,
+    "preflight_data_probe_only": true,
+    "exec_count": 1,
+    "runtime_type": "colab-gpu",
+    "rgb_repair": false,
+    "model_inference": false
+  },
+  "runtime": {
+    "secret_source_kind": "non_repo_file",
+    "status": {
+      "active_jobs": 0,
+      "gpu_name": "NVIDIA A100-SXM4-40GB",
+      "version": "0.1.0a1",
+      "runtime_type": "colab-gpu"
+    }
+  },
+  "job": {
+    "cwd": "/content",
+    "duration_s": 24.00581169128418,
+    "elapsed_s": 24.00581169128418,
+    "exit_code": 0,
+    "finished_at": 1780734551.173126,
+    "job_id": "a96d76a1ca914a26b75caf19e4986367",
+    "started_at": 1780734527.1673143,
+    "state": "done",
+    "timeout_s": 600
+  },
+  "remote_status": "db76b_preflight_completed",
+  "stereo_data_available": {
+    "bmw": true,
+    "clean_far": true
+  },
+  "deps": {
+    "cv2": true,
+    "pandas": true,
+    "pyarrow": true,
+    "torch": true,
+    "av2": false
+  },
+  "remote_result": "deliverables/db76b_stereo_temporal_coverage/DB76b_remote_result.json",
+  "output_location": "deliverables/db76b_stereo_temporal_coverage",
+  "drive_output_location": "results/db76b_stereo_temporal_coverage/",
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "status": "db76b_b4_complete",
+  "measurement_only": true,
+  "pre_registered": {
+    "window_frames": 10,
+    "lidar_depth_min_m": 1.5,
+    "lidar_depth_max_m": 80.0,
+    "loo_residual_px_equiv_dE": 18.0,
+    "near_ground_lower_fraction": 0.45,
+    "build_worthy_near_ground_dense_visible_min": 0.25,
+    "thin_base_near_ground_dense_visible_lt": 0.1
+  },
+  "by_case": {
+    "02a00399_a000_bmw": {
+      "case": "02a00399_a000_bmw",
+      "metrics": {
+        "diag": {
+          "n_sweeps": 12,
+          "annotation_used": true,
+          "offset_used": true,
+          "raw_points": 1191711,
+          "kept_after_dynamic": 1142669
+        },
+        "n_points_multiframe": 1050570,
+        "n_points_singleframe": 92099,
+        "surface_valid_fullerp_multi": 0.07834148406982422,
+        "surface_valid_fullerp_single": 0.030906200408935547,
+        "near_ground_dense_visible_multi": 0.11383974162581699,
+        "near_ground_dense_visible_single": 0.039480570874183,
+        "near_ground_singlesrc_dense_visible_multi": 0.11685475208003837,
+        "near_ground_singlesrc_dense_visible_single": 0.04063358424601334,
+        "curb_wall_dense_visible_multi": 0.04960190136660725,
+        "curb_wall_dense_visible_single": 0.006892453951277481,
+        "loo": {
+          "loo_pixels": 14046,
+          "loo_validated_rate": 0.7696853196639613,
+          "depth_correct_dE_p50": 10.392304420471191
+        },
+        "validated_green_near_ground_frac": 0.005967881944444444,
+        "near_ground_band_rows": [
+          511,
+          663
+        ],
+        "build_worthy_base_sufficient": false,
+        "thin_base": false
+      },
+      "anchor_ts": 315966070549927210
+    },
+    "0bae3b5e_a030_clean_far": {
+      "case": "0bae3b5e_a030_clean_far",
+      "metrics": {
+        "diag": {
+          "n_sweeps": 22,
+          "annotation_used": true,
+          "offset_used": true,
+          "raw_points": 2200354,
+          "kept_after_dynamic": 1953543
+        },
+        "n_points_multiframe": 1864654,
+        "n_points_singleframe": 88889,
+        "surface_valid_fullerp_multi": 0.1188969612121582,
+        "surface_valid_fullerp_single": 0.03128862380981445,
+        "near_ground_dense_visible_multi": 0.18395118464052287,
+        "near_ground_dense_visible_single": 0.04613140829248366,
+        "near_ground_singlesrc_dense_visible_multi": 0.1886341436297361,
+        "near_ground_singlesrc_dense_visible_single": 0.046592704949928926,
+        "curb_wall_dense_visible_multi": 0.20014260249554366,
+        "curb_wall_dense_visible_single": 0.06148544266191325,
+        "loo": {
+          "loo_pixels": 22224,
+          "loo_validated_rate": 0.49347552195824335,
+          "depth_correct_dE_p50": 18.055469512939453
+        },
+        "validated_green_near_ground_frac": 0.005291309232026144,
+        "near_ground_band_rows": [
+          513,
+          665
+        ],
+        "build_worthy_base_sufficient": false,
+        "thin_base": false
+      },
+      "anchor_ts": 315969525849927212
+    }
+  },
+  "base_sufficient_any": false,
+  "thin_base_all": false,
+  "runtime_s": 58.95
+}

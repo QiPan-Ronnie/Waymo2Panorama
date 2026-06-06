@@ -1,0 +1,221 @@
+{
+  "created_utc": "2026-06-06T08:40:52.233880+00:00",
+  "status": "db76b_battery3",
+  "brief": "DB-76a Battery 3 forward-stereo coverage (measurement-only)",
+  "scope": {
+    "measurement_only": true,
+    "exec_count": 1,
+    "runtime_type": "colab-gpu",
+    "rgb_repair": false,
+    "forward_stereo_only": true,
+    "model_inference": false,
+    "red_promotion": false,
+    "a100_used": true
+  },
+  "runtime": {
+    "secret_source_kind": "non_repo_file",
+    "status": {
+      "runtime_type": "colab-gpu",
+      "gpu_name": "NVIDIA A100-SXM4-40GB",
+      "version": "0.1.0a1",
+      "active_jobs": 0
+    }
+  },
+  "job": {
+    "cwd": "/content",
+    "duration_s": 9.0036780834198,
+    "elapsed_s": 9.0036780834198,
+    "exit_code": 0,
+    "finished_at": 1780735199.7449863,
+    "job_id": "cb6a6772f11d453fbc49e3a784c693c0",
+    "started_at": 1780735190.7413082,
+    "state": "done",
+    "timeout_s": 1200
+  },
+  "remote_status": "db76b_b3_completed",
+  "summary": {
+    "status": "db76b_b3_complete",
+    "measurement_only": true,
+    "source_faithful_repair_claim_allowed": false,
+    "pre_registered": {
+      "stereo_depth_min_m": 1.5,
+      "stereo_depth_max_m": 60.0,
+      "loo_residual_px_equiv_dE": 18.0,
+      "build_worthy_relevant_band_converted_min": 0.25,
+      "build_worthy_task_valid_validated_green_min": 0.08,
+      "kill_stereo_band_coverage_lt": 0.1
+    },
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "case": "02a00399_a000_bmw",
+        "metrics": {
+          "n_stereo_points": 1430588,
+          "stereo_surface_valid_fraction_fullerp": 0.009299755096435547,
+          "forward_sector_cols": [
+            880,
+            1199
+          ],
+          "task_valid_band_rows": [
+            387,
+            663
+          ],
+          "fwd_band_surface_valid_frac": 0.2079986462093863,
+          "fwd_band_raw_visible_frac": 0.20657716606498194,
+          "relevant_band_px": 59225,
+          "relevant_band_surface_valid_frac": 0.1778134233853947,
+          "relevant_band_raw_visible_frac": 0.1778134233853947,
+          "validated_green_fwd_band_frac": 0.03927120938628159,
+          "validated_green_taskvalid_frac": 0.006136126466606498,
+          "loo": {
+            "loo_pixels": 4452,
+            "loo_validated_pixels": 3481,
+            "loo_validated_rate": 0.781895777178796,
+            "depth_correct_dE_p50": 11.0,
+            "depth_correct_dE_p95": 60.175968170166016
+          },
+          "stereo_diag": {
+            "baseline_m": 0.498845589496896,
+            "disp_pos_count": 1597308,
+            "disp_p50": 92.625,
+            "disp_p95": 254.0,
+            "Z_p50_on_disp": 8.481642723083496,
+            "Z_p95_on_disp": 80.57560729980469,
+            "valid_after_range_count": 1430588
+          },
+          "build_worthy": false,
+          "kill_stereo_below_10pct": false
+        },
+        "stereo_ts": [
+          315966070549927215,
+          315966070549927215,
+          315966070549927210
+        ]
+      },
+      "0bae3b5e_a030_clean_far": {
+        "case": "0bae3b5e_a030_clean_far",
+        "metrics": {
+          "n_stereo_points": 1882656,
+          "stereo_surface_valid_fraction_fullerp": 0.020030975341796875,
+          "forward_sector_cols": [
+            878,
+            1204
+          ],
+          "task_valid_band_rows": [
+            390,
+            665
+          ],
+          "fwd_band_surface_valid_frac": 0.4063178655320658,
+          "fwd_band_raw_visible_frac": 0.40350352346762397,
+          "relevant_band_px": 61204,
+          "relevant_band_surface_valid_frac": 0.4022122737076008,
+          "relevant_band_raw_visible_frac": 0.4022122737076008,
+          "validated_green_fwd_band_frac": 0.055455834773744626,
+          "validated_green_taskvalid_frac": 0.00885452049365942,
+          "loo": {
+            "loo_pixels": 9690,
+            "loo_validated_pixels": 5005,
+            "loo_validated_rate": 0.5165118679050568,
+            "depth_correct_dE_p50": 16.985280990600586,
+            "depth_correct_dE_p95": 65.0891342163086
+          },
+          "stereo_diag": {
+            "baseline_m": 0.4998885449055984,
+            "disp_pos_count": 2268644,
+            "disp_p50": 17.75,
+            "disp_p95": 160.0,
+            "Z_p50_on_disp": 44.336639404296875,
+            "Z_p95_on_disp": 131.1625518798828,
+            "valid_after_range_count": 1882656
+          },
+          "build_worthy": true,
+          "kill_stereo_below_10pct": false
+        },
+        "stereo_ts": [
+          315969525849927216,
+          315969525849927216,
+          315969525849927212
+        ]
+      }
+    },
+    "build_worthy_any": true,
+    "kill_stereo_below_10pct_all": false,
+    "runtime_s": 8.49
+  },
+  "fetched_outputs": {
+    "summary": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/DB76b_b3_summary.json",
+      "exists": true,
+      "bytes": 3512
+    },
+    "remote_result": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/DB76b_b3_remote_result.json",
+      "exists": true,
+      "bytes": 4098
+    },
+    "board": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/DB76b_b3_review_board.jpg",
+      "exists": true,
+      "bytes": 271045
+    },
+    "bmw_board": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/02a00399_a000_bmw_b3_board.jpg",
+      "exists": true,
+      "bytes": 130020
+    },
+    "bmw_stereo_cov": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/02a00399_a000_bmw_b3_stereo_coverage_overlay.png",
+      "exists": true,
+      "bytes": 978687
+    },
+    "bmw_depth": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/02a00399_a000_bmw_b3_stereo_depth_heat.png",
+      "exists": true,
+      "bytes": 35274
+    },
+    "bmw_validated": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/02a00399_a000_bmw_b3_validated_green_overlay.png",
+      "exists": true,
+      "bytes": 989601
+    },
+    "clean_board": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/0bae3b5e_a030_clean_far_b3_board.jpg",
+      "exists": true,
+      "bytes": 137782
+    },
+    "clean_stereo_cov": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/0bae3b5e_a030_clean_far_b3_stereo_coverage_overlay.png",
+      "exists": true,
+      "bytes": 1152757
+    },
+    "claim": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/DB76b_b3_claim.json",
+      "exists": true,
+      "bytes": 229
+    }
+  },
+  "pre_registered_thresholds": {
+    "stereo_depth_min_m": 1.5,
+    "stereo_depth_max_m": 60.0,
+    "loo_residual_px_equiv_dE": 18.0,
+    "build_worthy_relevant_band_converted_min": 0.25,
+    "build_worthy_task_valid_validated_green_min": 0.08,
+    "kill_stereo_band_coverage_lt": 0.1
+  },
+  "output_location": "deliverables/db76b_stereo_temporal_coverage",
+  "drive_output_location": "results/db76b_stereo_temporal_coverage/",
+  "decision": {
+    "build_worthy_any": true,
+    "kill_all": false,
+    "vision_check_required": true,
+    "accepted_as_source_faithful_repair": false
+  },
+  "claim_boundary": [
+    "DB-76a Battery 3 is measurement-only forward-stereo coverage; no RGB repair, no RED.",
+    "Forward only - does NOT help the side curb/wall-base (that is Battery 4).",
+    "validated GREEN = depth-correct cross-camera LOO on co-observed pixels; vision review required."
+  ],
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}

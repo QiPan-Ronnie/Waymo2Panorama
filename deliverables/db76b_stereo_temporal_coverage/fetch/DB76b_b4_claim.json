@@ -1,0 +1,8 @@
+{
+  "brief": "DB-76a Battery 4",
+  "classification": "measurement_only_multiframe_lidar_geometry_base",
+  "rgb_repair": false,
+  "source_faithful_repair": false,
+  "red_promotion": false,
+  "note": "single-source near-ground has no ring-LOO; coverage = dense+raw-visible static surface, depth quality only validated on co-observed subset"
+}

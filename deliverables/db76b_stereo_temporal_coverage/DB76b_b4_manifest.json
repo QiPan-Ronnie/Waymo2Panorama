@@ -1,0 +1,202 @@
+{
+  "created_utc": "2026-06-06T09:29:14.827593+00:00",
+  "status": "db76b_battery4",
+  "brief": "DB-76a Battery 4 multi-frame LiDAR geometry base (measurement-only)",
+  "scope": {
+    "measurement_only": true,
+    "exec_count": 1,
+    "runtime_type": "colab-gpu",
+    "rgb_repair": false,
+    "multiframe_lidar": true,
+    "model_inference": false,
+    "red_promotion": false,
+    "gpu_bound": false
+  },
+  "runtime": {
+    "secret_source_kind": "non_repo_file",
+    "status": {
+      "version": "0.1.0a1",
+      "gpu_name": "NVIDIA L4",
+      "active_jobs": 0,
+      "runtime_type": "colab-gpu"
+    }
+  },
+  "job": {
+    "cwd": "/content",
+    "duration_s": 59.51477885246277,
+    "elapsed_s": 59.51477885246277,
+    "exit_code": 0,
+    "finished_at": 1780738096.4006279,
+    "job_id": "3f4a5e2719754cc6b5f116f9fc22ecd2",
+    "started_at": 1780738036.885849,
+    "state": "done",
+    "timeout_s": 1200
+  },
+  "remote_status": "db76b_b4_completed",
+  "summary": {
+    "status": "db76b_b4_complete",
+    "measurement_only": true,
+    "pre_registered": {
+      "window_frames": 10,
+      "lidar_depth_min_m": 1.5,
+      "lidar_depth_max_m": 80.0,
+      "loo_residual_px_equiv_dE": 18.0,
+      "near_ground_lower_fraction": 0.45,
+      "build_worthy_near_ground_dense_visible_min": 0.25,
+      "thin_base_near_ground_dense_visible_lt": 0.1
+    },
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "case": "02a00399_a000_bmw",
+        "metrics": {
+          "diag": {
+            "n_sweeps": 12,
+            "annotation_used": true,
+            "offset_used": true,
+            "raw_points": 1191711,
+            "kept_after_dynamic": 1142669
+          },
+          "n_points_multiframe": 1050570,
+          "n_points_singleframe": 92099,
+          "surface_valid_fullerp_multi": 0.07834148406982422,
+          "surface_valid_fullerp_single": 0.030906200408935547,
+          "near_ground_dense_visible_multi": 0.11383974162581699,
+          "near_ground_dense_visible_single": 0.039480570874183,
+          "near_ground_singlesrc_dense_visible_multi": 0.11685475208003837,
+          "near_ground_singlesrc_dense_visible_single": 0.04063358424601334,
+          "curb_wall_dense_visible_multi": 0.04960190136660725,
+          "curb_wall_dense_visible_single": 0.006892453951277481,
+          "loo": {
+            "loo_pixels": 14046,
+            "loo_validated_rate": 0.7696853196639613,
+            "depth_correct_dE_p50": 10.392304420471191
+          },
+          "validated_green_near_ground_frac": 0.005967881944444444,
+          "near_ground_band_rows": [
+            511,
+            663
+          ],
+          "build_worthy_base_sufficient": false,
+          "thin_base": false
+        },
+        "anchor_ts": 315966070549927210
+      },
+      "0bae3b5e_a030_clean_far": {
+        "case": "0bae3b5e_a030_clean_far",
+        "metrics": {
+          "diag": {
+            "n_sweeps": 22,
+            "annotation_used": true,
+            "offset_used": true,
+            "raw_points": 2200354,
+            "kept_after_dynamic": 1953543
+          },
+          "n_points_multiframe": 1864654,
+          "n_points_singleframe": 88889,
+          "surface_valid_fullerp_multi": 0.1188969612121582,
+          "surface_valid_fullerp_single": 0.03128862380981445,
+          "near_ground_dense_visible_multi": 0.18395118464052287,
+          "near_ground_dense_visible_single": 0.04613140829248366,
+          "near_ground_singlesrc_dense_visible_multi": 0.1886341436297361,
+          "near_ground_singlesrc_dense_visible_single": 0.046592704949928926,
+          "curb_wall_dense_visible_multi": 0.20014260249554366,
+          "curb_wall_dense_visible_single": 0.06148544266191325,
+          "loo": {
+            "loo_pixels": 22224,
+            "loo_validated_rate": 0.49347552195824335,
+            "depth_correct_dE_p50": 18.055469512939453
+          },
+          "validated_green_near_ground_frac": 0.005291309232026144,
+          "near_ground_band_rows": [
+            513,
+            665
+          ],
+          "build_worthy_base_sufficient": false,
+          "thin_base": false
+        },
+        "anchor_ts": 315969525849927212
+      }
+    },
+    "base_sufficient_any": false,
+    "thin_base_all": false,
+    "runtime_s": 58.95
+  },
+  "fetched_outputs": {
+    "summary": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/DB76b_b4_summary.json",
+      "exists": true,
+      "bytes": 3093
+    },
+    "remote_result": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/DB76b_b4_remote_result.json",
+      "exists": true,
+      "bytes": 3642
+    },
+    "board": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/DB76b_b4_review_board.jpg",
+      "exists": true,
+      "bytes": 312208
+    },
+    "bmw_board": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/02a00399_a000_bmw_b4_board.jpg",
+      "exists": true,
+      "bytes": 149080
+    },
+    "bmw_cov": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/02a00399_a000_bmw_b4_multiframe_coverage_overlay.png",
+      "exists": true,
+      "bytes": 988783
+    },
+    "bmw_depth": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/02a00399_a000_bmw_b4_lidar_depth_heat.png",
+      "exists": true,
+      "bytes": 253913
+    },
+    "bmw_gain": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/02a00399_a000_bmw_b4_dense_gain_overlay.png",
+      "exists": true,
+      "bytes": 1089769
+    },
+    "clean_board": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/0bae3b5e_a030_clean_far_b4_board.jpg",
+      "exists": true,
+      "bytes": 161953
+    },
+    "clean_cov": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/0bae3b5e_a030_clean_far_b4_multiframe_coverage_overlay.png",
+      "exists": true,
+      "bytes": 1122262
+    },
+    "claim": {
+      "path": "deliverables/db76b_stereo_temporal_coverage/fetch/DB76b_b4_claim.json",
+      "exists": true,
+      "bytes": 340
+    }
+  },
+  "pre_registered_thresholds": {
+    "window_frames": 10,
+    "lidar_depth_min_m": 1.5,
+    "lidar_depth_max_m": 80.0,
+    "loo_residual_px_equiv_dE": 18.0,
+    "near_ground_lower_fraction": 0.45,
+    "build_worthy_near_ground_dense_visible_min": 0.25,
+    "thin_base_near_ground_dense_visible_lt": 0.1
+  },
+  "output_location": "deliverables/db76b_stereo_temporal_coverage",
+  "drive_output_location": "results/db76b_stereo_temporal_coverage/",
+  "decision": {
+    "base_sufficient_any": false,
+    "thin_base_all": false,
+    "vision_check_required": true,
+    "accepted_as_source_faithful_repair": false
+  },
+  "claim_boundary": [
+    "DB-76a Battery 4 is measurement-only multi-frame LiDAR geometry base; no RGB repair, no RED.",
+    "single-source near-ground has no ring-LOO; coverage = dense + raw-visible static surface; depth quality validated only on co-observed subset.",
+    "vision review required (does the accumulated surface look like a real static surface, not smear?)."
+  ],
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}

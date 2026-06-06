@@ -1,0 +1,258 @@
+{
+  "phase": "db76b_preflight_stereo_temporal_data",
+  "started_utc": "2026-06-06T08:28:47Z",
+  "deps": {
+    "cv2": true,
+    "pandas": true,
+    "pyarrow": true,
+    "torch": true,
+    "av2": false
+  },
+  "cuda": {
+    "available": true,
+    "device": "NVIDIA A100-SXM4-40GB"
+  },
+  "cv2_has_sgbm": true,
+  "cases": [
+    {
+      "prefix": "02a00399",
+      "tag": "bmw",
+      "log_dir_matches": [
+        "02a00399-3857-444e-8db3-a8f58489c394"
+      ],
+      "cameras_dir_exists": true,
+      "camera_dirs": [
+        "ring_front_center",
+        "ring_front_left",
+        "ring_front_right",
+        "ring_rear_left",
+        "ring_rear_right",
+        "ring_side_left",
+        "ring_side_right",
+        "stereo_front_left",
+        "stereo_front_right"
+      ],
+      "jpg_counts": {
+        "ring_front_center": 319,
+        "ring_front_left": 319,
+        "ring_front_right": 319,
+        "ring_rear_left": 319,
+        "ring_rear_right": 319,
+        "ring_side_left": 319,
+        "ring_side_right": 319,
+        "stereo_front_left": 319,
+        "stereo_front_right": 319
+      },
+      "stereo_dirs_present": [
+        "stereo_front_left",
+        "stereo_front_right"
+      ],
+      "intrinsics_exists": true,
+      "extrinsics_exists": true,
+      "intrinsics_sensors": [
+        "ring_front_center",
+        "ring_front_left",
+        "ring_front_right",
+        "ring_rear_left",
+        "ring_rear_right",
+        "ring_side_left",
+        "ring_side_right",
+        "stereo_front_left",
+        "stereo_front_right"
+      ],
+      "intrinsics_columns": [
+        "sensor_name",
+        "fx_px",
+        "fy_px",
+        "cx_px",
+        "cy_px",
+        "k1",
+        "k2",
+        "k3",
+        "height_px",
+        "width_px"
+      ],
+      "stereo_intrinsics": {
+        "stereo_front_left": {
+          "fx_px": 1680.4690357001434,
+          "fy_px": 1680.4690357001434,
+          "cx_px": 1023.5140639103565,
+          "cy_px": 773.156124509418,
+          "width_px": 2048.0,
+          "height_px": 1550.0
+        },
+        "stereo_front_right": {
+          "fx_px": 1685.6007712002315,
+          "fy_px": 1685.6007712002315,
+          "cx_px": 1022.4509904087575,
+          "cy_px": 773.559722750364,
+          "width_px": 2048.0,
+          "height_px": 1550.0
+        }
+      },
+      "extrinsics_sensors": [
+        "down_lidar",
+        "ring_front_center",
+        "ring_front_left",
+        "ring_front_right",
+        "ring_rear_left",
+        "ring_rear_right",
+        "ring_side_left",
+        "ring_side_right",
+        "stereo_front_left",
+        "stereo_front_right",
+        "up_lidar"
+      ],
+      "extrinsics_columns": [
+        "sensor_name",
+        "qw",
+        "qx",
+        "qy",
+        "qz",
+        "tx_m",
+        "ty_m",
+        "tz_m"
+      ],
+      "ego_pose_exists": true,
+      "ego_pose_rows": 2687,
+      "ego_pose_columns": [
+        "timestamp_ns",
+        "qw",
+        "qx",
+        "qy",
+        "qz",
+        "tx_m",
+        "ty_m",
+        "tz_m"
+      ],
+      "ego_pose_span_s": 15.940038312,
+      "ring_front_center_frames": 319,
+      "ring_fc_span_s": 15.900000009,
+      "ring_fc_median_dt_ms": 50.000006,
+      "stereo_front_left_frames": 319
+    },
+    {
+      "prefix": "0bae3b5e",
+      "tag": "clean_far",
+      "log_dir_matches": [
+        "0bae3b5e-417d-3b03-abaa-806b433233b8"
+      ],
+      "cameras_dir_exists": true,
+      "camera_dirs": [
+        "ring_front_center",
+        "ring_front_left",
+        "ring_front_right",
+        "ring_rear_left",
+        "ring_rear_right",
+        "ring_side_left",
+        "ring_side_right",
+        "stereo_front_left",
+        "stereo_front_right"
+      ],
+      "jpg_counts": {
+        "ring_front_center": 319,
+        "ring_front_left": 319,
+        "ring_front_right": 319,
+        "ring_rear_left": 319,
+        "ring_rear_right": 319,
+        "ring_side_left": 320,
+        "ring_side_right": 320,
+        "stereo_front_left": 319,
+        "stereo_front_right": 319
+      },
+      "stereo_dirs_present": [
+        "stereo_front_left",
+        "stereo_front_right"
+      ],
+      "intrinsics_exists": true,
+      "extrinsics_exists": true,
+      "intrinsics_sensors": [
+        "ring_front_center",
+        "ring_front_left",
+        "ring_front_right",
+        "ring_rear_left",
+        "ring_rear_right",
+        "ring_side_left",
+        "ring_side_right",
+        "stereo_front_left",
+        "stereo_front_right"
+      ],
+      "intrinsics_columns": [
+        "sensor_name",
+        "fx_px",
+        "fy_px",
+        "cx_px",
+        "cy_px",
+        "k1",
+        "k2",
+        "k3",
+        "height_px",
+        "width_px"
+      ],
+      "stereo_intrinsics": {
+        "stereo_front_left": {
+          "fx_px": 1684.906037832342,
+          "fy_px": 1684.906037832342,
+          "cx_px": 1022.5187034610638,
+          "cy_px": 771.9336110420215,
+          "width_px": 2048.0,
+          "height_px": 1550.0
+        },
+        "stereo_front_right": {
+          "fx_px": 1685.4833005457428,
+          "fy_px": 1685.4833005457428,
+          "cx_px": 1025.441787957316,
+          "cy_px": 772.3141176423362,
+          "width_px": 2048.0,
+          "height_px": 1550.0
+        }
+      },
+      "extrinsics_sensors": [
+        "down_lidar",
+        "ring_front_center",
+        "ring_front_left",
+        "ring_front_right",
+        "ring_rear_left",
+        "ring_rear_right",
+        "ring_side_left",
+        "ring_side_right",
+        "stereo_front_left",
+        "stereo_front_right",
+        "up_lidar"
+      ],
+      "extrinsics_columns": [
+        "sensor_name",
+        "qw",
+        "qx",
+        "qy",
+        "qz",
+        "tx_m",
+        "ty_m",
+        "tz_m"
+      ],
+      "ego_pose_exists": true,
+      "ego_pose_rows": 2668,
+      "ego_pose_columns": [
+        "timestamp_ns",
+        "qw",
+        "qx",
+        "qy",
+        "qz",
+        "tx_m",
+        "ty_m",
+        "tz_m"
+      ],
+      "ego_pose_span_s": 15.955069556,
+      "ring_front_center_frames": 319,
+      "ring_fc_span_s": 15.900000002,
+      "ring_fc_median_dt_ms": 49.999993,
+      "stereo_front_left_frames": 319
+    }
+  ],
+  "stereo_data_available": {
+    "bmw": true,
+    "clean_far": true
+  },
+  "status": "db76b_preflight_completed",
+  "ended_utc": "2026-06-06T08:29:08Z"
+}

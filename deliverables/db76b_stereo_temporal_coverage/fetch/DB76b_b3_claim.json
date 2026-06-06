@@ -1,0 +1,8 @@
+{
+  "brief": "DB-76a Battery 3",
+  "classification": "measurement_only_forward_stereo_coverage",
+  "rgb_repair": false,
+  "source_faithful_repair": false,
+  "red_promotion": false,
+  "forward_only_does_not_help_side_curb": true
+}
