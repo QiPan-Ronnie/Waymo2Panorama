@@ -1,6 +1,6 @@
 {
   "phase": "db77b_phase0_phase1_geometry_skeleton_and_ibr",
-  "started_utc": "2026-06-06T10:25:31Z",
+  "started_utc": "2026-06-06T12:00:54Z",
   "scope": {
     "presentation_render": true,
     "source_faithful": false,
@@ -31,14 +31,20 @@
           "n_lidar_pts": 1050570,
           "n_stereo_pts": 1516128,
           "geom_valid_sparse_frac": 0.08159732818603516,
-          "ibr_covered_frac_of_band": 0.5820945364229771,
-          "generated_band_frac_of_band": 0.5732555530625981,
-          "multi_source_blend_frac_of_band": 0.07672453226611567,
+          "ibr_covered_frac_of_band": 0.5272865782072622,
+          "generated_band_frac_of_band": 0.5980123592711056,
+          "multi_source_blend_frac_of_band": 0.07623753593772013,
           "mean_confidence_in_band": 0.54030841588974,
-          "road_only_ibr_frac_of_band": 0.12156297993053346,
-          "tear_frac_of_band": 0.2397952528293617,
-          "tear_bad_densify_share": 0.648468495912846,
-          "tear_no_geom_share": 0.35153150408715395
+          "road_only_ibr_frac_of_band": 0.10115609449815897,
+          "tear_frac_of_band": 0.22623066581094456,
+          "densify_residual_m": {
+            "p50_m": 0.1623821258544922,
+            "p90_m": 15.369447708129883,
+            "fixable_share_lt0p5m": 0.5768956052064579,
+            "n_test": 508215
+          },
+          "tear_fixable_share": 0.24913125038440248,
+          "tear_unfixable_share": 0.12868257580417
         }
       },
       "0bae3b5e_a030_clean_far": {
@@ -47,18 +53,24 @@
           "n_lidar_pts": 1864654,
           "n_stereo_pts": 2092524,
           "geom_valid_sparse_frac": 0.12455320358276367,
-          "ibr_covered_frac_of_band": 0.6052286127102303,
-          "generated_band_frac_of_band": 0.47797678142653216,
-          "multi_source_blend_frac_of_band": 0.0847371870995561,
+          "ibr_covered_frac_of_band": 0.5290319103249105,
+          "generated_band_frac_of_band": 0.5243617674213196,
+          "multi_source_blend_frac_of_band": 0.08320365543873437,
           "mean_confidence_in_band": 0.6346741914749146,
-          "road_only_ibr_frac_of_band": 0.14574288481299433,
-          "tear_frac_of_band": 0.2767589973276211,
-          "tear_bad_densify_share": 0.8552922551138362,
-          "tear_no_geom_share": 0.14470774488616375
+          "road_only_ibr_frac_of_band": 0.12486112149500211,
+          "tear_frac_of_band": 0.25143833794378095,
+          "densify_residual_m": {
+            "p50_m": 0.6152896881103516,
+            "p90_m": 12.782512664794922,
+            "fixable_share_lt0p5m": 0.4702329466484393,
+            "n_test": 876338
+          },
+          "tear_fixable_share": 0.2929128086686536,
+          "tear_unfixable_share": 0.3046475766355722
         }
       }
     },
-    "runtime_s": 16.9
+    "runtime_s": 89.49
   },
-  "ended_utc": "2026-06-06T10:25:48Z"
+  "ended_utc": "2026-06-06T12:02:24Z"
 }

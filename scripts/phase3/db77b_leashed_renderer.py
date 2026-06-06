@@ -57,6 +57,8 @@ FETCH = {
     "bmw_board": ("02a00399_a000_bmw_p01_board.jpg", 70),
     "bmw_pD_board": ("02a00399_a000_bmw_pD_board.jpg", 70),
     "bmw_pD_attr": ("02a00399_a000_bmw_pD_tear_attribution.png", 30),
+    "bmw_pD_densify": ("02a00399_a000_bmw_pD_densify_residual_heat.png", 30),
+    "clean_pD_densify": ("0bae3b5e_a030_clean_far_pD_densify_residual_heat.png", 30),
     "bmw_pD_road": ("02a00399_a000_bmw_pD_road_only_ibr.png", 40),
     "clean_pD_board": ("0bae3b5e_a030_clean_far_pD_board.jpg", 70),
     "bmw_ibr": ("02a00399_a000_bmw_p01_ibr_rgb.png", 40),
@@ -231,7 +233,9 @@ def stereo_depth(log_dir, anchor_ts):
     def cal(n):
         ri = intr[intr.sensor_name == n].iloc[0]; re = extr[extr.sensor_name == n].iloc[0]
         K = np.array([[ri.fx_px, 0, ri.cx_px], [0, ri.fy_px, ri.cy_px], [0, 0, 1]], float)
-        dist = np.array([ri.get("k1", 0), ri.get("k2", 0), 0, 0, ri.get("k3", 0)], float)
+        _k = (float(ri.get("k1", 0)), float(ri.get("k2", 0)), float(ri.get("k3", 0)))
+        # B3: avoid double-undistort — AV2 imagery is delivered rectified; only pass distortion if k's are non-trivial
+        dist = np.array([_k[0], _k[1], 0, 0, _k[2]], float) if max(abs(v) for v in _k) > 0.01 else np.zeros(5, float)
         T = np.eye(4); T[:3, :3] = Rotation.from_quat([re.qx, re.qy, re.qz, re.qw]).as_matrix(); T[:3, 3] = [re.tx_m, re.ty_m, re.tz_m]
         return K, dist, T, int(ri.width_px), int(ri.height_px)
     KL, dL, TL, w, h = cal("stereo_front_left"); KR, dR, TR, _, _ = cal("stereo_front_right")
@@ -272,16 +276,32 @@ def fuse_and_densify(lidar_depth, stereo_depth_map):
 
 
 def ibr_render(Zd, dirs, frame, ring_cams, weights, base):
+    # bug-fixed IBR: (B1) per-camera z-buffer occlusion test — drop a camera for an ERP ray
+    # if a nearer surface occludes it in that camera; (B2) depth-correct ULR weight — FOV-center
+    # falloff on the actual depth-correct projection, NOT the L1 infinite-radius cos2 feather.
     import cv2
-    X = (Zd[..., None] * dirs).astype(np.float64)  # (H,W,3) ego
+    X = (Zd[..., None] * dirs).astype(np.float64)  # (H,W,3) ego surface point per ERP ray
     acc = np.zeros((H, W, 3), np.float32); wsum = np.zeros((H, W), np.float32); viscount = np.zeros((H, W), np.int32)
+    OCC_TOL = 0.5  # m: a ray is occluded if a surface >0.5m nearer projects to the same camera pixel
     for ci, cam in enumerate(ring_cams):
         cal = frame.calibrations[cam]; img = frame.images[cam].astype(np.float32); K = cal.K; Tci = np.linalg.inv(cal.T_ego_cam)
         Xc = np.einsum('ij,hwj->hwi', Tci[:3, :3], X) + Tci[:3, 3]; z = Xc[..., 2]
         px = K[0, 0] * (Xc[..., 0] / np.maximum(z, EPS)) + K[0, 2]; py = K[1, 1] * (Xc[..., 1] / np.maximum(z, EPS)) + K[1, 2]
-        hh, ww = img.shape[:2]; vis = (z > 0.1) & (px >= 0) & (px < ww - 1) & (py >= 0) & (py < hh - 1)
+        hh, ww = img.shape[:2]
+        inb = (z > 0.1) & (px >= 0) & (px < ww - 1) & (py >= 0) & (py < hh - 1)
+        yi = np.clip(py.astype(np.int64), 0, hh - 1); xi = np.clip(px.astype(np.int64), 0, ww - 1)
+        # B1: per-camera z-buffer — nearest surface per camera pixel; ERP ray occluded if it sits behind it
+        zbuf = np.full(hh * ww, np.inf, np.float32)
+        flat = (yi * ww + xi).reshape(-1); zf = z.reshape(-1).astype(np.float32); inf_ = inb.reshape(-1)
+        order = np.argsort(-zf)  # far first -> nearest overwrites on duplicate camera pixels
+        of = flat[order]; oz = zf[order]; oi = inf_[order]
+        zbuf[of[oi]] = oz[oi]
+        nearest = zbuf[(yi * ww + xi)]
+        vis = inb & (z <= nearest + OCC_TOL)
+        # B2: depth-correct ULR weight — radial FOV falloff from the principal point of the actual projection
+        rad = np.hypot((px - K[0, 2]) / (0.5 * ww), (py - K[1, 2]) / (0.5 * hh))
+        wv = (np.clip(1.0 - rad, 0.0, 1.0) ** 2 * vis).astype(np.float32)
         col = cv2.remap(img, px.astype(np.float32), py.astype(np.float32), cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
-        wv = (weights[ci] * vis).astype(np.float32)
         acc += wv[..., None] * col; wsum += wv; viscount += vis.astype(np.int32)
     has = wsum > WMIN; ibr = base.astype(np.float32).copy()
     ibr[has] = (acc[has] / wsum[has][..., None])
@@ -320,22 +340,35 @@ def run_case(case_spec, run_name, workdir):
     highconf = has & (conf >= GEN_THR)
     ibr = np.where(highconf[..., None], ibr_raw, base).astype(np.uint8)
     gen = (~highconf) & valid_any     # generated_mask = IBR not trusted -> refiner zone (Phase 2)
-    # ---- Option-D baseline (road-only IBR + facade hard_select) + tear attribution (leader request) ----
-    Xh = (Zd * dirs[..., 2]).astype(np.float32)                      # ego height of each ray's surface point
+    # ---- Option-D baseline + HONEST tear attribution (A: hold-out LiDAR densification residual) ----
+    Xh = (Zd * dirs[..., 2]).astype(np.float32)
     road_mask = valid_any & has & (conf >= GEN_THR) & (Xh < 0.5)     # near-ground planar surface
     ibr_D = base.copy(); ibr_D[road_mask] = ibr_raw[road_mask]       # IBR only on road; facade/others = hard_select
     gb = 0.299 * base[..., 0] + 0.587 * base[..., 1] + 0.114 * base[..., 2]
     gi = 0.299 * ibr_raw[..., 0] + 0.587 * ibr_raw[..., 1] + 0.114 * ibr_raw[..., 2]
     tear = (np.abs(gi - gb) > 18) & valid_any & (~road_mask)         # IBR changed a non-road region = candidate tear
-    dist = -CONF_SCALE * np.log(np.clip(conf, 1e-6, 1.0))            # px distance to nearest real geometry
-    near_geom = dist < 4.0
-    tear_bad_densify = tear & near_geom                             # geometry EXISTS but densified depth wrong -> 3DGS/surfel-fixable
-    tear_no_geom = tear & (~near_geom)                              # NO geometry near -> needs B to feed geometry
-    attr = overlay(overlay(base, tear_no_geom, (40, 120, 255), 0.7), tear_bad_densify, (255, 40, 40), 0.7)
+    # A (fix the invalid gate metric): densify from HALF the LiDAR, measure |densified - true depth| on the OTHER half.
+    # This measures whether nearest-densification actually recovers the true surface depth — NOT 4px ERP proximity.
+    rfield = np.zeros((H, W), np.float32); densify_resid = {}
+    if len(lidar) > 2000:
+        ev = (np.arange(len(lidar)) % 2 == 0)
+        Zd_tr, _c2, _v2 = fuse_and_densify(scatter_depth(lidar[ev]), sd)
+        tu, tv, td = ego_to_uv(lidar[~ev]); mm = (td > 1.5) & (td < 80)
+        tui = np.clip(np.round(tu[mm]).astype(np.int64), 0, W - 1); tvi = np.clip(np.round(tv[mm]).astype(np.int64), 0, H - 1)
+        resid = np.abs(Zd_tr[tvi, tui] - td[mm].astype(np.float32))
+        densify_resid = {"p50_m": float(np.percentile(resid, 50)), "p90_m": float(np.percentile(resid, 90)),
+                         "fixable_share_lt0p5m": float((resid < 0.5).mean()), "n_test": int(resid.size)}
+        fl = tvi * W + tui; acc_r = np.zeros(H * W, np.float32); cnt_r = np.zeros(H * W, np.float32)
+        np.add.at(acc_r, fl, resid); np.add.at(cnt_r, fl, 1.0); rfield = (acc_r / np.maximum(cnt_r, 1)).reshape(H, W)
+    has_resid = rfield > 0
+    tear_unfixable = tear & (rfield > 0.5)                          # densify residual LARGE -> nearest-densify can't hold the surface (denser geom / abstain)
+    tear_fixable = tear & has_resid & (rfield <= 0.5)              # densify residual SMALL -> a better densifier/renderer can fix it
+    attr = overlay(overlay(base, tear_fixable, (40, 220, 90), 0.7), tear_unfixable, (255, 40, 40), 0.7)
     geomcov = overlay(base, cv2.dilate(geomvalid.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0, (40, 255, 120), 0.6)
     save_rgb(REMOTE_OUT / f"{run_name}_pD_road_only_ibr.png", ibr_D)
     save_rgb(REMOTE_OUT / f"{run_name}_pD_tear_attribution.png", attr)
     save_rgb(REMOTE_OUT / f"{run_name}_pD_geom_coverage.png", geomcov)
+    save_rgb(REMOTE_OUT / f"{run_name}_pD_densify_residual_heat.png", heat(rfield, has_resid))
     # metrics
     co = (viscount >= 2) & valid_any
     metrics = {
@@ -347,8 +380,9 @@ def run_case(case_spec, run_name, workdir):
         "mean_confidence_in_band": float(conf[valid_any].mean()),
         "road_only_ibr_frac_of_band": float(road_mask.sum() / max(valid_any.sum(), 1)),
         "tear_frac_of_band": float(tear.sum() / max(valid_any.sum(), 1)),
-        "tear_bad_densify_share": float(tear_bad_densify.sum() / max(tear.sum(), 1)),
-        "tear_no_geom_share": float(tear_no_geom.sum() / max(tear.sum(), 1)),
+        "densify_residual_m": densify_resid,
+        "tear_fixable_share": float(tear_fixable.sum() / max(tear.sum(), 1)),
+        "tear_unfixable_share": float(tear_unfixable.sum() / max(tear.sum(), 1)),
     }
     save_rgb(REMOTE_OUT / f"{run_name}_p01_ibr_rgb.png", ibr)
     save_rgb(REMOTE_OUT / f"{run_name}_p01_depth_heat.png", heat(Zd, valid_any))
@@ -381,7 +415,7 @@ def run_case(case_spec, run_name, workdir):
     for o in ims: board.paste(o, (0, yo)); yo += o.height
     board.save(REMOTE_OUT / f"{run_name}_p01_board.jpg", quality=90)
     tilesD = [("hard_select base", base), ("OPTION-D: road-only IBR + facade hard_select", ibr_D),
-              ("tear: RED=geometry-exists(densify-fixable) BLUE=no-geometry(needs B)", attr),
+              ("tear: GREEN=densify-fixable(resid<0.5m) RED=unfixable(resid>0.5m)", attr),
               ("real LiDAR/stereo geometry coverage (green)", geomcov)]
     imsD = []
     for t, a in tilesD:
@@ -389,7 +423,7 @@ def run_case(case_spec, run_name, workdir):
         bar = Image.new("RGB", (900, 24), (15, 15, 22)); ImageDraw.Draw(bar).text((6, 4), t, (235, 235, 245), font=f)
         o = Image.new("RGB", (900, 474)); o.paste(bar, (0, 0)); o.paste(im, (0, 24)); imsD.append(o)
     boardD = Image.new("RGB", (900, 474 * 4 + 50), (10, 10, 14)); dd = ImageDraw.Draw(boardD)
-    dd.text((8, 6), f"{run_name} DB-77B Option-D + tear attribution  tear={metrics['tear_frac_of_band']:.3f} bad_densify_share={metrics['tear_bad_densify_share']:.2f} no_geom_share={metrics['tear_no_geom_share']:.2f}", (240, 240, 250), font=f)
+    dd.text((8, 6), f"{run_name} DB-77B bug-fixed IBR + honest tear  tear={metrics['tear_frac_of_band']:.3f} densify_resid_p50={(metrics.get('densify_residual_m') or {}).get('p50_m')} fixable_share={metrics['tear_fixable_share']:.2f}", (240, 240, 250), font=f)
     yo = 50
     for o in imsD: boardD.paste(o, (0, yo)); yo += o.height
     boardD.save(REMOTE_OUT / f"{run_name}_pD_board.jpg", quality=90)
