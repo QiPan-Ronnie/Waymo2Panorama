@@ -61,8 +61,11 @@ try:
     REMOTE_OUT.mkdir(parents=True,exist_ok=True)
     # deps
     deps={}
-    for pkg in ["diffusers","transformers","accelerate","ultralytics"]:
-        if not io(pkg): deps[pkg]=run([sys.executable,"-m","pip","install","-q",pkg])[0]
+    # Difix3D requires PINNED diffusers==0.25.1 (its pipeline_difix uses FromOriginalVAEMixin, removed in new diffusers)
+    deps["pin"]=run([sys.executable,"-m","pip","install","-q","diffusers==0.25.1","huggingface-hub==0.25.1","transformers==4.38.0","peft==0.9.0"],t=1200)[0]
+    if not io("ultralytics"): deps["ultralytics"]=run([sys.executable,"-m","pip","install","-q","ultralytics"])[0]
+    run(["bash","-lc","rm -rf /content/Difix3D"])
+    deps["clone"]=run(["git","clone","--depth","1","https://github.com/nv-tlabs/Difix3D","/content/Difix3D"])[0]
     import torch
     OUT["cuda"]=torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
     a1=cv2.cvtColor(cv2.imread(str(REMOTE_IN/"A1_base.png")),cv2.COLOR_BGR2RGB)
@@ -72,24 +75,15 @@ try:
     safe=seam&(~abst)&(~prot)
     OUT["safe_band_frac"]=float(safe.mean())
     # ---- load Difix (probe API: diffusers DifixPipeline / HF custom / repo) ----
+    import diffusers as _df; OUT["diffusers_version"]=_df.__version__
+    sys.path.insert(0,"/content/Difix3D"); sys.path.insert(0,"/content/Difix3D/src")
     pipe=None; api=None
-    try:
-        from diffusers import DifixPipeline
-        pipe=DifixPipeline.from_pretrained("nvidia/difix",trust_remote_code=True,torch_dtype=torch.float16); api="diffusers.DifixPipeline"
-    except Exception as e1:
-        OUT["api_err_diffusers"]=str(e1)[:300]
+    for modpath in ["pipeline_difix","src.pipeline_difix"]:
         try:
-            from diffusers import DiffusionPipeline
-            pipe=DiffusionPipeline.from_pretrained("nvidia/difix",trust_remote_code=True,custom_pipeline="nvidia/difix",torch_dtype=torch.float16); api="DiffusionPipeline.custom"
-        except Exception as e2:
-            OUT["api_err_custom"]=str(e2)[:300]
-            rc,tail=run(["git","clone","--depth","1","https://github.com/nv-tlabs/Difix3D","/content/Difix3D"]); OUT["clone"]=rc
-            sys.path.insert(0,"/content/Difix3D"); sys.path.insert(0,"/content/Difix3D/src")
-            try:
-                from pipeline_difix import DifixPipeline as DP
-                pipe=DP.from_pretrained("nvidia/difix",trust_remote_code=True,torch_dtype=torch.float16); api="repo.pipeline_difix"
-            except Exception as e3:
-                OUT["api_err_repo"]=str(e3)[:400]
+            mod=__import__(modpath,fromlist=["DifixPipeline"]); DP=getattr(mod,"DifixPipeline")
+            pipe=DP.from_pretrained("nvidia/difix",trust_remote_code=True,torch_dtype=torch.bfloat16); api=f"repo.{modpath}@diffusers0.25.1"; break
+        except Exception as ex:
+            OUT["api_err_"+modpath.replace(".","_")]=str(ex)[:400]
     OUT["difix_api"]=api
     if pipe is None:
         OUT["status"]="difix_load_failed"; raise RuntimeError("Difix pipeline could not be loaded; see api_err_*")
