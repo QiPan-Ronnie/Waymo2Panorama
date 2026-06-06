@@ -1,0 +1,41 @@
+{
+  "status": "db77b_p01_complete",
+  "presentation_render": true,
+  "source_faithful": false,
+  "pre_registered": {
+    "lidar_window_frames": 10,
+    "depth_min_m": 1.5,
+    "depth_max_m": 80.0,
+    "stereo_scale": 0.5,
+    "densify_conf_scale_px": 9.0,
+    "generated_conf_thr": 0.45,
+    "ibr_min_weight": 0.001
+  },
+  "by_case": {
+    "02a00399_a000_bmw": {
+      "case": "02a00399_a000_bmw",
+      "metrics": {
+        "n_lidar_pts": 1050570,
+        "n_stereo_pts": 1516128,
+        "geom_valid_sparse_frac": 0.08159732818603516,
+        "ibr_covered_frac_of_band": 0.5820945364229771,
+        "generated_band_frac_of_band": 0.5732555530625981,
+        "multi_source_blend_frac_of_band": 0.07672453226611567,
+        "mean_confidence_in_band": 0.54030841588974
+      }
+    },
+    "0bae3b5e_a030_clean_far": {
+      "case": "0bae3b5e_a030_clean_far",
+      "metrics": {
+        "n_lidar_pts": 1864654,
+        "n_stereo_pts": 2092524,
+        "geom_valid_sparse_frac": 0.12455320358276367,
+        "ibr_covered_frac_of_band": 0.6052286127102303,
+        "generated_band_frac_of_band": 0.47797678142653216,
+        "multi_source_blend_frac_of_band": 0.0847371870995561,
+        "mean_confidence_in_band": 0.6346741914749146
+      }
+    }
+  },
+  "runtime_s": 16.15
+}

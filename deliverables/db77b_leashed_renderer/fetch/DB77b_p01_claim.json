@@ -1,0 +1,8 @@
+{
+  "brief": "DB-77B Phase 0+1",
+  "classification": "presentation_render_leashed_IBR_no_refiner",
+  "source_faithful_repair": false,
+  "generated_mask_present": true,
+  "red_promotion": false,
+  "note": "IBR blend RGB is a presentation render; generated_mask band reserved for Phase-2 refiner (A100); NOT sensor truth"
+}

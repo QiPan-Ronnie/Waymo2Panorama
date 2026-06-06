@@ -72,7 +72,7 @@ Result summary: **Batteries 1–2 complete + v1.1 metric-clean re-run (measureme
 ## ⏭ PROPOSED — NOT active until DB-76a (Battery 4) closes (one active brief at a time)
 
 # DB-77B: Branch B leashed renderer (plausible / make the seam disappear)
-Status: **proposed** (write-only now; becomes active ONLY after DB-76a Battery 4 closes)
+Status: **ACTIVE** (2026-06-06; DB-76a closed, all 4 batteries done — single active brief). Phasing: **Phase 0+1 (geometry-skeleton fusion + IBR single-centre render) runs on L4/CPU** (geometry/numpy/cv2, GPU-light); **Phase 2 (band-confined single-step refiner, Difix-style) needs A100 — tell user before**.
 Route: B (plausible multi-center renderer — geometry owns POSITION, learned owns APPEARANCE, real pixels + geometry are the LEASH)
 
 **Question:** Can a leashed renderer produce a GENERAL, PLAUSIBLE single-center ERP where the near-field seam visibly DISAPPEARS — without hallucinating salient objects — by letting geometry own position, a single-step refiner own appearance, and real pixels + geometry + hard object-protection act as the leash?
