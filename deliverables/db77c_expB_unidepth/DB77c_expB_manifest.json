@@ -1,0 +1,145 @@
+{
+  "created_utc": "2026-06-06T13:36:59.438947+00:00",
+  "status": "db77c_expB_unidepth",
+  "brief": "DB-77C EXP-B: UniDepthV2 dense metric depth replaces nearest-neighbour LiDAR densification, re-fed to IBR",
+  "scope": {
+    "hold_out_residual_metric": true,
+    "dense_metric_depth": true,
+    "exec_count": 1,
+    "runtime_type": "colab-gpu",
+    "exp_b2_ibr_refeed": false,
+    "iterative_diffusion": false,
+    "source_faithful": false,
+    "red_promotion": false,
+    "gpu_bound": true
+  },
+  "unidepth_verification": {
+    "install": "git clone https://github.com/lpiccinelli-eth/UniDepth ; pip install --no-deps -e ./UniDepth (keep Colab torch)",
+    "load": "UniDepthV2.from_pretrained(\"lpiccinelli/unidepth-v2-vitl14\")  (HF namespace lpiccinelli/, no -eth)",
+    "infer": "model.infer(rgb_CHW_uint8, Pinhole(K=K_torch.unsqueeze(0)))  -> pred['depth'] (HxW). Fallbacks: raw 3x3 tensor; no-K self-estimate.",
+    "vram_40gb_ok": "YES — vitl14 inference ~1.8-2.5GB FP32; 40GB ample",
+    "license": "CC BY-NC 4.0 (non-commercial) — research OK, not for commercial product"
+  },
+  "runtime": {
+    "secret_source_kind": "non_repo_file",
+    "status": {
+      "runtime_type": "colab-gpu",
+      "version": "0.1.0a1",
+      "active_jobs": 0,
+      "gpu_name": "NVIDIA A100-SXM4-40GB"
+    }
+  },
+  "job": {
+    "cwd": "/content",
+    "duration_s": 21.505052089691162,
+    "elapsed_s": 21.505052089691162,
+    "exit_code": 0,
+    "finished_at": 1780753011.2784483,
+    "job_id": "a1ea1765556e4ebea61cae0bc03a2208",
+    "started_at": 1780752989.7733963,
+    "state": "done",
+    "timeout_s": 2000
+  },
+  "remote_status": "db77c_expB_completed",
+  "summary": {
+    "status": "db77c_expB_unidepth_load_failed",
+    "exp_b2_ran": false,
+    "pre_registered": {
+      "depth_min_m": 1.5,
+      "depth_max_m": 80.0,
+      "wall_loosens_p90_m": 2.0,
+      "wall_confirmed_p90_m": 5.0,
+      "grad_edge_thr": 0.18,
+      "scale_min_ratio": 0.3,
+      "scale_max_ratio": 3.0,
+      "ibr_min_weight": 0.001,
+      "occ_tol_m": 0.5,
+      "model_id": "lpiccinelli/unidepth-v2-vitl14"
+    },
+    "unidepth": {
+      "model_id": "lpiccinelli/unidepth-v2-vitl14",
+      "infer_path": null,
+      "loaded": false,
+      "load_error": {
+        "type": "ModuleNotFoundError",
+        "msg": "ModuleNotFoundError(\"No module named 'unidepth'\")",
+        "trace_tail": "Traceback (most recent call last):\n  File \"<db77c_expB_remote>\", line 441, in <module>\n  File \"<db77c_expB_remote>\", line 119, in load_unidepth\nModuleNotFoundError: No module named 'unidepth'\n"
+      }
+    },
+    "by_case": {},
+    "criterion": "EXP-B1 hold-out residual: p90<2m=wall loosens, p90>5m=wall confirmed",
+    "runtime_s": 20.81
+  },
+  "fetched_outputs": {
+    "summary": {
+      "path": "deliverables/db77c_expB_unidepth/DB77c_expB_summary.json",
+      "exists": true,
+      "bytes": 991
+    },
+    "remote_result": {
+      "path": "deliverables/db77c_expB_unidepth/DB77c_expB_remote_result.json",
+      "exists": true,
+      "bytes": 2255
+    },
+    "board": {
+      "path": "deliverables/db77c_expB_unidepth/DB77c_expB_review_board.jpg",
+      "exists": false
+    },
+    "claim": {
+      "path": "deliverables/db77c_expB_unidepth/DB77c_expB_claim.json",
+      "exists": true,
+      "bytes": 444
+    },
+    "bmw_depth_board": {
+      "path": "deliverables/db77c_expB_unidepth/fetch/02a00399_a000_bmw_expB1_depth_board.jpg",
+      "exists": false
+    },
+    "clean_depth_board": {
+      "path": "deliverables/db77c_expB_unidepth/fetch/0bae3b5e_a030_clean_far_expB1_depth_board.jpg",
+      "exists": false
+    },
+    "bmw_resid_json": {
+      "path": "deliverables/db77c_expB_unidepth/fetch/02a00399_a000_bmw_expB1_residual.json",
+      "exists": false
+    },
+    "clean_resid_json": {
+      "path": "deliverables/db77c_expB_unidepth/fetch/0bae3b5e_a030_clean_far_expB1_residual.json",
+      "exists": false
+    },
+    "bmw_b2_board": {
+      "path": "deliverables/db77c_expB_unidepth/fetch/02a00399_a000_bmw_expB2_roi_board.jpg",
+      "exists": false
+    },
+    "clean_b2_board": {
+      "path": "deliverables/db77c_expB_unidepth/fetch/0bae3b5e_a030_clean_far_expB2_roi_board.jpg",
+      "exists": false
+    }
+  },
+  "pre_registered": {
+    "depth_min_m": 1.5,
+    "depth_max_m": 80.0,
+    "wall_loosens_p90_m": 2.0,
+    "wall_confirmed_p90_m": 5.0,
+    "grad_edge_thr": 0.18,
+    "scale_min_ratio": 0.3,
+    "scale_max_ratio": 3.0,
+    "ibr_min_weight": 0.001,
+    "occ_tol_m": 0.5,
+    "model_id": "lpiccinelli/unidepth-v2-vitl14"
+  },
+  "output_location": "deliverables/db77c_expB_unidepth",
+  "drive_output_location": "results/db77c_expB_unidepth/",
+  "decision": {
+    "vision_check_required": true,
+    "exp_b1_criterion": "p90<2m => geometry wall loosens (run EXP-B2); p90>5m => wall confirmed (UniDepth does not fix edges)"
+  },
+  "claim_boundary": [
+    "EXP-B1 = hold-out residual diagnostic (cheap, primary value): |UniDepth_depth - LiDAR_depth| at LiDAR px, p50/p90, bucketed edge vs flat.",
+    "EXP-B2 (if --exp-b2) = UniDepth dense depth -> ERP -> IBR re-feed; presentation render, NOT sensor truth.",
+    "UniDepthV2 weights are CC BY-NC 4.0 (non-commercial). No iterative diffusion, no RED."
+  ],
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "phase": "db77c_expB_unidepth_dense_depth",
+  "started_utc": "2026-06-06T13:36:29Z",
+  "scope": {
+    "hold_out_residual_metric": true,
+    "dense_metric_depth": true,
+    "iterative_diffusion": false,
+    "source_faithful": false,
+    "red_promotion": false,
+    "exp_b2_ibr_refeed": false
+  },
+  "unidepth": {
+    "model_id": "lpiccinelli/unidepth-v2-vitl14",
+    "infer_path": null,
+    "loaded": false,
+    "load_error": {
+      "type": "ModuleNotFoundError",
+      "msg": "ModuleNotFoundError(\"No module named 'unidepth'\")",
+      "trace_tail": "Traceback (most recent call last):\n  File \"<db77c_expB_remote>\", line 441, in <module>\n  File \"<db77c_expB_remote>\", line 119, in load_unidepth\nModuleNotFoundError: No module named 'unidepth'\n"
+    }
+  },
+  "workdir_found": true,
+  "install": {
+    "already": false,
+    "steps": [
+      {
+        "git_clone_rc": 0,
+        "tail": "Cloning into '/content/UniDepth'...\n"
+      },
+      {
+        "pip_e_nodeps_rc": 0,
+        "tail": ""
+      },
+      {
+        "pip_lightdeps_rc": 0,
+        "tail": ""
+      }
+    ],
+    "installed_now": false
+  },
+  "status": "db77c_expB_completed",
+  "summary": {
+    "status": "db77c_expB_unidepth_load_failed",
+    "exp_b2_ran": false,
+    "pre_registered": {
+      "depth_min_m": 1.5,
+      "depth_max_m": 80.0,
+      "wall_loosens_p90_m": 2.0,
+      "wall_confirmed_p90_m": 5.0,
+      "grad_edge_thr": 0.18,
+      "scale_min_ratio": 0.3,
+      "scale_max_ratio": 3.0,
+      "ibr_min_weight": 0.001,
+      "occ_tol_m": 0.5,
+      "model_id": "lpiccinelli/unidepth-v2-vitl14"
+    },
+    "unidepth": {
+      "model_id": "lpiccinelli/unidepth-v2-vitl14",
+      "infer_path": null,
+      "loaded": false,
+      "load_error": {
+        "type": "ModuleNotFoundError",
+        "msg": "ModuleNotFoundError(\"No module named 'unidepth'\")",
+        "trace_tail": "Traceback (most recent call last):\n  File \"<db77c_expB_remote>\", line 441, in <module>\n  File \"<db77c_expB_remote>\", line 119, in load_unidepth\nModuleNotFoundError: No module named 'unidepth'\n"
+      }
+    },
+    "by_case": {},
+    "criterion": "EXP-B1 hold-out residual: p90<2m=wall loosens, p90>5m=wall confirmed",
+    "runtime_s": 20.81
+  },
+  "ended_utc": "2026-06-06T13:36:50Z"
+}

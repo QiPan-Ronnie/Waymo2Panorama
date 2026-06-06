@@ -1,0 +1,27 @@
+{
+  "deliverable": "db77c_v0_plausible_panorama_data_contract",
+  "base": "A1_view_none (hard_select multi-center mosaic + sky/out-of-FOV outpaint)",
+  "presentation_rgb": "A1 + Poisson low-freq tone-harmonize on the safe seam-band (presentation, NOT source-faithful)",
+  "tier_legend": {
+    "0_raw": "single-source hard_select pixel",
+    "1_poisson": "safe seam-band tone-harmonized",
+    "2_learned": "RESERVED for verified learned refine (EXP-A/B); empty in v0",
+    "3_abstain": "near-field object-ghost / no-geometry; generated_mask; NOT source-faithful",
+    "4_generated": "A1 outpaint (sky/out-of-FOV); generated_mask",
+    "255": "out-of-FOV black"
+  },
+  "tier_fractions_of_band": {
+    "raw": 0.8210566776762622,
+    "poisson": 0.05673855080328305,
+    "abstain": 0.12067073308600877,
+    "generated": 0.001534038434445946
+  },
+  "abstain_band_fraction": 0.12067073308600877,
+  "generated_band_fraction": 0.0019340711327708526,
+  "seam_band_fraction": 0.1627472158593833,
+  "claim_boundary": [
+    "PLAUSIBLE presentation panorama, NOT source-faithful sensor truth.",
+    "generated/abstain pixels carry masks; the near-field object-ghost is the geometry wall (DB-76a/77B), honestly abstained.",
+    "tier2 (learned refine) reserved: EXP-A verified Difix is safe+controllable but faint on A1's soft seams; fill only if a learned render demonstrably improves the near-field (EXP-B)."
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "brief": "DB-77C EXP-B UniDepthV2 dense depth replaces densification",
+  "classification": "hold_out_residual_diagnostic",
+  "source_faithful_repair": false,
+  "red_promotion": false,
+  "license_note": "UniDepthV2 weights are CC BY-NC 4.0 (non-commercial)",
+  "note": "EXP-B1 is the primary value: does UniDepth dense depth drop the hold-out residual p90 from 12-15m to <2m? EXP-B2 IBR re-feed is a presentation render, not sensor truth."
+}
