@@ -208,31 +208,83 @@ def ego_to_uv(P):
 # ---------------------------------------------------------------------------
 # UniDepthV2: load once, infer per camera with KNOWN intrinsics (multi-fallback)
 # ---------------------------------------------------------------------------
+def _try_import_unidepth():
+    """Import unidepth.models (the actual load path) after refreshing import machinery.
+
+    Returns (ok, error_repr). We import unidepth.models, not just the top-level package,
+    because load_unidepth does `from unidepth.models import UniDepthV2`; a stub top-level
+    package can import while the model subpackage fails on an inner dep (xformers/timm).
+    """
+    import importlib
+    importlib.invalidate_caches()
+    # purge any half-loaded stub so a fresh import sees the now-present package
+    for m in [k for k in list(sys.modules) if k == "unidepth" or k.startswith("unidepth.")]:
+        sys.modules.pop(m, None)
+    try:
+        importlib.import_module("unidepth.models")
+        return True, None
+    except Exception as e:
+        return False, repr(e)[:300]
+
+
 def install_unidepth():
-    """Clone + editable-install UniDepth WITHOUT touching the Colab torch build."""
-    info = {"already": import_ok("unidepth"), "steps": []}
-    if info["already"]:
-        return info
+    """Clone + editable-install UniDepth WITHOUT touching the Colab torch build.
+
+    KEY FIX (was the 20s load_failed bug): pip -e reported rc=0 but `import unidepth`
+    still failed in the ALREADY-RUNNING interpreter, because (a) the editable .pth was
+    not picked up by the live sys.path and (b) nobody added the repo root to sys.path.
+    We now hard-insert /content/UniDepth onto sys.path, invalidate import caches, and
+    record an import-check (incl. the import error repr) into OUT["deps"] for diagnosis.
+    """
     repo = pathlib.Path("/content/UniDepth")
-    if not repo.exists():
-        r = subprocess.run(["git", "clone", "--depth", "1", "https://github.com/lpiccinelli-eth/UniDepth", str(repo)],
-                           capture_output=True, text=True, timeout=600)
-        info["steps"].append({"git_clone_rc": r.returncode, "tail": (r.stderr or r.stdout)[-400:]})
+    repo_str = str(repo)
+    # make the editable package importable in THIS live interpreter regardless of pip's .pth
+    if repo_str not in sys.path:
+        sys.path.insert(0, repo_str)
+    ok0, _ = _try_import_unidepth()
+    info = {"already": ok0, "steps": [], "repo": repo_str}
+    if ok0:
+        info["installed_now"] = True
+        info["pkg_dir_exists"] = (repo / "unidepth").is_dir()
+        OUT["deps"] = info
+        return info
+    # fresh clone each run: rm -rf first so a leftover dir never makes git clone exit 128
+    try:
+        if repo.exists():
+            import shutil
+            shutil.rmtree(repo, ignore_errors=True)
+    except Exception as e:
+        info["steps"].append({"rmtree_error": repr(e)[:200]})
+    rc = subprocess.run(["git", "clone", "--depth", "1",
+                         "https://github.com/lpiccinelli-eth/UniDepth", repo_str],
+                        capture_output=True, text=True, timeout=600)
+    info["steps"].append({"git_clone_rc": rc.returncode, "tail": (rc.stderr or rc.stdout)[-400:]})
+    info["pkg_dir_exists"] = (repo / "unidepth").is_dir()
     # editable install with --no-deps first (UniDepth pins torch>=2.4/numpy>=2 which would clobber Colab);
     # then install the light pure-python deps we actually need, leaving torch/torchvision/numpy untouched.
-    r1 = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "--no-deps", "-e", str(repo)],
+    r1 = subprocess.run([sys.executable, "-m", "pip", "install", "-q", "--no-deps", "-e", repo_str],
                         capture_output=True, text=True, timeout=900)
     info["steps"].append({"pip_e_nodeps_rc": r1.returncode, "tail": (r1.stderr or r1.stdout)[-400:]})
     r2 = subprocess.run([sys.executable, "-m", "pip", "install", "-q",
                          "einops>=0.7.0", "timm", "huggingface-hub>=0.22.0"],
                         capture_output=True, text=True, timeout=600)
     info["steps"].append({"pip_lightdeps_rc": r2.returncode, "tail": (r2.stderr or r2.stdout)[-400:]})
-    info["installed_now"] = import_ok("unidepth")
+    # re-assert sys.path (pip may not have touched the live path) and import-check
+    if repo_str not in sys.path:
+        sys.path.insert(0, repo_str)
+    ok, err = _try_import_unidepth()
+    info["installed_now"] = ok
+    info["import_error"] = err
+    # light-dep import sanity (these are the actual import-time requirements of unidepth)
+    info["light_deps"] = {n: import_ok(n) for n in ("einops", "timm", "huggingface_hub")}
+    OUT["deps"] = info
     return info
 
 
 def load_unidepth():
     import torch
+    if "/content/UniDepth" not in sys.path:
+        sys.path.insert(0, "/content/UniDepth")
     from unidepth.models import UniDepthV2
     model = UniDepthV2.from_pretrained(MODEL_ID)
     dev = "cuda" if torch.cuda.is_available() else "cpu"
@@ -571,7 +623,8 @@ try:
         build_review_board(reports)
     summary = {"status": "db77c_expB_complete" if model is not None else "db77c_expB_unidepth_load_failed",
                "exp_b2_ran": bool(RUN_B2), "pre_registered": TH,
-               "unidepth": OUT["unidepth"], "by_case": {r["case"]: r for r in reports},
+               "unidepth": OUT["unidepth"], "deps": OUT.get("deps", {}),
+               "by_case": {r["case"]: r for r in reports},
                "criterion": "EXP-B1 hold-out residual: p90<2m=wall loosens, p90>5m=wall confirmed",
                "runtime_s": round(time.time() - t0, 2)}
     (REMOTE_OUT / "DB77c_expB_summary.json").write_text(json.dumps(json_safe(summary), indent=2), encoding="utf-8")

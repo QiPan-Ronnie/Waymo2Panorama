@@ -69,10 +69,10 @@ Result summary: **Batteries 1–2 complete + v1.1 metric-clean re-run (measureme
 
 ---
 
-## ⭐ ACTIVE BRIEF — DB-77B (COURSE-CORRECTED 2026-06-06 by mid-term review wf_0f49813b-238)
+## DB-77C (EXPLORED / CLOSED 2026-06-06) — superseded by DB-78 (flow view-interp) as the active brief
 
 # DB-77C: Honest thin-band seam harmonizer (geometry-faithful where observable; learned seam-harmonize where presentation-only; abstain otherwise)
-Status: **ACTIVE** (2026-06-06; was DB-77B "bake-off" — A/B done, hand-built B + StreetCrafter both off the main line). **Phase 0 base-selection DONE — base = `A1_view_none`** (A1/G not better than hard_select in core ROIs; A1 wins on outpaint completeness; A1 outpaint region = generated → `generated_mask`; board `deliverables/base_compare_bmw/`). **Phase 1 STARTING (A1-base leashed seam-clean):** masks {generated / seam-band 8-24px / object-moat protected / ABSTAIN} + Poisson low-freq tone-harmonize on the SAFE band (CPU, local now) + Difix3D+ zero-shot probe (A100, gated, **tell user before burning**); near-field object ghost zones (lower-center BMW/SUV edge + right curb-wall-base) = **hard-ABSTAIN, never harmonized**. One active brief.
+Status: **EXPLORED / CLOSED** (2026-06-06; was DB-77B "bake-off" — A/B done, hand-built B + StreetCrafter both off the main line). **Phase 0 base-selection DONE — base = `A1_view_none`** (A1/G not better than hard_select in core ROIs; A1 wins on outpaint completeness; A1 outpaint region = generated → `generated_mask`; board `deliverables/base_compare_bmw/`). **Phase 1 STARTING (A1-base leashed seam-clean):** masks {generated / seam-band 8-24px / object-moat protected / ABSTAIN} + Poisson low-freq tone-harmonize on the SAFE band (CPU, local now) + Difix3D+ zero-shot probe (A100, gated, **tell user before burning**); near-field object ghost zones (lower-center BMW/SUV edge + right curb-wall-base) = **hard-ABSTAIN, never harmonized**. One active brief.
 Route: B (plausible renderer) — but **ADOPT/FINE-TUNE a learned LiDAR-conditioned backbone instead of hand-building it.**
 
 **Why course-corrected (mid-term review findings — verified):**

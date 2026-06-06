@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-06-06T13:36:59.438947+00:00",
+  "created_utc": "2026-06-06T13:49:53.778900+00:00",
   "status": "db77c_expB_unidepth",
   "brief": "DB-77C EXP-B: UniDepthV2 dense metric depth replaces nearest-neighbour LiDAR densification, re-fed to IBR",
   "scope": {
@@ -23,26 +23,26 @@
   "runtime": {
     "secret_source_kind": "non_repo_file",
     "status": {
-      "runtime_type": "colab-gpu",
       "version": "0.1.0a1",
-      "active_jobs": 0,
-      "gpu_name": "NVIDIA A100-SXM4-40GB"
+      "gpu_name": "NVIDIA A100-SXM4-40GB",
+      "runtime_type": "colab-gpu",
+      "active_jobs": 0
     }
   },
   "job": {
     "cwd": "/content",
-    "duration_s": 21.505052089691162,
-    "elapsed_s": 21.505052089691162,
+    "duration_s": 58.51401710510254,
+    "elapsed_s": 58.51401710510254,
     "exit_code": 0,
-    "finished_at": 1780753011.2784483,
-    "job_id": "a1ea1765556e4ebea61cae0bc03a2208",
-    "started_at": 1780752989.7733963,
+    "finished_at": 1780753744.8318477,
+    "job_id": "284a111fb13a4debb913fbddf0bf5750",
+    "started_at": 1780753686.3178306,
     "state": "done",
-    "timeout_s": 2000
+    "timeout_s": 2400
   },
   "remote_status": "db77c_expB_completed",
   "summary": {
-    "status": "db77c_expB_unidepth_load_failed",
+    "status": "db77c_expB_complete",
     "exp_b2_ran": false,
     "pre_registered": {
       "depth_min_m": 1.5,
@@ -58,32 +58,67 @@
     },
     "unidepth": {
       "model_id": "lpiccinelli/unidepth-v2-vitl14",
-      "infer_path": null,
-      "loaded": false,
-      "load_error": {
-        "type": "ModuleNotFoundError",
-        "msg": "ModuleNotFoundError(\"No module named 'unidepth'\")",
-        "trace_tail": "Traceback (most recent call last):\n  File \"<db77c_expB_remote>\", line 441, in <module>\n  File \"<db77c_expB_remote>\", line 119, in load_unidepth\nModuleNotFoundError: No module named 'unidepth'\n"
+      "infer_path": "pinhole_camera",
+      "loaded": true,
+      "device": "cuda"
+    },
+    "deps": {
+      "already": true,
+      "steps": [],
+      "repo": "/content/UniDepth",
+      "installed_now": true,
+      "pkg_dir_exists": true
+    },
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "case": "02a00399_a000_bmw",
+        "n_lidar_pts": 98981,
+        "expB1": {
+          "n_compared": 109237,
+          "p50_m": 0.34415297389578114,
+          "p90_m": 8.688524023413894,
+          "edge_p50_m": 0.9598977979141718,
+          "edge_p90_m": 11.831951645567308,
+          "flat_p50_m": 0.25311082306375354,
+          "flat_p90_m": 6.186742079373499,
+          "verdict": "wall_confirmed_gt5m",
+          "edge_verdict": "wall_confirmed_gt5m"
+        }
+      },
+      "0bae3b5e_a030_clean_far": {
+        "case": "0bae3b5e_a030_clean_far",
+        "n_lidar_pts": 99928,
+        "expB1": {
+          "n_compared": 108597,
+          "p50_m": 0.5817753257195974,
+          "p90_m": 7.627268628201257,
+          "edge_p50_m": 0.8882286169427882,
+          "edge_p90_m": 11.22461290051254,
+          "flat_p50_m": 0.4509683205373989,
+          "flat_p90_m": 5.301745979003055,
+          "verdict": "wall_confirmed_gt5m",
+          "edge_verdict": "wall_confirmed_gt5m"
+        }
       }
     },
-    "by_case": {},
     "criterion": "EXP-B1 hold-out residual: p90<2m=wall loosens, p90>5m=wall confirmed",
-    "runtime_s": 20.81
+    "runtime_s": 57.02
   },
   "fetched_outputs": {
     "summary": {
       "path": "deliverables/db77c_expB_unidepth/DB77c_expB_summary.json",
       "exists": true,
-      "bytes": 991
+      "bytes": 1774
     },
     "remote_result": {
       "path": "deliverables/db77c_expB_unidepth/DB77c_expB_remote_result.json",
       "exists": true,
-      "bytes": 2255
+      "bytes": 2748
     },
     "board": {
       "path": "deliverables/db77c_expB_unidepth/DB77c_expB_review_board.jpg",
-      "exists": false
+      "exists": true,
+      "bytes": 1716951
     },
     "claim": {
       "path": "deliverables/db77c_expB_unidepth/DB77c_expB_claim.json",
@@ -92,19 +127,23 @@
     },
     "bmw_depth_board": {
       "path": "deliverables/db77c_expB_unidepth/fetch/02a00399_a000_bmw_expB1_depth_board.jpg",
-      "exists": false
+      "exists": true,
+      "bytes": 799976
     },
     "clean_depth_board": {
       "path": "deliverables/db77c_expB_unidepth/fetch/0bae3b5e_a030_clean_far_expB1_depth_board.jpg",
-      "exists": false
+      "exists": true,
+      "bytes": 955005
     },
     "bmw_resid_json": {
       "path": "deliverables/db77c_expB_unidepth/fetch/02a00399_a000_bmw_expB1_residual.json",
-      "exists": false
+      "exists": true,
+      "bytes": 3486
     },
     "clean_resid_json": {
       "path": "deliverables/db77c_expB_unidepth/fetch/0bae3b5e_a030_clean_far_expB1_residual.json",
-      "exists": false
+      "exists": true,
+      "bytes": 3479
     },
     "bmw_b2_board": {
       "path": "deliverables/db77c_expB_unidepth/fetch/02a00399_a000_bmw_expB2_roi_board.jpg",
