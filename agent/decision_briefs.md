@@ -177,3 +177,18 @@ Result summary: TBD — Phase 0 bake-off + gate decision; archive to progress.md
 - **DB-73** Full-ERP source-derived geometry candidate stack — **diagnostic; rejected as repair** (`geometry_operator_selected_fraction=0.0`).
 - **DB-74** Temporal/multiframe raw-source candidate stack — **diagnostic; rejected** (`temporal_selected_fraction=0.0`).
 - **DB-75** Full-ERP seam-band source-mixed presentation fallback — **`presentation_only/source_mixed_not_repair`**; current best *viewable* version only (`soft_r64_a080_g1`, BMW ROI seam energy 95.94→56.20, source-mix 0.1171). User vision override: only softens, does not connect.
+
+
+---
+
+# DB-78: Surround360 flow view-interp on the determinable overlap strip  [Route A / 2D-correspondence]
+Status: EXPLORED — quantitative 5-scene generalization done (2026-06-06, real A100 runs, Read-verified, committed 593edd7).
+Question: Can faithful 2D optical-flow view-interpolation on the FOV-overlap strip make the co-observed seam continuous WITHOUT depth, generalize across scenes, and abstain where ill-posed?
+Hypothesis: flow moves REAL pixels (source-faithful, no-hallucinate) and needs only 2D correspondence (no metric depth) -> the 3x geometry wall (single-center reproject) does NOT apply; mechanism = ring-overlap geometry => scene-independent.
+Why now: geometry reproject route 3x walled (DB-76a/77B/EXP-B); Difix-on-IBR lit-killed (audit a4f7c552); flow-interp is the one architecturally-different, reframe-compatible untested path; already implemented in run_a1_streetview_pipeline.py --mode view.
+Expected evidence: multi-scene edited_frac stability + abstain-rate + far-field-warp (no distortion) + object-gate (no hallucination).
+Kill criteria: flow smears/distorts far field; abstain fails to gate ill-posed regions; gain collapses on some scene type; hallucinates objects (object-gate breach).
+Max scope: 5 staged AV2 logs, --mode view --prealign none, A100 via ColabClient; secret non-repo only; secret-scan 0.
+Vision check: per-scene overlap-band boards (on Drive); NOTE: NOT yet vision-verified by the main agent this session (env cannot render images) -> needs a vision subagent / user eyeball.
+Output location: deliverables/db78_flow_viewinterp/generalization/ (quantitative_5scene_diags.json + GENERALIZATION_REPORT.md + case_inventory.json).
+Result: QUANTITATIVE multi-scene WIN (Read-verified). edited_frac STABLE 2.47-2.78% across all 5 scene types (highway/curb/clean/dense-ped/crowd) = scene-independent gain; far-field warp p90 <= 0.22px, frac_warp <= 0.66% = no distortion / no-hallucination; obj_frac/abstain 3.5-6.8% scales with object density = content-adaptive safety. CAVEATS: structural metrics only (per-scene seam VISUAL quality not vision-verified); --prealign none flow input is RGB but obj/ground still uses LiDAR (fully-no-LiDAR A/B NOT isolated); >5 logs + Waymo = DATA step for Bosch/paper bar. Full record: progress.md 2026-06-06 entries.
