@@ -21,9 +21,48 @@ Result summary: TBD -> archive factual details to progress.md when done; keep on
 
 ---
 
-## ⭐ ACTIVE BRIEF (2026-06-06) — read `agent/2026-06-06-leader-strategy-synthesis.md` FIRST
+## ⭐⭐ ACTIVE BRIEF (2026-06-06 v2) — read `agent/2026-06-06-deep-retrospective.md` FIRST (supersedes the v1 active brief below)
 
-> Direction is LOCKED (see the leader strategy synthesis): main line = source-faithful **multi-center mosaic + provenance/risk/abstain data contract + dual-format (raw canonical + ERP derived view)**; seam = labeled provenance boundary, not always a defect; **abstain is a valid output**. Theory = two self-owned lemmas (occlusion non-identifiability + textureless rank-deficiency), NOT a misread plenoptic citation. DB75 stays permanently `presentation_only`.
+> **Deep retrospective (19-agent workflow `wf_789ffbb7-1a7`) reset the priorities.** Root cause of the churn = the **source-faithful(A) vs look-good(B) fork was never resolved and we built under BOTH**. User decision (2026-06-06): **layer BOTH — A = canonical training-safe floor; B = a SEPARATE labeled presentation layer on top, never mixed into training truth.** Also found: the "3 geometry walls" are **~1.5 + 1 mislabeled** — DB-77B p90 15.4/12.8m is partly an NN-fill metric artifact scored across occlusion edges; DB-76a false-GREEN is rotation-only (no-depth baseline); only **EXP-B UniDepth** is a clean confirm (wall real at SILHOUETTES, over-credited on SURFACES). → settle the wall with a FAIR metric BEFORE any A100. User: **run DB-79 first, hold the A100.**
+
+# DB-79: Fair-metric wall settlement — layered/edge-aware hold-out depth + camera-native z-buffer + depth-aware LOO (measurement-only, kill-or-cleanly-reopen the depth route)
+Status: **proposed → active** (next to run). Route: A (source-faithful measurement) — fork-agnostic: the result is needed under BOTH the A floor and the B layer.
+
+**Question:** After removing the two VERIFIED measurement confounds — (i) near-wins-per-pixel NN-densify (`scatter_depth argsort(-dd)` + `distance_transform_edt`) scored at held-out LiDAR pixels ACROSS occlusion steps; (ii) the rotation-only no-depth LOO baseline (`convergence_distance_m=None`) — does the source-faithful near-field depth route **reopen on SURFACES** (curb/wall/facade p90 → <0.5–1m), or is the real residual **confined to occlusion SILHOUETTES** where Lemma A makes abstain the honest ceiling?
+
+**Hypothesis:** On smooth surfaces a layered/edge-aware, **LiDAR-only** densifier scored against held-out LiDAR drops curb/wall/facade p90 from ~12–15m to **<0.5–1m** (one near-field ERP pixel subtends ~1–4cm, so a metres-scale surface residual cannot be physical — it is the NN-fill artifact), while a residual tail persists **only at occlusion silhouettes**. EXP-B (UniDepthV2 hold-out, edge p90 11.8/11.2m, median scale 0.92–1.05) predicts the silhouette tail survives. ⇒ most defensible outcome: surfaces clean up, silhouettes stay walled (abstain vindicated with a FAIR on-disk artifact).
+
+**Why now:** the retrospective found the depth route may have been partly **mis-killed on a confounded number**; this is the single biggest UNVERIFIED load-bearing claim and the cheapest to settle (CPU). It also gates whether the B presentation layer can geometry-anchor a seam-dissolve on surfaces or must abstain there. Settle it before spending A100 on 3DGS / generative.
+
+**Expected evidence (measurement-only, NO RGB repair):**
+- Replace `scatter_depth` single-near-wins with a **layered/LDI hold-out**: score each held-out LiDAR test point against the NEAREST of the stored depth layers at its ERP pixel (kills the far-vs-near scoring artifact).
+- Densify **LiDAR-ONLY** (exclude stereo-SGBM from `Zd_tr` so silhouette SGBM error is not blamed on the densifier); add a **low-local-depth-gradient (single-surface) mask**; report **surface vs silhouette residuals SEPARATELY** (this split is the headline output).
+- Build a **camera-native z-buffer** (rasterize fused geometry into each camera's native image grid; replace the ERP-ray-only seeding at `db77b:294-300`); re-run **DB-76a Battery-1 LOO with `convergence_distance_m = fused Zd`** (N1 mode exists in `sphere_projection.py`) and report **depth-aware false-GREEN beside the 0.373/0.223 no-depth numbers**.
+- Strict **dynamic removal (boxes)** before accumulation; bucket dynamic/reflective/saturated separately.
+
+**Pre-registered thresholds (SET BEFORE RUN; failure does NOT relax them):** report as **occlusion-edge-fraction + abstain mass + surface-p90 + silhouette-p90**, NOT one global depth percentile. "Reopened on surfaces" requires surface p90 **<1m** AND depth-aware curb/wall LOO **<3px** AND independent LiDAR-only densify p90 at those edges **<1–2m**. Cross-check against EXP-B (which already says the edge residual is real).
+
+**Kill criteria:**
+- Surface p90 stays **>2m** after the layered + LiDAR-only fix → wall **CONFIRMED with a fair metric**; close the depth-repair route, ship DB-78 + abstain, **stop re-testing geometry** (this "wall confirmed honestly" is itself a deliverable).
+- Depth-aware false-GREEN drops but curb/wall densify p90 stays **>2m** → the gain is only where LiDAR already returns (road interior), NOT the textureless edges that drive the seam → do **NOT** declare the route reopened.
+- Any RGB repair / final blend-warp pano / generation / inpaint / model-confidence-as-truth / secret written → **out of scope, stop.**
+- Becomes a measurement campaign beyond BMW+0bae (then 3–5 AV2 + 1 Waymo) → stop & report.
+
+**Max scope:** measurement only; reuse the existing AV2+Waymo hold-out harness. Fixed cases BMW `02a00399:0` + clean `0bae3b5e:30` FIRST; the metric-artifact argument is scene-independent, so a cleaned number must then be checked on ≥3–5 AV2 + ≥1 Waymo before any contract-level claim. **Compute: mostly CPU/L4** (no-depth batteries ran 12s; DB-76b 59s) — **NO A100 (hold it).** Tell the user before any runtime; route every remote/PowerShell result to a **non-repo file + Read-verify** (fabrication caveat — do NOT trust PowerShell echo / Glob "no files" / Edit-success text); secret-scan must be 0; secrets read only from env/non-repo file.
+
+**Required vision check:** vision-check the depth-aware LOO render-back overlays per case — **a lower number with a visibly smeared curb/wall is still a FAIL** (eyes-over-metrics). Board: full ERP + the 4 marked ROIs + surface-vs-silhouette residual heatmaps + depth-aware-vs-no-depth false-GREEN overlay.
+
+**Output location:** `deliverables/db79_fair_metric_wall/` (layered hold-out residual JSONs split surface/silhouette, camera-native z-buffer LOO, depth-aware false-GREEN table, review boards, manifest, pre-registered-thresholds JSON, kill/confirm verdict).
+
+**Parallel (no compute, user/leader):** resolve the 5 Bosch format questions (`strategy §10`) + confirm B's consumer (world-model vs demo) + whether OFFLINE per-log reconstruction is an acceptable general deliverable (gates the later 3DGS dynamic-actor de-ghost). These do not block DB-79.
+
+**Follow-ons (NOT active — open each as its own brief, gated on DB-79 + the fork):** (B-layer) geometry-leashed single-step refiner on the DB-78 seam band — benchmark **Percep360** FIRST, add a structure-hallucination guard beyond the object veto (DB36/DB40 prove object-gate-PASS still fakes ground/curb/pole), HARD-abstain the no-geometry near-ground; (offline, if fork allows) per-log **canonical dynamic-actor render** (OmniRe/DeSiRe-GS static/dynamic split) to kill the moving-object ghost — verify SplatAD AV2 support + 40GB fit BEFORE any A100, A/B vs DB-78 with a hard vision-gate for GS blur.
+
+---
+
+## ⭐ ACTIVE BRIEF (2026-06-06 v1 — SUPERSEDED by DB-79 above; kept for route continuity) — read `agent/2026-06-06-leader-strategy-synthesis.md`
+
+> Direction is LOCKED (see the leader strategy synthesis): main line = source-faithful **multi-center mosaic + provenance/risk/abstain data contract + dual-format (raw canonical + ERP derived view)**; seam = labeled provenance boundary, not always a defect; **abstain is a valid output**. Theory = two self-owned lemmas (occlusion non-identifiability + textureless rank-deficiency), NOT a misread plenoptic citation. DB75 stays permanently `presentation_only`. **NOTE (2026-06-06 v2): the look-good reframe is now LAYERED on top per the user's "both" decision — A stays the canonical training-safe floor; B is a separate labeled presentation layer. The deep-retrospective doc is the current read-first.**
 
 # DB-76a: Calibrated GREEN reliability + stereo/temporal coverage audit (algorithm FOUNDATION; measurement-only, no RGB repair)
 Status: **COMPLETE / closing** — all 4 batteries DONE (2026-06-06): ①② CPU, ③ A100 forward-stereo, ④ L4 multi-frame LiDAR. Conclusion: source-faithful single-centre repair hits a physical wall (forward-stereo recovers ~1%; multi-frame LiDAR = mid geometry base 11-18%, <25% bar). → **DB-77B (Branch B leashed renderer) becomes the next active brief.**
