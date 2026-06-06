@@ -1,0 +1,33 @@
+{
+  "high_error_definition": {
+    "geometry_reproj_px_normal": 3.0,
+    "geometry_reproj_px_protected": 2.0,
+    "color_dE_lab_cv2_units": 25.0,
+    "color_dE_note": "cv2 LAB units (~2.55x CIE dE76); ~ dE76 10. Secondary channel.",
+    "textureless_note": "textureless regions: photometric unreliable -> bucketed by visibility/coverage, NOT scored photometric",
+    "high_error_rule": "co-observed GREEN pixel is high-error if tile_disp_px > px_threshold(structure) OR dE_lab > color_dE"
+  },
+  "green_accepted": {
+    "overall_high_error_max": 0.03,
+    "critical_structure_high_error_max": 0.01,
+    "p95_residual_px_max": 3.0,
+    "critical_structure_def": "lane | curb | wall_base proxy"
+  },
+  "stereo_temporal_build_worthy": {
+    "abstain_band_converted_min": 0.25,
+    "task_valid_validated_green_min": 0.08,
+    "require_no_protected_failure": true
+  },
+  "contract_as_main_deliverable": {
+    "task_valid_abstain_gt": 0.1,
+    "driving_critical_abstain_gt": 0.05,
+    "continuous_seam_abstain_gt": 0.25,
+    "green_high_error_gt_without_risk_calibration": 0.03
+  },
+  "kill_criteria": {
+    "green_false_rate_gt": 0.05,
+    "stereo_band_coverage_lt": 0.1,
+    "temporal_validated_coverage_lt": 0.05,
+    "risk_not_loo_calibrated_means_heuristic": true
+  }
+}

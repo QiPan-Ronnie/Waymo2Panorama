@@ -1,0 +1,402 @@
+{
+  "phase": "db76a_battery1_battery2_measurement_only",
+  "started_utc": "2026-06-06T07:52:36Z",
+  "scope": {
+    "cases": [
+      "02a00399:0:bmw",
+      "0bae3b5e:30:clean_far"
+    ],
+    "rgb_repair": false,
+    "db75_tuning": false,
+    "blend_or_warp_final_pano": false,
+    "model_inference": false,
+    "vggt_pi3": false,
+    "dit_flux_3dgs": false,
+    "generation_inpaint": false,
+    "source_replacement": false,
+    "red_promotion": false,
+    "measurement_only": true
+  },
+  "secret_policy": "runtime secret used only by local executor client; remote receives no token",
+  "dependency": {
+    "av2_import_after": true,
+    "cv2": true
+  },
+  "workdir_found": true,
+  "status": "db76a_completed",
+  "summary": {
+    "status": "db76a_battery1_battery2_complete",
+    "measurement_only": true,
+    "source_faithful_repair_claim_allowed": false,
+    "pre_registered_thresholds": {
+      "high_error_definition": {
+        "geometry_reproj_px_normal": 3.0,
+        "geometry_reproj_px_protected": 2.0,
+        "color_dE_lab_cv2_units": 25.0,
+        "color_dE_note": "cv2 LAB units (~2.55x CIE dE76); ~ dE76 10. Secondary channel.",
+        "textureless_note": "textureless regions: photometric unreliable -> bucketed by visibility/coverage, NOT scored photometric",
+        "high_error_rule": "co-observed GREEN pixel is high-error if tile_disp_px > px_threshold(structure) OR dE_lab > color_dE"
+      },
+      "green_accepted": {
+        "overall_high_error_max": 0.03,
+        "critical_structure_high_error_max": 0.01,
+        "p95_residual_px_max": 3.0,
+        "critical_structure_def": "lane | curb | wall_base proxy"
+      },
+      "stereo_temporal_build_worthy": {
+        "abstain_band_converted_min": 0.25,
+        "task_valid_validated_green_min": 0.08,
+        "require_no_protected_failure": true
+      },
+      "contract_as_main_deliverable": {
+        "task_valid_abstain_gt": 0.1,
+        "driving_critical_abstain_gt": 0.05,
+        "continuous_seam_abstain_gt": 0.25,
+        "green_high_error_gt_without_risk_calibration": 0.03
+      },
+      "kill_criteria": {
+        "green_false_rate_gt": 0.05,
+        "stereo_band_coverage_lt": 0.1,
+        "temporal_validated_coverage_lt": 0.05,
+        "risk_not_loo_calibrated_means_heuristic": true
+      }
+    },
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "case": "02a00399_a000_bmw",
+        "battery1_green_reliability": {
+          "version": "v1.1",
+          "green_pixels": 574953,
+          "co_observed_green_pixels": 88288,
+          "co_observed_fraction_of_green": 0.1535568994335189,
+          "measurable_fraction_of_co_observed": 0.6149873142442914,
+          "disp_unreliable_fraction_of_co_observed": 0.12502265313519392,
+          "green_false_rate_geom": 0.3733608368940622,
+          "critical_structure_geom_false_rate": 0.3759907529722589,
+          "photometric_tone_seam_rate": 0.1686752446538601,
+          "green_false_rate_combined_reference": 0.33670487495469376,
+          "disp_px_percentiles": {
+            "p50": 1.2275609970092773,
+            "p90": 5.161532402038574,
+            "p95": 6.886661052703857,
+            "p99": 11.723247528076172
+          },
+          "dE_lab_percentiles": {
+            "p50": 11.704699516296387,
+            "p90": 40.767635345458984,
+            "p95": 66.77799186706534,
+            "p99": 115.6890209198001
+          },
+          "by_structure_geom": {
+            "lane": {
+              "co_observed_px": 48898,
+              "measurable_px": 34326,
+              "geom_false_rate": 0.3563770902522869,
+              "tone_seam_rate": 0.1925027608491145
+            },
+            "curb": {
+              "co_observed_px": 6580,
+              "measurable_px": 4529,
+              "geom_false_rate": 0.6248620004415986,
+              "tone_seam_rate": 0.5503039513677812
+            },
+            "wall_base": {
+              "co_observed_px": 9856,
+              "measurable_px": 6771,
+              "geom_false_rate": 0.5124796928075617,
+              "tone_seam_rate": 0.46915584415584416
+            },
+            "low_texture": {
+              "co_observed_px": 52238,
+              "measurable_px": 29991,
+              "geom_false_rate": 0.32233003234303625,
+              "tone_seam_rate": 0.07000650867184809
+            },
+            "saturated": {
+              "co_observed_px": 14504,
+              "measurable_px": 9810,
+              "geom_false_rate": 0.29806320081549437,
+              "tone_seam_rate": 0.11776061776061776
+            }
+          },
+          "measurable_tiles_fraction_full_erp": 0.03021240234375
+        },
+        "battery2_abstain_mass": {
+          "task_valid_band_rows": [
+            387,
+            663
+          ],
+          "abstain_full_erp": 0.7258410453796387,
+          "abstain_task_valid_band": 0.030617173398014442,
+          "abstain_weighted_task_band": 0.022360563278198242,
+          "coverage_histogram_full_erp": {
+            "count0_abstain": 0.7258410453796387,
+            "count1_single_source": 0.23205995559692383,
+            "count2": 0.0420989990234375,
+            "count3plus_co_observed": 0.0
+          },
+          "coverage_histogram_task_band": {
+            "count0_abstain": 0.030617173398014442,
+            "count1_single_source": 0.8137674159521661,
+            "count2plus_co_observed": 0.15561541064981949
+          }
+        },
+        "go_no_go": {
+          "green_accepted": false,
+          "kill_green_false_rate_hit": true,
+          "contract_as_main_indicated": true,
+          "risk_label": "heuristic_uncalibrated",
+          "green_false_rate_geom": 0.3733608368940622,
+          "critical_structure_geom_false_rate": 0.3759907529722589,
+          "photometric_tone_seam_rate": 0.1686752446538601,
+          "disp_px_p95": 6.886661052703857,
+          "proceed_to_batteries_3_4": true
+        },
+        "marked_rois": {
+          "left_road_patch": {
+            "box": [
+              250,
+              515,
+              460,
+              715
+            ],
+            "co_observed_green_px": 6139,
+            "measurable_px": 4920,
+            "geom_false_rate": 0.5792682926829268,
+            "tone_seam_rate": 0.3384916110115654,
+            "abstain_fraction": 0.2846190476190476,
+            "single_source_fraction": 0.5692142857142857,
+            "co_observed_fraction": 0.14616666666666667,
+            "disp_px_p95": 5.468390941619873
+          },
+          "lower_center_road_patch": {
+            "box": [
+              740,
+              595,
+              1035,
+              745
+            ],
+            "co_observed_green_px": 3590,
+            "measurable_px": 2561,
+            "geom_false_rate": 0.22491214369386958,
+            "tone_seam_rate": 0.2203342618384401,
+            "abstain_fraction": 0.48906214689265537,
+            "single_source_fraction": 0.42980790960451976,
+            "co_observed_fraction": 0.08112994350282486,
+            "disp_px_p95": 2.153625965118408
+          },
+          "center_lane_marking": {
+            "box": [
+              1030,
+              515,
+              1325,
+              735
+            ],
+            "co_observed_green_px": 7940,
+            "measurable_px": 3504,
+            "geom_false_rate": 0.6712328767123288,
+            "tone_seam_rate": 0.19345088161209067,
+            "abstain_fraction": 0.27773497688751925,
+            "single_source_fraction": 0.5999229583975346,
+            "co_observed_fraction": 0.12234206471494607,
+            "disp_px_p95": 6.886661052703857
+          },
+          "right_curb_sidewalk_wall_base": {
+            "box": [
+              1300,
+              500,
+              1575,
+              760
+            ],
+            "co_observed_green_px": 8301,
+            "measurable_px": 3549,
+            "geom_false_rate": 0.0,
+            "tone_seam_rate": 0.13938079749427779,
+            "abstain_fraction": 0.3546013986013986,
+            "single_source_fraction": 0.5293006993006993,
+            "co_observed_fraction": 0.11609790209790209,
+            "disp_px_p95": 1.8744958639144897
+          }
+        }
+      },
+      "0bae3b5e_a030_clean_far": {
+        "case": "0bae3b5e_a030_clean_far",
+        "battery1_green_reliability": {
+          "version": "v1.1",
+          "green_pixels": 575143,
+          "co_observed_green_pixels": 88415,
+          "co_observed_fraction_of_green": 0.153726986158225,
+          "measurable_fraction_of_co_observed": 0.6510886161850364,
+          "disp_unreliable_fraction_of_co_observed": 0.12782898829384154,
+          "green_false_rate_geom": 0.22315255532779765,
+          "critical_structure_geom_false_rate": 0.2621940856560163,
+          "photometric_tone_seam_rate": 0.4041848102697506,
+          "green_false_rate_combined_reference": 0.48371882599106486,
+          "disp_px_percentiles": {
+            "p50": 1.4155033826828003,
+            "p90": 4.147709846496582,
+            "p95": 5.750206470489502,
+            "p99": 10.530324935913086
+          },
+          "dE_lab_percentiles": {
+            "p50": 19.313207626342773,
+            "p90": 53.122501373291016,
+            "p95": 73.83088684082031,
+            "p99": 113.91663360595703
+          },
+          "by_structure_geom": {
+            "lane": {
+              "co_observed_px": 31217,
+              "measurable_px": 21444,
+              "geom_false_rate": 0.26007274762171234,
+              "tone_seam_rate": 0.5327866226735433
+            },
+            "curb": {
+              "co_observed_px": 5981,
+              "measurable_px": 4010,
+              "geom_false_rate": 0.4690773067331671,
+              "tone_seam_rate": 0.6100986457114195
+            },
+            "wall_base": {
+              "co_observed_px": 8917,
+              "measurable_px": 6296,
+              "geom_false_rate": 0.34529860228716647,
+              "tone_seam_rate": 0.5227094314231243
+            },
+            "low_texture": {
+              "co_observed_px": 38426,
+              "measurable_px": 23382,
+              "geom_false_rate": 0.218501411342058,
+              "tone_seam_rate": 0.34747306511216364
+            },
+            "saturated": {
+              "co_observed_px": 6239,
+              "measurable_px": 4338,
+              "geom_false_rate": 0.11226371599815584,
+              "tone_seam_rate": 0.3460490463215259
+            }
+          },
+          "measurable_tiles_fraction_full_erp": 0.03131103515625
+        },
+        "battery2_abstain_mass": {
+          "task_valid_band_rows": [
+            390,
+            665
+          ],
+          "abstain_full_erp": 0.7257504463195801,
+          "abstain_task_valid_band": 0.028592759284420288,
+          "abstain_weighted_task_band": 0.02613048441708088,
+          "coverage_histogram_full_erp": {
+            "count0_abstain": 0.7257504463195801,
+            "count1_single_source": 0.23208999633789062,
+            "count2": 0.0421595573425293,
+            "count3plus_co_observed": 0.0
+          },
+          "coverage_histogram_task_band": {
+            "count0_abstain": 0.028592759284420288,
+            "count1_single_source": 0.8151926234148551,
+            "count2plus_co_observed": 0.15621461730072464
+          }
+        },
+        "go_no_go": {
+          "green_accepted": false,
+          "kill_green_false_rate_hit": true,
+          "contract_as_main_indicated": true,
+          "risk_label": "heuristic_uncalibrated",
+          "green_false_rate_geom": 0.22315255532779765,
+          "critical_structure_geom_false_rate": 0.2621940856560163,
+          "photometric_tone_seam_rate": 0.4041848102697506,
+          "disp_px_p95": 5.750206470489502,
+          "proceed_to_batteries_3_4": true
+        },
+        "marked_rois": {
+          "left_road_patch": {
+            "box": [
+              250,
+              515,
+              460,
+              715
+            ],
+            "co_observed_green_px": 6250,
+            "measurable_px": 3568,
+            "geom_false_rate": 0.08015695067264574,
+            "tone_seam_rate": 0.21344,
+            "abstain_fraction": 0.26754761904761903,
+            "single_source_fraction": 0.5836428571428571,
+            "co_observed_fraction": 0.1488095238095238,
+            "disp_px_p95": 3.146230936050415
+          },
+          "lower_center_road_patch": {
+            "box": [
+              740,
+              595,
+              1035,
+              745
+            ],
+            "co_observed_green_px": 3501,
+            "measurable_px": 638,
+            "geom_false_rate": 0.0,
+            "tone_seam_rate": 0.06740931162524993,
+            "abstain_fraction": 0.47821468926553673,
+            "single_source_fraction": 0.44266666666666665,
+            "co_observed_fraction": 0.0791186440677966,
+            "disp_px_p95": 0.6260117292404175
+          },
+          "center_lane_marking": {
+            "box": [
+              1030,
+              515,
+              1325,
+              735
+            ],
+            "co_observed_green_px": 8379,
+            "measurable_px": 4656,
+            "geom_false_rate": 0.0743127147766323,
+            "tone_seam_rate": 0.6999641962047977,
+            "abstain_fraction": 0.2863020030816641,
+            "single_source_fraction": 0.5845916795069337,
+            "co_observed_fraction": 0.12910631741140216,
+            "disp_px_p95": 2.6158945560455322
+          },
+          "right_curb_sidewalk_wall_base": {
+            "box": [
+              1300,
+              500,
+              1575,
+              760
+            ],
+            "co_observed_green_px": 7817,
+            "measurable_px": 3765,
+            "geom_false_rate": 0.40292164674634795,
+            "tone_seam_rate": 0.20007675578866574,
+            "abstain_fraction": 0.35945454545454547,
+            "single_source_fraction": 0.5312167832167832,
+            "co_observed_fraction": 0.10932867132867133,
+            "disp_px_p95": 5.331061363220215
+          }
+        }
+      }
+    },
+    "proceed_to_batteries_3_4": true,
+    "kill_green_false_rate_hit_any": true,
+    "risk_label": "heuristic_uncalibrated",
+    "scope": {
+      "cases": [
+        "02a00399:0:bmw",
+        "0bae3b5e:30:clean_far"
+      ],
+      "rgb_repair": false,
+      "db75_tuning": false,
+      "blend_or_warp_final_pano": false,
+      "model_inference": false,
+      "vggt_pi3": false,
+      "dit_flux_3dgs": false,
+      "generation_inpaint": false,
+      "source_replacement": false,
+      "red_promotion": false,
+      "measurement_only": true
+    },
+    "runtime_s": 12.21
+  },
+  "ended_utc": "2026-06-06T07:52:48Z"
+}

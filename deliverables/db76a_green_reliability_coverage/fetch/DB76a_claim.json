@@ -1,0 +1,11 @@
+{
+  "brief": "DB-76a",
+  "classification": "measurement_only_green_reliability_and_abstain_mass",
+  "rgb_repair": false,
+  "db75_tuning": false,
+  "source_faithful_repair": false,
+  "bosch_training_ready": false,
+  "red_promotion": false,
+  "loo_validates_co_observed_green_only": true,
+  "risk_is": "heuristic_uncalibrated_not_conformal"
+}

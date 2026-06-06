@@ -1,0 +1,66 @@
+{
+  "left_road_patch": {
+    "box": [
+      250,
+      515,
+      460,
+      715
+    ],
+    "co_observed_green_px": 6139,
+    "measurable_px": 4920,
+    "geom_false_rate": 0.5792682926829268,
+    "tone_seam_rate": 0.3384916110115654,
+    "abstain_fraction": 0.2846190476190476,
+    "single_source_fraction": 0.5692142857142857,
+    "co_observed_fraction": 0.14616666666666667,
+    "disp_px_p95": 5.468390941619873
+  },
+  "lower_center_road_patch": {
+    "box": [
+      740,
+      595,
+      1035,
+      745
+    ],
+    "co_observed_green_px": 3590,
+    "measurable_px": 2561,
+    "geom_false_rate": 0.22491214369386958,
+    "tone_seam_rate": 0.2203342618384401,
+    "abstain_fraction": 0.48906214689265537,
+    "single_source_fraction": 0.42980790960451976,
+    "co_observed_fraction": 0.08112994350282486,
+    "disp_px_p95": 2.153625965118408
+  },
+  "center_lane_marking": {
+    "box": [
+      1030,
+      515,
+      1325,
+      735
+    ],
+    "co_observed_green_px": 7940,
+    "measurable_px": 3504,
+    "geom_false_rate": 0.6712328767123288,
+    "tone_seam_rate": 0.19345088161209067,
+    "abstain_fraction": 0.27773497688751925,
+    "single_source_fraction": 0.5999229583975346,
+    "co_observed_fraction": 0.12234206471494607,
+    "disp_px_p95": 6.886661052703857
+  },
+  "right_curb_sidewalk_wall_base": {
+    "box": [
+      1300,
+      500,
+      1575,
+      760
+    ],
+    "co_observed_green_px": 8301,
+    "measurable_px": 3549,
+    "geom_false_rate": 0.0,
+    "tone_seam_rate": 0.13938079749427779,
+    "abstain_fraction": 0.3546013986013986,
+    "single_source_fraction": 0.5293006993006993,
+    "co_observed_fraction": 0.11609790209790209,
+    "disp_px_p95": 1.8744958639144897
+  }
+}

@@ -1,10 +1,10 @@
 # Decision Briefs — ACTIVE experiment queue for Waymo2Panorama
 
-This file is the **direction/decision gate**, and it holds ONLY **active / pending / in-progress** briefs.
+This file is the **direction/decision gate**. It holds active / pending / in-progress briefs plus compact closed-brief pointers when useful for route continuity. The full factual archive belongs in `agent/progress.md`.
 
 **Protocol (user-set 2026-06-03):**
 - Before starting ANY new experiment direction, create/update a brief here. Each brief MUST carry **Kill criteria** + **Max scope** (the load-bearing fields). This project's recurring failure mode is patch-on-patch on a "promising" direction until it's NEG — the brief is the entry gate that stops that.
-- When a brief is **DONE** (accepted / rejected / explored / closed): **archive its conclusion into `agent/progress.md`**, mark it done, then **DELETE it from this file.** `progress.md` is the permanent record; this file stays a short live queue.
+- When a brief is **DONE** (accepted / rejected / explored / closed): **archive the factual conclusion into `agent/progress.md`**, mark the brief done, and keep only a compact result pointer here unless the queue is being explicitly pruned. `progress.md` is the permanent record; this file remains the decision/route gate and must not imply a closed brief is still active.
 - **Completed briefs DB-01..13 (through 2026-06-03) are archived** in `progress.md` → entry "DECISION-BRIEF ARCHIVE". The accepted source-faithful deliverable = `scripts/phase3/_seamroute.py` (align + object-moat min-cut seam + virtual-centre select), now with the **BEV ground atlas** road layer adopted (`_bev_ground.py` → `SR_bmw_bevfinal_1024x2048.png`). Residual floors: off-plane curb, out-of-FoV black — physical/hardware.
 
 Status values: `proposed` / `running` / `explored` / `accepted` / `rejected` / `paused`.
@@ -16,47 +16,60 @@ Status: proposed / running / explored / accepted / rejected / paused
 Route: A (geometry) | B (generative) | infra | sidestep
 Question: ... / Hypothesis: ... / Why now: ... / Expected evidence: ...
 Kill criteria: ... / Max scope: ... / Required vision check: ...
-Result summary: TBD → archive to progress.md when done, then delete here.
+Result summary: TBD -> archive factual details to progress.md when done; keep only a compact decision pointer here.
 ```
-
-> **DONE THIS SESSION (2026-06-03, A100) — full record in `progress.md` (top "DiT360 SESSION SYNTHESIS" entry); kept here only as pointers so this queue stays short:**
-> - **DB-44 Layer-aware seam routing / EGSR dispatcher v0** = **ACCEPTED dry-run gate**: mapped 29 DB43 known cases into layer/evidence/operator/claim components. No operator executed, no RED repair, DB41 right/lower-right abstain, DB32 caveated handoff, G diagnostic only. Results: `deliverables/dit360_v2/db44_layer_aware_dispatcher/`. Detail in progress.md.
-> - **DB-43 Source-Faithfulness Eval v2 / Fake-Geometry Gate + EGSR triage** = **ACCEPTED gate**: built reason-coded known-case manifest/boards and locked DB44 preconditions. DB32 is caveated handoff/source-sidestep, DB41 remains abstain, fake road/curb/lane/slab/pole outputs reject, and G remains diagnostic only. Results: `deliverables/dit360_v2/db43_source_faithfulness_gate/`. Detail in progress.md.
-> - **DB-42 seam decision and Bosch handoff synthesis** = **ACCEPTED**: packaged DB32 as current Bosch handoff candidate with explicit caveats and consolidated DB37-41 negative evidence. Results: `deliverables/dit360_v2/db42_seam_decision_handoff/`. Detail in progress.md.
-> - **DB-41 right-white-line raw-camera evidence gate** = **CLOSED / repair rejected**: exact right/lower-right white-line ROIs fail the source-evidence gate (`right_roi` LiDAR 0.084; `lower_right_roi` LiDAR 0.000), and vision shows no continuous source-faithful white-line/curb geometry. Results: `deliverables/dit360_v2/db41_rightline_evidence_gate/`. Detail in progress.md.
-> - **DB-40 A1/G v14 mask-alignment replay** = **CLOSED / seam repair rejected, root-cause accepted**: A1 keepout proves the right BMW slab/ghost came from candidate/mask mismatch, but the long_source-only A100 rerun generated a pole-like vertical artifact despite object-gate PASS. Do not proceed to G with this v14 DiT360 seam-repair route. Results: `deliverables/dit360_v2/db40_v14_mask_alignment/`. Detail in progress.md.
-> - **DB-39 v14 trimap-clamp replay audit** = **REJECTED as G-family seam solution**: existing exact r008/h016/w025 v14 replay matrix already covers G/BEST/A1; board shows raw/soft/core variants either keep the seam or create vertical slice/slab artifacts. Results: `deliverables/dit360_v2/db39_v14_trimap_replay/`. Detail in progress.md.
-> - **DB-38 Bosch-ready candidate handoff board** = **ACCEPTED DB32 as current handoff candidate with caveats**: board compares G/DB19/DB28/DB32/DB36 under Bosch world-model constraints; DB32 is the defensible source-sidestep handoff, not a fix for original G. Results: `deliverables/dit360_v2/db38_bosch_handoff/`. Detail in progress.md.
-> - **DB-37 Google/Meta seam-mechanism gap audit** = **CLOSED / no new local repair opened**: public Google/Meta/StreetView mechanisms map to reliable overlap/depth/flow/global warp/source selection, all blocked by BMW ROI evidence or already tested by DB11-36. Result: `deliverables/dit360_v2/db37_google_meta_gap_audit/db37_google_meta_gap_audit.md`. Detail in progress.md.
-> - **DB-36 ultra-narrow DiT360 red-line seam mask** = **REJECTED**: one A100 case on G with a 0.816% core mask passed object gate and preserved outside-mask pixels, but vision failed due fake pale ground slabs/black holes. Results: `deliverables/dit360_v2/db36_user_redline_mask/`. Detail in progress.md.
-> - **DB-35 seam-first target board and donor diagnostic** = **REJECTED as repair / evidence accepted**: same-ROI board proved G/BEST/A1/DB14 variants do not solve the user seam; BEST/A1 donor patch does not safely improve the right white-line. Results: `deliverables/dit360_v2/db35_seam_first/`. Detail in progress.md.
-> - **DB-34 current-best DB32 s40 QA and review pack** = **ACCEPTED current-best reference**: fresh object gate PASS (`netnew=0`), non-core/source pixels byte-exact, review board/manifest produced. Results: `deliverables/dit360_v2/db34_current_best_qa/`. Detail in progress.md.
-> - **DB-33 Cube-face local sky-boundary harmonization** = **REJECTED**: source pixels stayed byte-exact, but local boundary variants either gave no improvement over DB-32 s40 or introduced visible sky halos/diagonal color bands in rectilinear review. Results: `deliverables/dit360_v2/db33_local_sky_boundary_harmonize/`. Detail in progress.md.
-> - **DB-32 generated-sky chroma harmonization for a200** = **ACCEPTED with small-gain caveat**: CPU-only color match changes only the DB-29 generated sky core (`noncore_max_abs_diff=0`); best visual tradeoff is `s40`, reducing sky color mismatch without touching source content. Results: `deliverables/dit360_v2/db32_generated_sky_harmonize_v2/`. Detail in progress.md.
-> - **DB-31 multi-log relaxed-clean source candidate scan** = **CLOSED / no successor found**: bounded scan of 22 relaxed-clean candidates plus exact seamroute on top non-BMW candidates did not beat BMW anchor `200`; a200 remains the current source base. Results: `deliverables/dit360_v2/db31_multilog_candidate_scan/`. Detail in progress.md.
-> - **DB-30 sky-panel harmonization for a200** = **REJECTED before DiT**: automatic HSV/connectivity sky-panel mask included building/vehicle/road-adjacent regions; no DiT run. Results: `deliverables/dit360_v2/db30_sky_panel_a200/`. Detail in progress.md.
-> - **DB-29 DiT360 sky-only completion for clean-subset anchor 200** = **ACCEPTED with sky-panel caveat**: object gate PASS (`netnew=0`), black sky band filled, source content preserved, but visible center sky color/panel discontinuity remains. Results: `deliverables/dit360_v2/db29_sky_clean_a200/`. Detail in progress.md.
-> - **DB-28 clean-subset source-boundary candidate mining** = **ACCEPTED source candidate**: strict-clean anchor `200` is a better base than BMW anchor 0 for follow-up sky-only completion; no long mid-frame red-line defect, seamcore risk `5.05%`. Results: `deliverables/dit360_v2/db28_clean_subset_refine/`. Detail in progress.md.
-> - **DB-27 temporal/frame-selection scan** = **EXPLORED / REJECTED for current BMW window**: nearby anchors 20/40 modestly improve LiDAR/risk metrics but remain the same source-label partition and are not clean same-scene replacements. Results: `deliverables/dit360_v2/db27_temporal_frame_scan/`. Detail in progress.md.
-> - **D2 DiT360 seam-completion, WIDE ground-risk mask (5.56%) + tau{20,50}** = **NEG** (object-gate FAIL: invents small cars + melts textureless cuts). → superseded by DB-14 (thin mask). Results: `deliverables/dit360_v2/gr_tau*`.
-> - **D4 DiT360 SKY-ONLY outpaint** = **POSITIVE** (gate-clean upper-hemisphere fill; rooflines byte-exact). → folded into DB-19. Results: `deliverables/dit360_v2/op_sky_t50_s0.png`, `sky_roofline_cmp.jpg`.
-> - **DB-23 DiT360 ground/full outpaint rejudge** = **REJECTED**: ground gate PASS but vision FAIL due fake bottom road/lane/curb geometry; full gate FAIL with net-new `traffic_light`. Results: `deliverables/dit360_v2/db23_d4b_rejudge_montage.jpg`. Detail in progress.md.
-> - **DB-24 Google/Meta-style long-line diagnosis** = **CLOSED explanatory**: the user-marked long line is a source/camera-id boundary in near-ground/dark-wall low-texture regions; Google/Meta-style flow would need reliable correspondences that this ROI does not show yet. Results: `deliverables/dit360_v2/db24_google_meta_line_diag/`. Detail in progress.md.
-> - **DB-25 AV raw-camera evidence pack** = **CLOSED evidence-only**: ROI uses four camera labels, near-ground=62.3%, LiDAR support=9.4%, best pair flow reliable=68.2% but key right dark-wall pair `6-5` only 10.5%; recommendation = abstain from geometry warp. Results: `deliverables/dit360_v2/db25_longline_evidence_fetch/`. Detail in progress.md.
-> - **DB-26 source-safe photometric attenuation** = **REJECTED**: low-frequency color attenuation changed only 1.07% of pano but did not remove the long line and introduced dark-wall color wash/smudge risk. Results: `deliverables/dit360_v2/db26_photometric_fetch/db26_attenuated_roi_montage.jpg`. Detail in progress.md.
-> - **DB-20 DiT360 lever mining** = **MOSTLY SUPERSEDED / CLOSED**: prompt bug fixed, sky generalization accepted, T1 near-ground seam levers paused/rejected after DB-14 + DB-21. Reopen only through a new brief with new evidence.
-> - **DB-19 sky-only combo/generalization** = **ACCEPTED** for BMW + 0bae; 2c65 gate-clean diagnostic with base-slab caveat. Results: `deliverables/dit360_v2/db19_G_bmw_pano_sky_t50_s0_postcompose_thr45.png`, `db19_0bae_sky_t50_s0_postcompose_thr45.png`, `db19_2c65_sky_t50_s0_postcompose_thr45.png`. Detail in progress.md.
-> - **DB-22 CubeComposer/rectilinear diagnostic** = **CLOSED informative only**: rectilinear view confirmed DB-21 mask placement was not the root problem; DiT semantic ground redraw is. Result montage: `deliverables/dit360_v2/db22_rectilinear_diag/db22_rect_bmw_rightline_montage.jpg`. Detail in progress.md.
-> - **DB-15/16/17** (non-DiT reroute / Poisson / line-snap) = CLOSED, superseded by the BEV ground atlas (codex round-8 lead). Detail in progress.md.
-> - INFRA recipe + /code-review fixes (box-overlap object gate, fail-safe asserts, flood-fill outpaint mask) recorded in progress.md.
 
 ---
 
-## PROPOSED NEXT GOAL PREP QUEUE (2026-06-04)
+## ⭐ ACTIVE BRIEF (2026-06-06) — read `agent/2026-06-06-leader-strategy-synthesis.md` FIRST
 
-These briefs are copied from `agent/plans/2026-06-04-egsr-seam-and-route-roadmap.md` as the prepared queue for the next goal. They are **not running yet**. Start exactly one brief at a time, keep the stated max scope, and archive results into `progress.md` when a brief is done.
+> Direction is LOCKED (see the leader strategy synthesis): main line = source-faithful **multi-center mosaic + provenance/risk/abstain data contract + dual-format (raw canonical + ERP derived view)**; seam = labeled provenance boundary, not always a defect; **abstain is a valid output**. Theory = two self-owned lemmas (occlusion non-identifiability + textureless rank-deficiency), NOT a misread plenoptic citation. DB75 stays permanently `presentation_only`.
 
-Shared hard constraints for all briefs below:
+# DB-76a: Calibrated GREEN reliability + stereo/temporal coverage audit (algorithm FOUNDATION; measurement-only, no RGB repair)
+Status: **ACTIVE** — batteries 1–2 DONE (CPU, 2026-06-06); batteries 3–4 (GPU) pending user go + optional v1.1 metric-clean re-run (one active brief only)
+Route: A (source-faithful) — this IS the start of building the general algorithm: it builds the source-owned construction skeleton + the GREEN/abstain gate + the two under-used evidence sources, and validates them, BEFORE the DB77 repair operators are bolted on. It is NOT a repair brief and writes no final RGB pano.
+
+**Question:** (1) Are our current GREEN ("trustworthy / training-usable") pixels actually correct — what is the false-GREEN rate? (2) How much of the panorama do we abstain on, where, weighted by downstream importance? (3) Can two so-far-unused evidence sources — the **AV2 forward stereo pair** and **ring-camera temporal multi-azimuth** — convert a meaningful fraction of currently-abstained near-ground back into validated GREEN?
+
+**Hypothesis:** The 75-DB failure pattern was building repair on un-validated GREEN. Before adding repair operators (DB77) we must (a) measure GREEN precision via an independent hold-out — a pixel labeled GREEN should match a camera we did NOT use to build it; (b) measure abstain mass honestly; (c) test whether forward stereo (metric near-field depth, accurate at 3–5 m exactly where single-center copy fails) and surface-centric ring-temporal (the ego passes a curb and sees it from multiple azimuths over ~1–2 s) add real GREEN — NOT by re-running the DB74 optimizer, which already failed (`temporal_selected_fraction=0`; that killed the implementation, not the direction).
+
+**Why now:** direction LOCKED; DB76a is the algorithm's foundation (steps 1–2 of the construction pipeline + the evidence layers step 3 will use). Every prior "build-first" DB (DB68–75) was NEG for skipping this validation. This is also exactly the evidence Bosch will ask for ("how clean is the valid mask, how much is recoverable").
+
+**Expected evidence (4 batteries; outputs under the output location):**
+- **Battery 1 — GREEN reliability via leave-one-camera-out render-back (render-free, CPU, DO FIRST — the keystone):** for each held-out ring camera `c_h`, build the source-owned representation **forbidding `c_h`'s RGB**, reproject GREEN regions into `c_h`'s image plane, compare to real `I_{c_h}` ONLY where: `c_h` sees it (visible/non-border), provenance proves `c_h` unused, operator ∈ {`raw_copy, reprojected_real, warped_real, tone_only`}, z-buffer says `c_h` should see it; bucket dynamic/reflective/saturated separately. Error = `max(photometric ΔE-or-census/ZNCC, gradient, edge/structure chamfer, geometry reproj_px)`. Outputs: `green_false_rate@τ`, `p50/p90/p95/p99 residual_px`, `operator_confusion_table`, `risk_calibration_curve`, `failure_by_{scene,operator,structure}`. Record the limit: LOO validates **co-observed** GREEN (most of it); truly-marginal pixels are the abstained ones (not claimed GREEN).
+- **Battery 2 — abstain mass report (render-free, CPU):** three numbers, NOT on the full black ERP — `abstain_full_erp`; `abstain_task_valid_band` (ring pano occupies only the middle band of 1024×2048; black top/bottom ≠ failure); `abstain_weighted = Σ abstain(x)·w_task(x)` with higher `w_task` on lane/curb/vehicle/pedestrian/near-ground/free-space boundary.
+- **Battery 3 — AV2 forward-stereo coverage (GPU; only if batteries 1–2 warrant):** rectify the 2 forward stereo cams → SGM / RAFT-Stereo / IGEV disparity + confidence + L-R consistency (NO pano render) → project stereo depth to ERP target rays → z-buffer raw-visibility check → LOO residual validation. Outputs: `stereo_{surface_valid, raw_visible, green_candidate, residual, failure_reason}_map`. Honest limit: forward only (does NOT help the side curb — that is battery 4); fails on textureless/wet/reflective.
+- **Battery 4 — ring-temporal-side coverage (GPU; surface-centric, NOT the DB74 optimizer):** anchor ±1–2 s, all ring cams + ego poses; build static surface candidate (LiDAR / stereo / sparse MVS / stable tracks); per abstain ray ask "≥2 raw views see the same surface in the window?"; triangulation angle / baseline / photometric consistency / z-buffer; LOO render-back. Must remove dynamic objects (boxes) before accumulation. Waymo: rolling-shutter residual in a SEPARATE risk bucket (do not extrapolate AV2 → Waymo).
+
+**Pre-registered thresholds (SET BEFORE RUN; failure does NOT relax them):**
+- GREEN accepted: overall high-error ≤ **3%**; critical-structure (lane/curb/object boundary) ≤ **1%**; p95 residual ≤ **3 px**. "high-error" = reproj/edge residual > **3 px** in normal regions, > **2 px** on lane/curb/vehicle boundary; textureless regions: photometric unreliable → bucket by depth/visibility/rank-deficiency, do not score photometric there.
+- Stereo/temporal build-worthy: ≥ **25%** of the relevant abstain band becomes `surface_valid ∧ raw_visible ∧ LOO_residual<3px`, OR ≥ **8–10%** of task-valid ERP becomes validated GREEN; AND no protected-structure failure.
+- Contract-as-main-deliverable: task-valid abstain > **10%**, OR driving-critical abstain > **5%**, OR any continuous seam abstain > **25%** of seam length, OR GREEN high-error > **3%** without risk calibration.
+
+**Kill criteria:**
+- GREEN false rate > **5%** → STOP calling current GREEN "training truth" (downgrade to YELLOW/risk-weighted); re-derive GREEN before any DB77 repair.
+- Stereo covers < **10%** of relevant band → keep stereo as forward side-evidence only; do not change main line.
+- Temporal again yields < **5%** validated coverage or only sparse islands → close the ring-temporal route.
+- Risk map not held-out/LOO-calibrated → call it **heuristic** risk, NOT conformal/calibrated.
+- Any RGB repair / blend-or-warp final pano / DB75 tuning / generation / inpaint / source replacement / model-confidence-as-truth / secret-like value written → out of scope, stop.
+
+**Max scope:** measurement only; no RGB repair, no DB75 tuning, no final blend/warp pano. **Sequencing:** run Battery 1 + 2 (render-free, CPU) FIRST and show results + pre-registered thresholds for review BEFORE any remote/GPU; run Battery 3 + 4 only if 1–2 warrant, under at most one bounded secure `/status` + `/exec` per battery. Fixed cases: BMW `02a00399:0` + clean control `0bae3b5e:30` (optional if data ready: dense-parking `2c65`, one Waymo segment for generality). No VGGT/Pi3/HF/DiT/FLUX/3DGS, no dataset scan beyond fixed cases, no RED promotion. **Security:** runtime URL/token/HF/Bearer/endpoint JSON are SECRETS — read only from process env or a non-repo secret file, never write to repo/manifest/board/log/prompt; secret-scan must be 0; tell the user before any A100.
+
+**Required vision check:** per case, a review board with full ERP + the user's four marked ROIs (left road / lower-center road / center lane / right curb-wall-base) + GREEN/abstain overlay + (batteries 3–4) stereo/temporal coverage overlays + LOO residual heatmaps. Personally eyeball: do GREEN regions actually match the held-out camera? do stereo/temporal "recovered" pixels look real (not smeared)? If a number passes but the overlay shows smear/ghost/leak → downgrade to YELLOW/rejected. Eyes beat metrics on conflict.
+
+**Output location:** `deliverables/db76a_green_reliability_coverage/` (sidecar maps, LOO residuals, coverage maps, abstain-mass JSON, review boards, manifest, pre-registered-thresholds JSON, go/no-go table).
+
+**Multi-stance audit before run:** *Pro:* the only check that makes the Bosch "trust GREEN" contract real, and it doubles as building the algorithm's source-owned skeleton + the two under-tested evidence sources. *Anti:* risk of analysis-paralysis / over-measuring before DB77 repair; LOO cannot validate non-co-observed pixels. *Judge synthesis:* bound DB76a to the 4 batteries + a go/no-go table; the moment batteries 1–2 pass and 3–4 give a coverage number, proceed to DB77. Do NOT expand DB76a into a measurement campaign.
+
+**Planned follow-ons (NOT active — map for the receiving agent; open each as its own brief):**
+- **DB-77 — source-backed repair operators on validated GREEN/YELLOW only:** ULR-weighted source selection (`k<2 → single-source/abstain`), `reprojected_real` / `warped_real` (with warp-vector/residual/visibility/protected-veto sidecars), GradientShop/screened-Poisson seam (abstain = HARD in-solver constraint), Agarwala graph-cut + explicit abstain label. Fail → abstain, **NEVER blend**. The win is rigor + the DB76a-validated evidence, not new behavior on the textureless wall.
+- **DB-78 — Bosch data contract v1:** dual-format (raw rig canonical + ERP derived view); per-pixel `{source_id, operator_id, risk (conformal-calibrated + calibrated/uncalibrated flag), loss_weight, unknown_or_abstain (reason), generated_mask, source_mixed_mask, visibility_count, residual_px}`; clean split `erp_training_rgb` vs `erp_presentation_rgb` (DB75 = presentation, loss_weight≈0). Send the 5 specific Bosch format questions (synthesis §10) to Xinhan/Bosch in parallel.
+
+Result summary: **Batteries 1–2 complete + v1.1 metric-clean re-run (measurement-only, CPU Colab, secret-scan 0)** — see `progress.md` 2026-06-06 entries + `deliverables/db76a_green_reliability_coverage/`. **Keystone (v1.1, geometry-only, on the co-observed *measurable* overlap):** false-GREEN **BMW 0.373 / clean 0.223** (BMW>clean — v1.0 clean>BMW inversion was an exposure-seam artifact, now split into a separate `photometric_tone_seam_rate` BMW 0.17 / clean 0.40); disp p95 6.9 / 5.75 px; curb/wall_base worst (0.47–0.62). Pre-registered **>5% kill exceeded on geometry alone** → co-observed overlap is NOT single-source truth (supports reframe). co-observed = ~15% of GREEN; task band is **81% single-source** (LOO-unverifiable) — the real target for batteries 3–4; task-band abstain modest ~3% (below contract-as-main >10%). `proceed_to_batteries_3_4=true`. **Batteries 3–4 (GPU/A100 forward-stereo + ring-temporal) NOT yet run.** TBD → run 3–4 (needs A100) then archive.
+
+---
+
+## Shared hard constraints for any new brief (from `plans/2026-06-04-egsr-seam-and-route-roadmap.md`)
 - Preserve DB42/DB43 language: DB32 `s40` is the Bosch-facing presentation/handoff candidate with source-sidestep + generated-sky caveats. It is not a fully source-faithful panorama, not a source-faithful ceiling, and not an original `G_bmw_pano` / `A1_view_none` / `BEST_bmw_pano` seam repair.
 - Keep DB41 as a negative evidence boundary: under current evidence, the lower-right/right-line region is no-evidence/abstain for source-faithful repair.
 - Do not reopen prompt-only DiT/FLUX ground, curb, lane, or right-line repair.
@@ -65,926 +78,45 @@ Shared hard constraints for all briefs below:
 - `G_bmw_pano` is the classic BMW failure / diagnostic reference and has been visually rejected as the default repair base. Any classic BMW presentation attempt must choose its base from existing same-ROI boards before generation.
 - If any brief hits its kill criteria, stop that direction, write the result to `progress.md`, and do not continue patch-on-patch under the same direction.
 
-# DB-64: LTR-v0 layered target-raycaster route adoption and minimal sidecar prototype
-Status: running / Phase4b z-visibility cause evidence completed; paused before protected-mask/layer-fit sub-scope
-Route: A (geometry) / layered target-raycaster; external GPT Pro option B adopted as main route
-
-Question: After DB58-63 showed that direct VGGT-to-A1/G masks, quick-looks, raw-source composites, and component gates do not create a usable continuous seam repair, can the project move the next main research step from post-ERP seam repair into a minimal target-ray ownership pipeline that outputs source/layer/risk/unknown sidecars?
-
-Hypothesis: The next useful experiment is not another A1/G/DB25 post-ERP patch. A minimal layered target-raycaster can test the correct abstraction: for each target panorama ray, identify a candidate road/wall/object/unknown layer, project it back into raw cameras, apply visibility/z-buffer/source-consistency checks, and emit auditable sidecars. Visual improvement is secondary; the key evidence is whether the target ray can be explained by a source-visible layer or must abstain.
-
-Why now: DB57 stopped DB47f source-selection patch-on-patch with no candidate promotion. DB58 accepted abstain/no-repair for the fixed VGGT DB25 ROI under evidence gates. DB59-63 then tested the user's direct A1/G+VGGT question, including a fresh A100 VGGT run and raw-camera-backed point-guided source composite, but all results were diagnostic/presentation-only and rejected as repair. The external GPT Pro route audit agrees with the project diagnosis: HardSelect++ is the conservative product/control, presentation synthesis must stay demo-only, and LTR-v0 is the only route that can test target-ray ownership rather than ERP cosmetic repair.
-
-Expected evidence:
-- One bounded route-adoption/preflight artifact set under `deliverables/layered_target_raycaster/db64_ltr_v0/`.
-- Cases: at most two positive/stress cases plus one negative control. Default candidates are BMW near-field seam, one cleaner/far seam from existing known-case artifacts, and DB41 right/lower-right as an abstain negative control.
-- A manifest must report available raw-camera images, calibration, LiDAR/depth evidence, current hard_select/source-slab artifacts, segmentation/protected-mask availability, VGGT status, and whether a local LTR prototype is executable without remote/model action.
-- If executable from local artifacts, the prototype must output `rgb_ltr_v0`, `source_id_map`, `layer_id_map`, `depth_map`, `visibility_count_map`, `risk_map`, `unknown_mask`, `disocclusion_mask`, `operator_map`, `manifest.json`, and `review_board.jpg`.
-- If not executable, DB64 must stop at a reason-coded preflight with missing inputs rather than fabricating sidecars or falling back to a pretty RGB image.
-- AUX-HS++ may be documented only as the conservative control/baseline; it is not the main research route under DB64. Presentation-only synthesis remains isolated and cannot be mixed into LTR-v0 evidence.
-
-Kill criteria:
-- Any output lacks source/layer/risk/unknown sidecars but is still described as LTR success.
-- Target-raycast output mostly falls back to L1/A1/G/DB32 RGB while being packaged as target-ray ownership.
-- DB41 right/lower-right, DB25 low-evidence rows, or any RED/no-evidence region is promoted or visually "fixed" without source-visible target-surface evidence.
-- VGGT is promoted into geometry truth through confidence islands, arbitrary axis flips, reflection, camera permutation, threshold hacking, or undocumented convention selection.
-- Any DiT/FLUX/prompt inpainting, diffusion/refiner, 3DGS presentation render, generated texture, or non-source RGB replacement appears in the source-faithful LTR branch.
-- Car/lane/curb/wall boundaries show smear, wavy geometry, blocky paste, or object cuts while the result is called source-faithful.
-- A1/G/BEST/DB32 is treated as source truth rather than diagnostic/control imagery.
-- Secret-like values, endpoint URLs, bearer tokens, HF tokens, Cloudflare JSON, or runtime tokens are written to repo artifacts, manifests, boards, prompts, or logs.
-
-Max scope:
-- Documentation and CPU/local preflight first. No remote/status/exec/A100/new VGGT inference/model download/dataset scan unless DB64 is explicitly moved to running and safe env/non-repo runtime preconditions are verified.
-- At most one local LTR-v0 prototype script, one manifest set, and one summary board if local inputs are sufficient.
-- No prompt-only repair, no generation, no source replacement, no full-panorama claim, no DB32 modification, no DB49 exact rerun, no DB47f rerun, no RED promotion.
-- Output location: `deliverables/layered_target_raycaster/db64_ltr_v0/`.
-
-Required vision check:
-- The board must show hard_select/control RGB, any LTR-v0 RGB, `source_id_map`, `layer_id_map`, `risk_map`, `unknown/disocclusion` overlays, and same-ROI crops.
-- Manual review must explicitly label source-faithful/evidence-only vs unknown/abstain vs presentation-only; DB41 negative control must remain abstain if unsupported.
-- Claim language must state that DB64 is target-ray ownership evidence, not a repaired A1/G/G/DB32 panorama unless sidecars prove each edited pixel.
-
-Result summary: DB64 is running as an evidence-only LTR-v0 route, not a repair route. It has completed preflight, Drive-data readiness, LiDAR-zbuffer diagnostic, sidecar-only instrumentation, unknown-cause/repairability mapping, and z-visibility cause instrumentation for the fixed BMW target and clean control. Current result remains paused before protected-mask/layer-fit work: the seam failure is dominated by absent/sparse target-surface evidence, not a simple source-switch, VGGT, or RGB blend parameter issue. This brief was opened from the 2026-06-05 GPT Pro route audit. The audit's suggested name `DB58 / LTR-v0` is renumbered to DB64 because DB58 is already closed as VGGT-assisted raw-camera-backed seam ROI abstain/no-repair.
-
-Phase0 result (2026-06-05): `scripts/phase3/db64_ltr_v0_preflight.py` completed CPU/local route preflight only under `deliverables/layered_target_raycaster/db64_ltr_v0/`. It created `db64_ltr_v0_preflight_manifest.json` and `db64_ltr_v0_preflight_board.jpg`. Result is `paused_needs_drive_or_remote_target_data`: local repo has review artifacts and reusable LTR components, but not the target AV2 log with calibration, raw cameras, and LiDAR sweeps (`data/argoverse2/val/02a00399-3857-444e-8db3-a8f58489c394` missing). Drive workspace `koi_waymo2pano_colab` and top-level `data/outputs/results/runtime` folders are visible by connector; secrets folder was not read. `a100_needed_now=false`, strict secret scan hits `0`, no renderer/model/A100/remote/repair/generation/source replacement/sidecars/RED promotion occurred.
-
-Phase1 extension: because Phase0 says local execution is blocked by absent target data while Drive is visible, the next allowed action under DB64 is a bounded CPU Colab Drive-data preflight only if a secure non-repo runtime secret source exists. Phase1 may submit at most one CPU Colab `/status` and one `/exec` job that checks Drive paths and counts target-log files/directories for raw cameras, calibration, and LiDAR; it must not run LTR rendering, model inference, VGGT, DiT/FLUX, source replacement, image generation, dataset scan beyond fixed target log and at most the clean/far control log, or write endpoint/token values to artifacts. If Drive target data is missing or runtime is CPU-only, Phase1 stops as data-preflight evidence; do not request A100 until a later brief/prototype genuinely needs GPU.
-
-Phase1 result (2026-06-05): `scripts/phase3/db64_ltr_v0_drive_data_preflight.py` completed exactly one secure-runtime CPU Colab `/status` plus one `/exec` Drive data presence check, reading the runtime secret only from a non-repo source. Outputs are under `deliverables/layered_target_raycaster/db64_ltr_v0/`: `db64_drive_data_preflight_remote_result.json`, `db64_ltr_v0_drive_data_preflight_manifest.json`, and `db64_ltr_v0_drive_data_preflight_board.jpg`. Target BMW log `02a00399-3857-444e-8db3-a8f58489c394` and clean control `0bae3b5e-417d-3b03-abaa-806b433233b8` are ready for the data stage: log/calibration exist, all 7 camera dirs exist with min JPG count 319, and LiDAR feather counts are 159/157. `a100_needed_now=false`, strict secret scan hits `0`, and no model/VGGT/DiT/FLUX/LTR render/repair/source replacement/sidecars/RED promotion occurred.
-
-Phase2 extension: because Phase1 confirms the fixed logs are present on Drive, the next allowed DB64 action is one CPU Colab LiDAR-zbuffer diagnostic prototype using existing `scripts/phase3/test_lidar_zbuffer_seam.py` only as a minimal LTR precursor. It may run at most two cases: BMW target `02a00399:0:bmw` and clean control `0bae3b5e:30:clean_far`; output must go to Drive `results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/` and local `deliverables/layered_target_raycaster/db64_ltr_v0/`. This Phase2 may produce hard_select/LiDAR-winner/LiDAR-consensus/LiDAR-best RGB diagnostics, visibility/depth/support metrics, crop review boards, and a sanitized manifest. It must not claim complete DB64 sidecars unless `source_id_map`, `layer_id_map`, `risk_map`, and `unknown/disocclusion` maps are actually generated and validated. It must not run A100, VGGT, model inference, DiT/FLUX, prompt generation, source replacement, DB47/DB49 reruns, or any unbounded scan. Kill Phase2 immediately if the remote repo/script is missing, a runtime secret appears in artifacts, the run edits unsupported DB41/RED regions, or output is visually framed as source-faithful repair rather than diagnostic target-ray visibility evidence.
-
-Phase2a result (2026-06-05): `scripts/phase3/db64_ltr_v0_phase2_lidar_zbuffer.py` submitted exactly one CPU Colab `/status` plus one `/exec` and found the remote repo/script and AV2 Drive root, but the run failed before producing images because the CPU runtime lacked the project dependency `av2` (`ModuleNotFoundError: No module named 'av2'` at `read_lidar_sweep`). Outputs are `db64_phase2_lidar_zbuffer_remote_result.json`, `db64_ltr_v0_phase2_lidar_zbuffer_manifest.json`, and a blocked board under `deliverables/layered_target_raycaster/db64_ltr_v0/`. This is a runtime dependency blocker, not a LiDAR-zbuffer/VGGT evidence negative. `a100_needed_now=false`, strict secret scan hits `0`, no images/sidecars/repair/model/generation/source replacement/RED promotion occurred.
-
-Phase2b extension: because `av2>=0.3` is an explicit project dependency in `pyproject.toml` and the Phase2a blocker is exactly missing `av2`, one additional CPU Colab `/exec` is allowed to perform a bounded dependency bootstrap and rerun the identical two fixed cases. The remote command may only check/import `av2`, run `python -m pip install -q 'av2>=0.3'` if missing, then rerun `test_lidar_zbuffer_seam.py` with the same cases/output path/review width. It must not install model packages, clone repos, use A100, use HF/VGGT/DiT/FLUX, scan extra cases, change algorithm parameters beyond dependency bootstrap, or claim repair/complete LTR sidecars. If `av2` install/import fails or the rerun fails, Phase2b must archive the blocker and stop.
-
-Phase2b result (2026-06-05): Phase2b completed on CPU Colab after installing exactly the missing project dependency `av2>=0.3` (`install_returncode=0`, `import_after=true`) and rerunning the same two fixed cases. Outputs are under Drive `results/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer/` and local `deliverables/layered_target_raycaster/db64_ltr_v0/`: `db64_phase2_lidar_zbuffer_remote_result.json`, `db64_phase2_lidar_zbuffer_batch_summary.json`, fetched per-case JPG/JSON diagnostics, `db64_ltr_v0_phase2_lidar_zbuffer_manifest.json`, and `db64_ltr_v0_phase2_lidar_zbuffer_board.jpg`. Aggregate over BMW target and clean control: `mean_visible_any_support_frac=0.4247`, `mean_visible_ge2_support_frac=0.0557`, changed fraction `winner=0.0063`, `consensus=0.0032`, `best=0.0075`; `mean_seam_dy` hard_select `19.90`, winner `22.85`, consensus `20.07`, best `19.36`; NCC to hard winner drops for LiDAR variants (`winner=0.828`, `consensus=0.904`, `best=0.791`). Vision verdict: accepted as diagnostic target-ray visibility precursor only, rejected as repair/renderer output. The overlays expose sparse LiDAR-supported visible regions and blocky wall/object patches; they do not form a continuous BMW seam repair surface. No A100/model/VGGT/DiT/FLUX/source replacement/complete sidecars/RED promotion occurred; strict secret scan hits `0`. Next DB64 work, if any, must be a fresh sidecar-instrumentation sub-scope, not RGB patch-on-patch.
-
-Phase3 extension: after the GPT Pro adversarial audit of the Phase2 result, the only allowed DB64 continuation is sidecar-only target-ray evidence instrumentation. Phase3 asks whether the existing LiDAR-zbuffer precursor can produce complete, auditable maps for the same two cases without claiming an RGB repair. The hypothesis is that Phase2 falsified direct LiDAR-zbuffer RGB copy as a repair/operator, but not the target-ray ownership sidecar abstraction: `source_id_map`, visibility/support, risk, unknown, disocclusion, and abstain maps may still reveal why BMW is harder than the clean control and what a future layer-aware operator would need. Expected evidence is one CPU-only script and one manifest/board under local `deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/` and Drive `results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/`, with exactly two cases: `02a00399:0:bmw` and `0bae3b5e:30:clean_far`. Outputs must include `hard_select_reference` as control only, `source_id_map`, `visibility_count_map`, `lidar_support_map`, `risk_map`, `unknown_mask`, `disocclusion_mask`, `layer_id_map`, `operator_map`, per-case JSON, aggregate manifest, and review board. `layer_id_map` is an evidence-class map, not semantic segmentation: `0=invalid/out-of-FOV`, `1=lidar_supported_surface_candidate`, `2=hard_select_source_only_no_lidar_surface`, `3=source-boundary/protected-structure-risk-proxy`, `4=possible_disocclusion`, `250=mixed_diagnostic_composite_or_reserved`, `255=unknown/no_admissible_support`. `operator_map` must mean sidecar decision state only: `0=keep_hard_select_control`, `1=evidence_supported_no_rgb_edit`, `2=unknown_or_disocclusion_abstain`, `3=boundary_or_protected_risk_abstain`.
-
-Phase3 kill criteria: stop and archive if complete maps are not produced for both fixed cases; if any map is fabricated from RGB similarity or mask colors rather than source weights, LiDAR support/visibility, and source-boundary evidence; if BMW and clean-control risk/unknown/support profiles cannot be compared; if Phase2 RGB-copy variants are tuned, smoothed, alpha-amplified, relabeled as `LTR-v0`, or promoted to repair; if sparse LiDAR support is called source truth; if VGGT/A100/DiT/FLUX/3DGS/model generation/source replacement enters Phase3; if DB41/DB25 RED/no-evidence areas are promoted; or if any endpoint/token/HF/secret-like value is written to artifacts. Max scope: at most one CPU Colab `/status` plus one `/exec` through approved env/non-repo runtime secret, with only `av2>=0.3` dependency bootstrap allowed if missing because it is a declared project dependency; no A100, VGGT, model downloads, prompt generation, dataset scan beyond the two cases, parameter tuning, repair RGB, DB47/DB49 rerun, DB32 modification, or RED promotion. Required vision check: board must show both cases with hard_select control and the sidecar maps/crops, explicitly label `sidecar evidence only / no RGB repair / Phase2 RGB copy rejected diagnostic`, and state whether Phase3 remains useful, is weak/diagnostic, or hits kill criteria.
-
-Phase3 result (2026-06-05): `scripts/phase3/db64_ltr_v0_phase3_sidecar_instrumentation.py` completed exactly one secure-runtime CPU Colab `/status` plus one `/exec` for the two fixed cases, with no A100/VGGT/model/DiT/FLUX/3DGS/source replacement/RGB repair/DB47/DB49 rerun/DB32 modification/RED promotion. Outputs are under Drive `results/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/` and local `deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/`: `db64_phase3_sidecar_remote_result.json`, `db64_phase3_sidecar_batch_summary.json`, `db64_ltr_v0_phase3_sidecar_manifest.json`, `db64_ltr_v0_phase3_sidecar_board.jpg`, and fetched per-case sidecars/crop boards. Required maps are complete for both cases: `source_id_map`, `visibility_count_map`, `lidar_support_map`, `risk_map`, `unknown_mask`, `disocclusion_mask`, `layer_id_map`, and `operator_map`. Aggregate seam evidence remains sparse: mean seam LiDAR support `0.4606`, visible-any `0.1932`, visible-ge2 `0.1077`, unknown `0.8068`, disocclusion proxy `0.2674`, boundary-risk proxy `0.1247`, mean seam risk `183.84/255`. BMW is distinguishable but only mildly worse than clean control: seam unknown `+0.0357`, visible-any `-0.0357`, visible-ge2 `-0.0331`, mean risk `+3.01/255` versus clean. Vision verdict: accepted as `sidecar_only_target_ray_evidence_instrumentation`; not a repaired panorama, not source truth, not semantic layer truth, and not a RGB operator. The maps explain why direct repair remains unsupported: the seam band is dominated by unknown/abstain and sparse LiDAR-visible evidence. Strict secret scan hits `0`; `a100_needed_now=false`. Further DB64 work, if any, must open a fresh sidecar/cause-map/layer-evidence sub-scope; do not tune Phase2 RGB copy variants or jump from these maps to repair.
-
-Phase4a extension: after GPT Pro's second audit, the next allowed DB64 sub-scope is CPU-local unknown-cause attribution and repairability mapping over existing Phase3 sidecars only. Question: can Phase3's `0.8068` mean seam unknown be decomposed into actionable cause bins and a conservative repairability state without creating RGB repair or semantic layer truth? Hypothesis: the current sidecars can already separate a large share of unknown into `no_target_surface_support`, `single_source_only_no_consensus`, `z_mismatch_or_occlusion_conflict` proxy, `disocclusion_candidate`, `source_boundary/protected-risk proxy`, and residual `unknown_unclassified`; this should clarify whether future work should pursue cause/layer evidence, multiframe surface, or abstain rather than another source switch. Why now: Phase3 maps are complete locally, GPT Pro explicitly recommends unknown-cause map before layer fitting or renderer, and this can run without A100/remote/model action. Expected evidence: one CPU-local script and outputs under `deliverables/layered_target_raycaster/db64_ltr_v0/phase4_cause_map/`: per-case `cause_primary_map.png`, `cause_flag_map.png` plus JSON flag counts, `repairability_map.png`, `unknown_cause_breakdown.json`, `cause_overlay_board.jpg`, a batch summary, manifest, and review board. Cause codes are evidence/policy codes, not semantic truth: `0=explainable_source_visible`, `10=out_of_fov_or_no_source_projection`, `20=no_target_surface_support`, `30=single_source_only_no_consensus`, `40=z_mismatch_or_occlusion_conflict_proxy`, `50=disocclusion_candidate`, `60=source_boundary_or_protected_risk_proxy`, `70=layer_ambiguous_or_insufficient_layer_evidence`, `255=unknown_unclassified`. Repairability codes: `0=non_target_or_keep_control`, `1=repairable_now_evidence_supported_no_rgb_edit`, `2=repairable_later_needs_local_layer_fit`, `3=needs_multiframe_or_dense_surface`, `4=presentation_only_or_abstain`, `5=abstain_required_protected_or_occlusion`. Kill criteria: cause maps are inferred from RGB similarity or visual mask colors instead of Phase3 source/support/visibility/unknown/disocclusion/boundary sidecars; primary cause bins fail to cover Phase3 unknown/explainable states; unclassified unknown remains high because inputs are insufficient but the route continues into repair anyway; BMW vs clean cause profiles remain indistinguishable yet are over-interpreted; `layer_id_map` or cause maps are described as road/wall/car semantic truth; any Phase2 RGB-copy/winner/consensus/best is tuned or promoted; any A100/VGGT/DiT/FLUX/3DGS/source replacement/remote action enters Phase4a; any RED/no-evidence area is visually repaired; or any secret-like value appears in artifacts. Max scope: CPU/local only, existing Phase3 sidecars only, exactly the two fixed cases, no remote/status/exec, no A100, no VGGT/model/generation, no RGB repair, no dataset scan, no DB41/DB25 promotion, no DB47/DB49/DB32 edits. Vision check: board must show Phase3 controls plus cause/flag/repairability maps and explicitly label `cause evidence only / no RGB repair / not semantic truth`.
-
-Phase4a result (2026-06-05): `scripts/phase3/db64_ltr_v0_phase4_cause_map.py` completed CPU/local only from existing Phase3 sidecars for the same two cases; no remote/status/exec, A100, VGGT, model, DiT/FLUX, 3DGS, RGB repair, source replacement, DB47/DB49 rerun, DB32 modification, or RED promotion occurred. Outputs are under `deliverables/layered_target_raycaster/db64_ltr_v0/phase4_cause_map/`: `db64_phase4_cause_map_manifest.json`, `db64_phase4_batch_summary.json`, `db64_phase4_cause_map_board.jpg`, plus per-case `cause_primary_map`, `cause_flag_map`, `repairability_map`, `unknown_cause_breakdown.json`, `cause_overlay_board.jpg`, and `phase3_vs_phase4_review_board.jpg`. Result is accepted as `unknown_cause_attribution_and_repairability_map` evidence only. Phase3 unknown is fully assigned by the v0 taxonomy (`mean_unknown_unclassified_frac_of_phase3_unknown=0.0`), but this is because v0's taxonomy directly partitions Phase3 sidecar states; it is not proof of semantic/layer truth. BMW seam unknown remains higher than clean (`+0.0357`), and Phase4a identifies the difference mainly as `no_target_surface_support` (`+0.0664` seam), while BMW has less `disocclusion_candidate` (`-0.0307`) and slightly less boundary-risk proxy (`-0.0042`). BMW seam cause mix: explainable source-visible `0.0826`, no target surface `0.5726`, single-source `0.0842`, disocclusion `0.2521`, boundary-risk primary `0.0086`. Repairability triage for BMW seam: repairable-now evidence-supported/no-edit `0.0826`, later local-layer-fit candidate `0.0728`, needs multiframe/dense surface `0.5027`, abstain protected/occlusion `0.3419`. Vision verdict: useful v0 cause/repairability explanation, still not a repair operator. Next DB64 work, if any, must instrument missing cause evidence (true z residual/cause maps and/or real protected object/lane/curb masks) before layer fitting or abstain-aware renderer; do not promote repairability map to RGB repair permission.
-
-Phase4b extension: because Phase4a can only label `disocclusion/z-conflict` as a proxy, the next allowed DB64 sub-scope is one CPU Colab z-visibility cause instrumentation run over the same two cases. Question: can the LiDAR-zbuffer projection be decomposed into per-ray camera failure causes (`no_camera_geom_valid`, `no_raw_zbuffer_support`, `z_mismatch_or_occlusion`, `single_visible_source`, `multi_visible_source`) so Phase4a's repairability map is no longer relying on a generic proxy? Hypothesis: the same raw/calib/LiDAR data and z-buffer checks already compute enough intermediate arrays to separate supported-but-not-visible pixels into out-of-FOV/bad-angle, missing raw-camera z-buffer support, and z residual mismatch. Expected evidence: one script and outputs under local `deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/` plus Drive `results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/`, including per-case `z_cause_primary_map`, `camera_geom_valid_count_map`, `camera_zbuffer_hit_count_map`, `camera_z_mismatch_count_map`, `camera_visible_count_map`, `z_residual_min_cm_u16`, `z_residual_min_viz`, `z_repairability_map`, `z_cause_breakdown.json`, review boards, batch summary, and manifest. Cause codes are evidence codes, not semantic truth: `0=multi_source_visible`, `1=single_source_visible`, `20=no_target_surface_support`, `41=no_camera_geom_valid`, `42=no_raw_camera_zbuffer_support`, `43=z_mismatch_or_occlusion_conflict`, `44=mixed_no_visible_source`, `60=source_boundary_risk_proxy`, `255=invalid_or_unclassified`. Max scope: at most one secure-runtime CPU Colab `/status` plus one `/exec`; only `av2>=0.3` bootstrap is allowed if missing; no A100, VGGT, model, DiT/FLUX, 3DGS, prompt generation, RGB repair, source replacement, DB47/DB49 rerun, DB32 edit, dataset scan beyond two fixed cases, or RED promotion. Kill criteria: cannot produce z cause maps for both cases; maps are inferred from RGB similarity or Phase4a colors rather than raw projection/z-buffer intermediates; no distinction between no-zbuffer and z-mismatch is possible but route proceeds to repair; Phase2 RGB copy variants are tuned/promoted; source-boundary proxy is called protected semantic truth; any model/generation/VGGT/A100 enters; any secret-like value is written to artifacts. Vision check: board must label `z-cause evidence only / no RGB repair / not protected semantic mask`.
-
-Phase4b result (2026-06-05): `scripts/phase3/db64_ltr_v0_phase4b_z_visibility_cause.py` completed exactly one secure-runtime CPU Colab `/status` plus one `/exec` for the same two cases, with no A100, VGGT, model inference, DiT/FLUX, 3DGS, prompt generation, RGB repair, source replacement, DB47/DB49 rerun, DB32 edit, dataset scan beyond the fixed cases, or RED promotion. Outputs are under Drive `results/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/` and local `deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/`: `db64_phase4b_z_visibility_manifest.json`, `db64_phase4b_batch_summary.json`, `db64_phase4b_z_visibility_board.jpg`, `db64_phase4b_z_visibility_remote_result.json`, and fetched per-case z-cause maps/review boards. Required maps are complete for both fixed cases: `z_cause_primary_map`, `camera_geom_valid_count_map`, `camera_zbuffer_hit_count_map`, `camera_z_mismatch_count_map`, `camera_visible_count_map`, `z_residual_min_cm_u16`, `z_repairability_map`, and visual z-cause/residual/repairability boards. Aggregate seam z-cause metrics: mean `no_target_surface_support=0.5394`, `no_camera_geom_valid=0.0193`, `no_raw_zbuffer_support=0.2109`, `z_mismatch_or_occlusion_conflict=0.0373`, `single_visible_source=0.0855`, `multi_source_visible=0.1077`. BMW seam is worse than clean mainly by `no_target_surface_support +0.0664` and lower `multi_source_visible -0.0331`, not by z mismatch (`-0.0013`) or camera geometry (`+0.0009`). BMW seam: LiDAR support `0.4274`, multi-source visible `0.0912`, single-source visible `0.0842`, no target surface `0.5726`, no raw zbuffer support `0.1957`, z mismatch/conflict `0.0366`, source-boundary proxy `0.1224`; among supported-but-not-visible seam pixels, `82.38%` are no-zbuffer support, `12.62%` are z conflict, and `5.00%` are no camera geometry. Vision verdict: accepted as `raw_projection_zbuffer_cause_maps` evidence only, not repair/operator/source truth/semantic protected mask. The result tightens the failure explanation: A1/G/LTR-v0 cannot become a source-faithful seam repair from current two-frame raw-camera/LiDAR evidence alone because most of the seam lacks dense target-surface support and much of the supported-but-not-visible band has no raw-camera z-buffer support. Next DB64 work must open a fresh protected-mask or continuous-surface/layer-evidence sub-scope before any layer fitting or abstain-aware renderer; do not treat Phase4b maps as RGB repair permission.
-
-Post-Phase4b GPT Pro checkpoint (2026-06-05): external review recommends the next candidate as `DB64 Phase5a - Continuous target-surface evidence preflight`, not protected-masks-only and not abstain-aware RGB renderer now. The proposed order is continuous surface/raw-visibility evidence with minimal protected-mask veto, then conservative layer fitting, then abstain-aware renderer only if evidence improves. This is recorded as handoff guidance only: Phase5a is not opened, not authorized, and not run. A future agent must write a proper DB64 Phase5a brief/extension with question, hypothesis, why now, expected evidence, kill criteria, max scope, vision check, and output location before any CPU Colab/A100/script action.
-
-# DB-63: VGGT high-confidence component-gated raw-source probe
-Status: explored / closed as fragmented-sparse-no-repair
-Route: A (geometry) / diagnostic stress test / VGGT component gate
-
-Question: After DB62's full-ROI VGGT source selection failed, does the VGGT evidence contain any continuous, high-confidence, single-surface sub-region inside DB25 that can support a narrower raw-camera-backed composite on A1/G?
-
-Hypothesis: DB62 may have failed because its source-switch evidence is sparse and mixed across road/wall/vehicle layers. A stricter connected-component gate over VGGT alpha/margin/source-label evidence may reveal whether there is a smaller repairable island. If the high-confidence components are still fragmented or visually discontinuous, the VGGT A1/G branch should stop rather than amplifying alpha.
-
-Why now: The user asked to continue VGGT exploration after seeing DB62 had little visual improvement. This is the narrowest follow-up that directly tests whether DB62's VGGT signal has exploitable structure without another A100/model run.
-
-Expected evidence:
-- Existing DB62 outputs only: VGGT alpha, margin, source label, hard raw-source crop, soft composite crop, and A1/G candidates.
-- Component statistics for alpha/margin/source-switch regions inside fixed DB25 `[850, 420, 1650, 720]`.
-- One or more component-gated A1/G diagnostic candidates, plus masks/overlays and a board under `deliverables/dit360_v2/db63_vggt_component_gate/`.
-- Explicit visual verdict: smaller continuous repairable island exists, or VGGT signal remains fragmented/no-repair.
-
-Kill criteria:
-- Any remote/status/exec/A100/model rerun, prompt generation, inpainting, full-panorama synthesis, source replacement, DB41 edit, or ROI expansion occurs.
-- Any secret-like value is written to repo artifacts.
-- The component-gated output is called source-faithful, accepted repair, fixed A1/G/BEST/DB32, source truth, `source_id_map`, RED promotion, or Bosch training data.
-- The result relies on alpha amplification over fragmented components that introduces blocky wall/road/curb/vehicle discontinuities.
-
-Max scope:
-- CPU/local only, fixed DB25 ROI, existing DB62 artifacts, one component-analysis script, one manifest, one board, and optional A1/G diagnostic candidates.
-
-Required vision check:
-- Board must show original A1/G ROI, DB62 soft/hard context, DB63 component mask/overlay, DB63 A1/G candidates, diff maps, component stats, and explicit diagnostic/no-repair boundary.
-
-Output location: `deliverables/dit360_v2/db63_vggt_component_gate/`
-
-Result summary: DB63 completed CPU/local only from existing DB62 VGGT outputs. It found DB62 alpha>0.05 over `0.057392` of the ROI, but the strict component gate kept only `2` components covering `0.021025` of DB25. Keep alpha mean is `0.006689`; amplified alpha mean is `0.011252`; A1/G amplified candidates change only `0.021129` of ROI above alpha>0.05 and have ROI p95 abs delta `0.0`. Vision confirms the high-confidence components sit as small wall/sign/near-wall islands, not a continuous longline seam repair surface. DB63 is raw-camera-backed diagnostic/presentation-only evidence and rejected as repair: not source-faithful, not accepted repair, not fixed A1/G/BEST/DB32, not `source_id_map`, not RED promotion, and not Bosch training data. Full archive is the 2026-06-05 DB63 block at the top of `agent/progress.md`.
-
-# DB-62: VGGT point-guided raw-camera source composite on A1/G
-Status: explored / closed as raw-camera-backed diagnostic rejected-as-repair
-Route: A (geometry) / diagnostic stress test / raw-camera-backed source composite
-
-Question: If VGGT supplies point/depth/confidence evidence instead of only a mask prior, can it fill the missing Google/Meta-style geometry signal for the fixed DB25 longline seam and improve `A1_view_none` / `G_bmw_pano` through raw-camera-backed local source selection/composite?
-
-Hypothesis: VGGT `world_points`, `depth`, `depth_conf`, and `world_points_conf` may identify a better raw camera source in the DB25 overlap zones. A direct diagnostic operator can score each source camera and composite only raw-camera ERP slab pixels, avoiding inpainting/generation while testing whether VGGT can supply the missing A1/G source-selection signal.
-
-Why now: DB61 proved fresh official VGGT runs on A100 and creates DB25 owner-UV metadata, but it only used the result as a weak soft prior. The user asked for a direct attempt that actually uses VGGT to supplement A1/G's missing geometry data.
-
-Expected evidence:
-- One fixed scene/anchor/ROI: `02a00399-3857-444e-8db3-a8f58489c394`, anchor `0`, DB25 `[850, 420, 1650, 720]`.
-- Official VGGT output must include `world_points`, `depth`, `depth_conf`, and `world_points_conf`.
-- Source pixels must come only from raw-camera-backed ERP slabs; VGGT may score/select sources but must not render, inpaint, or define source truth.
-- A1/G candidate outputs, hard source-selection crop, soft composite crop, source-label map, alpha/margin maps, manifest, and review board under `deliverables/dit360_v2/db62_vggt_raw_source_composite/`.
-
-Kill criteria:
-- Any endpoint URL, bearer token, HF token, Cloudflare JSON token, or secret-like value is used from chat, echoed, stored, or written to repo artifacts.
-- Any result is called source-faithful, accepted repair, fixed A1/G/BEST/DB32, source truth, RED promotion, `source_id_map`, or uncaveated Bosch training data.
-- The run expands beyond one fixed DB25 ROI or edits DB41/right-line/lower-right.
-- Any DiT/FLUX/prompt generation, inpainting, full-panorama synthesis, or non-raw-camera source replacement is used.
-- Hard or soft source selection creates obvious wall/curb/road discontinuities or leaves the long seam visible.
-
-Max scope:
-- One fixed DB25 diagnostic operator, one recovered remote VGGT JSON/PNG set, two A1/G local candidates, one manifest, and one board.
-- Output is raw-camera-backed diagnostic / presentation-only stress test. No permission state can change.
-
-Required vision check:
-- Board must show original A1/G DB25 ROI, A1/G candidates, diff crops, raw owner crop, hard selected raw crop, VGGT soft composite crop, alpha/margin/source-label maps, DB61 context, and explicit claim boundaries.
-
-Output location: `deliverables/dit360_v2/db62_vggt_raw_source_composite/`
-
-Result summary: DB62 completed. It ran official VGGT on raw 7-camera BMW anchor `0`, recovered the remote Drive JSON/PNGs after executor log-tail truncation, and created local A1/G raw-camera-backed source-composite candidates. Hard checks pass, secret scan hits `0`, `new_vggt_inference=true`, `raw_camera_pixels_used=true`, `vggt_point_confidence_scoring_used=true`, and `db25_only_remote_scope=true`. The operator used VGGT point/depth/confidence evidence to score raw source cameras, but alpha>0.05 covers only `0.057775` of ROI pixels and best-source differs from owner for only `0.056767`. Vision result is rejected-as-repair: soft composite changes sparse islands and the long seam remains; hard selected raw crop shows blocky/vertical wall and boundary discontinuities. DB62 is diagnostic/presentation-only, not source-faithful, not accepted repair, not source-id/provenance, not RED promotion, and not Bosch training data. Full archive is the 2026-06-05 DB62 block at the top of `agent/progress.md`.
-
-# DB-61: Fresh A100 VGGT rerun for ungated A1/G quick-look
-Status: explored / closed as fresh-A100 presentation-only quick-look rejected-as-repair
-Route: presentation-only / diagnostic stress test / fresh VGGT run
-
-Question: If we rerun official VGGT from scratch on A100 for the raw 7-camera BMW anchor, instead of reusing DB45f artifacts, can the fresh result provide a better prior for an ungated fixed-ROI A1/G quick-look?
-
-Hypothesis: DB60 may have failed because it used older DB45f summarized VGGT grids. A fresh official VGGT run may produce the same type of evidence, but rerunning from scratch can rule out stale/corrupt artifact concerns and allow an updated quick-look candidate. Even if it looks better, the result remains presentation-only unless a separate source-faithful brief later proves raw owner/UV, pose/coordinate, LiDAR/flow, source-id, and protected-mask gates.
-
-Why now: The user explicitly asked not to rely on prior VGGT outputs and to run a new A100 attempt end to end. This brief isolates that request from DB58/DB59/DB60 so an ungated visual test cannot be mistaken for accepted repair evidence.
-
-Expected evidence:
-- One fresh A100 `/exec` job, launched only from approved process env or non-repo runtime secret file, running official VGGT on raw 7-camera BMW anchor `0` for scene `02a00399-3857-444e-8db3-a8f58489c394`.
-- The remote result must be saved as DB61 output, not DB45f, and must record model id, runtime, raw camera load, official preprocess mapping, prediction field shapes, DB25 target heatmap grids/statistics, and job metadata without endpoint/token/HF secrets.
-- One CPU/local quick-look using only the new DB61 remote VGGT JSON plus existing A1/G diagnostic panoramas and masks, fixed to DB25 ROI `[850, 420, 1650, 720]`.
-- Review board and manifest under `deliverables/dit360_v2/db61_fresh_vggt_a1g_quicklook/`, with explicit fresh-run, ungated, presentation-only, not-source-faithful labels.
-
-Kill criteria:
-- Chat-pasted endpoint/token JSON, HF token, bearer token, Cloudflare URL, or any secret-like value is used from chat, echoed, stored, or written to repo outputs.
-- The script reads DB45f/DB60 VGGT result JSON as its geometry input for the quick-look. Existing DB45f scripts may be used only as code templates, not evidence sources.
-- Any result is called source-faithful, raw-camera-backed repair, fixed A1/G/BEST/DB32, source truth, RED promotion, `source_id_map`, or uncaveated Bosch training data.
-- The run expands beyond one fresh A100 job, one anchor, one DB25 ROI, or edits DB41/right-line/lower-right.
-- Any DiT/FLUX/prompt generation, inpainting, full-panorama synthesis, or source replacement is used.
-- Remote setup lacks official VGGT/checkpoint/cache and no approved HF runtime secret is available; record blocked and stop rather than fabricating.
-
-Max scope:
-- At most one A100 `/exec`, one official VGGT raw-camera inference, one DB25 quick-look operator, one manifest, and one board.
-- Output is presentation-only / diagnostic stress-test. No permission state can change.
-
-Required vision check:
-- Board must show original A1/G DB25 ROI, fresh DB61 quick-look crops, difference crops, new VGGT prior/alpha masks, remote fresh-run facts, and explicit `not source-faithful / no repair permission / no DB41 edit` labels.
-
-Output location: `deliverables/dit360_v2/db61_fresh_vggt_a1g_quicklook/`
-
-Result summary: DB61 completed after the runtime source was updated in a non-repo secret file. It first hit a remote `No module named 'vggt'` setup failure, then the runner was patched to bootstrap official `facebookresearch/vggt` and to hard-trim the reused DB45f template to DB25-only scope. The successful A100 run used official `facebook/VGGT-1B-Commercial` on raw 7-camera BMW anchor `0`, produced fresh DB61 DB25 owner-UV sampled depth/confidence/point metadata, and created fixed-ROI A1/G quick-look candidates under `deliverables/dit360_v2/db61_fresh_vggt_a1g_quicklook/`. Hard checks pass, `a100_job_submitted=true`, `new_vggt_inference=true`, `db25_only_remote_scope=true`, `uses_db45f_result_json_as_evidence=false`, and secret scan hits `0`. Vision result is rejected-as-repair: A1 remains visibly seamed with only weak low-frequency change, and G still has/gets sidewalk-curb waviness. DB61 is presentation-only diagnostic stress-test evidence, not source-faithful/raw-camera-backed repair, not A1/G/BEST/DB32 fixed, not `source_id_map`, not RED promotion, and not Bosch training data. Full archive is the 2026-06-05 DB61 completed block at the top of `agent/progress.md`.
-
-# DB-60: VGGT-prior ungated A1/G quick-look candidate
-Status: explored / closed as presentation-only quick-look rejected-as-repair
-Route: presentation-only / diagnostic stress test
-
-Question: If we intentionally ignore source-faithful evidence gates, can existing official VGGT raw-anchor outputs still help produce a visually useful same-ROI quick-look candidate on `A1_view_none` and `G_bmw_pano`?
-
-Hypothesis: The DB45f official VGGT owner-UV confidence/valid heatmap grids may be useful as a soft prior for where a narrow, non-source-faithful local seam attenuation/composite should act, even though DB45k/DB58/DB59 correctly reject it as repair permission. The result may show whether VGGT has any practical visual value worth future evidence work, but it cannot be source-faithful or Bosch-training-ready.
-
-Why now: DB58 and DB59 stopped under the proper evidence gates, but the user explicitly asked for an ungated "just see a result" DFS quick-look. This brief isolates that request so it cannot contaminate accepted source-faithful, diagnostic, or Bosch-facing claims.
-
-Expected evidence:
-- Fixed scene only: `02a00399-3857-444e-8db3-a8f58489c394` / anchor `0`.
-- Fixed ROI only: DB25 longline `[850, 420, 1650, 720]`.
-- Inputs: existing `A1_view_none` and `G_bmw_pano` diagnostic panoramas, existing DB45f official VGGT raw-anchor ROI heatmap grids/statistics, existing A1 edit/abstain masks and DB25 evidence images.
-- One CPU/local quick-look script that creates presentation-only A1 and G candidate images, ROI crops, VGGT-prior mask visualization, difference visualization, manifest, and review board under `deliverables/dit360_v2/db60_vggt_ungated_quicklook/`.
-- No remote/A100 is required unless the script proves existing VGGT grids are missing. Existing DB45f VGGT results are preferred.
-
-Kill criteria:
-- Any endpoint URL, bearer token, HF token, Cloudflare JSON token, or secret-like value is used, echoed, stored, or written to repo artifacts.
-- The output is called source-faithful, raw-camera-backed, source truth, a repaired original G/A1/BEST pano, a fixed DB32, a `source_id_map`, RED promotion, or uncaveated Bosch training data.
-- The quick-look expands beyond DB25 ROI, runs a broad dataset/model/prompt sweep, or edits DB41.
-- Any DiT/FLUX/prompt-only generation, inpainting, full-panorama synthesis, or source replacement is used.
-- The quick-look result is used to overwrite existing A1/G/G/BEST/DB32 artifacts.
-
-Max scope:
-- CPU/local only, one fixed ROI, two bases (`A1_view_none`, `G_bmw_pano`), one VGGT-prior mask, one operator, one manifest, one board.
-- Output is presentation-only / diagnostic quick-look. It is allowed to ignore evidence gates for visualization, but not allowed to change any permission state.
-
-Required vision check:
-- Board must show original A1/G same-ROI crops, quick-look crops, difference crops, VGGT-prior mask, A1 mask/DB25 evidence context, and explicit `presentation-only`, `ungated`, `not source-faithful`, `no repair permission` labels.
-
-Output location: `deliverables/dit360_v2/db60_vggt_ungated_quicklook/`
-
-Result summary: DB60 ran CPU/local only and produced A1/G fixed-ROI quick-look candidates using existing DB45f official VGGT raw-anchor heatmap grids as a soft prior. It used no remote/status/exec, A100, network, new VGGT inference, DiT/FLUX/prompt generation, inpainting, source replacement, `source_id_map`, RED promotion, or permission change. Hard checks pass and secret scan hits `0`. Vision result is weak/rejected-as-repair: A1 is mostly a subtle low-frequency attenuation and does not remove the seam; G introduces a wavy sidewalk/curb distortion in the DB25 ROI. Outputs are under `deliverables/dit360_v2/db60_vggt_ungated_quicklook/`; keep them as presentation-only/diagnostic stress-test evidence, not repair or source-faithful evidence.
-
-# DB-59: VGGT-assisted A1/G diagnostic geometry evidence audit
-Status: accepted / closed as CPU-local preflight diagnostic-no-promotion-no-repair
-Route: A (geometry) / diagnostic evidence for Google-Meta-style A1/G seam failures
-
-Question: Can official VGGT provide target-surface geometry, visibility, or occlusion evidence that explains and potentially unblocks the residual seam failures in `A1_view_none` and `G_bmw_pano`, without treating either pano as source truth or running prompt/generative repair?
-
-Hypothesis: A1/G are the closest Google/Meta-style attempts in this repo: A1 flow view-interp/hard-select improved determinable co-visible seams, while G/seamroute variants exposed classic BMW/right-ground failure cases. Their remaining failure is plausibly missing geometry/visibility/occlusion evidence rather than prompt tuning. VGGT may be useful if, when run on the same raw 7-camera BMW input, its point/depth/pose/confidence can be projected back to A1/G same-ROI failures and agrees with raw owner/UV, Waymo rig/LiDAR, flow/abstain masks, and protected structures. If VGGT remains coordinate-ambiguous or only adds confidence without target-surface support, the result must be diagnostic/no-promotion rather than a repair.
-
-Why now: DB58 correctly stopped the fixed DB25 raw-camera-backed repair attempt under existing artifacts, but the user clarified that the intended exploration is broader: test whether VGGT can supplement A1/G-style Google/Meta geometry evidence. A100 is available, but DB52/DB58 secret-safety rules still apply: chat-pasted endpoint/token JSON is not an approved command/artifact source. This brief creates the missing bounded A1/G diagnostic target before any remote/model action.
-
-Expected evidence:
-- Fixed scene only: `02a00399-3857-444e-8db3-a8f58489c394` / anchor `0`, using raw 7-camera input as the only source-truth input. `A1_view_none` and `G_bmw_pano` are diagnostic pano references/targets only, not source truth.
-- A CPU/local preflight that inventories same-ROI A1/G failure assets, A1 fired/abstain/edit masks if available, G/BMW diagnostic crops, DB25/DB41 evidence, DB45 VGGT prior artifacts, DB49 source-map blockers, and secure runtime-source availability without reading or writing secret values.
-- If and only if a secure runtime source exists via process env or non-repo secret file, the CPU/local preflight gates pass, and the adversarial/subagent audit is logged, one bounded A100 official VGGT evidence job on the raw 7-camera BMW anchor only. No broad dataset scan, no prompt sweep, no renderer, no repaired ERP.
-- VGGT outputs must include pose/decode/preprocess metadata, point/depth/confidence summaries, and fixed A1/G same-ROI diagnostic target sampling through raw-camera/Waymo-rig projections only. A1/G pano pixels may appear only as aligned diagnostic display panels, not VGGT input or geometry source. Coordinate/reflection conventions must be audited against Waymo rig and available LiDAR/flow; VGGT confidence alone is not accepted evidence.
-- A manifest and review board under `deliverables/dit360_v2/db59_vggt_a1g_diagnostic/` showing raw camera crops, A1/G same-ROI diagnostic panels, A1 fired/abstain or edit-mask context when available, VGGT/LiDAR/flow evidence, protected lane/curb/object/building-edge masks or blockers, and labels `diagnostic`, `admissible evidence`, `abstain`, `rejected`, or `follow-up brief required`.
-
-Kill criteria:
-- Chat-pasted endpoint URL, bearer token, HF token, Cloudflare JSON token, or secret-like value is used in a command, echoed, stored, committed, or written to repo files, manifests, boards, logs, prompts, or shell output captures.
-- `A1_view_none`, `G_bmw_pano`, `BEST_bmw_pano`, DB32, or any generated/presentation pano is treated as source truth instead of a diagnostic reference.
-- VGGT is run on A1/G pano pixels as if they were raw sensor views, or VGGT output is used as a renderer/inpainting/refiner.
-- Any DiT/FLUX/prompt-only generation, source replacement, full-panorama repair, or local warp/composite is attempted under DB59.
-- VGGT pose/depth is used despite unresolved reflection/scale/axis ambiguity, missing decode/preprocess artifacts, or failure to align against known rig/LiDAR/flow sanity checks.
-- VGGT confidence, pretty geometry, detector-clean output, flow-only support, or case-level depth/parallax is treated as source truth without target-surface raw/LiDAR/visibility support.
-- The target expands beyond the fixed BMW anchor or beyond the CPU-preflight-frozen A1/G ROI list, starts a dataset scan/model sweep/prompt sweep, or promotes DB25/DB41 from context/negative-control status.
-- Output claims original-G/A1/BEST repair, fully source-faithful panorama, source-faithful ceiling, `source_id_map` completion, RED promotion, or uncaveated Bosch training data.
-- If any gate fails, stop with diagnostic/no-promotion or abstain/no-repair, write `progress.md`, and do not continue patch-on-patch under DB59.
-
-Max scope:
-- Start CPU/local with existing artifacts, no secret reads, no remote/model action.
-- At most one BMW anchor, one CPU-preflight-frozen A1/G diagnostic target set, one script family, one manifest, and one board. No ROI expansion is allowed after seeing any VGGT output.
-- Optional A100/VGGT use is allowed only from process env or an approved non-repo runtime secret file, only after CPU/local preflight plus adversarial audit are recorded, and only for one official VGGT evidence extraction on raw 7-camera BMW anchor 0.
-- No repaired panorama, no source replacement, no generation, no DB49e exact-lineage rerun, no full source-map claim, no broad rerun of DB45 residual patch-on-patch.
-- Any actual raw-camera-backed repair candidate after DB59 requires a fresh follow-up brief with its own kill criteria, protected-mask checks, and same-ROI before/after vision.
-
-Required vision check:
-- Board must show `A1_view_none` and `G_bmw_pano` as diagnostic references, raw source camera crops as source truth, DB25/DB41 evidence context, VGGT pose/depth/point/confidence evidence or blockers, A1/G same-ROI failure panels, protected structure masks or blockers, and explicit no-repair/no-generation/no-source-truth-overclaim labels.
-- Same-ROI crop review is mandatory before any claim that VGGT explains or unblocks A1/G. Any visual improvement claim is forbidden under DB59 because no repair candidate is allowed.
-
-Output location: `deliverables/dit360_v2/db59_vggt_a1g_diagnostic/`
-
-Result summary: DB59 ran CPU/local preflight only with no remote/status/exec, A100, network, new VGGT inference, repair, generation, source replacement, `source_id_map`, RED promotion, or permission change. The frozen A1/G ROI set is DB25 longline as primary diagnostic target plus DB41 right/lower-right as negative controls. Existing official VGGT raw-anchor evidence already covers those ROIs through DB45f owner-UV diagnostic sampling, while DB45k keeps VGGT coordinate/reflection evidence non-admissible and DB25/DB41 target-surface LiDAR/flow support remains insufficient. DB49/source-id/protected-mask support remains blocked. Hard checks pass, secret scan hits `0`, `may_run_remote_or_model_next=false`, and `repair_allowed_under_db59=false`. Outputs: `deliverables/dit360_v2/db59_vggt_a1g_diagnostic/`. Full archive in `progress.md`.
-
-# DB-58: VGGT-assisted raw-camera-backed seam ROI repair feasibility
-Status: accepted / closed as CPU-local preflight abstain-no-repair
-Route: A (geometry) / target-specific EGSR / raw-camera-backed repair
-
-Question: Can one fixed BMW seam ROI be repaired by using VGGT only as geometry evidence for a raw-camera-backed local warp/composite, without generation, prompt inpainting, source replacement, or overclaiming source faithfulness?
-
-Hypothesis: DB37 showed the Google/Meta-style gap is not the seamline algorithm shape but the missing reliable overlap/depth/visibility evidence. DB45 proved official VGGT can produce diagnostic pose/depth/point outputs but has not yet passed the coordinate/reflection/no-promotion gate. A narrow DB58 pass may still become useful if it treats VGGT as a target-surface evidence gate, combines it with raw camera owner/UV mapping and existing LiDAR/flow checks, and attempts a local source-backed warp/composite only when those gates pass. If VGGT pose/depth cannot align to the Waymo-style rig/LiDAR or the target ROI remains low-evidence, the accepted result must be abstain/no-repair rather than another patch.
-
-Why now: DB57 stopped DB47f patch-on-patch after no candidate displaced `a200`/DB32, DB50 found `0` executable new source-faithful repair targets under current local artifacts, and the user explicitly reframed the remaining seam problem as a Google/Meta-style geometry/overlap deficiency rather than a prompt-tuning problem. The next credible seam-quality attempt is therefore not DiT/FLUX repair, but a single-ROI test of whether VGGT can supply the missing geometry evidence needed for source-backed compositing.
-
-Expected evidence:
-- One fixed target ROI, defaulting to DB25 longline ROI `[850, 420, 1650, 720]` on `02a00399-3857-444e-8db3-a8f58489c394` / anchor `0`, because it is the user-visible long seam and has nonzero but weak existing evidence (`near_ground=62.3%`, LiDAR support `9.4%`, key `6-5` flow reliability `10.5%`). DB41 right/lower-right may appear only as negative controls unless a separate brief changes their evidence state.
-- A source/provenance preflight showing ERP ROI owner camera labels, raw `u_img/v_img` mapping or an explicit blocker if raw-UV ownership cannot be recovered, and any required DB49d sidecar/reproducibility dependency.
-- A VGGT evidence audit for the same raw camera pixels: pose/decode convention, coordinate/reflection state, point/depth confidence, alignment to the known rig and available LiDAR, and target-surface support. VGGT confidence alone is not sufficient.
-- If and only if raw-owner, geometry, visibility, and protected-structure gates pass, one local source-backed warp/composite candidate inside the fixed ROI, using raw camera texture and preserving lane/curb/object/building-edge masks. No generated pixels are allowed in the source-faithful branch.
-- One manifest and one review board under `deliverables/dit360_v2/db58_vggt_raw_camera_seam_roi/` with before/after same-ROI, raw camera crops, source-id/UV maps, VGGT/LiDAR/flow evidence, protected masks, abstain regions, and explicit claim labels.
-
-Kill criteria:
-- The target expands beyond the single fixed ROI, or any DB41 lower-right/right-line region is promoted from no-evidence/abstain without a fresh brief and new target-surface evidence.
-- VGGT pose/depth is used despite unresolved reflection/scale/axis ambiguity, undocumented coordinate convention, missing pose/decode artifacts, or failure to align against the known rig/LiDAR sanity checks.
-- Raw camera owner/UV mapping is guessed, inferred from RGB similarity, or replaced by ROI-level camera labels as if it were a per-pixel `source_id_map`.
-- VGGT confidence, detector-clean output, flow-only support, case-level depth/parallax, or visually plausible geometry is treated as source truth without target-surface raw/LiDAR/visibility support.
-- Any DiT/FLUX/inpainting/refiner/generation/prompt-only ground/curb/lane/right-line repair is run under DB58.
-- The candidate changes lane markings, curb geometry, object boundaries, BMW shape/wheels/windows, building edges, or creates fake slabs, poles, repeated texture, warped white lines, melted asphalt, or new objects.
-- The output is described as a fixed `G_bmw_pano`/A1/BEST seam, fully source-faithful panorama, source-faithful ceiling, `source_id_map` completion, RED promotion, or uncaveated Bosch training data.
-- Endpoint URLs, bearer tokens, HF tokens, Cloudflare JSON tokens, or other secret-like values are written to repo files, manifests, boards, logs, shell output captures, or prompts.
-- If any gate fails, stop with a DB58 abstain/no-repair result and write `progress.md`; do not continue with patch-on-patch or presentation-only fallback under the same brief.
-
-Max scope:
-- Start CPU/local with existing artifacts and source inspection. No experiment may run until this brief is reviewed as the active brief.
-- At most one fixed ROI, one target UUID, one anchor, one manifest, one board, and one bounded script family.
-- Optional A100/VGGT use is allowed only if a secure runtime secret source is available via process env or non-repo secret file, and only for the exact DB58 target evidence extraction. No broad VGGT rerun, no model sweep, no dataset scan, no prompt sweep.
-- No full-panorama repair, no source replacement, no generation, no DB49e exact-lineage rerun unless DB58 explicitly depends on already existing source/provenance sidecar support and a separate DB49 brief authorizes it.
-- Use brainstorming before changing scope, and use read-only adversarial audit / multi-position reasoning before any remote/model action. Any subagent/audit result must be summarized in `progress.md`.
-
-Required vision check:
-- Board must show `G_bmw_pano` as diagnostic reference only, current `a200`/DB32 caveated handoff context, the fixed DB25 longline ROI, raw camera crops, source-owner/UV evidence or blocker, VGGT/LiDAR/flow evidence, protected lane/curb/object/building-edge masks, before/after same-ROI if a composite is attempted, abstain regions, and explicit labels: `source-backed candidate`, `diagnostic`, `abstain`, `rejected`, or `presentation-only` if applicable.
-- Rectilinear/cubemap or same-ROI crop review is mandatory before any visual improvement claim.
-
-Output location: `deliverables/dit360_v2/db58_vggt_raw_camera_seam_roi/`
-
-Result summary: DB58 accepted only `db58_cpu_local_preflight_abstain_no_repair`; see the 2026-06-05 DB58 accepted abstain/no-repair block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db58_vggt_raw_camera_seam_roi_preflight.py` read existing DB25, DB45f, DB45k, and DB49c/d/e evidence and produced `deliverables/dit360_v2/db58_vggt_raw_camera_seam_roi/db58_vggt_raw_camera_seam_roi_preflight_manifest.json` plus board. No remote/status/exec, A100, network, new VGGT inference, seamroute rerun, renderer, warp/composite, repair, source replacement, generation, `source_id_map`, RED promotion, or permission change occurred. Failed gates are `vggt_pose_coordinate_admissibility` and `target_surface_lidar_flow_support`; diagnostic/blocking gates are `raw_owner_uv_preflight` and `source_id_and_sidecar_support`, so `may_run_remote_or_model_next=false` and `may_attempt_raw_camera_warp_or_composite=false`. A1/G remain diagnostic visual references only under DB58; a direct A1/G repair attempt requires a fresh decision brief.
-
-# DB-45: Geometry foundation evidence audit
-Status: paused
-Route: A (geometry) / evidence-only
-
-Question: Can VGGT/Fast3R/CUT3R/DAC/DAP/PriOr-Flow/FlowSeek-style evidence turn any currently RED seam into YELLOW/GREEN, or improve the confidence calibration for layer-aware routing?
-
-Hypothesis: Modern multi-view geometry/depth/flow foundation models may provide denser pointmaps, tracks, confidence, or panoramic depth/flow cues than the current LiDAR/DA-V2/flow metadata, but they must be calibrated as evidence only. They must not be trusted as renderers or as truth in unseen/no-evidence regions.
-
-Why now: DB41 and DB25 show current raw/LiDAR/flow evidence is insufficient for key BMW right-line/lower-right regions. Before trying new repairs, test whether newer geometry/depth/flow methods add reliable evidence or simply hallucinate confidence on known negatives.
-
-Expected evidence:
-- Evidence-only outputs: geometry confidence, pointmap/track support, depth/flow confidence, occlusion/no-evidence flags, and correlation with raw-camera/LiDAR/parallax evidence.
-- Permission-state deltas: which segments remain RED, which become YELLOW/GREEN, and why.
-- No repaired panorama in this brief.
-
-Completed substeps under this brief:
-- DB45a VGGT feasibility gate: current-runtime no-go, not a VGGT model negative.
-- DB45b existing-evidence permission calibration: accepted permission-calibration-only guardrails, no RED promotion.
-- DB45c VGGT Commercial access update + schema gate: HF file access cleared, but VGGT route remains not evidence-ready.
-- DB45d VGGT official setup/load smoke: setup/checkpoint/API ready for a future ROI probe, but no geometry evidence accepted.
-- DB45e VGGT frozen-ROI confidence probe: official VGGT inference ran once on BMW anchor 0 and accepted diagnostic owner-camera confidence only; no target-surface mapping, no geometry evidence, no RED promotion.
-- DB45f VGGT target-ROI owner-UV sampling gate: accepted target-pixel VGGT metadata as diagnostic-only; confidence-only RED promotion killed; no geometry evidence, no RED promotion.
-- DB45g VGGT pose/pointmap metric-residual readiness gate: accepted official-source decode-path diagnostic-only; actual pose tensors/decoded extrinsics still missing; no inference, no geometry evidence, no RED promotion.
-- DB45h VGGT calibrated residual job contract gate: accepted residual-job contract-only; defines pose/decode/preprocess/rig/residual requirements; no inference, no geometry evidence, no RED promotion.
-- DB45i/DB45j VGGT calibrated residual extractor: latest setup replay cleared runtime import, official VGGT inference ran once, saved pose/decode/preprocess/residual diagnostics, but Sim(3) reflection and target residual gates block geometry evidence; no permission change, no RED promotion.
-
-Parked future subtracks under this brief unless split later:
-- Geometry foundation evidence job: VGGT / Fast3R / CUT3R pointmaps, tracks, confidence, and multi-view consistency.
-- Depth risk upgrade: DAC / DAP versus current DA-V2-style depth metadata, especially ERP/large-FoV depth confidence.
-- Flow confidence audit: PriOr-Flow / FlowSeek confidence, occlusion, and forward-backward reliability; no blind flow warp.
-- Waymo sensor artifact taxonomy: SplatAD / SplatFlow / Street Gaussians-style diagnostics for HDR/color, rolling shutter/sync, dynamic object, and parallax categories; not final panorama rendering.
-
-Minimum decisive experiment:
-- 8 fixed seam segments maximum for first pass.
-- Positives: far/static seam with known raw support, LiDAR-supported facade/road seam, clean `a200`/DB32-like seam.
-- Negatives: DB41 lower-right/right-line, DB25 dark-wall/key-pair low-flow seam, DB36/DB40 generated fake geometry, object-adjacent occlusion seam.
-- Compare model confidence/tracks/pointmaps against raw-camera reprojection residual, LiDAR support where available, existing flow reliability, and human visual verdict.
-
-Kill criteria:
-- High confidence on DB41 lower-right/no-evidence ROI.
-- High confidence on DB36/DB40 generated fake slabs, holes, vertical slices, or pole-like artifacts.
-- Confidence conflicts with raw-camera or LiDAR evidence.
-- Inferred geometry fills unseen regions and is treated as source truth.
-- Cannot distinguish clean source seams from no-evidence seams.
-- Only useful if used as an image renderer.
-- No actionable change to EGSR permission states.
-
-Max scope:
-- Evidence-only; no panorama repair, no source replacement, no diffusion/refiner.
-- 8 fixed segments for first pass; expand only through a follow-up brief.
-- Do not download/run heavy models locally unless execution environment and scope are explicitly approved in the running brief.
-- First running pass (2026-06-04): CPU/local manifest + board over existing DB25/DB41/DB43/DB44 evidence, plus A100 live/env/cache preflight only. No heavy model download, no model inference, no renderer, no repaired ERP.
-- Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-- Phase0 result (2026-06-04): `gate_pass=true` for the fixed 8-control evidence audit; no RED promotion and no foundation-model confidence claim. DB45 remains running, because this only locked controls/registry/preflight and did not run an actual scoped foundation-model evidence job. Detail archived at top of `progress.md`.
-- Phase1 sub-scope (2026-06-04): VGGT evidence feasibility gate only. Check current Colab repo/cache/env/HF-readiness against the frozen 8-control evidence schema. No install, no model download, no inference, no renderer, no repaired ERP. If VGGT repo/cache/env is missing or the only available confidence is uniform/non-evidential, stop the VGGT route, write `progress.md`, and do not continue patch-on-patch.
-- Phase1 result (2026-06-04): VGGT current-runtime route is **no-go**, not a model negative. A100/data/repo are reachable and the user-provided HF token is valid, but remote repo is stale, `vggt` is not importable, the VGGT repo cache tarball is invalid/0-byte, HF Commercial checkpoint file access is still gated/403, no HF checkpoint cache was observed, and the current wrapper uses uniform confidence. No DB45 evidence accepted, no permission-state change, no RED promotion. Detail archived at top of `progress.md`.
-- Phase2 sub-scope / DB45b (2026-06-04): Existing-evidence permission calibration. Question: can the current structured LiDAR/flow/depth/parallax/fake-geometry evidence define a stricter EGSR permission rule before any new foundation model is allowed? Hypothesis: current evidence should not promote any DB25/DB41/DB36/DB40 RED controls, but it can formalize the rule that flow-only, detector-clean, or case-level depth signals are insufficient without target-surface support. Why now: VGGT is waiting on gated access, while DB45 can still advance by turning existing evidence into a reusable permission gate. Expected evidence: calibration rows over the frozen 8 controls, false-positive examples for flow-only and detector-clean signals, permission deltas, kill checks, and boards showing raw/LiDAR/flow/fake-geometry controls. Kill criteria: any RED control is promoted by flow-only, detector-clean, case-level depth/parallax, or non-target-surface evidence; DB41 lower-right is not zero-LiDAR abstain; DB36/DB40 fake geometry is not rejected; DB32 is described as fully source-faithful or original-G repair; output suggests a repair operator or generated ERP. Max scope: CPU/local only, existing artifacts only, no A100, no model download/inference, no panorama repair/source replacement/diffusion, fixed DB45 8-control set only. Required vision check: board must include DB25/DB41 evidence overlays and DB36/DB40 fake-geometry references, plus final permission labels. Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-- Phase2 result (2026-06-04): DB45b accepted **permission-calibration-only** evidence. `gate_pass=true`, 8 rows, 17/17 checks PASS, `permission_state_changes=none`, `red_promotions=[]`. It formalizes that target-surface support is required; flow-only, detector-clean, case-level depth/parallax, outside-mask preservation, and best-pair laundering cannot promote RED. DB25/DB41/DB36/DB40 remain RED; DB32 remains source-sidestep/handoff. Detail archived at top of `progress.md`.
-- Phase3 sub-scope / DB45c (2026-06-04): VGGT Commercial access update + evidence extractor readiness/schema gate. Question: now that the user-provided HF token can access `facebook/VGGT-1B-Commercial` files, can VGGT be prepared as a bounded DB45 evidence source without laundering model output into source truth? Hypothesis: the HF gated-file blocker may be cleared, but the current route still cannot accept VGGT evidence until runtime dependencies, cache integrity, extractor schema, and DB45b negative controls are satisfied. Why now: DB45a stopped partly on 403 gated-file access; the current HEAD check returns 200, so the route needs a fresh readiness decision before any A100 install/download/inference. Expected evidence: token-valid and config-HEAD status, stale/ready runtime flags, cache/dependency status, explicit rejection of uniform-confidence wrapper output, a target-ROI evidence schema, permission deltas, kill checks, and a board. Kill criteria: token written to any artifact; old `run_vggt_multi_anchor.py` uniform `np.ones` confidence is accepted as evidence; a VGGT renderer/repaired ERP is produced; any RED control is promoted without target-surface support; high confidence appears on DB25/DB41/DB36/DB40 controls; setup becomes an unbounded install/download; DB32 is described as fully source-faithful or as original-G repair. Max scope: local/CPU manifest + board only, optional remote status/import/cache checks only if needed, no install, no model download, no inference, no panorama repair, no source replacement, frozen DB45 8-control set. Required vision check: board must show access delta, remaining blockers, target-ROI evidence schema, and DB45b guardrail outcomes; no repaired image is allowed. Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-- Phase3 result (2026-06-04): DB45c accepted **readiness-and-schema-only** evidence. HF Commercial file access is now cleared (`config.json` HEAD 403 -> 200), but VGGT is **not evidence-ready**: remote repo is still stale (`d544214`), `vggt` import is missing, the VGGT repo cache tarball is still 0 bytes, no verified checkpoint cache is recorded, and the existing wrapper still emits uniform `np.ones` confidence. No model download/inference/repair was run. `accepted_db45_geometry_evidence=false`, `permission_state_changes=none`, `red_promotions=[]`, route state `access_cleared_but_not_evidence_ready`. Detail archived at top of `progress.md`.
-- Phase4 sub-scope / DB45d (2026-06-04): VGGT official setup + Commercial checkpoint load smoke gate. Question: after DB45c cleared HF Commercial file access, can the current A100 runtime load the official VGGT code/checkpoint and expose auditable confidence fields needed for a future DB45 ROI extractor? Hypothesis: official VGGT can be installed/loaded in a bounded remote setup, and the API should expose `depth_conf` / `point_conf` or equivalent real confidence outputs; if not, the VGGT route remains blocked before any AV seam inference. Why now: DB45c turned the access blocker into runtime/cache/schema blockers; the next minimal step is to clear or confirm the setup/checkpoint/API blocker without touching seam repair. Expected evidence: remote setup command transcript summary, official repo/version path, import status, Commercial checkpoint load status, dependency/cache/disk status, evidence of confidence-capable API fields from official output inspection or source inspection, no-token leak check, kill checks, and a board. Kill criteria: HF/Colab token is written to artifacts; setup mutates local repo or silently downgrades project dependencies; old uniform-confidence wrapper is run or accepted; no real confidence/validity field can be found; setup exceeds one bounded job or becomes open-ended debugging; AV seam inference is attempted before setup passes; any ERP/renderer/repair/source replacement is produced; any RED control is promoted; DB32/G claims are overstated. Max scope: one A100 setup/load-smoke job plus local manifest/board; may clone/install official VGGT and download/load exactly `facebook/VGGT-1B-Commercial` once under runtime/Drive cache; no AV image inference, no repaired panorama, no renderer, no source replacement, no diffusion/refiner, no RED promotion. Required vision check: text board must show setup/load/confidence-field verdict and explicit no-model-output-as-seam-evidence decision; no repaired image is allowed. Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-- Phase4 result (2026-06-04): DB45d accepted **setup-and-api-smoke-only** evidence. One A100 job cloned official VGGT (`a288dd0`), loaded `facebook/VGGT-1B-Commercial` successfully, cached `model.safetensors` on Drive, and verified confidence-capable API fields (`depth_conf`, `world_points_conf`, track confidence) plus model heads. No AV image inference, renderer, repair, source replacement, or permission promotion ran. `vggt_setup_ready_for_future_roi_probe=true`, but `accepted_db45_geometry_evidence=false`, `vggt_roi_inference_ran=false`, `permission_state_changes=none`, `red_promotions=[]`. Future ROI probe still requires a new bounded sub-scope, current extractor sync/upload, real confidence fields, frozen controls, and DB45b kill criteria. Detail archived at top of `progress.md`.
-- Phase5 sub-scope / DB45e (2026-06-04): VGGT frozen-ROI confidence evidence probe v0. Question: when official VGGT is run on the raw 7-camera BMW anchor, do real VGGT confidence fields add ROI-specific evidence that can change any DB45 permission state? Hypothesis: VGGT may expose useful confidence/risk metadata, but DB25/DB41 RED controls should remain RED unless confidence is tied to target-surface overlap and raw/LiDAR support; DB36/DB40 generated fake geometry must remain reject controls because raw-camera VGGT confidence cannot validate generated-core artifacts. Why now: DB45d cleared setup/checkpoint/API readiness; the next smallest evidence step is one bounded ROI reducer, not a repaired panorama. Expected evidence: uploaded current extractor path, one A100 VGGT inference over BMW anchor 0 raw ring cameras, ROI summaries for DB25 longline / DB41 right / DB41 lower-right, real `depth_conf` / `world_points_conf` statistics, camera-label overlap, existing LiDAR/flow comparison, generated-fake controls marked non-admissible, kill checks, and a board. Kill criteria: old `run_vggt_multi_anchor.py` or uniform `np.ones` confidence is used; any token appears in artifacts; more than one anchor/log is run; output is a renderer, ERP repair, source replacement, or generated image; VGGT confidence alone promotes DB25/DB41 RED; DB41 lower-right is not preserved as zero-LiDAR abstain; DB36/DB40 generated fake artifacts are laundered; DB32 is described as fully source-faithful or original-G repair; setup turns into open-ended debugging. Max scope: one A100 inference job, one log/anchor (`02a00399...`, anchor 0), 7 raw ring cameras, ROI reducer over three source-evidence ROIs plus DB36/DB40 non-admissible fake controls; no repair, no renderer, no source replacement, no diffusion/refiner, no permission promotion unless DB45b target-surface support criteria are explicitly met. Required vision check: board must include ROI table, VGGT confidence bands/statistics, existing LiDAR/flow support, final permission labels, and explicit no-repair/no-RED-promotion checks; no repaired image is allowed. Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-- Phase5 result (2026-06-04): DB45e accepted **vggt-roi-confidence-diagnostic-only** evidence. One A100 job ran official VGGT on BMW anchor 0 raw 7-camera input and captured real non-uniform `depth_conf` / `world_points_conf` maps. Because the current evidence pack only supports camera-owner summaries, not pixel-exact target-surface mapping, all DB25/DB41 ROIs remain `RED/abstain`; DB41 lower-right preserves zero-LiDAR abstain; DB36/DB40 generated fake-geometry controls remain non-admissible rejects. `accepted_db45_geometry_evidence=false`, `permission_state_changes=none`, `red_promotions=[]`. Detail archived at top of `progress.md`.
-- Phase6 sub-scope / DB45f (2026-06-04): VGGT target-ROI owner-UV sampling gate v0. Question: can the renderer's actual ERP-to-raw-camera source-owner `u_img/v_img` mapping turn DB45e's owner-camera confidence into pixel-targeted evidence for DB25/DB41 seam ROIs, and does that evidence justify any permission-state change? Hypothesis: exact source-owner UV sampling is feasible and will be stronger than DB45e owner summaries, but it will still not promote DB25/DB41 because VGGT pointmap/confidence sampled at target ROI owner pixels lacks DB45b target-surface raw/LiDAR support and may show model-internal confidence even on zero-LiDAR/no-evidence regions. Why now: DB45e proved official VGGT confidence exists but owner-camera aggregation is too weak; `render_camera_to_erp` already computes raw `u_img/v_img`, so the next minimal step is to expose/sample that mapping before abandoning or expanding VGGT. Expected evidence: one A100 job over BMW anchor 0 raw 7-camera input; explicit official preprocessing coordinate mapping; per-ROI source-owner UV valid fraction; sampled `depth`, `depth_conf`, `world_points`, and `world_points_conf` stats at target ROI owner pixels; optional model-internal point disagreement for overlap pixels; existing LiDAR/flow support side-by-side; generated-fake controls marked non-admissible; no-token scan; board with owner-UV sampled confidence/validity heatmaps and final permission labels. Kill criteria: renderer UV mapping is guessed rather than derived from the same calibration/projection math; VGGT preprocessing crop/pad mapping is not recorded; old uniform wrapper is used; more than one log/anchor is run; output is a renderer, repaired ERP, source replacement, or generated image; VGGT confidence alone promotes DB25/DB41 RED; DB41 lower-right does not remain zero-LiDAR abstain; model-internal pointmaps are treated as metric ego truth without LiDAR scale/residual; DB36/DB40 generated fake artifacts are laundered; DB32/G claims are overstated; the job becomes open-ended debugging. Max scope: one A100 inference job, one log/anchor (`02a00399...`, anchor 0), 7 raw ring cameras, three source-evidence ROIs plus DB36/DB40 non-admissible controls, no repair/generation/source replacement, no permission promotion unless DB45b target-surface support is explicitly satisfied. Required vision check: board must show sampled owner-UV validity, VGGT confidence bands/heatmaps, existing LiDAR/flow, generated-control boundary, and explicit no-repair/no-RED-promotion checks. Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-- Phase6 result (2026-06-04): DB45f accepted **vggt-target-uv-sampling-diagnostic-only** evidence. The one allowed A100 inference job completed remotely (`0404998afa534865b137b4c7eb97f41d`, exit `0`) and wrote Drive JSON; a later read-only recovery job (`81b6e87db75d445eb058829fc4a58865`, exit `0`) compacted that saved JSON without rerunning VGGT. Owner-UV sampling succeeded for DB25 longline / DB41 right / DB41 lower-right using the renderer's raw-camera UV mapping and official VGGT crop preprocessing. This improves DB45e's owner-camera summary into pixel-targeted model diagnostics, but it does not satisfy DB45b target-surface raw/LiDAR support and it kills VGGT confidence-only RED promotion. DB25/DB41 remain `RED/abstain`; DB41 lower-right remains zero-LiDAR abstain; DB36/DB40 generated fake-geometry controls remain non-admissible rejects. `accepted_db45_geometry_evidence=false`, `permission_state_changes=none`, `red_promotions=[]`. Detail archived at top of `progress.md`.
-- Phase7 sub-scope / DB45g (2026-06-04): VGGT pose/pointmap metric-residual readiness gate v0. Question: can official VGGT outputs be decoded and calibrated against the known Waymo-style camera rig and LiDAR evidence well enough to test target-surface residuals, rather than relying on confidence or owner-UV sampling alone? Hypothesis: a source-faithful promotion still probably fails because VGGT pointmaps live in a model coordinate frame and DB41 lower-right has zero LiDAR support, but an explicit readiness gate can determine whether a future residual job is legitimate or should be killed before another inference. Why now: DB45f killed confidence-only RED promotion; the only remaining VGGT path that could matter is calibrated pose/pointmap residual evidence against raw camera rays and LiDAR/planes. Expected evidence: official VGGT source/API inspection for `pose_enc`/camera decoding and coordinate conventions; whether camera centers can be aligned to known rig centers by a documented Sim(3) or equivalent; required residual metrics for sampled owner-UV points; explicit LiDAR/raw comparison schema; no-token scan; board or manifest showing ready/blocked status and next-run permission. Kill criteria: no official/dependable camera or pose decode path is found; coordinate alignment is guessed; Sim(3)/scale residual is not recorded; pointmaps are treated as metric ego truth without calibration; DB41 lower-right is promoted despite zero LiDAR support; confidence, detector-clean, or source-owner UV alone promotes RED; more than one source-inspection job is needed; any model inference/render/repair/source replacement/generation is run under this readiness sub-scope; DB32/G claims are overstated. Max scope: one lightweight remote source/API inspection job plus local manifest/board; no VGGT inference, no model load, no download, no repaired panorama, no renderer, no source replacement, no diffusion/refiner, no RED promotion. Required vision check: board must show official decode readiness, alignment/residual schema, DB45b guardrails, and explicit `no inference/no repair/no promotion` labels. Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-- Phase7 status (2026-06-04): source fallback diagnostic accepted, runtime readiness still paused on executor availability. Added `scripts/phase3/db45g_vggt_pose_decode_readiness_gate.py`; dry-run local manifest/board works. The one allowed runtime source/API inspection has not started: one provided Cloudflare tunnel returned HTTP `530` at `/exec` and `/status`, and a later provided tunnel hostname failed DNS resolution (`NXDOMAIN` / `getaddrinfo failed`) before `/exec` submission. Because this is only a tunnel blocker, DB45g performed a CPU/local official-source fallback inspection over public official VGGT docs/source: official source documents `pose_encoding_to_extri_intri`, OpenCV camera-from-world extrinsics, and depth/point unprojection utilities. This accepts only `vggt-official-source-decode-path-diagnostic-only`. Local DB45f confirms `pose_enc` / `pose_enc_list` appear in prediction keys, but the actual pose tensor / decoded extrinsics were not stored. Therefore `residual_readiness=false`, `accepted_db45_geometry_evidence=false`, `model_inference_ran=false`, `permission_state_changes=none`, `red_promotions=[]`. Re-run only the same runtime source/API inspection when a reachable executor is available; any residual inference/extractor still needs a fresh bounded sub-scope and must save/decode pose/extrinsics and align against Waymo rig/LiDAR before using pointmaps.
-- Phase8 sub-scope / DB45h (2026-06-04): VGGT calibrated residual job contract gate v0. Question: after DB45g documents the official decode path but shows that DB45f did not save pose tensors/decoded extrinsics, can we define the minimal future residual extractor contract that would make VGGT pointmaps admissible as evidence rather than confidence-only metadata? Hypothesis: a contract can be specified now: a future bounded extractor must save `pose_enc`, decoded extrinsics/intrinsics, preprocessing transforms, camera-center Sim(3) alignment to the Waymo rig, LiDAR/raw reprojection residuals, and control-specific permission deltas. The contract itself will not accept geometry evidence because no new inference or decoded tensors are produced. Why now: executor/tunnel is unavailable, but the project can still prevent the next A100 run from becoming open-ended or overclaiming. Expected evidence: CPU/local manifest and board with required fields, alignment/residual schema, thresholds, no-run checks, DB25/DB41/DB36/DB40 control behavior, and explicit next-brief requirements. Kill criteria: contract treats VGGT world points as metric ego truth without Sim(3)/LiDAR/raw residuals; allows confidence/owner-UV/detector-clean to promote RED; fails to preserve DB41 lower-right zero-LiDAR abstain; launders DB36/DB40 generated fake geometry; authorizes residual inference under DB45h; produces repaired ERP/render/source replacement/generated output; exceeds CPU/local schema scope; DB32/G claims are overstated. Max scope: CPU/local only, existing DB45 artifacts only, one script/manifest/board; no network dependency beyond already inspected official-source facts, no A100, no model load/download/inference, no renderer/repair/source replacement/diffusion, no permission promotion. Required vision check: board must show the contract ladder, required hard checks, DB41/DB25 control outcomes, and `no inference/no geometry/no RED promotion` labels. Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-- Phase8 result (2026-06-04): DB45h accepted **vggt-residual-job-contract-only** diagnostic evidence. CPU/local script `scripts/phase3/db45h_vggt_residual_job_contract_gate.py` produced the future extractor contract and board without model action. Required future saved outputs are `pose_enc`, decoded extrinsics/intrinsics, preprocessing mapping, Waymo rig extrinsics, and LiDAR/raw residuals; required ladder is official decode -> camera centers -> Sim(3) rig alignment -> target-surface LiDAR/raw residuals. DB25/DB41 remain `RED/abstain`, DB41 lower-right remains zero-LiDAR abstain, DB36/DB40 generated controls remain rejects, and DB32 remains caveated handoff. `accepted_db45_geometry_evidence=false`, `runtime_ready=false`, `model_inference_ran=false`, `permission_state_changes=none`, `red_promotions=[]`. Detail archived at top of `progress.md`.
-- Phase9 sub-scope / DB45i (2026-06-04): VGGT calibrated residual extractor v0. Question: with DB45h's contract frozen and an A100 offered, can one bounded official VGGT run save `pose_enc`, decode camera extrinsics/intrinsics through the official path, align VGGT camera centers to the Waymo rig by Sim(3), and produce target-surface LiDAR/raw residual diagnostics strong enough to change any DB45 permission state? Hypothesis: the extractor will likely be useful as a calibration diagnostic but will not promote DB25/DB41 because DB41 lower-right has zero LiDAR support and DB25/DB41 right have sparse target-surface support; however, it can kill or justify the VGGT residual route with actual decoded pose tensors rather than confidence-only metadata. Why now: DB45e/f killed VGGT confidence-only promotion; DB45g/h established the decode path and required contract; the only remaining VGGT path that could matter is calibrated residual evidence. Expected evidence: one BMW log/anchor A100 inference result or a paused DNS/tunnel record; saved pose tensor shape/sample, decoded extrinsics/intrinsics shape/sample, preprocessing mapping, AV2/Waymo rig camera centers, Sim(3) scale/RMS/max/per-camera residuals, owner-UV point residual summaries, sparse LiDAR residual summaries per DB25/DB41 ROI, generated-control boundary, no-token scan, and a board. Kill criteria: executor DNS/status is unreachable; official `pose_encoding_to_extri_intri` cannot decode `pose_enc`; decoded camera centers cannot be aligned to AV2/Waymo rig with recorded Sim(3); reflection/degenerate scale is accepted; Sim(3) RMS or max residual exceeds the contract threshold; LiDAR/raw target-surface residuals are missing but RED is promoted; confidence/owner-UV validity/detector-clean alone promotes RED; DB41 lower-right is promoted despite zero LiDAR support; DB36/DB40 generated fake geometry is laundered; output includes repaired ERP, renderer image, source replacement, diffusion/refiner, generated pixels, or prompt-only seam repair; more than one log/anchor or retry job is used under this sub-scope; DB32/G claims are overstated. Max scope: one A100 inference/extractor job if executor is reachable, one log/anchor (`02a00399...`, anchor 0), 7 raw ring cameras, frozen DB25/DB41 ROIs plus DB36/DB40 non-admissible controls, compact JSON recovery only if log truncates; no repaired panorama, no renderer output, no source replacement, no diffusion/refiner, no promotion unless DB45b target-surface support and DB45h residual gates pass. Required vision check: board must show decode status, Sim(3) alignment, ROI residual table, DB41 lower-right zero-LiDAR boundary, generated-control rejection, and `no repair/no generation/no RED promotion unless residual gates pass` labels. Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-- Phase9 status (2026-06-04): DB45i is **blocked-or-paused on runtime VGGT import**, not on DNS for the latest attempt. Added `scripts/phase3/db45i_vggt_calibrated_residual_extractor.py` and generated local manifest/board plus sanitized remote-result/reachability records. Earlier bounded remote attempts stopped before `/status`/`/exec` because provided tunnel hostnames failed DNS resolution. The latest user-provided A100 endpoint passed approved non-sandbox `/status` and submitted one DB45i `/exec` job (`07381bc2c9d44811bf8717ffca5a1582`, exit `0`), but the remote runtime failed before official VGGT inference with `ModuleNotFoundError: No module named 'vggt'`. Therefore `model_inference_ran=false`, no `pose_enc` tensor was saved, no decoded extrinsics/intrinsics or Sim(3) residuals exist, and no target-surface residual evidence was accepted. `accepted_db45_diagnostic_evidence=false`, `accepted_db45_geometry_evidence=false`, `runtime_ready=false`, `model_inference_ran=false`, `permission_state_changes=none`, `red_promotions=[]`. DB45i must not continue patch-on-patch by ad hoc installing/rerunning under the same sub-scope; any runtime bootstrap/cache restore plus residual retry needs a fresh bounded brief or explicitly scoped setup replay. Detail archived at top of `progress.md`.
-- Phase10 sub-scope / DB45j (2026-06-04): A100 runtime VGGT bootstrap replay + single DB45i residual retry.
-  - Question: Can the currently reachable A100 runtime restore/import official VGGT from the existing DB45d setup path/cache and then run exactly one DB45i calibrated residual extractor retry without turning DB45i into patch-on-patch?
-  - Hypothesis: the latest DB45i failure is an ephemeral runtime import/setup loss, not a model or HF-access failure; rerunning the already accepted DB45d setup/load smoke once should make `vggt` importable, after which one DB45i retry may either produce decoded pose/Sim(3)/residual diagnostics or cleanly hit the next hard blocker.
-  - Why now: `/status` and `/exec` are now reachable and HF access is expected to be available, but DB45i is blocked before inference solely by missing `vggt` in the new Colab runtime.
-  - Expected evidence: one setup replay result from `scripts/phase3/db45d_vggt_setup_smoke_gate.py --run-remote` showing official repo/import/checkpoint load status, then at most one `scripts/phase3/db45i_vggt_calibrated_residual_extractor.py --run-remote` retry result; manifest/board updates must report whether `pose_enc`, decoded cameras, preprocessing mapping, Sim(3), and target-surface residuals exist.
-  - Kill criteria: setup replay fails to import official `vggt` or load/cache `facebook/VGGT-1B-Commercial`; token or endpoint appears in artifacts; setup becomes open-ended debugging; more than one setup replay or one residual retry is used; DB45i still lacks `pose_enc`/decoded cameras/preprocess mapping after retry; Sim(3) or LiDAR/raw residual gates fail but RED is promoted; confidence/owner-UV/detector-clean alone promotes RED; DB41 lower-right is promoted despite zero LiDAR support; any repaired ERP, renderer image, source replacement, generated pixels, diffusion/refiner, or prompt-only seam repair is produced; DB32/G claims are overstated.
-  - Max scope: at most two remote jobs on the current reachable A100 executor: one DB45d setup/load replay and one DB45i residual retry; one BMW log/anchor (`02a00399...`, anchor 0), 7 raw ring cameras, frozen DB25/DB41 ROIs plus DB36/DB40 non-admissible controls; no repair/generation/source replacement/renderer, no permission change unless DB45b target-surface support and DB45h residual gates pass, no local model download.
-  - Required vision check: DB45d setup board if changed plus DB45i residual board; DB45i board must show import/inference/decode/Sim(3)/ROI residual status, DB41 lower-right zero-LiDAR boundary, generated-control rejection, and `no repair/no generation/no RED promotion` labels.
-  - Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-  - Result (accepted diagnostic-only): DB45j ran exactly the allowed setup replay plus one DB45i retry. Setup/load replay succeeded (`setup_ready=true`), and DB45i official VGGT inference succeeded with `pose_enc_shape=[7,9]`, decoded extrinsics `[7,3,4]`, and preprocessing mapping count `7`. The residual route remains non-admissible for permission promotion: `sim3_contract_thresholds_pass=false` because `reflection_detected=true` despite mean/max center residuals `0.217991/0.319168 m`; DB25/DB41 target residuals are large and all ROI rows keep `permission_promotion_allowed=false`; DB41 lower-right preserves known LiDAR support `0.000`. Accepted evidence type is `vggt-calibrated-residual-diagnostic-only`; `accepted_db45_geometry_evidence=false`, `permission_state_changes=none`, `red_promotions=[]`, no repair/generation/source replacement/renderer occurred. Detail archived at top of `progress.md`.
-- Phase11 sub-scope / DB45k (2026-06-04): VGGT pose/reflection coordinate audit from existing outputs only.
-  - Question: Is the DB45j Sim(3) reflection failure caused by a documented coordinate/order/extrinsic-convention issue in the saved DB45i outputs, or should the VGGT residual route remain diagnostic-only/paused under the current evidence gates?
-  - Hypothesis: A bounded saved-artifact audit may identify whether the reflection flag is a bookkeeping/convention artifact, but the pairwise rig-shape and target-surface residual evidence will likely keep VGGT residuals non-admissible for geometry promotion.
-  - Why now: DB45j finally produced real official VGGT pose/decode/preprocess/residual outputs, and the single hard alignment blocker is concrete (`reflection_detected=true`). Before abandoning or rerunning VGGT, the project needs one falsifiable audit of extractor/coordinate assumptions that does not consume A100 time or turn into patch-on-patch.
-  - Expected evidence: one CPU/local script, manifest, and board using only existing DB45i/DB45h outputs plus local code inspection. Report documented camera order, decoded extrinsic convention, saved VGGT/Waymo centers, pairwise-distance consistency, non-reflective and reflected similarity fits, documented axis/order hypotheses, target ROI residual boundary, and a final route recommendation.
-  - Kill criteria: requires arbitrary axis flips, reflection, camera permutations, or threshold changes not derived from code/docs; pairwise rig-shape inconsistency remains material; non-reflective Sim(3) still fails DB45h/DB45i thresholds; ROI residuals remain no-promotion; any DB25/DB41 RED promotion relies on VGGT confidence/pointmaps without raw/LiDAR target-surface support; DB41 lower-right is promoted despite known LiDAR support `0.000`; any A100/executor/model inference/download, renderer, ERP repair, source replacement, generated pixels, diffusion/refiner, or prompt-only seam repair is attempted; DB32/G claims are overstated; token/endpoint strings appear in artifacts.
-  - Max scope: CPU/local saved-artifact audit only. Inputs are existing `db45i_vggt_calibrated_residual_remote_result.json`, `db45i_vggt_calibrated_residual_manifest.json`, `db45h_vggt_residual_job_contract_manifest.json`, and local source files. No network, no A100, no executor, no model load, no HF access, no new raw-data scan, no new VGGT inference, no pointmap rerun, no repair/generation/source replacement, no permission change, no RED promotion.
-  - Required vision check: DB45k board must show the reflection/non-reflection verdict, pairwise rig-shape audit, best admissible documented hypothesis, ROI no-promotion table, DB41 lower-right zero-LiDAR boundary, and explicit `diagnostic-only/no repair/no generation/no RED promotion` labels.
-  - Output location: `deliverables/dit360_v2/db45_geometry_evidence_audit/`.
-  - Result (accepted diagnostic-only / route paused): DB45k ran CPU/local over existing DB45i/DB45h/DB45g artifacts only. Official camera-from-world center extraction still prefers reflection and fails the no-reflection contract (`mean/max=0.217990/0.319167 m`, pass=false); reflected fit has `det_R=-1.0` and remains non-admissible. Translation-column-as-center gives a non-reflective center fit (`mean/max=0.173113/0.373909 m`, center thresholds pass), but conflicts with DB45g official-source camera-from-world convention and is diagnostic-only. Official-center pairwise rig-shape error remains material (`mean/rms/max=0.193334/0.218761/0.378413 m`), all DB25/DB41 ROI rows stay no-promotion, and DB41 lower-right preserves LiDAR support `0.000`. Accepted evidence type is `vggt-pose-reflection-coordinate-audit-diagnostic-only`; `accepted_db45_geometry_evidence=false`, `permission_state_changes=none`, `red_promotions=[]`, no A100/model/reinfer/repair/generation/source replacement occurred. Detail archived at top of `progress.md`.
-
-Required vision check:
-- Board must include raw-camera support crop, LiDAR/depth/flow evidence overlays if available, model confidence overlay, and final permission-state label.
-- Mandatory visual check on DB41 lower-right and DB36/DB40 fake-geometry negatives.
-
-Result summary: DB45 is paused after DB45k accepted VGGT pose/reflection coordinate audit **diagnostic-only** evidence. The route has real official inference/pose/decode/preprocess/residual outputs, but official camera-from-world center extraction still fails the no-reflection contract, reflected fits are not admissible, translation-column improvement is an undocumented convention-conflict diagnostic, and target ROI residuals remain no-promotion. Do not continue VGGT residual patch-on-patch, rerun inference, or reinterpret residuals as permission.
-
-# DB-46: BMW meeting presentation-only micro cleanup
-Status: proposed
-Route: B (generative) / presentation-only
-
-Question: Can a separately labeled presentation branch make the classic BMW seam look cleaner for discussion without claiming source-faithful repair?
-
-Hypothesis: A narrow rectilinear/cubemap micro-cleanup branch may produce a visually clearer meeting board, but it should remain a demo/presentation asset with generated/edit masks. It must not contaminate Bosch/source-faithful claims.
-
-Why now: The user has a Bosch/Koi discussion need and wants to show the seam situation as clearly as possible. The source-faithful branch should still abstain on DB41-like no-evidence regions, but a presentation branch can be useful if explicitly labeled.
-
-Base-selection rule:
-- Do not silently start from `G_bmw_pano`. It is a visually rejected diagnostic reference.
-- Before any generation, choose a base from existing same-ROI boards: possible candidates include DB19 sky-only G variant, A1 keepout/mask-aligned diagnostic variants, or no base if all are too risky.
-- DB32 `s40` is a separate Bosch source-sidestep handoff track, not a classic-G repair base.
-
-Expected evidence:
-- Base-selection board from existing artifacts.
-- Very small edit masks and generated/edit masks.
-- Full ERP plus rectilinear/cubemap crops.
-- `presentation-only` label in filename/manifest/board.
-- Comparison against G diagnostic reference, DB19 sky-only, A1/BEST diagnostics if used, and DB32 only as separate handoff track.
-
-Kill criteria:
-- Uses `G_bmw_pano` as the base without a base-selection decision.
-- Any new car, person, sign, pole, lane marking, curb, road topology, or fake object appears.
-- BMW shape, wheels, windows, or object boundary changes.
-- Produces pole-like slice, fake slab, repeated texture, melted asphalt, or fake white line.
-- Improvement is only visible in full ERP but fails rectilinear/crop review.
-- Output is later described as Bosch training-data/source-faithful repair.
-
-Max scope:
-- Presentation branch only.
-- Max 3 cases for first pass: one far/static seam, one road-color seam excluding curb/lane, and one DB41-like no-evidence negative if used only to verify abstain/presentation labeling.
-- No broad prompt sweep; no more than one small parameter set per base unless a follow-up brief opens it.
-
-Required vision check:
-- Same-ROI and rectilinear/cubemap crop review.
-- Explicit generated/edit mask overlay.
-- Manual visual verdict and claim-level label required before showing in any handoff board.
-
-Result summary: TBD -> archive to `progress.md` when done, then delete this brief.
-
-# DB-47: Source/frame/dataset-level candidate mining
-Status: DB57 visual review complete / no candidate promotion / DB47f paused
-Route: sidestep / dataset-level source selection
-
-Question: Is the right solution for some hard seams to avoid them by choosing better frames, sources, anchors, or logs rather than locally repairing them?
-
-Hypothesis: Some seams are no-evidence or physically underdetermined under the current source frame. A source/frame selection branch may yield more defensible panoramas than local repair, as DB28/DB32 already demonstrated for the current handoff candidate. The method must avoid cherry-picking by reporting acceptance/reject statistics.
-
-Why now: If DB43/DB44 keep key BMW right-line/curb segments RED, a scalable dataset-level solution may be to avoid hard seams rather than hallucinate them.
-
-Expected evidence:
-- Stratified scan report, not only top pretty examples.
-- Total scanned, strict accepted, relaxed accepted, rejected-by-reason, abstain-mask distribution, scene distribution, object density, seam risk, LiDAR support, and failure boards.
-- Clear separation between source-sidestep handoff candidates and original-G seam repair claims.
-
-Kill criteria:
-- Scan becomes unbounded.
-- Only reports top-10 prettiest examples.
-- Selected set is distributionally narrow or cherry-picked.
-- New candidate simply moves the seam defect elsewhere.
-- Promotes source-sidestep as original-G seam repair.
-- No acceptance-rate / reject-reason accounting.
-
-Max scope:
-- Bounded scan only. Scope must be specified in the running brief before any execution.
-- No local repair or generation in this brief.
-- First pass should reuse existing candidate mining metrics where possible.
-- Phase0 / DB47a (2026-06-04): CPU/local existing-artifact inventory only. Scope is DB27 temporal scan, DB28 strict-clean source scan, DB31 multilog candidate scan, DB32 sky/source-sidestep handoff candidate, DB34 current-best QA, DB38 Bosch handoff, DB42 seam decision, and DB43 source-faithfulness gate summaries/boards if present. No A100, no executor, no new dataset scan, no repaired panorama, no generation, no source replacement, no promotion of source-sidestep as original-G repair. Expected output is a manifest/board that reports existing scanned counts, strict/relaxed/source-sidestep accepted counts, reject/caveat reasons, evidence gaps, and a next-scan contract.
-- Phase1 / DB47b (2026-06-04): Candidate-universe freeze and threshold replay over existing shortlist metrics only.
-  - Question: Can DB47 define a fixed candidate universe and produce strict/relaxed/rejected/accounting labels before any broader full scan?
-  - Hypothesis: Existing DB31 shortlist metrics should be enough to separate a narrow strict source-sidestep cluster from relaxed/diagnostic/rejected candidates, while also showing that this is not a dataset-wide acceptance claim and not original-G seam repair.
-  - Why now: DB47a found 36 existing candidate records but did not yet freeze the next executable candidate universe or report acceptance/reject accounting for a bounded DB47 pass.
-  - Expected evidence: one CPU/local manifest and board over the 22 DB31 shortlist rows, with DB27/DB28 as same-log comparison only; report total universe size, strict accepted, relaxed accepted, rejected-by-reason, abstain/insufficient-evidence distribution, per-log counts, local-image availability, and next-scan readiness.
-  - Kill criteria: expands beyond DB31/DB27/DB28 without a new brief; treats DB31 shortlist as the full Waymo distribution; reports only pretty top candidates; promotes source-sidestep as original-G repair; selects a final handoff candidate without same-ROI vision; hides reject reasons or image-availability gaps; claims DB41/right-line repair or any source-faithful repair.
-  - Max scope: CPU/local only, existing JSON/boards only, no executor/A100/model inference/new dataset scan/panorama repair/generation/source replacement/diffusion/refiner/RED promotion. Output location: `deliverables/dit360_v2/db47_source_candidate_mining/`.
-  - Required vision check: board must show the fixed universe label, strict/relaxed/rejected counts, reject reasons, DB28/DB31 visual references, explicit `source-sidestep-only` boundary, and no final repair/handoff claim.
-- Phase2 / DB47c (2026-06-04): Same-ROI bucket visual/accounting review over DB47b buckets.
-  - Question: Do the DB47b strict/relaxed/failure buckets survive a bounded same-ROI visual sanity review using only existing local DB28/DB31 evidence?
-  - Hypothesis: The strict bucket should remain a same-log source-sidestep review cluster centered on the known DB28/a200-style scene; the relaxed same-log rows and non-BMW rows should remain diagnostic or hold because they either shift the scene/source boundary or already failed exact seamroute follow-up.
-  - Why now: DB47b froze metric buckets but explicitly selected no final candidate. The next useful step is to attach visual/accounting verdicts to those buckets before deciding whether DB47 needs a same-log review, a full scan, or no more source-mining work.
-  - Expected evidence: one CPU/local manifest and board using DB47b manifest, DB28 strict-clean montage/summary, DB31 ROI/full montages, and already-local DB28/DB31 exact compare assets if present. Report exact-asset availability, strict/relaxed/rejected visual verdict counts, missing-asset limits, and next-step recommendation.
-  - Kill criteria: creates a new candidate image; runs a new scan, renderer, A100, executor, model, generation, or source replacement; selects a final candidate from montage-only evidence; treats same-log source-sidestep as original-G seam repair; hides missing exact assets; uses DB32/G/DB41 claims beyond inherited boundaries; reports only wins without failure rows.
-  - Max scope: CPU/local only, existing DB28/DB31/DB47b artifacts only, no new dataset scan, no repair, no generation, no source replacement, no permission change, no RED promotion. Output location: `deliverables/dit360_v2/db47_source_candidate_mining/`.
-  - Required vision check: board must show strict rows, relaxed rows, rejected/failure rows, exact compare asset availability, DB28/DB31 visual references, explicit `review-only/no final candidate` label, and the inherited DB41 abstain/source-sidestep boundary.
-- Phase3 / DB47d (2026-06-04): Exact same-log review pack for DB47c strict/relaxed rows.
-  - Question: Do the DB47c strict/relaxed same-log rows have enough exact local evidence to narrow DB47's next action without selecting a final candidate?
-  - Hypothesis: only the three strict rows with exact DB28 assets (`a105`, `a200`, `a204`) can remain exact-review candidates; strict montage-only and relaxed rows must stay hold because they lack local exact compare/final evidence. This should clarify whether DB47 should pause, do a full bounded scan, or later open a real final-candidate review.
-  - Why now: DB47c established counts but did not make the exact assets self-contained enough for handoff or adversarial review. Before any full scan or candidate promotion, the exact same-log evidence and missing-asset boundary need a compact board and manifest.
-  - Expected evidence: one CPU/local manifest and board over the 10 DB47c strict/relaxed same-log rows, using only DB47c manifest, DB28 strict-clean summary/montage, and existing DB28 exact compare/final images. Report exact asset rows, missing exact rows, per-anchor metrics, visual review labels, and next-step constraint.
-  - Kill criteria: creates or fetches a new candidate image; runs seamroute, renderer, A100, executor, model, generation, source replacement, full scan, or repair; selects a final handoff candidate; promotes montage-only or relaxed rows; treats source-sidestep as original-G repair; hides missing exact assets; overstates DB32, `G_bmw_pano`, or DB41 lower-right/right-line.
-  - Max scope: CPU/local only, existing DB47c/DB28 artifacts only, 10 same-log strict/relaxed rows, no new scan, no exact asset fetch, no repair/generation/source replacement/permission change/RED promotion. Output location: `deliverables/dit360_v2/db47_source_candidate_mining/`.
-  - Required vision check: board must show all exact rows and missing-exact holds, pasted exact compare/final evidence where available, DB28 metric context, explicit `source-sidestep review-only/no final candidate/no original-G repair`, and inherited DB41 abstain boundary.
-- Phase4 / DB47e (2026-06-04): Existing-artifact final-candidate review over exact rows.
-  - Question: Among the current DB47d exact-review rows, is there enough local exact evidence to confirm a bounded source-sidestep candidate for source selection, or must DB47 stay review-only/hold?
-  - Hypothesis: `a200` should remain the most defensible source-sidestep base for the DB32 Bosch-facing handoff candidate because it has exact compare/final lineage and downstream DB29/DB32/DB34 QA, while `a204` may be a near neighbor to review and `a105` must stay compare-only hold unless a real final asset already exists.
-  - Why now: DB45/VGGT residual evidence is paused after DB45k and no prompt-only repair route should continue. Before opening DB49 exact-lineage packaging, DB47 should either confirm the existing source-selection base or explicitly keep source selection unresolved.
-  - Expected evidence: one CPU/local manifest and board using only existing DB47d/DB28/DB32/DB34/DB41/G diagnostic artifacts. Report exact asset availability, same-ROI/full-context crops for `a105`, `a200`, and `a204`, final-eligibility, visual verdicts, reject/hold reasons, inherited DB47b/c/d accounting, DB41 abstain boundary, and claim label `source-sidestep candidate only`.
-  - Kill criteria: selects a final from metrics, montage-only rows, or DB47d labels alone; promotes any missing-exact hold; creates/fetches/reruns candidate imagery; runs seamroute, renderer, executor, A100, model, HF/VGGT, generation, source replacement, or repair; hides DB47b/c/d reject accounting; worsens or moves the seam defect into DB41/right-line risk; claims source-faithful repair, original-G repair, uncaveated Bosch training readiness, or a filled `source_id_map`; includes endpoint/HF/Colab token strings.
-  - Max scope: CPU/local existing-artifact review only over `a105`, `a200`, `a204`; final-eligible rows must have exact compare and exact final image already present; `a201/a209/a210/a211/a031/a038/a040` remain missing-exact holds; no new scan, no exact asset fetch, no repair/generation/source replacement/permission change/RED promotion. Output location: `deliverables/dit360_v2/db47_source_candidate_mining/`.
-  - Required vision check: board must show full candidate context plus same-ROI/source-boundary crops, exact compare/final availability, DB32 `s40` caveated handoff context, `G_bmw_pano` as diagnostic failure reference only, DB41 right/lower-right abstain boundary, reject/hold accounting, and explicit `not source-faithful / not original-G repair / not source_id_map evidence`.
-- Phase5 / DB47f (2026-06-04): Fixed-universe exact source-selection closure preflight.
-  - Status: accepted preflight / paused pending secure runtime/data.
-  - Question: Can DB47 close the fixed 8 exact/final evidence gaps identified by DB51, without turning source selection into an unbounded scan, local repair, or token-leaking remote workflow?
-  - Hypothesis: DB47f can be a useful seam-quality sidestep only if it closes exactly the known gaps: seven missing exact holds (`a201`, `a209`, `a210`, `a211`, `a031`, `a038`, `a040`) plus the `a105` final gap. If local data or a secure runtime secret source is absent, DB47f must stop at a documented preflight pause rather than using chat-pasted tokens or promoting montage-only rows.
-  - Why now: DB51 ranked DB47f as the next single seam-quality route after DB50 found 0 executable source-faithful repair targets. DB47e confirmed `a200` only as the current source-sidestep base and preserved the missing-exact holds, so DB47 cannot honestly advance until those fixed gaps are either closed or explicitly paused.
-  - Expected evidence: one CPU/local script, manifest, and board under `deliverables/dit360_v2/db47_source_candidate_mining/`. Manifest must list the fixed 8 targets, current local exact-asset status, local data/runtime secret preconditions, the redacted exact rerun/fetch contract, DB41/DB32/G claim boundaries, and whether DB47f is ready or paused. If secure runtime/data preconditions are absent, no remote job is submitted.
-  - Kill criteria: target universe expands beyond the 8 DB51 gaps; a candidate is promoted from metrics, montage-only rows, or missing final assets; an unbounded dataset scan starts; a chat-pasted HF/Colab/tunnel token is echoed, stored, committed, embedded in a command artifact, or scanned into outputs; more than one closure batch or more than 8 anchors is submitted; seamroute/renderer output is used as local repair instead of source-selection evidence; DB41/no-evidence is promoted; DB32 is described as fully source-faithful or source-faithful ceiling; source selection is described as original-G/G-A1-BEST repair; a `source_id_map` or Bosch training-ready claim is fabricated; any prompt-only DiT/FLUX ground/curb/lane/right-line repair is run.
-  - Max scope: CPU/local preflight always; optional exact asset closure only if secure runtime/data preconditions are available through `COLAB_URL`/`COLAB_TOKEN` env vars or an approved non-repo runtime secret source. No HF/VGGT/model inference, no diffusion/generation, no local seam repair, no source replacement, no permission change, no RED promotion. Output location: `deliverables/dit360_v2/db47_source_candidate_mining/`.
-  - Required vision check: board must show DB47e/DB51 context, the 8-target closure table, local missing-asset status, precondition verdict, DB41/DB25 abstain boundary, DB32/G claim boundary, and explicit `no repair / no remote unless secure preconditions / no token use / no RED promotion`.
-
-Required vision check:
-- Include both wins and failures.
-- Same-ROI/source-boundary boards for accepted and rejected candidates.
-- Explicit reason for why a selected candidate is a source-sidestep rather than seam repair.
-- Phase0 vision check: board must show accepted source-sidestep/current-best candidates and rejected/no-successor candidate-mining outcomes side by side as text/available thumbnails; no new repaired image is allowed.
-
-Result summary: Phase0 DB47a accepted `source-selection-inventory-only` evidence. CPU/local script `scripts/phase3/db47_source_candidate_inventory.py` reads existing DB27/DB28/DB31/DB34/DB38/DB42/DB43 artifacts only and produced `deliverables/dit360_v2/db47_source_candidate_mining/db47a_source_candidate_inventory_manifest.json` plus `db47a_source_candidate_inventory_board.jpg`. It reviewed 36 existing candidate records (DB27 7 nearby anchors, DB28 7 strict-clean anchors, DB31 22 shortlist candidates across 5 logs), preserved DB28/DB32 as source-sidestep/current-handoff evidence only, and set the next full DB47 scan contract. Phase1 DB47b accepted `source-selection-threshold-replay-only` evidence: CPU/local script `scripts/phase3/db47b_candidate_universe_threshold_replay.py` freezes the DB31 22-row shortlist as the bounded universe, uses DB27/DB28 only as comparison context, reports 7 strict review-bucket rows, 3 relaxed review-bucket rows, and 12 rejected/diagnostic rows with reject reasons, inherits DB41 lower-right/right-line abstain without evaluating or promoting it, and selects no final panorama. Phase2 DB47c accepted `source-selection-visual-accounting-only` evidence: CPU/local script `scripts/phase3/db47c_same_roi_bucket_review.py` reviews all 22 DB47b rows using DB47b plus existing DB28/DB31 summaries/montages/exact assets only; verdicts are 3 `review_exact_same_log`, 4 strict montage-only hold, 3 relaxed hold, 2 same-log weak-margin rejects, 3 confirmed existing failures, and 7 non-BMW no-successor rejects. Phase3 DB47d accepted `source-selection-exact-review-pack-only` evidence: CPU/local script `scripts/phase3/db47d_exact_same_log_review.py` reviews the 10 strict/relaxed same-log rows using DB47c plus existing DB28 exact assets only; verdicts are 3 `exact_review_candidate_not_final` (`a105`, `a200`, `a204`), 4 strict missing-exact holds, and 3 relaxed missing-exact holds. Phase4 DB47e accepted `source-selection-final-candidate-review-existing-artifacts-only` evidence: CPU/local script `scripts/phase3/db47e_final_candidate_review.py` reviews only `a105`, `a200`, and `a204`; confirms `a200` as the current source-sidestep base for the existing DB32 `s40` handoff candidate; keeps `a204` as an exact final-eligible alternate not selected; keeps `a105` compare-only hold; and preserves the 7 DB47d missing-exact holds. Phase5 DB47f accepted only `fixed-universe-exact-closure-preflight-only` evidence: CPU/local script `scripts/phase3/db47f_fixed_universe_exact_closure_preflight.py` confirmed the fixed 8 exact/final gaps and paused before closure until runtime/data preconditions were available. DB56 then accepted `accepted_exact_closure_assets_complete` evidence: one fixed 8-anchor remote `_seamroute.py` batch completed with job `exit=0`, and fetch-only deterministic asset recovery closed all `15/15` required compare/final assets under DB28 exact paths. DB47 now has exact asset availability for the fixed DB47f universe, but no final panorama is selected yet. No new dataset scan beyond the fixed target/anchors, repair, generation, source replacement, `source_id_map`, permission change, RED promotion, source-faithful/original-G claim, or uncaveated Bosch training-data claim is accepted.
-
-# DB-54: DB47f local exact-asset recovery audit
-Status: accepted / paused
-Route: sidestep / source-selection evidence
-
-Question: Are any of the fixed DB47f missing exact compare/final assets already present in the local worktree or historical/untracked deliverables under alternate folders, names, or zip entries?
-
-Hypothesis: Because the worktree contains many historical and untracked seamroute/DiT deliverables, at least some DB47f gaps may be recoverable by cataloging local artifacts before using A100 or any token-bearing executor. If no matching assets exist locally, the result still usefully confirms that DB47f genuinely needs a safe runtime/data path.
-
-Why now: DB53 says to stop adding infra-only layers. Before running the actual bounded DB47f closure batch on A100, a token-free local recovery audit can test whether the required exact evidence is already present and avoid unnecessary remote work.
-
-Expected evidence:
-- One CPU/local manifest and board listing the fixed 8 DB47f targets only: `a201`, `a209`, `a210`, `a211`, `a031`, `a038`, `a040`, and `a105`.
-- For each required compare/final asset, report canonical-path status, alternate local file matches, zip-entry matches if any, image readability/dimensions for local file matches, and remaining missing assets.
-- Explicit claim boundary: found paths are local recovery candidates only until same-ROI visual/lineage review accepts them; this brief does not repair an ERP or select a final candidate.
-
-Kill criteria:
-- Search expands beyond the fixed 8 DB47f targets or treats arbitrary BMW/GhostKill images as DB28 exact assets without the `SR_bmw_db28_a<anchor>_*` tag.
-- Any zip is extracted, any candidate image is copied into a canonical location, or any seamroute/renderer/model/A100/network command is run.
-- A found path is promoted to source-faithful repair, original-G/A1/BEST repair, `source_id_map`, RED promotion, or uncaveated Bosch training-data readiness.
-- Chat-pasted HF/Colab/tunnel token values are echoed, stored, scanned into output, or embedded in commands/artifacts.
-- DB41 lower-right/right-line or DB25 abstain boundaries are promoted from recovered source-selection assets.
-
-Max scope:
-- CPU/local only; read file names, image metadata, and zip member names under bounded repo artifact roots.
-- No A100, no executor, no network, no HF/VGGT, no model inference, no dataset scan, no seamroute/renderer execution, no exact asset fetch, no image copy/extraction, no repair/generation/source replacement/permission change/RED promotion.
-- Output location: `deliverables/dit360_v2/db54_local_artifact_recovery/`.
-
-Required vision check:
-- Board must show the 8-target table, found/missing required assets, thumbnails for local image matches where present, zip-entry matches separately labeled as not recovered files, DB47f/DB53 context, and explicit `local catalog only / no closure / no repair / no token use` boundary.
-
-Result summary: DB54 accepted only `local-exact-asset-recovery-audit-only` evidence and paused with `status=paused_no_local_exact_assets_found`. CPU/local script `scripts/phase3/db54_local_exact_asset_recovery.py` scanned bounded local artifact roots by filename plus zip member names only (`2084` files, `18` zip files, `238` zip members) and found `0` local file matches and `0` zip-entry-only matches for the fixed DB47f 15 required assets. All `15` required compare/final assets remain missing. No A100/executor/network/HF/VGGT/model/dataset scan/seamroute/renderer/zip extraction/image copy/exact fetch/repair/generation/source replacement/`source_id_map`/permission change/RED promotion occurred. Detail archived in `progress.md` 2026-06-04 DB54 entry.
-
-# DB-55: EGSR O3 photometric polish acceptance audit
-Status: accepted
-Route: A (geometry-adjacent) / source-derived bounded photometric operator
-
-Question: Can the existing risk-gated local Y seam repair be accepted as EGSR's O3 photometric-only operator, with a precise allowed-use contract and explicit no-geometry/no-DB41/no-G-family claim boundary?
-
-Hypothesis: The 14-anchor evidence from the existing three-anchor and fresh11 risk-gated local Y repair runs is enough to accept O3 as a bounded source-derived luminance polish: it reduces seam Y discontinuity while changing only a small local fraction and never moving structure. It should be part of EGSR for T1/YELLOW photometric seams, but must remain forbidden for RED/no-evidence, lane/curb/object geometry, original-G repair, and Bosch training-ready claims.
-
-Why now: DB50 found no executable new source-faithful geometry/LPAM target from current local artifacts, DB54 confirmed DB47f local exact assets are absent, and DB43/DB44 already need a concrete operator library rather than only a dispatcher. O3 is the one existing positive local operator that can be formalized without A100 or new data.
-
-Expected evidence:
-- One CPU/local manifest and board under `deliverables/dit360_v2/db55_egsr_o3_photometric_operator/`.
-- Aggregate metrics over existing `deliverables/seam_risk_gated_color_repair/three_anchor_v1/three_anchor_repair_summary.json` and `fresh11_v1/fresh11_repair_summary.json`: improvement distribution, changed fraction, max Y delta, and per-anchor wins/limits.
-- Acceptance contract: allowed only for T1/YELLOW photometric seams with low structure-risk; source labels and geometry remain unchanged; output must be labeled source-faithful photometric polish, not geometry repair.
-- Rejection/abstain contract for DB41 lower-right/right-line, DB25 dark-wall low-evidence line, G/A1/BEST classic BMW geometry seam, fake generated geometry controls, lane/curb/object-adjacent seams, and any high-structure-risk region.
-
-Kill criteria:
-- Any claim that O3 fixes geometry, DB41 lower-right/right-line, lane/curb/object seams, original `G_bmw_pano`/A1/BEST, or DB32 source-faithfulness.
-- Any new repair run, dataset scan, A100/executor/network/model/generation/source replacement, or prompt-only DiT/FLUX use.
-- The audit hides cases where p95 improvement is weak or unchanged, or treats mean Y improvement as sufficient for geometry acceptance.
-- The operator changes source ownership, creates a `source_id_map`, fills abstain regions, or promotes RED controls.
-- It ignores the earlier DB26 long-line photometric attenuation rejection and fails to distinguish O3's low-structure local-Y gate from unsafe broad low-frequency wash.
-
-Max scope:
-- CPU/local existing-artifact audit only. Read the two risk-gated Y summary JSON files, existing review boards, DB43/DB44/DB50/DB54 manifests if needed, and `scripts/phase3/seam_risk_gated_color_repair.py`.
-- No new panorama repair run, no raw data load, no A100, no executor, no network, no HF/VGGT, no model inference, no renderer, no image copy/extraction, no generation, no source replacement, no permission change, no RED promotion.
-- Output location: `deliverables/dit360_v2/db55_egsr_o3_photometric_operator/`.
-
-Required vision check:
-- Board must show three-anchor and fresh11 review panels, aggregate metric table, allowed/forbidden operator contract, DB26 unsafe photometric-control distinction, DB41/DB25 abstain boundary, and explicit `photometric-only / no geometry repair / no source replacement / no RED promotion`.
-
-Result summary: DB55 accepted `O3` only as `source-derived bounded photometric polish` for T1/YELLOW-GREEN low-structure photometric seams. CPU/local script `scripts/phase3/db55_egsr_o3_photometric_operator_audit.py` reads existing O3 summaries/boards only and aggregates 14 anchors: mean seam dY improvement mean/median/min/max `17.71/18.87/7.13/23.63%`, p95 improvement mean/median/min/max `5.39/5.87/0.00/11.63%`, changed fraction mean/max `0.034/0.039`, and max Y delta `9.10`. Weak p95 case `9f871fb4_a017` is disclosed. Accepted geometry repair, DB41/DB25 repair, original-G/A1/BEST repair, `source_id_map`, permission change, RED promotion, and uncaveated Bosch training-data claims remain false. No new repair run/raw data load/A100/executor/network/model/generation/source replacement occurred. Detail archived in `progress.md` 2026-06-04/05 DB55 entry.
-
-# DB-56: DB47f exact closure batch execution
-Status: accepted exact-closure assets complete / DB57 follow-up completed with no candidate promotion
-Route: sidestep / source-selection evidence
-
-Question: With a reachable A100 executor and the DB53 token-free launch harness, can DB47f close the fixed 8 exact source-selection gaps by producing the missing compare/final assets, without expanding the target universe or turning source selection into repair?
-
-Hypothesis: One bounded remote `_seamroute.py` batch over the exact DB47f target universe can produce the missing `SR_bmw_db28_a<anchor>_compare.jpg` and `SR_bmw_db28_a<anchor>_final_1024x2048.png` assets for review. The result may close source-selection evidence gaps, but it still remains source-sidestep/exact-candidate evidence only, not source-faithful local seam repair, not original `G_bmw_pano`/A1/BEST repair, and not Bosch training-ready data.
-
-Why now: DB51 ranked DB47f as the next seam-quality route if secure runtime/data preconditions are satisfied; DB52/DB53 defined the token-safe env/harness contract; DB54 proved the exact assets are not hidden locally; DB55 has now formalized the only existing photometric operator. The user has provided a reachable A100 executor, so the next useful DB47 action is the actual bounded closure batch, not another infra-only layer.
-
-Expected evidence:
-- One remote `/status` check and at most one `/exec` batch using process-only `COLAB_URL`/`COLAB_TOKEN`; no endpoint/token value may be written to repo files, manifests, boards, logs, progress, or shell output.
-- Exactly 8 fixed anchors: `a201`, `a209`, `a210`, `a211`, `a031`, `a038`, `a040`, and `a105`.
-- Required local evidence after fetch: compare+final for the first 7 anchors, final for `a105`, copied only into the expected DB28 exact-asset paths from DB53; no arbitrary candidate image destinations.
-- A DB56 manifest/board under `deliverables/dit360_v2/db47_source_candidate_mining/` reporting job state, output existence/hash/size, missing assets, visual review labels, DB41/DB25 abstain boundary, DB32/G claim boundary, and secret-scan status.
-
-Kill criteria:
-- Executor `/status` is unreachable, unauthorized, or reports active jobs that make the one-batch run unsafe.
-- Remote repo/data path lacks `_seamroute.py` or the target AV2 log; stop before widening the run or changing dataset/log.
-- More than one batch, more than 8 anchors, or any anchor outside the DB47f fixed universe is submitted.
-- Any remote command runs HF/VGGT, DiT/FLUX, model inference, dataset scan beyond the fixed target log/anchors, source replacement, generation, or prompt-only repair.
-- Any endpoint URL, bearer token, HF token, or secret-like string is echoed, stored, committed, included in a command artifact, or written to manifest/board/progress.
-- Output is promoted from source-selection exact evidence into source-faithful repair, original-G/A1/BEST repair, `source_id_map`, RED promotion, DB41/DB25 repair, or uncaveated Bosch training-data readiness.
-- Visual review shows the newly closed assets are worse than current a200/DB32 or move the seam into DB41/no-evidence regions; then mark the candidate rejected/hold rather than patching again.
-
-Max scope:
-- One bounded remote closure batch only: `/status`, `/exec`, polling, and file fetch for expected outputs.
-- No HF/VGGT/model inference, no diffusion/generation, no new scan, no source replacement, no `--save-source-id-map`, no Bosch data-contract promotion, no RED promotion.
-- CPU/local postprocessing may build the DB56 manifest/board and copy exact fetched assets into the DB28 expected local paths only.
-- Output location: `deliverables/dit360_v2/db47_source_candidate_mining/` plus exact compare/final assets under `deliverables/dit360_v2/db28_clean_subset_refine/`.
-
-Required vision check:
-- Board must show all 8 anchors, each required compare/final availability, same-ROI crops/thumbnails for every fetched exact asset, explicit pass/hold/reject labels, current a200/DB32 context, inherited DB41/DB25 abstain boundary, and the claim line `source-selection exact closure only / no repair / no source_id_map / no RED promotion / no token in artifacts`.
-
-Result summary: DB56 accepted `accepted_exact_closure_assets_complete` evidence. `scripts/phase3/db56_db47f_exact_closure_batch.py` ran exactly one fixed 8-anchor remote `_seamroute.py` batch through an approved process-env runtime source; `/status` reported `colab-gpu` on `NVIDIA A100-SXM4-40GB` with `active_jobs_before=0`, job `55a0c9f7f40a4af9979f73dc3073532e` completed `state=done`, `exit=0`, and a fetch-only follow-up used the existing completed job plus deterministic remote paths to fetch all `15/15` required exact assets without a second `/exec`. Outputs are `deliverables/dit360_v2/db47_source_candidate_mining/db56_db47f_exact_closure_manifest.json`, `db56_db47f_exact_closure_board.jpg`, and the fetched `SR_bmw_db28_a<anchor>_*` compare/final assets under `deliverables/dit360_v2/db28_clean_subset_refine/`. Secret scan hits are `0`; endpoint/token values are absent from artifacts. This closes asset availability only: no final candidate is selected, no local seam repair/source replacement/model/generation/source_id_map/RED promotion occurred, and DB41/DB25 plus DB32/G claim boundaries remain unchanged. Detail archived in `progress.md` 2026-06-04/05 DB56 entry.
-
-# DB-57: DB47f exact-candidate visual final review
-Status: accepted visual review / no candidate promotion
-Route: sidestep / source-selection evidence
-
-Question: Now that DB56 has closed the fixed DB47f exact asset gaps, do any of the 8 newly available same-log source-selection candidates deserve a visual final-candidate accept/hold/reject decision, without turning source selection into local seam repair?
-
-Hypothesis: The DB56 exact assets may reveal one or more candidates that are visually competitive with the current `a200`/DB32 source-sidestep base. A CPU-only review can make the next DB47 decision by comparing the fixed candidates side by side with current DB32/a200 and DB41/DB25 boundaries. If the evidence is ambiguous or worse than current a200/DB32, the correct outcome is hold/reject, not another patch.
-
-Why now: DB56 completed the exact asset availability precondition that blocked DB47f. The next seam-quality step is therefore not another remote batch, infra layer, or presentation branch; it is the required visual accounting over the exact assets that now exist.
-
-Expected evidence:
-- One CPU/local manifest and board under `deliverables/dit360_v2/db47_source_candidate_mining/`.
-- Review exactly the DB56 fixed anchors: `a201`, `a209`, `a210`, `a211`, `a031`, `a038`, `a040`, and `a105`.
-- Include current context: DB47e `a200` current source-sidestep base, DB32 `s40` caveated handoff, DB41 lower-right/right-line abstain, and `G_bmw_pano` diagnostic reference boundary.
-- For every candidate, report exact compare/final availability, image size/hash, source-selection verdict (`accept`, `hold`, or `reject`), visual reason codes, and whether it is allowed to displace the current a200/DB32 base.
-
-Kill criteria:
-- Any target outside the fixed DB56 8-anchor universe is added, or any missing/alternate non-DB28 asset is treated as exact evidence.
-- Any `/status`, `/exec`, A100, network, HF/VGGT/model inference, `_seamroute.py` rerun, renderer/dataset scan, diffusion/generation, prompt-only repair, local seam repair, source replacement, `source_id_map`, permission change, or RED promotion occurs.
-- A candidate is promoted from metrics or thumbnail appearance alone without visual same-ROI/source-boundary accounting.
-- DB41 lower-right/right-line, DB25 low-evidence line, or generated/fake-geometry controls are promoted.
-- Output is described as source-faithful local repair, original `G_bmw_pano`/A1/BEST repair, Bosch training-ready data, or a source-faithful ceiling.
-- If visual review shows no candidate beats the current a200/DB32 source-sidestep base, the branch must stop with hold/reject decisions rather than patch-on-patch.
-- Any endpoint URL, bearer token, HF token, or secret-like value is written to outputs.
-
-Max scope:
-- CPU/local existing-asset review only.
-- Read DB56/DB47e/DB32/DB41 context plus the exact DB28 compare/final images for the 8 fixed anchors.
-- Create one manifest and one board; do not modify candidate images or create a new panorama.
-- Output location: `deliverables/dit360_v2/db47_source_candidate_mining/`.
-
-Required vision check:
-- Board must show all 8 candidates with compare/final thumbnails, current `a200`/DB32 context, DB41 abstain context, and explicit labels for `source-selection exact review only / no repair / no source_id_map / no RED promotion / no token in artifacts`.
-- Manual visual review must inspect the board before any candidate is accepted; if evidence is insufficient, verdicts must be `hold` or `reject`.
-
-Result summary: DB57 accepted `db47f-exact-candidate-visual-review-only` evidence and selected no new final candidate. CPU/local script `scripts/phase3/db57_db47f_visual_candidate_review.py` reviewed exactly the 8 DB56 fixed anchors using existing DB56/DB47e/DB32/DB41/G diagnostic context plus DB28 exact compare/final assets. All `8/8` candidates have exact compare+final assets, but visual review found no clear improvement over the current `a200`/DB32 source-sidestep base: `a201/a209/a210/a211` are held as near-duplicates with no clear win and no DB32 lineage, `a031/a038/a040` are rejected for relaxed context/lighting shift, and `a105` is rejected for different context/no clear win. No `/status`, `/exec`, A100, network, HF/VGGT/model inference, `_seamroute.py` rerun, renderer/dataset scan, diffusion/generation, repair, source replacement, `source_id_map`, permission change, RED promotion, final-candidate selection, source-faithful/original-G claim, or uncaveated Bosch training-data claim occurred. Detail archived in `progress.md` 2026-06-04/05 DB57 entry.
-
-# DB-48: Koi center-preserve DiT360 outpainting side branch
-Status: proposed
-Route: B (generative) / presentation-demo side branch
-
-Question: Does official-style center-preserve DiT360 outpainting become more coherent with stricter preserve ratio, tau, and scene prompt, and is it useful as a Koi-facing capability demo?
-
-Hypothesis: Center-preserve outpainting may improve as a visual/demo branch with official-style parameters, but it will remain invented/presentation output rather than source-faithful AV reconstruction.
-
-Why now: Koi explicitly wanted this branch revisited, and prior center-only outpainting showed capability but failed as data due invented surroundings, salient objects, and lighting/box mismatch.
-
-Expected evidence:
-- Full ERP outputs with preserved-center diff and generated region mask.
-- Object gate and visual artifact review.
-- Explicit `presentation-demo-only` label.
-- Comparison against prior center-outpaint negative and DB32/source-faithful handoff candidate.
-
-Kill criteria:
-- Invented salient vehicles, people, signs, traffic lights, poles, or road topology dominate.
-- Preserved center is visibly boxed, lighting-mismatched, or inconsistent.
-- Surroundings become a different city/scene.
-- Branch starts being interpreted as Bosch source-faithful data.
-- Commercial/license concerns are ignored in Bosch-facing claims.
-
-Max scope:
-- Max 4-6 cases.
-- Presentation/demo branch only.
-- Not a seam-source repair; do not use it to claim original-G seam is fixed.
-
-Required vision check:
-- Full ERP plus center preserve crop, generated mask overlay, object/semantic review, and side-by-side with prior outpaint and current handoff candidate.
-
-Result summary: TBD -> archive to `progress.md` when done, then delete this brief.
-
-# DB-49: Bosch-facing data contract / handoff packet
-Status: paused after DB49e preflight (DB49a accepted inventory-only; DB49b accepted partial sidecar starter pack; DB49c accepted source-id feasibility; DB49d accepted source-map instrumentation-only; DB49e paused on preflight preconditions)
-Route: infra / handoff / data contract
-
-Question: How should the final Bosch-facing output expose caveats, generated regions, abstain masks, risk maps, and current-best image selection?
-
-Hypothesis: The safest Bosch deliverable is a provenance-labeled data product, not a single uncaveated image. Explicit maps and reason-coded reports prevent generated or no-evidence regions from being misused as sensor evidence.
-
-Why now: DB42 already established a handoff candidate and caveats. Future EGSR work should feed into a clearer data contract: source ownership, generated masks, unknown/abstain masks, risk maps, and eval reports.
-
-Expected evidence / deliverable shape:
-- Bosch-facing summary board/report.
-- `source_id_map`
-- `generated_mask`
-- `unknown_or_abstain_mask`
-- `risk_map`
-- `eval_report`
-- candidate image selection and caveat table.
-- Separate labels for `source-faithful`, `source-sidestep`, `presentation-only`, `generated`, and `abstain`.
-
-Required language:
-- DB32 `s40` is the current defensible handoff candidate.
-- DB32 avoids the worst seam through source-sidestep and sky completion/harmonization, but is not an original-G seam repair.
-- Ground/object/lane/curb generation is not training data.
-- No-evidence ROI is abstained.
-- Generated sky/out-of-FOV is explicitly masked.
-- Output is a multi-center source mosaic, not a physically single-center capture.
-- One sample does not prove Waymo-wide generality.
-- Any commercial/Bosch use must check generation-model license.
-- Downstream world-model impact requires Bosch's own protocol.
-
-Kill criteria:
-- Report hides generated/unknown/abstain regions.
-- Claim language overstates seam repair.
-- DB32/source-sidestep and original-G seam repair are mixed together.
-- Presentation-only output is shown without generated/edit masks.
-- Data contract lacks source ownership or risk/abstain maps.
-
-Max scope:
-- Packaging/reporting only after candidate outputs exist.
-- No new image generation or repair in this brief unless explicitly opened by another brief.
-- Phase0 / DB49a (2026-06-04): Existing-artifact data-contract inventory.
-  - Question: Can the current Bosch-facing state be expressed as a provenance/caveat contract without inventing new masks or overstating DB32/DB47?
-  - Hypothesis: Existing DB32/DB42/DB43/DB47 artifacts are enough to define the minimum contract fields, current evidence availability, and blocking gaps; this should make DB32 usable as a caveated handoff candidate while preventing misuse as source-faithful original-G repair.
-  - Why now: DB47d narrowed source-selection review evidence but still selected no final candidate, and DB45's VGGT residual route has no accepted geometry promotion. The lowest-risk useful progress is to lock the data-product contract that future EGSR outputs must satisfy.
-  - Expected evidence: one CPU/local manifest and board using existing DB32/DB34/DB38/DB42/DB43/DB45/DB47 artifacts only; report required fields (`source_id_map`, `generated_mask`, `unknown_or_abstain_mask`, `risk_map`, `eval_report`, `candidate_image`, `caveat_table`), available evidence paths, missing/blocking fields, claim labels, and next-step contract.
-  - Kill criteria: creates or modifies candidate image/masks; runs renderer/model/executor/A100/generation/repair/source replacement; hides generated sky/out-of-FOV or unknown/abstain regions; claims DB32 is fully source-faithful or original-G repair; treats DB47d exact-review rows as final; omits DB41 lower-right/right-line abstain; omits generation-model/license caveat; includes secrets or current endpoint tokens.
-  - Max scope: CPU/local reporting only, existing artifacts only, no new image generation/repair/mask generation, no new dataset scan, no permission change, no RED promotion. Output location: `deliverables/dit360_v2/db49_bosch_data_contract/`.
-  - Required vision check: board must show current handoff candidate reference, generated/abstain/risk/eval contract status, DB47 review-only status, DB41 abstain, DB32 source-sidestep/generated-sky caveats, and explicit `not source-faithful / not original-G repair / no final candidate from DB47d alone` labels.
-  - Result (accepted inventory-only): `scripts/phase3/db49a_bosch_data_contract_inventory.py` produced `db49a_bosch_data_contract_inventory_manifest.json` and `db49a_bosch_data_contract_inventory_board.jpg` using existing artifacts only. `candidate_image`, `eval_report`, `caveat_table`, and `presentation_flag` are available; `generated_mask` is partial from the existing sky-core mask; per-pixel `source_id_map`, `unknown_or_abstain_mask`, and `risk_map` remain missing/blocking; generation-model/license review remains required. DB32 `s40` stays caveated handoff only; DB47d stays not-final; DB41 lower-right/right-line stays no-evidence/abstain; `ready_for_uncaveated_bosch_training_data=false`.
-- Phase1 / DB49b (2026-06-04): DB32 sidecar starter pack from existing masks/evidence only.
-  - Question: Can DB49 package real available sidecars for DB32 (`generated_mask`, partial `unknown_or_abstain_mask`, partial `risk_map`) while explicitly refusing to fabricate the missing `source_id_map`?
-  - Hypothesis: The existing DB34 sky-core mask, DB32 candidate image, and DB41 abstain ROIs are sufficient to create a truthful starter sidecar pack: generated sky core, out-of-FOV/DB41 abstain regions, and a conservative risk map. This will make DB49a's contract gaps concrete without pretending the sidecars are complete Bosch training-data metadata.
-  - Why now: DB49a identified missing/partial contract fields. The next useful CPU-local step is to package the fields that are genuinely derivable from current evidence, while keeping `source_id_map` and full per-pixel risk as blocking gaps.
-  - Expected evidence: one CPU/local script/manifest/board plus three sidecar PNGs: sky-core generated mask, partial unknown-or-abstain mask, partial risk map. Manifest must report derivation rules, pixel counts/fractions, DB41 ROI inclusion, out-of-FOV detection, incomplete fields, and `ready_for_uncaveated_bosch_training_data=false`.
-  - Kill criteria: modifies DB32 candidate image; creates a source_id_map by guesswork; treats DB41 rectangles as source-faithful repair evidence; hides lower out-of-FOV black band; claims a complete Bosch dataset contract; runs renderer/model/executor/A100/generation/repair/source replacement; changes permission state or RED promotion; includes current endpoint/HF/Colab token strings.
-  - Max scope: CPU/local packaging only, existing DB32/DB34/DB41/DB43/DB49a artifacts only, no model/network/A100, no new repair, no generated pixels, no dataset scan. Output location: `deliverables/dit360_v2/db49_bosch_data_contract/`.
-  - Required vision check: board must show DB32 candidate, generated sky-core mask, unknown/abstain mask, risk map, DB41 lower-right/right-line labels, source_id_map missing, and explicit `not training-ready / not source-faithful repair / not original-G repair`.
-  - Result (accepted partial sidecars only): `scripts/phase3/db49b_sidecar_starter_pack.py` produced `db49b_generated_mask_sky_core_only.png`, `db49b_unknown_or_abstain_mask_partial.png`, `db49b_risk_map_partial.png`, `db49b_sidecar_overlay_on_db32.jpg`, `db49b_sidecar_starter_pack_manifest.json`, and `db49b_sidecar_starter_pack_board.jpg`. Hard checks pass; DB32 candidate sha256 is unchanged; `source_id_map_created=false`; `ready_for_uncaveated_bosch_training_data=false`; DB41 right/lower-right remains abstain; no repair/generation/model/executor/network/permission change/RED promotion occurred.
-- Phase2 / DB49c (2026-06-04): `source_id_map` feasibility and ownership-evidence inventory.
-  - Question: Can DB49 recover or reproduce a real per-pixel `source_id_map` for DB32 from existing source-ownership artifacts or scripts, without guessing ownership from RGB pixels or DB41 overlays?
-  - Hypothesis: Existing DB28/DB32/DB34/DB41 artifacts may expose partial camera-owner evidence or a reproducible source-owner generation path, but unless a structured per-pixel owner map exists or can be regenerated under the exact DB32 candidate lineage, `source_id_map` must remain missing/blocking.
-  - Why now: DB49b packaged generated/unknown/risk partial sidecars; `source_id_map` is now the largest remaining Bosch data-contract blocker. DB45 is still paused because the current `/status` check failed DNS again before any `/exec`.
-  - Expected evidence: one CPU/local script/manifest/board inventorying existing candidate lineage, source/owner/camera-id artifacts, reproducible scripts, partial ROI owner evidence, missing fields, and an explicit `source_id_map_status`. If a complete existing owner map is not found, no `source_id_map` PNG should be created.
-  - Kill criteria: infers source ownership from RGB similarity, mask color, or ROI overlays; creates a guessed `source_id_map`; treats DB41 ROI camera labels as full-panorama source ownership; modifies DB32 candidate; runs A100/executor/model/network; claims training-ready or source-faithful repair; hides missing lineage or missing exact owner map; includes current endpoint/HF/Colab token strings.
-  - Max scope: CPU/local inventory only over existing DB28/DB29/DB32/DB34/DB41/DB43/DB49 artifacts and repository scripts; no new scan, no renderer, no repair, no generation, no source replacement, no permission change, no RED promotion. Output location: `deliverables/dit360_v2/db49_bosch_data_contract/`.
-  - Required vision check: board must show DB32 candidate, DB49b sidecars, any discovered owner/camera-id evidence, source lineage, explicit `source_id_map missing/not fabricated` unless a true complete map exists, and `not training-ready / not original-G repair`.
-  - Result (accepted inventory-only): `scripts/phase3/db49c_source_id_map_feasibility.py` produced `db49c_source_id_map_feasibility_manifest.json` and `db49c_source_id_map_feasibility_board.jpg`. No complete per-pixel `source_id_map` was recovered for the exact DB32 lineage; no map was created. DB28/DB41 camera labels remain ROI-level diagnostic/count evidence only; DB34 noncore byte-exact preservation remains preservation evidence only; DB49b sidecars are not ownership maps; `_seamroute.py`'s internal routed label is only a future reproducible path candidate unless a new bounded brief instruments/reruns the exact lineage and saves an owner artifact. `source_id_map_status=missing_blocking_not_fabricated`, `ready_for_uncaveated_bosch_training_data=false`, and no repair/generation/model/executor/network/permission change/RED promotion occurred.
-- Phase3 / DB49d (2026-06-04): Seamroute source/provenance sidecar instrumentation.
-  - Question: Can the existing `_seamroute.py` route be instrumented to save auditable per-pixel source/provenance sidecars for future exact reruns without changing default panorama behavior or fabricating DB32 ownership?
-  - Hypothesis: `_seamroute.py` already computes the routed `label` needed for a real source-owner sidecar. A default-off flag can save `routed_source_id_map`, valid mask, virtual-centre composite/effect mask, and legend so future exact lineage reruns can satisfy the Bosch data-contract map field while preserving mixed/composite caveats.
-  - Why now: DB49c proved current artifacts have no complete `source_id_map`; DB45's VGGT residual route has no accepted geometry promotion; the lowest-risk progress is to prepare the accepted seamroute for future provenance capture rather than guessing ownership from ROI labels.
-  - Expected evidence: one CPU/local patch plus manifest/board showing optional flag, sidecar filenames, label conventions, invalid/mixed/composite codes, default behavior unchanged, no DB32 map created, and no repair/generation/model/executor action.
-  - Kill criteria: changes default `_seamroute.py` output pixels; creates a DB32 `source_id_map` without rerunning exact lineage; treats virtual-centre blended/composited pixels as single-source truth; hides invalid/out-of-FOV pixels; runs A100/executor/model/network; claims training-ready/source-faithful DB32; promotes DB41 or repairs original G/A1/BEST; includes endpoint/HF/Colab token strings.
-  - Max scope: CPU/local instrumentation and static audit only; optional/default-off `_seamroute.py` sidecar flag; no dataset run, no renderer execution, no candidate image modification, no repair, no generation, no permission change, no RED promotion. Output location: `deliverables/dit360_v2/db49_bosch_data_contract/`.
-  - Required vision check: board must show the source/provenance sidecar contract, explicit default-off behavior, `source_id_map for DB32 still missing until exact rerun`, virtual-centre composite caveat, and `not training-ready / not original-G repair`.
-  - Result (accepted instrumentation-only): `_seamroute.py` now has default-off `--save-source-id-map` / `--sidecar-dir` support for future exact reruns, and `scripts/phase3/db49d_seamroute_source_map_instrumentation.py` produced `db49d_seamroute_source_map_instrumentation_manifest.json` and `db49d_seamroute_source_map_instrumentation_board.jpg`. The future sidecar contract includes `routed_source_id_map`, `valid_mask`, `virtual_center_effect_mask`, `ground_reproject_effect_mask`, `final_source_state_map`, `source_id_overlay`, and `source_id_sidecar_legend`. DB49d creates no DB32 source map, runs no seamroute dataset/render/model/executor/network, changes no default output pixels unless the flag is explicitly passed, and marks virtual-centre composited/effect pixels as non-single-source truth (`250`) while preserving invalid/out-of-FOV (`255`). `source_id_map_status=missing_until_exact_seamroute_rerun_not_fabricated`, `ready_for_uncaveated_bosch_training_data=false`, and no repair/generation/permission change/RED promotion occurred.
-- Phase4 / DB49e (2026-06-04): Exact-lineage source/provenance rerun preflight and one-run gate.
-  - Question: Can DB49 use DB49d's default-off sidecar support to produce a validated source/provenance sidecar pack for the exact DB32 lineage (`DB28/a200 source base -> DB29 sky corecompose -> DB32 s40`), without modifying DB32 or hiding generated/unknown/composite regions?
-  - Hypothesis: The exact seamroute lineage can produce real routed source/provenance sidecars for the a200 source base, but it must first pass a local preflight: DB32 SHA/source lineage unchanged, DB49d flags present, target data path/current-repo lineage available, secure runtime secrets available, and no generated-sky or virtual-centre composite pixels mislabeled as camera-owned. If the secure runtime/data preconditions are absent, DB49e should stop at a documented preflight pause rather than use pasted chat tokens or fabricate ownership.
-  - Why now: DB47e confirmed `a200` as the current source-sidestep base for DB32, and DB49c/DB49d established that `source_id_map` is the largest remaining Bosch data-contract blocker. This is the next useful data-contract step; it is not a seam-repair or generation step.
-  - Expected evidence: one CPU/local preflight manifest and board; if and only if secure runtime secrets and the exact data path are available, at most one exact rerun of `_seamroute.py --uuid 02a00399-3857-444e-8db3-a8f58489c394 --anchor 200 --tag db49e_a200_exact --save-source-id-map --sidecar-dir <db49e sidecar dir>` producing source/provenance sidecars. Manifest must report DB32 SHA, DB34 source lineage, DB49b/c/d dependencies, runtime/data precondition status, sidecar paths/counts if produced, generated-sky mask integration status, virtual-centre/composite code handling, DB41 abstain carry-forward, and claim labels.
-  - Kill criteria: DB32 `s40` SHA differs from `ade90f2bb629abac88e6516d6a2abd0d6785619024c0be4d5a01ea23dc4a8930`; DB34 source base is not DB28/a200; `_seamroute.py` default behavior or DB32 candidate pixels change; local/remote target data is missing; no secure runtime secret source exists (`COLAB_URL`/`COLAB_TOKEN` environment variables or a non-repo runtime secret file); the pasted chat token is echoed, stored, committed, or embedded in a command artifact; more than one rerun job is submitted; generated sky, out-of-FOV, DB41 abstain, invalid, or virtual-centre composite/effect pixels are folded into camera ownership; RGB similarity/overlay colors are used as ownership truth; sidecar dimensions do not align 1:1 with DB32; a rerun output cannot be tied to exact a200 lineage; DB32 is claimed source-faithful, original-G repair, or uncaveated Bosch training data; any repair/generation/model/HF/VGGT/DiT/FLUX action is run.
-  - Max scope: CPU/local preflight always; optional single remote seamroute exact rerun only if secure runtime/data preconditions pass. No image repair, no generation, no model inference, no HF/VGGT, no DiT/FLUX, no source replacement, no permission change, no RED promotion. Output location: `deliverables/dit360_v2/db49_bosch_data_contract/`.
-  - Required vision check: board must show DB32 candidate unchanged, DB34 a200 lineage, DB49b generated/unknown/risk sidecars, DB49d source-sidecar contract, runtime/data precondition result, generated-sky/non-source boundary, DB41 abstain boundary, and explicit `not source-faithful / not original-G repair / not training-ready unless source_id_map plus masks are validated`.
-
-Required vision check:
-- Final board must include the image, masks, risk/abstain overlays, and same-ROI caveat crops.
-- Manual claim-language review before any Bosch/Koi-facing use.
-
-Result summary: DB49a accepted as `bosch-data-contract-inventory-only`; DB49b accepted as `sidecar-starter-pack-partial-only`; DB49c accepted as `source-id-map-feasibility-inventory-only`; DB49d accepted as `source-map-instrumentation-only`; DB49e accepted only `exact-lineage-source-map-rerun-preflight-only` and paused before rerun. DB49e preflight confirms the a200/DB32 lineage and DB49d sidecar support, but no source map was created because the local target log/data path is absent and no secure runtime secret source is available (`COLAB_URL/COLAB_TOKEN` env or non-repo runtime secret file). Chat-pasted runtime JSON is not a secure runtime source for DB49e because DB49e forbids token echo/store/command-artifact use. See the 2026-06-04 DB49e block at the top of `agent/progress.md`. `source_id_map` remains missing/blocking for DB32 until one exact lineage rerun saves and validates a true owner artifact; no narrative fill-in and no pasted-token command usage.
-
-# DB-50: EGSR source-faithful operator v0 / GREEN-YELLOW segment repair
-Status: accepted Phase0 / paused pending follow-up sub-brief
-Route: A / source-faithful EGSR operator implementation
-
-Question: After DB43/DB44 accepted the fake-geometry gate and layer-aware dispatcher, can the project move from gate/report to a bounded source-faithful operator pass that only touches GREEN/YELLOW eligible seam components and keeps RED/no-evidence components abstained?
-
-Hypothesis: A useful first source-faithful EGSR operator must be weaker than a global inpainting model: keep/abstain, source-only hard select, DB-proven BEV road atlas where already valid, low-frequency photometric polish only when evidence says the seam is photometric, and LPAM-like local patch alignment only for evidence-GREEN far/static segments. Under current evidence, DB41 right/lower-right and generated fake-geometry controls should stay RED/abstain/reject; if no eligible executable target exists in current local artifacts, DB50 should stop at operator-readiness evidence instead of patch-on-patch.
-
-Why now: DB43/DB44 are accepted, DB45 VGGT residuals are diagnostic-only/no-promotion, DB47e confirms `a200` only as source-sidestep/current base, and DB49e is a provenance/data-contract pause rather than seam-quality progress. The main goal is now seam-quality and algorithm formation, so the next useful step is to audit which EGSR operators can actually execute safely under the current evidence gates.
-
-Expected evidence:
-- One CPU/local script, manifest, and board using existing DB43/DB44/DB45/DB47/DB49 evidence only.
-- Per-component operator-readiness table for the DB44 components: evidence state, protected structures, allowed branch, candidate operator, required inputs, executable-now status, and stop reason.
-- Explicit counts for GREEN/YELLOW/RED, executable source-faithful components, abstain components, source-sidestep-only components, presentation-only/generated components, and rejected fake-geometry controls.
-- If no safe operator can run from current local artifacts, the output must say so and recommend the next brief/precondition; no panorama repair is created under DB50 Phase0.
-- If an operator is later allowed by a follow-up sub-brief, expected evidence must include `source_faithful_erp`, `segment_map`, `operator_map`, non-fabricated provenance/source-state map, `risk_map`, `unknown_or_abstain_mask`, segment report, and same-ROI before/after board.
-
-Kill criteria:
-- Any DB41 right/lower-right, DB25/DB41 RED, generated fake-geometry, or no-evidence component is repaired or promoted.
-- LPAM/local alignment is marked executable without far/static GREEN evidence, raw/source pair support, and protected-structure checks.
-- The run creates a new panorama, source replacement, generated pixels, diffusion/DiT/FLUX output, VGGT residual promotion, or A100/HF/model action under this Phase0 readiness scope.
-- The output hides DB32's source-sidestep/generated-sky caveats or calls DB32 a source-faithful ceiling.
-- `G_bmw_pano` is treated as the default repair base instead of a classic BMW failure / diagnostic reference.
-- Operator-readiness is judged by a scalar metric or pretty board only, without reason-coded stop conditions and same-ROI vision requirements.
-- It suggests continuing after a kill condition instead of writing `progress.md` and stopping.
-
-Max scope:
-- Phase0 only: CPU/local existing-artifact operator-readiness audit over DB44's 29 components and frozen guardrails.
-- No new panorama repair, no renderer/dataset run, no source replacement, no generation, no HF/VGGT/DiT/FLUX, no A100/executor, no DB49e source-map rerun.
-- No more than one script/manifest/board. Output location: `deliverables/dit360_v2/db50_egsr_operator_v0/`.
-- Any actual operator implementation or remote run requires a follow-up DB50 sub-brief with its own kill criteria and max scope.
-
-Required vision check:
-- Board must show the operator-readiness matrix plus canonical visual context for DB32/a200 handoff, `G_bmw_pano` diagnostic failure, DB41 abstain, BEV/source-faithful ceiling, and fake-geometry rejects.
-- Board must label `no repair / no generation / no RED promotion / DB32 caveated / G diagnostic only`.
-
-Result summary: DB50 Phase0 accepted as `egsr-operator-readiness-existing-artifacts-only`; see the 2026-06-04 DB50 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db50_egsr_operator_readiness.py` reviewed all 29 DB44 components and created `deliverables/dit360_v2/db50_egsr_operator_v0/db50_egsr_operator_readiness_manifest.json` plus board. No repair/generation/remote/model/source replacement/DB49e rerun occurred. Current local artifacts contain 0 executable new source-faithful repair targets and 0 executable LPAM targets: counts are 3 presentation-only, 1 already-satisfied keep control, 2 source-sidestep-only, 1 existing BEV caveated control, and 22 abstain/reject. DB41 remains RED/no-evidence/abstain, `G_bmw_pano` remains diagnostic only, DB32 remains caveated handoff, and DB50 must not continue patch-on-patch without a fresh target-specific sub-brief carrying raw/source-pair evidence and protected-structure checks.
-
-# DB-51: EGSR target/source-pair evidence acquisition queue
-Status: accepted / paused pending next brief
-Route: A / evidence acquisition for source-faithful operators
-
-Question: After DB50 found zero executable new source-faithful repair targets, what is the smallest evidence-acquisition queue that could make a future DB50 sub-brief actually executable without violating DB41/no-evidence or DB32/G claim boundaries?
-
-Hypothesis: The next seam-quality progress is not another repair attempt; it is to acquire or validate target-specific evidence. The likely highest-value queue is (1) DB47 fixed-universe exact source-selection closure for the remaining same-log holds, because source/frame selection is the only currently accepted way to avoid the hard seam, and (2) a future LPAM/local-alignment target only if raw/source-pair support and protected-structure checks can be proven. DB49e remains useful for provenance but is not seam-quality; DB46/DB48 remain presentation-only.
-
-Why now: DB50 Phase0 made the immediate operator gap explicit: current local artifacts have 0 executable repair targets and 0 LPAM targets. Continuing to write operators without target/source-pair evidence would repeat the project's patch-on-patch failure mode.
-
-Expected evidence:
-- One CPU/local script, manifest, and board using existing DB47d/e, DB50, DB44, DB25, DB41, and DB49e artifacts only.
-- A ranked acquisition queue with each item labeled as `source-selection`, `operator-target`, `provenance`, `presentation-only`, or `geometry-evidence`.
-- For each item: required evidence, currently available evidence, blockers, allowed next action, kill criteria pointer, expected output location, and whether it can become source-faithful repair, source-sidestep, diagnostic, presentation-only, or data-contract evidence.
-- Explicit handling of DB47 missing-exact holds (`a201`, `a209`, `a210`, `a211`, `a031`, `a038`, `a040`) and `a105` compare-only final gap.
-- Explicit rejection of DB25/DB41 right/lower-right as current local operator targets.
-
-Kill criteria:
-- Promotes DB41 right/lower-right or DB25/DB41 RED regions based on flow-only, montage-only, or model-confidence-only evidence.
-- Treats DB47 source selection as original-G seam repair or fully source-faithful local repair.
-- Treats DB49e/source_id_map provenance as seam-quality improvement.
-- Treats DB46/DB48 presentation-only work as Bosch training-data/source-faithful output.
-- Uses chat-pasted runtime or HF tokens, runs `/exec`, A100, HF/VGGT/DiT/FLUX, renderer, dataset scan, exact asset fetch, or panorama repair under this acquisition-queue scope.
-- Creates guessed exact assets, guessed raw/source-pair evidence, or guessed source ownership.
-- Produces a recommendation without a fixed max-scope and kill criteria for the next brief.
-
-Max scope:
-- CPU/local existing-artifact acquisition planning only.
-- No new panorama, no source replacement, no repair, no generation, no model inference, no remote/executor, no HF/A100, no DB49e rerun, no exact asset fetch.
-- One script/manifest/board under `deliverables/dit360_v2/db51_egsr_target_acquisition/`.
-- Any actual asset fetch, source-selection exact closure, LPAM/local alignment, geometry model, or provenance rerun requires a fresh follow-up brief.
-
-Required vision check:
-- Board must show the acquisition queue, DB47 missing-exact holds, DB50 no-target result, DB41/DB25 abstain evidence, DB32/G claim boundary, and explicit `no repair / no remote / no token use / no RED promotion`.
-
-Result summary: DB51 accepted only `egsr-target-source-pair-acquisition-queue-only`; see the 2026-06-04 DB51 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db51_egsr_target_acquisition_queue.py` produced `deliverables/dit360_v2/db51_egsr_target_acquisition/db51_egsr_target_acquisition_manifest.json` plus board. It created no repair, no generation, no source replacement, no exact asset fetch, no remote/executor/model/HF/A100 action, no DB49e rerun, no permission change, and no RED promotion. The ranked queue is: (1) DB47f fixed-universe exact source-selection closure if secure runtime/data preconditions are satisfied; (2) DB50b LPAM/local-alignment target evidence only after a fixed segment has raw/source-pair support and protected-structure checks; (3) DB49e provenance, not seam-quality; (4) fixed-target geometry evidence only if it serves a selected DB51/DB50 target; (5) DB46/DB48 presentation-only only after explicit priority switch. DB47 has 8 exact/final gaps (seven missing exact holds plus `a105` final gap). DB25/DB41 remain acquisition blockers and repair abstains. Chat-pasted runtime/HF tokens are still not authorized as command/artifact secrets.
-
-# DB-52: DB47f secure-runtime/data intake contract
-Status: accepted / paused pending safe runtime/data path
-Route: infra / source-selection precondition
-
-Question: Can the project convert the newly available A100/HF situation into a token-safe, auditable launch contract for the next DB47f fixed-universe exact closure batch, without using chat-pasted secrets in commands or artifacts?
-
-Hypothesis: DB47f is the right next seam-quality route only after secure runtime/data preconditions are satisfied. A CPU/local contract pass can materially advance the route by freezing allowed secret sources, target data checks, launch preconditions, and kill gates so the next closure batch can run once env or a non-repo runtime secret source is available, while still stopping under the current in-process state.
-
-Why now: DB51 ranked DB47f as the next route, DB47f preflight stopped only because secure runtime/data was absent, HF gated access is now reachable, and the user has an A100 tunnel. The remaining risk is not model access; it is accidentally turning a pasted token into command/artifact state or launching an unbounded closure/fetch run.
-
-Expected evidence:
-- One CPU/local script, manifest, and board under `deliverables/dit360_v2/db52_secure_runtime_contract/`.
-- Boolean-only checks for approved secret sources: `COLAB_URL`/`COLAB_TOKEN` env, `HF_TOKEN`/configured HF auth, and optional non-repo runtime secret file path.
-- Fixed 8-anchor DB47f closure target list and required compare/final assets, inherited from DB47f/DB51.
-- A token-free launch contract that states exactly when DB47f closure may run and exactly what remains forbidden.
-- Explicit `no remote / no exec / no exact fetch / no repair / no generation / no source replacement / no source_id_map / no RED promotion` status if the safe preconditions are not available.
-
-Kill criteria:
-- Uses, echoes, stores, commits, or embeds a chat-pasted tunnel/HF token, endpoint URL, or bearer token in commands/artifacts.
-- Reads secret values when only boolean availability is needed.
-- Treats the pasted JSON as a secure runtime secret source.
-- Runs `/status`, `/exec`, A100, HF/VGGT, model inference, renderer, exact asset fetch, dataset scan, or panorama repair under this contract scope.
-- Expands beyond the fixed 8 DB47f targets.
-- Calls the contract an exact closure, source-faithful repair, original-G repair, source map, or uncaveated Bosch training-data step.
-- Promotes DB25/DB41 RED/no-evidence regions or changes DB32/G claim boundaries.
-
-Max scope:
-- CPU/local contract and readiness audit only.
-- One script, one manifest, one board.
-- No remote/network/model/data fetch, no candidate image modification, no generated pixels, no permission change, no RED promotion.
-- Output location: `deliverables/dit360_v2/db52_secure_runtime_contract/`.
-
-Required vision check:
-- Board must show the approved secret-source policy, current precondition booleans, fixed 8 DB47f targets, stop/launch decision, DB32/G/DB41 claim boundaries, and explicit no-token/no-remote/no-repair/no-RED status.
-
-Result summary: DB52 accepted only `secure-runtime-contract-only`; see the 2026-06-04 DB52 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db52_secure_runtime_contract.py` produced `deliverables/dit360_v2/db52_secure_runtime_contract/db52_secure_runtime_contract_manifest.json` plus board. Current in-process preconditions remain false: no `COLAB_URL`/`COLAB_TOKEN` env pair, no approved non-repo runtime secret file, no local target log data, and `closure_batch_allowed_now=false`. A configured local HF auth file exists, but no HF/network recheck was run under this CPU/local contract scope. DB52 ran no remote/status/exec/A100/HF/VGGT/model/renderer/exact fetch/repair/generation/source replacement/source_id_map/permission change/RED promotion. Future DB47f closure may run only after env or non-repo runtime secret source, or local target data, is available; chat-pasted JSON/token values remain rejected as command/artifact secrets.
-
-# DB-53: DB47f token-free launch harness dry-run
-Status: accepted / paused pending safe runtime/data path
-Route: infra / source-selection precondition
-
-Question: Can DB47f be prepared as a deterministic token-free launch harness, using existing `_seamroute.py` behavior and DB47f/DB52 gates, without launching remote execution or creating exact assets now?
-
-Hypothesis: DB52 fixed the secret-intake policy, but the next runtime-enabled turn can still drift into unbounded scan, wrong tags, extra claims, or patch-on-patch unless the exact 8-anchor command plan and output mapping are frozen now. A CPU/local dry-run manifest can materially advance DB47f by making the future one-batch closure mechanically auditable while keeping current execution paused.
-
-Why now: DB47f remains the next seam-quality route, but current safe data path is absent. The useful local work is to remove launch ambiguity, not to run another repair or presentation branch.
-
-Expected evidence:
-- One CPU/local script, manifest, and board under `deliverables/dit360_v2/db53_db47f_launch_harness/`.
-- Per-anchor dry-run command plan for exactly the 8 DB47f anchors, using `_seamroute.py --uuid 02a00399-3857-444e-8db3-a8f58489c394 --anchor <anchor> --tag bmw_db28_a<anchor>`.
-- Expected remote output names and local destination names for exact `compare` and `final_1024x2048` assets only.
-- Explicit launch preconditions inherited from DB52; if absent, the runner status must be dry-run/paused.
-- No shell script with secrets, no endpoint values, and no command artifact containing token values.
-
-Kill criteria:
-- Runs `/status`, `/exec`, A100, network, HF/VGGT, model inference, renderer/dataset scan, exact asset fetch, or `_seamroute.py`.
-- Uses chat-pasted tunnel/HF token, endpoint URL, bearer token, or any secret value in commands/artifacts.
-- Expands beyond the 8 DB47f anchors or changes anchor/tag mapping.
-- Writes or copies exact compare/final assets under this dry-run scope.
-- Treats generated dry-run commands as executed evidence.
-- Calls source-selection closure original-G repair, source-faithful local repair, source map, or Bosch training-ready output.
-- Promotes DB25/DB41 RED/no-evidence or changes DB32/G claim boundaries.
-
-Max scope:
-- CPU/local dry-run plan only.
-- One script, one manifest, one board.
-- No remote/network/model/data fetch, no `_seamroute.py` execution, no candidate image modification, no generated pixels, no permission change, no RED promotion.
-- Output location: `deliverables/dit360_v2/db53_db47f_launch_harness/`.
-
-Required vision check:
-- Board must show DB52 precondition status, the 8-anchor command/output table, exact compare/final destination mapping, dry-run stop decision, and explicit no-token/no-remote/no-exact-fetch/no-repair/no-RED labels.
-
-Result summary: DB53 accepted only `db47f-token-free-launch-harness-dry-run-only`; see the 2026-06-04 DB53 block at the top of `agent/progress.md`. CPU/local script `scripts/phase3/db53_db47f_launch_harness_dryrun.py` produced `deliverables/dit360_v2/db53_db47f_launch_harness/db53_db47f_launch_harness_manifest.json` plus board. It created a no-secret argv/output mapping for exactly the 8 DB47f anchors and records expected compare/final names only. It ran no remote/status/exec/A100/network/HF/VGGT/model/_seamroute/renderer/exact fetch or copy/repair/generation/source replacement/source_id_map/permission change/RED promotion. DB53 remains paused because DB52's safe data path is still false; it is launch-risk reduction only, not seam evidence or closure.
+---
+
+## CLOSED BRIEFS — DB-45 … DB-75 (pointers only; full facts in `progress.md`, summaries in `handoff.md` banners)
+
+> Pruned 2026-06-06 from full bodies to one-line pointers (facts verified present in `progress.md`). All are closed/paused; none is active. The single active brief is DB-76a above.
+
+**Geometry-evidence (VGGT) branch — all diagnostic/no-repair, no RED promotion:**
+- **DB-45** Geometry foundation evidence audit (a–k) — **PAUSED** after DB45k VGGT pose/reflection coordinate audit = diagnostic-only; official camera-from-world fails no-reflection contract; ROI residuals no-promotion. No geometry evidence accepted.
+- **DB-58** VGGT-assisted raw-camera seam ROI repair feasibility — **CPU preflight abstain/no-repair** (pose-admissibility + target-surface support gates fail).
+- **DB-59** VGGT-assisted A1/G diagnostic geometry audit — **CPU preflight diagnostic/no-promotion**.
+- **DB-60** VGGT-prior ungated A1/G quick-look — **presentation-only, rejected as repair** (A1 seam remains; G gets wavy curb).
+- **DB-61** Fresh-A100 VGGT rerun ungated A1/G quick-look — **presentation-only, rejected** (real new VGGT inference; vision still weak).
+- **DB-62** VGGT point-guided raw-camera source composite — **rejected as repair** (sparse islands; blocky hard crop).
+- **DB-63** VGGT high-confidence component-gated raw-source probe — **fragmented sparse no-repair** (2 components, 0.021 ROI).
+
+**Source/frame candidate mining + data-contract + infra branch:**
+- **DB-46** BMW meeting presentation-only micro cleanup — side branch (presentation-only).
+- **DB-47** (a–f) Source/frame/dataset candidate mining — **source-selection review/closure only**; `a200`/DB32 not displaced; DB56 closed 15/15 exact assets; DB57 no candidate promotion; paused.
+- **DB-48** Koi center-preserve DiT360 outpainting side branch — presentation/demo side branch.
+- **DB-49** (a–e) Bosch data contract / handoff packet — **inventory + partial-sidecar only**; `source_id_map` missing-blocking-not-fabricated; DB32 not uncaveated training data.
+- **DB-50** EGSR source-faithful operator v0 — **0 executable repair targets** from existing artifacts.
+- **DB-51** EGSR target/source-pair acquisition queue — ranks DB47f next; creates no repair.
+- **DB-52** DB47f secure-runtime/data intake contract — **secure-runtime-contract-only**, paused.
+- **DB-53** DB47f token-free launch harness dry-run — dry-run-only, paused.
+- **DB-54** DB47f local exact-asset recovery audit — 0 local matches, paused.
+- **DB-55** EGSR O3 photometric polish acceptance audit — accepted O3 as bounded **photometric-only** sub-operator (T1/YELLOW low-structure seams).
+- **DB-56** DB47f exact closure batch execution — **accepted: 15/15 exact assets complete**; not candidate selection.
+- **DB-57** DB47f exact-candidate visual review — **no candidate promotion**; keep `a200`/DB32.
+
+**LTR / target-raycaster + photometric/source-label/geometry/temporal/presentation branch (the recent chain that led to the reframe):**
+- **DB-64** LTR-v0 layered target-raycaster — **PAUSED at Phase5a** evidence endpoint; thresholds failed (`no_target_surface_support` high, longest supported component 0.146); renderer not entered.
+- **DB-65** DB64 evidence-gated visible photometric fallback — **presentation/diagnostic photometric polish** (was current-best before DB75).
+- **DB-66** Narrow-mask classic inpaint presentation fallback — **rejected by vision** (inpaint artifacts).
+- **DB-67** Dense raw-aligned target-surface evidence audit — **rejected** (VGGT dense fails raw-aligned/zbuffer/continuity/LiDAR gates; clean control degraded; Phase2 renderer blocked).
+- **DB-68** Edge-aware bounded photometric polish v2 — **rejected as seam solution** / weak presentation-only.
+- **DB-69** User-marked geometry seam audit + structure-aware reroute — source-label-only candidate **rejected** (jagged/wavy seam; road/curb stays misaligned).
+- **DB-70** Protected ground-plane local alignment — **rejected** by metrics + vision (too conservative; ROI energy worsened).
+- **DB-71** Protected local presentation seam retouch — **PAUSED before run** (not a general algorithm).
+- **DB-72** Global source-candidate optimizer — **diagnostic/operator-eligibility, not repair**; root cause: coverage 0.2742, two-source overlap 88,288 px, three+ overlap 0, LiDAR visible 0.0532.
+- **DB-73** Full-ERP source-derived geometry candidate stack — **diagnostic; rejected as repair** (`geometry_operator_selected_fraction=0.0`).
+- **DB-74** Temporal/multiframe raw-source candidate stack — **diagnostic; rejected** (`temporal_selected_fraction=0.0`).
+- **DB-75** Full-ERP seam-band source-mixed presentation fallback — **`presentation_only/source_mixed_not_repair`**; current best *viewable* version only (`soft_r64_a080_g1`, BMW ROI seam energy 95.94→56.20, source-mix 0.1171). User vision override: only softens, does not connect.
