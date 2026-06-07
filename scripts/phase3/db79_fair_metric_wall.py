@@ -50,6 +50,8 @@ FETCH = {
     "bmw_sil": ("02a00399_a000_bmw_silhouette_resid_heat.png", 30),
     "clean_surf": ("0bae3b5e_a030_clean_far_surface_resid_heat.png", 30),
     "clean_sil": ("0bae3b5e_a030_clean_far_silhouette_resid_heat.png", 30),
+    "bmw_step3": ("02a00399_a000_bmw_step3_depth_reproj_heat.png", 30),
+    "clean_step3": ("0bae3b5e_a030_clean_far_step3_depth_reproj_heat.png", 30),
 }
 
 
@@ -151,7 +153,7 @@ def ring_skeleton(case_spec, workdir):
     weights = np.stack(weights, 0); valid_any = weights.max(0) > EPS
     owner = np.argsort(-weights, axis=0)[0].astype(np.int32)
     base = np.take_along_axis(np.stack(labs, 0), np.where(valid_any, owner, 0)[None, :, :, None], axis=0)[0]; base[~valid_any] = 0
-    return log_dir, ts, frame, valid_any, base
+    return log_dir, ts, frame, valid_any, base, list(RING_CAMS_7)
 
 
 def load_pose_interp(log_dir):
@@ -267,20 +269,76 @@ def fair_densify_loo(lidar):
         fl = tvi[mask] * W + tui[mask]; np.add.at(rf, fl, fair_res[mask]); np.add.at(cf, fl, 1.0)
         return (rf / np.maximum(cf, 1)).reshape(H, W), (cf.reshape(H, W) > 0)
     rf_surf, h_surf = field(surf); rf_sil, h_sil = field(is_sil)
-    return res, rf_surf, h_surf, rf_sil, h_sil
+    test = {"tu": tu, "tv": tv, "td": td, "tui": tui, "tvi": tvi, "surf": surf, "sil": is_sil}
+    return res, rf_surf, h_surf, rf_sil, h_sil, Zold, test
+
+
+def step3_depth_reproj(frame, ring_cams, dirs, Zold, test):
+    # Depth-aware LOO render-back reproj residual (px). Each LiDAR test surface point seen by >=2 ring
+    # cams is projected into EACH seeing camera using (a) rotation-only/infinite depth (DB-76a baseline,
+    # convergence_distance_m=None equivalent), (b) the densified Zd; error = px distance to the TRUE
+    # projection of the real LiDAR point. Collect over all (point, seeing-camera) pairs = the LOO dist.
+    tu = test["tu"]; td = test["td"]; tui = test["tui"]; tvi = test["tvi"]; surf = test["surf"]; sil = test["sil"]
+    d = dirs[tvi, tui].astype(np.float64)
+    Zd_here = np.maximum(Zold[tvi, tui].astype(np.float64), 0.1)
+    X_true = td[:, None].astype(np.float64) * d; X_zd = Zd_here[:, None] * d; X_far = 1000.0 * d
+    cams = []
+    for cam in ring_cams:
+        cal = frame.calibrations[cam]; K = np.asarray(cal.K, float); Tci = np.linalg.inv(np.asarray(cal.T_ego_cam, float))
+        hh, ww = frame.images[cam].shape[:2]
+        def proj(X):
+            Xc = (Tci[:3, :3] @ X.T).T + Tci[:3, 3]; z = Xc[:, 2]
+            px = K[0, 0] * Xc[:, 0] / np.maximum(z, 1e-6) + K[0, 2]; py = K[1, 1] * Xc[:, 1] / np.maximum(z, 1e-6) + K[1, 2]
+            return px, py, z
+        pxt, pyt, zt = proj(X_true); inb = (zt > 0.1) & (pxt >= 0) & (pxt < ww) & (pyt >= 0) & (pyt < hh)
+        pxd, pyd, _a = proj(X_zd); pxr, pyr, _b = proj(X_far)
+        cams.append((inb, np.hypot(pxd - pxt, pyd - pyt).astype(np.float32), np.hypot(pxr - pxt, pyr - pyt).astype(np.float32)))
+    seen = np.sum([c[0].astype(np.int32) for c in cams], axis=0); co = seen >= 2
+    dl, rl, sfl, sll, il = [], [], [], [], []
+    for inb, de, re in cams:
+        sel = inb & co
+        dl.append(de[sel]); rl.append(re[sel]); sfl.append(surf[sel]); sll.append(sil[sel]); il.append(np.nonzero(sel)[0])
+    dep = np.concatenate(dl) if dl else np.zeros(0, np.float32); rot = np.concatenate(rl) if rl else np.zeros(0, np.float32)
+    sf = np.concatenate(sfl) if sfl else np.zeros(0, bool); sl = np.concatenate(sll) if sll else np.zeros(0, bool)
+    tidx = np.concatenate(il) if il else np.zeros(0, np.int64)
+    def pct(a, p): return float(np.percentile(a, p)) if a.size else None
+    x0, y0, x1, y1 = CURBWALL_ROI; rm = (tui[tidx] >= x0) & (tui[tidx] < x1) & (tvi[tidx] >= y0) & (tvi[tidx] < y1)
+    res = {
+        "n_loo_pairs": int(dep.size), "n_co_observed_pts": int(co.sum()),
+        "ROT_reproj_px_p50": pct(rot, 50), "ROT_reproj_px_p90": pct(rot, 90),
+        "DEPTH_reproj_px_p50": pct(dep, 50), "DEPTH_reproj_px_p90": pct(dep, 90),
+        "DEPTH_surface_reproj_px_p90": pct(dep[sf], 90), "DEPTH_silhouette_reproj_px_p90": pct(dep[sl], 90),
+        "false_green_ROT_gt3px": float((rot > 3).mean()) if rot.size else None,
+        "false_green_DEPTH_gt3px": float((dep > 3).mean()) if dep.size else None,
+        "false_green_DEPTH_surface_gt3px": float((dep[sf] > 3).mean()) if sf.any() else None,
+        "false_green_DEPTH_silhouette_gt3px": float((dep[sl] > 3).mean()) if sl.any() else None,
+        "curbwall_DEPTH_reproj_px_p90": pct(dep[rm], 90), "curbwall_ROT_reproj_px_p90": pct(rot[rm], 90),
+        "curbwall_false_green_DEPTH_gt3px": float((dep[rm] > 3).mean()) if rm.any() else None, "curbwall_n_pairs": int(rm.sum()),
+    }
+    def field2(vals, idx):
+        rf = np.zeros(H * W, np.float32); cf = np.zeros(H * W, np.float32)
+        fl = tvi[idx] * W + tui[idx]; np.add.at(rf, fl, vals); np.add.at(cf, fl, 1.0)
+        return (rf / np.maximum(cf, 1)).reshape(H, W), (cf.reshape(H, W) > 0)
+    rf_dep, h_dep = field2(dep, tidx); rf_rot, h_rot = field2(rot, tidx)
+    return res, rf_dep, h_dep, rf_rot, h_rot
 
 
 def run_case(case_spec, run_name, workdir):
     from PIL import Image, ImageDraw, ImageFont
     import pandas as pd
-    log_dir, ts, frame, valid_any, base = ring_skeleton(case_spec, workdir)
+    log_dir, ts, frame, valid_any, base, ring_cams = ring_skeleton(case_spec, workdir)
     cte, tri = load_pose_interp(log_dir)
     ann = pd.read_feather(log_dir / "annotations.feather") if (log_dir / "annotations.feather").exists() else None
     lidar = accumulate_lidar(log_dir, ts, cte, tri, ann)
     out = fair_densify_loo(lidar)
     if out is None: return {"case": run_name, "error": "too_few_lidar"}
-    res, rf_surf, h_surf, rf_sil, h_sil, = (*out,)
+    res, rf_surf, h_surf, rf_sil, h_sil, Zold, test = out
     res["n_lidar_accumulated"] = int(len(lidar))
+    dirs = erp_dirs()
+    res3, rf_dep, h_dep, rf_rot, h_rot = step3_depth_reproj(frame, ring_cams, dirs, Zold, test)
+    res["step3_depth_aware_LOO"] = res3
+    save_rgb(REMOTE_OUT / f"{run_name}_step3_depth_reproj_heat.png", heat(rf_dep, h_dep, vmax=3.0))
+    save_rgb(REMOTE_OUT / f"{run_name}_step3_rot_reproj_heat.png", heat(rf_rot, h_rot, vmax=20.0))
     # boards: base+ROIs | surface resid heat (vmax=2m) | silhouette resid heat (vmax=2m)
     surf_h = heat(rf_surf, h_surf, vmax=2.0); sil_h = heat(rf_sil, h_sil, vmax=2.0)
     save_rgb(REMOTE_OUT / f"{run_name}_surface_resid_heat.png", surf_h)
@@ -289,13 +347,14 @@ def run_case(case_spec, run_name, workdir):
     except Exception: f = ImageFont.load_default()
     tiles = [("hard_select base + 4 marked ROIs", draw_rois(base)),
              (f"FAIR SURFACE residual (0..2m) p90={res['FAIR_surface_p90_m']}", surf_h),
-             (f"FAIR SILHOUETTE residual (0..2m) p90={res['FAIR_silhouette_p90_m']}", sil_h)]
+             (f"FAIR SILHOUETTE residual (0..2m) p90={res['FAIR_silhouette_p90_m']}", sil_h),
+             (f"STEP3 depth-aware LOO reproj (0..3px) p90={res3['DEPTH_reproj_px_p90']} surf={res3['DEPTH_surface_reproj_px_p90']} | ROT no-depth p90={res3['ROT_reproj_px_p90']}", heat(rf_dep, h_dep, vmax=3.0))]
     ims = []
     for t, a in tiles:
         im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).resize((1000, 500))
         bar = Image.new("RGB", (1000, 26), (15, 15, 22)); ImageDraw.Draw(bar).text((6, 5), t, (235, 235, 245), font=f)
         o = Image.new("RGB", (1000, 526)); o.paste(bar, (0, 0)); o.paste(im, (0, 26)); ims.append(o)
-    board = Image.new("RGB", (1000, 526 * 3 + 56), (10, 10, 14)); d = ImageDraw.Draw(board)
+    board = Image.new("RGB", (1000, 526 * 4 + 56), (10, 10, 14)); d = ImageDraw.Draw(board)
     d.text((8, 6), f"{run_name} DB-79 fair metric: OLD single-near p90={res['OLD_single_near_p90_m']}m -> FAIR surface p90={res['FAIR_surface_p90_m']}m | silhouette p90={res['FAIR_silhouette_p90_m']}m", (240, 240, 250), font=f)
     d.text((8, 30), f"sil_frac={res['silhouette_fraction']:.3f}  curbwall: OLD p90={res['curbwall_OLD_single_near_p90_m']}m surf p90={res['curbwall_FAIR_surface_p90_m']}m sil p90={res['curbwall_FAIR_silhouette_p90_m']}m", (210, 230, 210), font=f)
     yo = 56
@@ -305,20 +364,29 @@ def run_case(case_spec, run_name, workdir):
 
 
 def verdict(by_case):
-    # pre-registered: reopen needs surface p90 < reopen_thr on BOTH cases; kill if any surface p90 > kill_thr
     rt = float(TH["reopen_surface_p90_lt_m"]); kt = float(TH["kill_surface_p90_gt_m"])
-    surf = [c["metrics"]["FAIR_surface_p90_m"] for c in by_case.values() if "metrics" in c and c["metrics"].get("FAIR_surface_p90_m") is not None]
-    sil = [c["metrics"]["FAIR_silhouette_p90_m"] for c in by_case.values() if "metrics" in c and c["metrics"].get("FAIR_silhouette_p90_m") is not None]
-    cw = [c["metrics"].get("curbwall_FAIR_surface_p90_m") for c in by_case.values() if "metrics" in c]
-    cw = [x for x in cw if x is not None]
-    v = {"surface_p90_all_m": surf, "silhouette_p90_all_m": sil, "curbwall_surface_p90_all_m": cw,
-         "reopen_thr_m": rt, "kill_thr_m": kt}
-    if surf and all(s < rt for s in surf) and (not cw or all(s < 2.0 for s in cw)):
-        v["call"] = "SURFACES_REOPEN_candidate (surface p90 < %.1fm on all cases) — needs depth-aware LOO <3px (step3) + EXP-B cross-check before declaring" % rt
+    def g(c, k, sub=None):
+        m = c.get("metrics", {})
+        if sub: m = (m or {}).get(sub, {}) or {}
+        return m.get(k)
+    surf = [x for x in (g(c, "FAIR_surface_p90_m") for c in by_case.values()) if x is not None]
+    cw_surf = [x for x in (g(c, "curbwall_FAIR_surface_p90_m") for c in by_case.values()) if x is not None]
+    dep_cw = [x for x in (g(c, "curbwall_DEPTH_reproj_px_p90", "step3_depth_aware_LOO") for c in by_case.values()) if x is not None]
+    dep_surf = [x for x in (g(c, "DEPTH_surface_reproj_px_p90", "step3_depth_aware_LOO") for c in by_case.values()) if x is not None]
+    rot_p90 = [x for x in (g(c, "ROT_reproj_px_p90", "step3_depth_aware_LOO") for c in by_case.values()) if x is not None]
+    v = {"step12_surface_densify_p90_m": surf, "step12_curbwall_surface_p90_m": cw_surf,
+         "step3_curbwall_depth_reproj_px_p90": dep_cw, "step3_depth_surface_reproj_px_p90": dep_surf,
+         "step3_rot_reproj_px_p90_no_depth": rot_p90, "reopen_thr_m": rt, "kill_thr_m": kt, "reproj_thr_px": 3.0}
+    densify_ok = bool(surf) and all(s < rt for s in surf)
+    reproj_ok = bool(dep_cw) and all(s < 3.0 for s in dep_cw) and bool(dep_surf) and all(s < 3.0 for s in dep_surf)
+    if densify_ok and reproj_ok:
+        v["call"] = ("DEPTH_ROUTE_REOPENS_on_surfaces: densify surface p90 < %.1fm AND depth-aware LOO reproj < 3px on surfaces+curb/wall, while no-depth(ROT) p90=%s px => the ~12m wall was a metric confound; depth fixes the surface render-back. Silhouettes remain (Lemma A) -> abstain there." % (rt, rot_p90))
+    elif densify_ok and not reproj_ok:
+        v["call"] = ("DENSIFIER_OK_but_RENDERBACK_residual: surface densify cm-clean but depth-aware LOO reproj still >=3px (curbwall=%s surf=%s px) => gain limited to where LiDAR returns; do NOT declare full reopen (leader kill #2)." % (dep_cw, dep_surf))
     elif surf and any(s > kt for s in surf):
-        v["call"] = "WALL_CONFIRMED_fair (surface p90 > %.1fm) — close depth route, ship DB-78+abstain" % kt
+        v["call"] = "WALL_CONFIRMED_fair (surface densify p90 > %.1fm) — close depth route, ship DB-78+abstain" % kt
     else:
-        v["call"] = "INTERMEDIATE (surface p90 in [%.1f,%.1f]m) — report, do NOT declare reopened" % (rt, kt)
+        v["call"] = "INTERMEDIATE — report, do NOT declare reopened"
     return v
 
 

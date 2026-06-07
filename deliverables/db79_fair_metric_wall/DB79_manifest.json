@@ -1,5 +1,5 @@
 {
-  "created_utc": "2026-06-06T23:30:50.458279+00:00",
+  "created_utc": "2026-06-07T05:06:48.880042+00:00",
   "status": "db79_fair_metric_wall_step12",
   "brief": "DB-79 fair-metric wall settlement (layered/LDI hold-out + LiDAR-only densify + surface/silhouette split)",
   "scope": {
@@ -13,22 +13,22 @@
   "runtime": {
     "secret_source_kind": "non_repo_file",
     "status": {
-      "runtime_type": "colab-cpu",
       "version": "0.1.0a1",
       "gpu_name": null,
+      "runtime_type": "colab-cpu",
       "active_jobs": 0
     }
   },
   "job": {
     "cwd": "/content/waymo2panorama",
-    "duration_s": 102.61729335784912,
-    "elapsed_s": 102.61729335784912,
+    "duration_s": 31.5311758518219,
+    "elapsed_s": 31.5311758518219,
     "exit_code": 0,
-    "finished_at": 1780788625.4936805,
-    "job_id": "7f6b3f2f9c5646518f6ccae20dd46d65",
-    "started_at": 1780788522.8763871,
+    "finished_at": 1780808778.8227973,
+    "job_id": "31d7af8b958240fb9a423205c667fc6b",
+    "started_at": 1780808747.2916214,
     "state": "done",
-    "timeout_s": 420
+    "timeout_s": 480
   },
   "remote_status": "db79_step12_completed",
   "summary": {
@@ -67,7 +67,25 @@
           "curbwall_FAIR_silhouette_p90_m": 0.06096572428941727,
           "curbwall_OLD_single_near_p90_m": 2.5389010906219482,
           "curbwall_n_test": 1663,
-          "n_lidar_accumulated": 1050570
+          "n_lidar_accumulated": 1050570,
+          "step3_depth_aware_LOO": {
+            "n_loo_pairs": 122736,
+            "n_co_observed_pts": 61368,
+            "ROT_reproj_px_p50": 172.40350341796875,
+            "ROT_reproj_px_p90": 318.28533935546875,
+            "DEPTH_reproj_px_p50": 1.6962697505950928,
+            "DEPTH_reproj_px_p90": 84.05560302734375,
+            "DEPTH_surface_reproj_px_p90": 4.935393810272217,
+            "DEPTH_silhouette_reproj_px_p90": 123.03169250488281,
+            "false_green_ROT_gt3px": 1.0,
+            "false_green_DEPTH_gt3px": 0.42909170903402427,
+            "false_green_DEPTH_surface_gt3px": 0.1651226158038147,
+            "false_green_DEPTH_silhouette_gt3px": 0.6437815796471944,
+            "curbwall_DEPTH_reproj_px_p90": 87.97663879394531,
+            "curbwall_ROT_reproj_px_p90": 988.625732421875,
+            "curbwall_false_green_DEPTH_gt3px": 0.49404761904761907,
+            "curbwall_n_pairs": 336
+          }
         }
       },
       "0bae3b5e_a030_clean_far": {
@@ -89,54 +107,81 @@
           "curbwall_FAIR_silhouette_p90_m": 0.7611873149871826,
           "curbwall_OLD_single_near_p90_m": 13.111809730529785,
           "curbwall_n_test": 23444,
-          "n_lidar_accumulated": 1864654
+          "n_lidar_accumulated": 1864654,
+          "step3_depth_aware_LOO": {
+            "n_loo_pairs": 128846,
+            "n_co_observed_pts": 64423,
+            "ROT_reproj_px_p50": 139.43710327148438,
+            "ROT_reproj_px_p90": 301.47265625,
+            "DEPTH_reproj_px_p50": 5.894962310791016,
+            "DEPTH_reproj_px_p90": 146.61256408691406,
+            "DEPTH_surface_reproj_px_p90": 14.876420974731445,
+            "DEPTH_silhouette_reproj_px_p90": 151.76226806640625,
+            "false_green_ROT_gt3px": 1.0,
+            "false_green_DEPTH_gt3px": 0.564813808732906,
+            "false_green_DEPTH_surface_gt3px": 0.31180609851446445,
+            "false_green_DEPTH_silhouette_gt3px": 0.6721119412882974,
+            "curbwall_DEPTH_reproj_px_p90": 55.1758918762207,
+            "curbwall_ROT_reproj_px_p90": 482.0218505859375,
+            "curbwall_false_green_DEPTH_gt3px": 0.7021687462863934,
+            "curbwall_n_pairs": 6732
+          }
         }
       }
     },
     "verdict": {
-      "surface_p90_all_m": [
+      "step12_surface_densify_p90_m": [
         0.0381656289100647,
         0.07450559735298157
       ],
-      "silhouette_p90_all_m": [
-        0.8447132110595703,
-        0.5177899599075317
-      ],
-      "curbwall_surface_p90_all_m": [
+      "step12_curbwall_surface_p90_m": [
         0.06388196349143982,
         0.12057685852050781
       ],
+      "step3_curbwall_depth_reproj_px_p90": [
+        87.97663879394531,
+        55.1758918762207
+      ],
+      "step3_depth_surface_reproj_px_p90": [
+        4.935393810272217,
+        14.876420974731445
+      ],
+      "step3_rot_reproj_px_p90_no_depth": [
+        318.28533935546875,
+        301.47265625
+      ],
       "reopen_thr_m": 1.0,
       "kill_thr_m": 2.0,
-      "call": "SURFACES_REOPEN_candidate (surface p90 < 1.0m on all cases) — needs depth-aware LOO <3px (step3) + EXP-B cross-check before declaring"
+      "reproj_thr_px": 3.0,
+      "call": "DENSIFIER_OK_but_RENDERBACK_residual: surface densify cm-clean but depth-aware LOO reproj still >=3px (curbwall=[87.97663879394531, 55.1758918762207] surf=[4.935393810272217, 14.876420974731445] px) => gain limited to where LiDAR returns; do NOT declare full reopen (leader kill #2)."
     },
-    "runtime_s": 102.03
+    "runtime_s": 30.32
   },
   "fetched_outputs": {
     "summary": {
       "path": "deliverables/db79_fair_metric_wall/DB79_summary.json",
       "exists": true,
-      "bytes": 2783
+      "bytes": 4964
     },
     "result": {
       "path": "deliverables/db79_fair_metric_wall/DB79_remote_result.json",
       "exists": true,
-      "bytes": 3291
+      "bytes": 5562
     },
     "board": {
       "path": "deliverables/db79_fair_metric_wall/DB79_review_board.jpg",
       "exists": true,
-      "bytes": 250118
+      "bytes": 299190
     },
     "bmw_board": {
       "path": "deliverables/db79_fair_metric_wall/fetch/02a00399_a000_bmw_db79_board.jpg",
       "exists": true,
-      "bytes": 109621
+      "bytes": 133361
     },
     "clean_board": {
       "path": "deliverables/db79_fair_metric_wall/fetch/0bae3b5e_a030_clean_far_db79_board.jpg",
       "exists": true,
-      "bytes": 122544
+      "bytes": 148070
     },
     "bmw_surf": {
       "path": "deliverables/db79_fair_metric_wall/fetch/02a00399_a000_bmw_surface_resid_heat.png",
@@ -157,6 +202,16 @@
       "path": "deliverables/db79_fair_metric_wall/fetch/0bae3b5e_a030_clean_far_silhouette_resid_heat.png",
       "exists": true,
       "bytes": 277290
+    },
+    "bmw_step3": {
+      "path": "deliverables/db79_fair_metric_wall/fetch/02a00399_a000_bmw_step3_depth_reproj_heat.png",
+      "exists": true,
+      "bytes": 61038
+    },
+    "clean_step3": {
+      "path": "deliverables/db79_fair_metric_wall/fetch/0bae3b5e_a030_clean_far_step3_depth_reproj_heat.png",
+      "exists": true,
+      "bytes": 74749
     }
   },
   "pre_registered": {
