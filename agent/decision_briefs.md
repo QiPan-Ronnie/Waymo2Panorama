@@ -64,6 +64,35 @@ Route: A (geometry) — fork-agnostic; direct extension of DB-79 (same harness, 
 
 ---
 
+# DB-81: B1 photometric layer — LiDAR-correspondence cross-camera colour harmonisation + per-channel radial CA alignment on the centroid base (CPU, NO A100, NO generation)
+Status: **EXPLORED / P1-POS, P2-NEG-closed (2026-06-09)** — one /exec, 5 scenes, `scripts/phase3/db81_photometric.py`, ~3 min; full record in progress.md.
+**Result:** **P1 (LiDAR-correspondence per-camera gains) = WIN.** Pair log-colour-difference cut: highway **88.3 %**, crowd **82.5 %**, downtown **69.1 %**, clean **58.0 %**, BMW 27.3 %. Vision: the dusk highway scene goes from an obvious 7-patch collage (dark-blue front tile, pink/grey facade split) to one tonally-unified panorama; clean/crowd/downtown similar; BMW mild-but-positive (its before-difference 0.089 was already the smallest — ceiling effect). NO global tone drift (white car stays white, yellow lines yellow), no new artifacts. **Pre-registered note:** BMW's 27.3 % is below the 30 % per-clause line; kept P1 applied there anyway because the clause's intent is "method ineffective" and vision shows positive-and-harmless — decision + reasoning logged (eyes-over-metrics, per protocol). **P2 (radial CA) = honest NEG, closed per its own kill clause:** grid search returns k≈0 for every camera/channel — AV2 ring images carry no measurable lateral CA (they ship undistorted); the near-ground purple/green fringe must come from another source (demosaic/JPEG-chroma per the old p7 suspicion, or depth-edge mixing) — separate micro-diagnostic queued, NOT a CA fix. **Known limit:** multiplicative gains cannot recover clipped/overexposed sky tiles (front_center sun-facing tile stays bright) — a tone-curve/saturation-aware extension is a possible P3, not opened. Products `deliverables/db81_photometric/` (gains JSON, boards, base-vs-b1 renders ×5). Secret 0.
+Route: A (photometric, evidence-based, zero hallucination) — applies to the new `db80 cen_depth` base.
+
+**Question:** Can (P1) a global per-camera per-channel gain solved from LiDAR cross-camera colour correspondences (ring-closed least squares in log domain) plus (P2) per-channel radial chromatic-aberration alignment (image-self-supervised) reduce the two now-dominant visible defects — inter-camera exposure/WB steps and near-ground purple/green fringing — to "distribution-close to a single-camera 360", without structural damage or global tone drift?
+
+**Hypothesis:** The exposure/WB step is low-dimensional (7 cams × 3 channels multiplicative gain; same camera model ⇒ tone curves near-identical, first-order multiplicative model suffices — the AVM literature's standard model, e.g. Liu & Zhang IEEE'14, Parameter Blending arXiv:2406.11066, but supervised here by sub-pixel LiDAR 3D-point correspondences instead of overlap-block statistics). The fringe is classic lateral CA: R/B radially displaced vs G by `r' = r(1+k·r_n²)`, 1–3 px at the image edge, estimable per camera by maximising R↔G / B↔G edge alignment in the outer annulus — no external supervision, no content change.
+
+**Why now:** DB-80's vision pass ranked these two as the most eye-catching residual in-band defects (more salient at full-ERP scale than the now-few-px geometric seams); both are photometric and hallucination-free; 新-E measured a related gain (-18 % lum gap) but was never integrated into any shipped base. The Cosmos conditioning distribution (perfect-360 slices) contains neither defect.
+
+**Expected evidence (cost-ascending; CPU only):**
+- **P1:** collect co-observed LiDAR colour pairs (project each accumulated static LiDAR point into every seeing camera, bilinear RGB; filter saturated <10/>245, silhouette points, sky-free by construction); solve `min Σ ||(log I_i + c_i) − (log I_j + c_j)||²` with `Σ c_i = 0` per channel (7×7 normal equations); apply `exp(c_i)` in the cen_depth render. Report pair colour-difference (per-channel median + ΔE-proxy) before/after, per camera-pair.
+- **P2:** per camera, grid-search radial CA coefficient k for R and B vs G on the outer annulus (NCC of gradient images after radial remap); apply per-channel remap before rendering. Report edge-alignment score before/after + visual fringe check on the near-ground.
+- **Board:** full-ERP cen_depth vs cen_depth+B1 + seam-step closeups + near-ground fringe closeups, 5 scenes.
+- **P3 (only if P1 leaves visible low-frequency residual):** conservative low-frequency-only block harmonisation — separate go/no-go, not run by default.
+
+**Kill criteria:** P1 pair colour-difference drops <30 % or vision shows global tone drift / colour cast on known-colour content (white truck, yellow lines) → revert, record. P2 edge-alignment does not improve or introduces new fringing → skip CA, keep P1 only. Any structure change outside colour (vision) → stop. No learning, no generation, no A100.
+
+**Max scope:** 5 staged AV2 logs, same anchors as DB-80; CPU on the L4 runtime; one bounded /exec per phase (P1+P2 may share one); results to non-repo + Read-verify; secret-scan 0.
+
+**Required vision check:** eyeball per scene: (a) does the vertical exposure boundary disappear/soften at full-ERP scale? (b) does the near-ground purple/green fringe visibly reduce at ROI zoom? (c) NO global tone shift (white stays white, yellow stays yellow), NO new artifacts. Eyes beat metrics.
+
+**Output location:** `deliverables/db81_photometric/` (gains JSON, CA coefficients, pair-difference stats, boards, manifest).
+
+Result summary: TBD — archive to progress.md when done.
+
+---
+
 ## ⭐⭐ PREVIOUS ACTIVE BRIEF (2026-06-06 v2) — DB-79 DONE; read `agent/2026-06-06-deep-retrospective.md` (its practical conclusion is now re-scoped by DB-80 above)
 
 > **Deep retrospective (19-agent workflow `wf_789ffbb7-1a7`) reset the priorities.** Root cause of the churn = the **source-faithful(A) vs look-good(B) fork was never resolved and we built under BOTH**. User decision (2026-06-06): **layer BOTH — A = canonical training-safe floor; B = a SEPARATE labeled presentation layer on top, never mixed into training truth.** Also found: the "3 geometry walls" are **~1.5 + 1 mislabeled** — DB-77B p90 15.4/12.8m is partly an NN-fill metric artifact scored across occlusion edges; DB-76a false-GREEN is rotation-only (no-depth baseline); only **EXP-B UniDepth** is a clean confirm (wall real at SILHOUETTES, over-credited on SURFACES). → settle the wall with a FAIR metric BEFORE any A100. User: **run DB-79 first, hold the A100.**
