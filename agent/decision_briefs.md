@@ -93,6 +93,31 @@ Result summary: TBD — archive to progress.md when done.
 
 ---
 
+# DB-82: Robustness & graceful-degradation battery for the cen_depth+B1 base — multi-anchor sweep + no-LiDAR ablation (CPU, NO A100, NO generation)
+Status: **EXPLORED / POS (2026-06-09)** — `scripts/phase3/db82_robustness.py`, one /exec, 5 logs × 3 anchors × 3 variants; full record in progress.md.
+**Result:** (a) **Multi-anchor robust** — all 15 log×anchor combos give identical structural stats (black_frac 0.737–0.740, boundary_density 0.0010–0.0011); vision on downtown + crowd boards: no occlusion leaks, no moving-object shred (a030 near-field white truck intact in all variants), no anchor-specific blowup. (b) **Graceful no-LiDAR degradation CONFIRMED** — the plane-only variant (`cen_plane_b1`) is visually near-indistinguishable from full LiDAR at panorama scale (mean |Δ| 4.3–9.5 grey levels where both valid) and clearly better than the legacy `ego_rot`; the north-star "works without LiDAR" claim now has an on-disk A/B. (c) **New known limit found (vision):** B1 gains make the clipped/overexposed front-center sky tile's cyan cast MORE visible on dusk scenes (saturated regions violate the multiplicative model) — fix belongs to a saturation-aware tone P3 or simply to sky-outpaint ownership of the sky band; recorded, not blocking. **Bonus micro-diagnostic (fringe attribution closed):** the near-ground purple fringe exists in the NATIVE `ring_side_right` camera image (shadow-region ISP chroma noise in the AV2 source data) — not lens CA (DB-81 k≈0), not JPEG (present in lossless PNG), not our pipeline. Any fix = shadow chroma desaturation (alters real pixels — only as a labeled optional post-step; low priority for the Cosmos contract). Products `deliverables/db82_robustness/`. Secret 0.
+Route: A (validation of the new base) — directly serves the north-star generality contract (multi-scene + graceful degradation without LiDAR).
+
+**Question:** Does the new best base (DB-80 centroid depth-aware render + DB-81 P1 gains) hold up (a) across multiple anchors per log (temporal robustness, dynamic-object exposure, occlusion-leak check for the v0 no-z-buffer renderer), and (b) without LiDAR entirely (Zd = ground-plane + far-field only), degrading gracefully to at-worst the legacy rotation-only quality?
+
+**Hypothesis:** (a) The pipeline is anchor-independent (no scene-specific tuning anywhere: centroid from calibration, gains from LiDAR pairs, depth from accumulation) → multi-anchor renders stay artifact-free. (b) Because the centroid centre relaxes depth tolerance ~20× (DB-80), a plane-only Zd should already fix most of the near-ground seam vs ego_rot; degradation = mild near-field misalignment on off-plane structure, never worse than ego_rot.
+
+**Why now:** GENERAL is the invariant goal (memory north-star: "multi-scene validation + graceful degradation without LiDAR"); the base is 1-anchor-per-log validated only; the no-LiDAR A/B was never isolated in the project (DB-78 caveat). Cheapest possible high-value next step; also surfaces any v0 occlusion leaks / moving-object artifacts before deeper investment.
+
+**Expected evidence (one /exec, CPU):** per log × 3 anchors (clamped to valid range): render `ego_rot` (legacy baseline) / `cen_plane_b1` (NO LiDAR: plane+far Zd; gains still applied — note gains need LiDAR pairs, so for the no-LiDAR variant reuse anchor-0 gains = calibration-time constant, defensible as a per-vehicle calibration product) / `cen_depth_b1` (full). Per-log board: 3 anchors × 3 variants + fixed ROIs. Auto-stats: per-render black fraction, source-boundary count, mean |Δ| between cen_depth and cen_plane (where both valid). Vision: sample ≥6 boards — look for occlusion leaks, moving-object tearing, plane-fill failures (curb/vehicle areas), any anchor-specific blowup.
+
+**Kill criteria:** any systematic NEW artifact class on multi-anchor (occlusion leak / moving-object shred / plane-fill structure damage) that is not present at the validated anchors → record + halt rollout of the base until fixed. No-LiDAR variant visually WORSE than ego_rot on any scene → graceful-degradation claim FAILS, record honestly (do not relax). Scope creep beyond render+stats → stop.
+
+**Max scope:** 5 AV2 logs × 3 anchors × 3 variants, CPU on L4, one bounded /exec; results non-repo + Read-verify; secret 0. No Waymo (data not staged — separate DATA step). No flow/outpaint/learning.
+
+**Required vision check:** per sampled board: (a) no new artifact at unseen anchors; (b) cen_plane_b1 vs ego_rot — is the no-LiDAR render clearly better (seam) and never structurally worse? (c) moving objects (downtown/crowd) — single-source intact or shredded? Eyes beat metrics.
+
+**Output location:** `deliverables/db82_robustness/` (boards per log, stats JSON, manifest, verdict).
+
+Result summary: TBD — archive to progress.md when done.
+
+---
+
 ## ⭐⭐ PREVIOUS ACTIVE BRIEF (2026-06-06 v2) — DB-79 DONE; read `agent/2026-06-06-deep-retrospective.md` (its practical conclusion is now re-scoped by DB-80 above)
 
 > **Deep retrospective (19-agent workflow `wf_789ffbb7-1a7`) reset the priorities.** Root cause of the churn = the **source-faithful(A) vs look-good(B) fork was never resolved and we built under BOTH**. User decision (2026-06-06): **layer BOTH — A = canonical training-safe floor; B = a SEPARATE labeled presentation layer on top, never mixed into training truth.** Also found: the "3 geometry walls" are **~1.5 + 1 mislabeled** — DB-77B p90 15.4/12.8m is partly an NN-fill metric artifact scored across occlusion edges; DB-76a false-GREEN is rotation-only (no-depth baseline); only **EXP-B UniDepth** is a clean confirm (wall real at SILHOUETTES, over-credited on SURFACES). → settle the wall with a FAIR metric BEFORE any A100. User: **run DB-79 first, hold the A100.**
