@@ -21,7 +21,49 @@ Result summary: TBD -> archive factual details to progress.md when done; keep on
 
 ---
 
-## ⭐⭐ ACTIVE BRIEF (2026-06-06 v2) — read `agent/2026-06-06-deep-retrospective.md` FIRST (supersedes the v1 active brief below)
+## ⭐⭐⭐ ACTIVE BRIEF (2026-06-09) — read `agent/2026-06-09-fable5-firstprinciples-analysis.md` FIRST (supersedes DB-79's practical conclusion)
+
+> **First-principles audit (Fable 5) found the project's single biggest untested assumption: the ERP virtual centre has been pinned to the AV2 ego origin since L1** (`sphere_projection.py:5-6`, `db79_fair_metric_wall.py:136-139`). Measured on the real BMW calibration (L4 probe, Read-verified): ring cams are **1.81–2.18 m from the ego origin** but only **0.27–0.30 m from their own centroid** — and inside each camera's own viewing sector the centroid offset is nearly collinear with the ray (effective perpendicular baseline 0.01–0.06 m). Depth-aware render-back error scales linearly with that perpendicular baseline (`err ≈ (W/2π)·b_perp·δZ/Z²`; the model reproduces DB-79's ROT 318/301 px, surface 5–15 px, curb/wall 55–88 px at b_perp≈1.75 m). **DB-79's "seam wall" verdict is therefore a property of (depth, c\*=ego-origin), not of depth alone.** DB-80 re-asks DB-79's question at the correct centre.
+
+# DB-80: Virtual-centre relocation — re-run the DB-79 render-back battery with c\* = ring-camera centroid + min-baseline source selection (measurement-first, CPU/L4, NO A100, NO generation)
+Status: **proposed**
+Route: A (geometry) — fork-agnostic; direct extension of DB-79 (same harness, same depth, different sphere centre).
+
+**Question:** Does moving the ERP virtual centre from the ego origin to the ring-camera centroid (ego-frame ≈ `[1.363, -0.004, 1.445]` m for the BMW log; computed per-log from calibration) reduce the depth-aware render-back residual at curb/wall/silhouette by the predicted ~5–20×, turning the "seam wall" into a thin-band few-px misalignment — or does the residual stay walled, finally confirming the seam as physical against its strongest cheap attack?
+
+**Hypothesis:** DB-79's residuals are dominated by b_perp amplification, not by depth error. Pre-registered predictions at c\*=centroid with the SAME layered LiDAR-only densified depth (camera-native px, ROI/protocol identical to DB-79 step3): curb/wall DEPTH reproj p90 **55–88 → ≤15 px**; silhouette p90 **120–150 → ≤30 px**; surface p90 **4.9–14.9 → ≤3 px**. Additionally the depth-tolerance bound relaxes ~20× in-sector (1.5 m depth error ≈ 2 ERP px at b_perp 0.06 m), so plane-fill depth suffices for most of the no-LiDAR near-ground that previously forced abstain.
+
+**Why now:** (1) It is the largest load-bearing assumption never tested in 79 briefs — every depth-route kill (DB-76a LOO, DB-77B IBR tears, DB-79 step3) inherited c\*=ego origin. (2) It is the cheapest possible attack: a sphere-centre parameter + LiDAR re-accumulation to a shifted origin; reuses the DB-79 script skeleton; CPU/L4 minutes. (3) The downstream contract (Cosmos-style conditioning; Xinhan trains on perfect-360s masked to our shape) wants the stitched band to look like a slice of a perfect 360 shot at camera height — c\*=centroid (z≈1.44 m) is also closer to that viewpoint distribution than the ground-level ego origin. (4) If it wins, DB-77B-class depth-aware IBR and even the parked 3DGS category get un-stale kill evidence (their collapse literature assumed ~1.5–3 m extrapolation; centroid needs ≤0.3 m).
+
+**Expected evidence (cost-ascending steps; stop at any kill):**
+- **Step A — pure reprojection re-run (CPU, ~minutes):** extend `db79_fair_metric_wall.py` step3 with `c_star` parameter; X_true/X_zd/X_far defined from rays out of c\*=centroid; LiDAR accumulation and densify re-targeted to centroid-centred ERP. Report the same table (ROT/DEPTH × surface/silhouette/curbwall p50/p90, false-GREEN>3px) side-by-side ego-origin vs centroid, BMW + clean. **This step alone falsifies or confirms the b_perp model.**
+- **Step B — depth-aware N1 full-ERP render (CPU/L4):** render BMW + clean ERP at c\*=centroid via `render_camera_to_erp(..., convergence_distance_m=Zd_centroid)` (N1 mode exists); per-pixel source = min perpendicular ray-baseline camera (not max-weight feather); no-LiDAR regions = ground-plane fill depth (cheap, tolerance now permits); out-of-evidence = same abstain/black as today. Boards: full ERP + the 4 marked ROIs vs `hard_select` baseline, same-ROI crops.
+- **Step C — generality (only if A+B pass):** ≥3 AV2 logs + ≥1 Waymo segment (Waymo: 5-cam centroid computed the same way; rolling-shutter risk bucketed separately per DB-76a rule).
+
+**Pre-registered thresholds (set BEFORE run; failure does NOT relax them):**
+- b_perp model CONFIRMED: step A curb/wall DEPTH p90 ≤15 px AND silhouette p90 ≤30 px (camera-native px) on BOTH cases.
+- Render WIN: step B vision verdict — curb staircase / wall-top crease / SUV-edge step visibly reduced vs hard_select at same-ROI zoom, NO new smear/ghost/doubling, road/lane/facade structure not softened. A lower number with a smeared curb = FAIL (eyes over metrics).
+- Practical abstain shrink: fraction of task-band pixels whose depth-tolerance (for ≤2 ERP px error) exceeds 1 m rises from ~0 % to ≥60 % (report the tolerance map).
+
+**Kill criteria:**
+- Step A: curb/wall DEPTH p90 stays **>30 px** at centroid on either case → the seam wall is REAL beyond c\* choice; write "wall confirmed against strongest cheap attack" to progress.md, keep abstain as the honest ceiling, close the c\* route, do NOT proceed to step B.
+- Step B: vision shows new artifacts (smear/double-image/structure softening) not present in hard_select, and not attributable to a fixable source-selection bug after ONE debug pass → stop, record, downgrade to "step-A-only geometry note".
+- Any RGB generation / inpaint / DiT / model-confidence-as-truth / A100 use / secret written to repo → out of scope, stop.
+- Scope creep beyond BMW+0bae before steps A+B pass → stop & report.
+
+**Max scope:** measurement + deterministic re-render only. Fixed cases BMW `02a00399:0` + clean `0bae3b5e:30` first; generality step C gated on A+B. Compute: CPU/L4 only (DB-79 ran 102 s + 30 s on CPU; this is the same workload re-centred) — **NO A100.** All remote results routed to a non-repo file + Read-verified (fabrication rule); secret-scan 0; runtime endpoint read from env/non-repo file only.
+
+**Required vision check:** per case, board with: full centroid-ERP vs hard_select ERP; the 4 marked ROIs same-zoom before/after; step-A residual heatmaps (surface/silhouette split, same colormap+scale as DB-79 for direct comparison); depth-tolerance map. Personally eyeball: does the curb staircase close? does the SUV edge align? any NEW doubling from min-baseline selection at sector boundaries? Eyes beat metrics on conflict.
+
+**Output location:** `deliverables/db80_virtual_centre/` (side-by-side residual JSONs, boards, tolerance maps, manifest, pre-registered-thresholds JSON, verdict).
+
+**Adversarial self-audit (pre-run, per hard rules):** (i) *"Too simple to be unfound"* — the offset was known (DB-79 audit wrote it down) but treated as rig physics, never as a parameter; rotation-only seams genuinely don't depend on c\*, which masked the depth-route dependence. (ii) *"Co-observed band still seams"* — boundary b_perp ≈0.1–0.3 m gives 2–6 px opposing errors at silhouettes; budgeted, lands in DB-78-flow/feather repair range. (iii) *"Dynamic objects"* — boxes removed from accumulation as in DB-79; parked-but-annotated vehicles lose LiDAR → their depth falls back to plane/coarse; tolerated by the relaxed budget, checked in vision. (iv) *"Downstream centre contract"* — point-cloud-video first-frame centre is renderer-chosen (Xinhan's side, adjustable); camera-height centre matches the real-360 GT distribution better; flag to Xinhan, non-blocking. (v) *"Waymo generality"* — centroid is computed from calibration per-log, no scene tuning; degradation without LiDAR = today's rotation-only L1.
+
+**Follow-ons (NOT active; open as own briefs, gated on DB-80):** (B1) global exposure/WB harmonisation + near-ground chroma-fringe (CA) correction — the two most eye-catching in-band artifacts per the 2026-06-09 vision pass, both photometric and hallucination-free (integrate 新-E properly); (B2) DB-78 flow/feather thin-band pass on the residual few-px seams at centroid; (B3) re-evaluate the parked depth-aware IBR / 3DGS category with un-stale extrapolation distances (≤0.3 m); (B4) optional "common-path" temporal frame selection (per-direction min-b_perp over a ±2 s window) for forward/backward sectors.
+
+---
+
+## ⭐⭐ PREVIOUS ACTIVE BRIEF (2026-06-06 v2) — DB-79 DONE; read `agent/2026-06-06-deep-retrospective.md` (its practical conclusion is now re-scoped by DB-80 above)
 
 > **Deep retrospective (19-agent workflow `wf_789ffbb7-1a7`) reset the priorities.** Root cause of the churn = the **source-faithful(A) vs look-good(B) fork was never resolved and we built under BOTH**. User decision (2026-06-06): **layer BOTH — A = canonical training-safe floor; B = a SEPARATE labeled presentation layer on top, never mixed into training truth.** Also found: the "3 geometry walls" are **~1.5 + 1 mislabeled** — DB-77B p90 15.4/12.8m is partly an NN-fill metric artifact scored across occlusion edges; DB-76a false-GREEN is rotation-only (no-depth baseline); only **EXP-B UniDepth** is a clean confirm (wall real at SILHOUETTES, over-credited on SURFACES). → settle the wall with a FAIR metric BEFORE any A100. User: **run DB-79 first, hold the A100.**
 

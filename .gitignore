@@ -88,3 +88,6 @@ jump.pdf
 
 # Temp scratch scripts
 _tmp_*.py
+
+# Fable5 session disposable vision crops
+agent/_fable5_vision_tmp/
