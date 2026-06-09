@@ -1,0 +1,41 @@
+{
+  "phase": "db80_stepB_render",
+  "started_utc": "2026-06-09T22:00:25Z",
+  "scope": {
+    "render_only": true,
+    "generation": false,
+    "averaging": false,
+    "a100": false
+  },
+  "status": "db80_stepB_completed",
+  "cases": [
+    {
+      "case": "02a00399_a000_bmw",
+      "info": {
+        "n_lidar": 1050570,
+        "n_moving_tracks_removed": 11,
+        "centroid": [
+          1.3629136697390138,
+          -0.00364297347376604,
+          1.4449828859057412
+        ],
+        "lidar_pixel_coverage": 0.10351228713989258
+      }
+    },
+    {
+      "case": "0bae3b5e_a030_clean_far",
+      "info": {
+        "n_lidar": 1864654,
+        "n_moving_tracks_removed": 130,
+        "centroid": [
+          1.3606376305884706,
+          -0.0013018959061789428,
+          1.3797965458433814
+        ],
+        "lidar_pixel_coverage": 0.16372299194335938
+      }
+    }
+  ],
+  "runtime_s": 15.66,
+  "ended_utc": "2026-06-09T22:00:40Z"
+}

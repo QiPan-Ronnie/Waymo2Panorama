@@ -1,0 +1,220 @@
+{
+  "phase": "db80_virtual_centre_stepA",
+  "started_utc": "2026-06-09T21:52:08Z",
+  "scope": {
+    "measurement_only": true,
+    "rgb_repair": false,
+    "generation": false,
+    "a100": false
+  },
+  "workdir_found": true,
+  "status": "db80_stepA_completed",
+  "summary": {
+    "status": "db80_stepA_complete",
+    "measurement_only": true,
+    "pre_registered": {
+      "lidar_window_frames": 10,
+      "depth_min_m": 1.5,
+      "depth_max_m": 80.0,
+      "train_test_split": "even_odd_index_fixed_across_centres",
+      "fair_radius_px": 4.0,
+      "silhouette_depth_span_m": 1.0,
+      "confirm_curbwall_depth_p90_le_px": 15.0,
+      "confirm_silhouette_depth_p90_le_px": 30.0,
+      "kill_curbwall_depth_p90_gt_px": 30.0,
+      "tolerance_erp_px": 2.0,
+      "lidar_only": true,
+      "dynamic_removed_by_boxes": true
+    },
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "case": "02a00399_a000_bmw",
+        "metrics": {
+          "ring_centroid_ego_m": [
+            1.3629136697390138,
+            -0.00364297347376604,
+            1.4449828859057412
+          ],
+          "cam_dist_to_ego_origin_m": [
+            2.1830652783510898,
+            2.1237715846252834,
+            1.9685945864076972,
+            1.8143737087692349,
+            1.8176674190832616,
+            1.971662134780185,
+            2.131338309522662
+          ],
+          "cam_dist_to_centroid_m": [
+            0.2664906505015541,
+            0.27877319999936334,
+            0.28395350126143015,
+            0.29729390493673824,
+            0.2968144875830085,
+            0.28008049712705646,
+            0.2729824853074999
+          ],
+          "n_lidar_accumulated": 1050570,
+          "n_test": 400000,
+          "n_curbwall_test": 1663,
+          "ego": {
+            "densify": {
+              "FAIR_surface_p90_m": 0.0381656289100647,
+              "FAIR_silhouette_p90_m": 0.8447132110595703,
+              "silhouette_fraction": 0.51967
+            },
+            "step3": {
+              "n_loo_pairs": 122816,
+              "n_co_observed_pts": 61408,
+              "ROT_reproj_px_p50": 172.43536376953125,
+              "ROT_reproj_px_p90": 318.0357971191406,
+              "DEPTH_reproj_px_p50": 1.6930649280548096,
+              "DEPTH_reproj_px_p90": 84.02592468261719,
+              "DEPTH_surface_reproj_px_p90": 4.9422125816345215,
+              "DEPTH_silhouette_reproj_px_p90": 122.95143127441406,
+              "curbwall_DEPTH_reproj_px_p90": 87.92764282226562,
+              "curbwall_ROT_reproj_px_p90": 987.58544921875,
+              "curbwall_n_pairs": 336,
+              "false_green_DEPTH_gt3px": 0.42892619854090674,
+              "b_perp_p50_m": 1.4755456447601318,
+              "b_perp_p90_m": 1.909232497215271,
+              "tolerance_m_p50": 0.7079026699066162,
+              "near15m_frac_tolerance_gt_0p5m": 0.6370552696352652,
+              "near15m_frac_tolerance_gt_1m": 0.15361378384426047
+            }
+          },
+          "centroid": {
+            "densify": {
+              "FAIR_surface_p90_m": 0.043910689651966095,
+              "FAIR_silhouette_p90_m": 0.26793497800827026,
+              "silhouette_fraction": 0.5250825
+            },
+            "step3": {
+              "n_loo_pairs": 122816,
+              "n_co_observed_pts": 61408,
+              "ROT_reproj_px_p50": 12.14458179473877,
+              "ROT_reproj_px_p90": 27.771881103515625,
+              "DEPTH_reproj_px_p50": 0.08164015412330627,
+              "DEPTH_reproj_px_p90": 4.730634689331055,
+              "DEPTH_surface_reproj_px_p90": 0.43467938899993896,
+              "DEPTH_silhouette_reproj_px_p90": 7.620924949645996,
+              "curbwall_DEPTH_reproj_px_p90": 64.1661376953125,
+              "curbwall_ROT_reproj_px_p90": 95.39744567871094,
+              "curbwall_n_pairs": 336,
+              "false_green_DEPTH_gt3px": 0.1149687337154768,
+              "b_perp_p50_m": 0.12210945785045624,
+              "b_perp_p90_m": 0.146215558052063,
+              "tolerance_m_p50": 9.368090629577637,
+              "near15m_frac_tolerance_gt_0p5m": 1.0,
+              "near15m_frac_tolerance_gt_1m": 0.8921823949997633
+            }
+          }
+        }
+      },
+      "0bae3b5e_a030_clean_far": {
+        "case": "0bae3b5e_a030_clean_far",
+        "metrics": {
+          "ring_centroid_ego_m": [
+            1.3606376305884706,
+            -0.0013018959061789428,
+            1.3797965458433814
+          ],
+          "cam_dist_to_ego_origin_m": [
+            2.136546387633399,
+            2.077432277723674,
+            1.9107469141173623,
+            1.7702378390706905,
+            1.7710749186196426,
+            1.9239122463714753,
+            2.0857414659299245
+          ],
+          "cam_dist_to_centroid_m": [
+            0.2707476682305823,
+            0.2756222895212912,
+            0.2819095321038223,
+            0.30086486476149854,
+            0.30153954037207764,
+            0.2853451923129498,
+            0.2754558956992853
+          ],
+          "n_lidar_accumulated": 1864654,
+          "n_test": 400000,
+          "n_curbwall_test": 23444,
+          "ego": {
+            "densify": {
+              "FAIR_surface_p90_m": 0.07450559735298157,
+              "FAIR_silhouette_p90_m": 0.5177899599075317,
+              "silhouette_fraction": 0.65127
+            },
+            "step3": {
+              "n_loo_pairs": 128836,
+              "n_co_observed_pts": 64418,
+              "ROT_reproj_px_p50": 139.49703979492188,
+              "ROT_reproj_px_p90": 301.72503662109375,
+              "DEPTH_reproj_px_p50": 5.914623737335205,
+              "DEPTH_reproj_px_p90": 146.70504760742188,
+              "DEPTH_surface_reproj_px_p90": 15.000322341918945,
+              "DEPTH_silhouette_reproj_px_p90": 151.7935333251953,
+              "curbwall_DEPTH_reproj_px_p90": 55.47682571411133,
+              "curbwall_ROT_reproj_px_p90": 482.27801513671875,
+              "curbwall_n_pairs": 6744,
+              "false_green_DEPTH_gt3px": 0.565501878356981,
+              "b_perp_p50_m": 1.7166035175323486,
+              "b_perp_p90_m": 1.9064793586730957,
+              "tolerance_m_p50": 0.48928532004356384,
+              "near15m_frac_tolerance_gt_0p5m": 0.47029339036289514,
+              "near15m_frac_tolerance_gt_1m": 0.0
+            }
+          },
+          "centroid": {
+            "densify": {
+              "FAIR_surface_p90_m": 0.06221586465835571,
+              "FAIR_silhouette_p90_m": 0.343231201171875,
+              "silhouette_fraction": 0.491015
+            },
+            "step3": {
+              "n_loo_pairs": 128836,
+              "n_co_observed_pts": 64418,
+              "ROT_reproj_px_p50": 10.736598014831543,
+              "ROT_reproj_px_p90": 24.621822357177734,
+              "DEPTH_reproj_px_p50": 0.14320456981658936,
+              "DEPTH_reproj_px_p90": 5.789280891418457,
+              "DEPTH_surface_reproj_px_p90": 0.6914034485816956,
+              "DEPTH_silhouette_reproj_px_p90": 9.74985408782959,
+              "curbwall_DEPTH_reproj_px_p90": 4.07012414932251,
+              "curbwall_ROT_reproj_px_p90": 37.69663619995117,
+              "curbwall_n_pairs": 6744,
+              "false_green_DEPTH_gt3px": 0.12334285448166661,
+              "b_perp_p50_m": 0.12776368856430054,
+              "b_perp_p90_m": 0.14951026439666748,
+              "tolerance_m_p50": 7.000148773193359,
+              "near15m_frac_tolerance_gt_0p5m": 1.0,
+              "near15m_frac_tolerance_gt_1m": 0.9880192322850162
+            }
+          }
+        }
+      }
+    },
+    "verdict": {
+      "centroid_curbwall_p90_px": [
+        64.1661376953125,
+        4.07012414932251
+      ],
+      "centroid_silhouette_p90_px": [
+        7.620924949645996,
+        9.74985408782959
+      ],
+      "ego_over_centroid_p90_ratio": [
+        17.762082722667188,
+        25.340806631940264
+      ],
+      "confirm_thr": {
+        "curbwall_le": 15.0,
+        "silhouette_le": 30.0
+      },
+      "kill_thr_curbwall_gt": 30.0,
+      "call": "WALL_CONFIRMED_beyond_centre_choice: curb/wall depth-aware reproj stays > 30px even at the ring centroid -> the seam residual is NOT a c* artifact; abstain remains the honest ceiling; close the c* route."
+    },
+    "runtime_s": 107.44
+  },
+  "ended_utc": "2026-06-09T21:53:56Z"
+}

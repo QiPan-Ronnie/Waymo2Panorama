@@ -1,0 +1,54 @@
+{
+  "phase": "db80_stepB_render",
+  "started_utc": "2026-06-09T22:11:00Z",
+  "scope": {
+    "render_only": true,
+    "generation": false,
+    "averaging": false,
+    "a100": false
+  },
+  "status": "db80_stepB_completed",
+  "cases": [
+    {
+      "case": "2c652f9e_a030_highway",
+      "info": {
+        "n_lidar": 1564481,
+        "n_moving_tracks_removed": 19,
+        "centroid": [
+          1.3620028583995354,
+          0.0012084275342008383,
+          1.384428317329098
+        ],
+        "lidar_pixel_coverage": 0.04013395309448242
+      }
+    },
+    {
+      "case": "9f871fb4_a030_downtown",
+      "info": {
+        "n_lidar": 2145310,
+        "n_moving_tracks_removed": 23,
+        "centroid": [
+          1.36272735411552,
+          -0.0016407906682214455,
+          1.3898844534186334
+        ],
+        "lidar_pixel_coverage": 0.05598640441894531
+      }
+    },
+    {
+      "case": "fbee355f_a030_crowd",
+      "info": {
+        "n_lidar": 1689447,
+        "n_moving_tracks_removed": 64,
+        "centroid": [
+          1.3614812581150537,
+          -0.0005200998825081302,
+          1.4078392701811286
+        ],
+        "lidar_pixel_coverage": 0.13929271697998047
+      }
+    }
+  ],
+  "runtime_s": 20.21,
+  "ended_utc": "2026-06-09T22:11:20Z"
+}
