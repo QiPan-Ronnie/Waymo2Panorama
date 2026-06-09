@@ -1,10 +1,10 @@
 # Waymo2Panorama
 
-Multi-camera **360° panorama stitching** for autonomous-driving datasets (primarily Argoverse 2). Sub-project of the Koi Chen paper-reproduction chain; downstream consumer is Pantheon360 (CVPR 2026 3D-aware 360° video diffusion).
+Multi-camera **360° panorama stitching** for autonomous-driving datasets (primarily Argoverse 2). Sub-project of the Koi Chen paper-reproduction chain. **Downstream consumer (clarified 2026-06-09, via Xinhan):** the panorama is the **first-frame conditioning input to a Cosmos-style 360° video diffusion model** (`cosmos-transfer2.5-pcd`) that also ingests a point-cloud path video + text prompt. (Earlier docs say Pantheon360; the operative consumer is now the Cosmos pipeline.)
 
 **Target venue**: 3DV 2026 (main or D&B track).
 **Maintainer**: Qi Pan (panq@usc.edu), advisor Koi Chen.
-**Status (2026-05-27)**: 8 stitching routes implemented + benchmarked, Koi snapshot shipped, seam-root-cause follow-up ongoing. Current safest visual baseline is AV2 raw L1 `hard_select`; DiT360 outpaint / seam completion is a constrained qualitative baseline, not production training data yet.
+**Status (2026-06-09)**: direction reset after a 19-agent retrospective; **read `agent/2026-06-09-fable5-firstprinciples-brief.md` and `agent/2026-06-06-deep-retrospective.md` first.** Root cause of churn = an unresolved source-faithful(A) vs look-good(B) fork → decision: **layer both**. DB-79 (fair-metric) settled: near-field surfaces are cm-recoverable, but the curb/wall **seam** stays a real wall (off-trajectory virtual-centre amplifies sub-meter silhouette depth error) → abstain or labelled-generate. Safest visual base remains AV2 raw L1 `hard_select` + DB-78 flow view-interp (safe but modest) + sky-only outpaint. *(The 2026-05-27 sections below are historical.)*
 
 ---
 
