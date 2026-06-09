@@ -1,6 +1,6 @@
 # Waymo2Panorama
 
-Multi-camera **360° panorama stitching** for autonomous-driving datasets (primarily Argoverse 2). Sub-project of the Koi Chen paper-reproduction chain. **Downstream consumer (clarified 2026-06-09, via Xinhan):** the panorama is the **first-frame conditioning input to a Cosmos-style 360° video diffusion model** (`cosmos-transfer2.5-pcd`) that also ingests a point-cloud path video + text prompt. (Earlier docs say Pantheon360; the operative consumer is now the Cosmos pipeline.)
+Multi-camera **360° panorama stitching** for autonomous-driving datasets (primarily Argoverse 2). Sub-project of the Koi Chen paper-reproduction chain. **Downstream consumer (provisional, 2026-06-09):** fundamentally **Bosch's world-model needs**; *currently* this looks like a **Cosmos-style 360° video diffusion pipeline** (via Xinhan, `cosmos-transfer2.5-pcd`; ingests first-frame + point-cloud path video + text). Treat the specific consumer as not-yet-fixed (earlier docs say Pantheon360). The **invariant core is the perspective→panorama algorithm itself.**
 
 **Target venue**: 3DV 2026 (main or D&B track).
 **Maintainer**: Qi Pan (panq@usc.edu), advisor Koi Chen.
