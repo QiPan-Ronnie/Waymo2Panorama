@@ -213,6 +213,17 @@ def depth_field(lidar, C):
     plane_t = np.where(dz < -0.05, (-C[2] - 0.33) / np.minimum(dz, -1e-3), np.inf).astype(np.float32)
     use_plane = (dist_px > 12) & np.isfinite(plane_t) & (plane_t > DMIN) & (plane_t < DMAX)
     Zf = np.where(use_plane, plane_t, Zf)
+    # DEPTH-EVIDENCE GATING (rule 8): per-pixel reprojection is only legal where the
+    # depth evidence is trustworthy. On specular/transmissive surfaces (glass facades:
+    # LiDAR punches through or mirror-bounces -> WHOLE-PATCH garbage, not salt noise)
+    # and at discontinuity edges, per-pixel depth shatters the render. There the
+    # region degrades to a LARGE-SCALE robust depth (the L1-style locally-flat render:
+    # coherent even if a few px displaced — coherence over absolute position).
+    # Trust = close LiDAR support AND agreement with the large-scale median.
+    small = _cvd.resize(Zf, (W // 8, H // 8), interpolation=_cvd.INTER_NEAREST)
+    Zsmooth = _cvd.resize(_cvd.medianBlur(small, 5), (W, H), interpolation=_cvd.INTER_LINEAR)
+    conf = (dist_px <= 4) & (np.abs(Zf - Zsmooth) < 0.05 * Zsmooth)
+    Zf = np.where(conf, Zf, Zsmooth)
     return np.where(Zf <= 0, 200.0, Zf), dist_px.astype(np.float32)
 
 
@@ -793,9 +804,34 @@ def run_case(case_spec, run_name):
         have = ~np.isnan(colbuf[:, :, 0])
         anyv = have.any(0)
         if anyv.any():
+            pre_fill = out[zone_flat].copy()
             med = np.nanmedian(colbuf[:, anyv], axis=0)
             out[zone_flat[anyv]] = np.clip(med, 0, 255).astype(np.uint8)
             n_filled += int(anyv.sum())
+            # NEIGHBOURHOOD-CONSISTENCY ABSTAIN (rule 8 for time): specular content is
+            # view-dependent — a fill sourced from one camera's future frames can be
+            # "true background" yet clash with the surrounding render from another
+            # viewpoint (the green reflection blob beside the Porsche nose). A filled
+            # blob whose colour departs from its surrounding ring by far more than the
+            # ring's own spread is unverifiable -> abstain back to the EMC pixel.
+            from scipy.ndimage import label as _lbl, binary_dilation as _bdl
+            ffm = np.zeros(len(Xf), bool); ffm[zone_flat[anyv]] = True
+            ffm2 = ffm.reshape(H, W)
+            labarr, nlab = _lbl(ffm2)
+            out2v = out.reshape(H, W, 3)
+            n_abstained = 0
+            for li in range(1, nlab + 1):
+                blob = labarr == li
+                ring = _bdl(blob, iterations=4) & ~ffm2 & (body_cam.reshape(H, W) < 0)
+                if int(ring.sum()) < 30: continue
+                bmed = np.median(out2v[blob].astype(np.float32), 0)
+                rmed = np.median(out2v[ring].astype(np.float32), 0)
+                rmad = np.median(np.abs(out2v[ring].astype(np.float32) - rmed[None, :]), 0).mean() + 4.0
+                if float(np.abs(bmed - rmed).mean()) > 3.0 * rmad:
+                    sel_b = blob.reshape(-1)[zone_flat]
+                    out[zone_flat[sel_b]] = pre_fill[sel_b]
+                    n_abstained += int(sel_b.sum())
+            n_filled -= n_abstained
     # ---- STAGE 3.5: VIEW-MORPH the straddle seam (Surround360/Megastereo-style) ----
     # A hard butt-joint between two cameras' halves of one object leaves a 1-2 px
     # registration step + a photometric step that the eye integrates as DOUBLING
