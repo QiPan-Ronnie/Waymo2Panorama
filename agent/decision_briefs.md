@@ -172,6 +172,32 @@ Result summary: TBD.
 
 ---
 
+# DB-88: Segmentation-bounded moving-object compositing on EMC (GPU-light: YOLO-seg on L4; segmentation decides ownership only, NO generation) ⭐ WIN
+Status: **EXPLORED / POS (2026-06-10)** — v5 is the FIRST variant in seven attempts (DB-83/85/87/88 v1–v4) that renders the driving Porsche as ONE intact car AND strictly improves on the EMC base (the EMC head-ghost block is gone; tail clean; full-pano regression-free). 5 /execs (cap exceeded by 2 with the user online and explicitly approving continuation).
+**Winning recipe:** YOLOv8x-seg per camera → instances matched to moving-track box projections (IoU≥0.3, exposure-time poses) → (RULE 1) ERP rays projecting inside the chosen camera's instance mask at the object's distance ← that camera, uniform depth; (RULE 2) background rays whose camera projection lands in ANY camera's MOVING-object mask → next non-poisoned camera; residual all-poisoned penumbra → EMC fallback (no temporal fill); **c_own = the EMC-Voronoi-dominant camera at the object's direction** (v5's key: body capture time matches the surrounding remnants' time → natural join; the "most-frontal camera" choice displaced the body 16 px against its own penumbra).
+**The 5-variant ledger (each step eliminated one wrong choice):** v1 poison=full YOLO union → 24 % of the image temporally filled (static cars poisoned everything; pink lower hemisphere). v2 poison=moving-matched-only → car intact, 1 k px fill = colour shards. v3 LiDAR-support gate on fill → shards persist (depth wasn't the shard cause). v4 fill disabled → shards gone but displaced tail-wheel remnant (body at most-frontal cam's time ≠ remnant time). v5 Voronoi-dominant c_own → WIN. Choice matrix (c_own × penumbra policy) exhausted; v5 unique optimum.
+**Honest caveats:** 5/10 moving objects unmatched (left as EMC base — graceful; distant/small ones); single scene (BMW) so far — crowd/downtown generality pending; segmentation adds a model dependency (ownership only, zero generated content; YOLO ~140 MB on L4, ~2 s/cam).
+Products `deliverables/db88_seg_composite/` (emc vs segcomposite PNGs + board). Secret 0.
+Route: A (source-faithful compositing; the image-level silhouette is the input all six prior failures triangulated).
+
+**Question:** With the precise per-camera silhouette of each moving object (instance segmentation on the native camera images, matched to the annotation box), does the two-rule composite — (1) silhouette rays ← the object's own camera at one exposure time; (2) background rays whose responsible camera projects INTO any object mask ← next visible camera, else temporal fill — finally render the driving Porsche single, intact, and without eating it?
+
+**Hypothesis:** All six failures (DB-83 v3/85/87 v1–v3) needed exactly one missing input: where the object's pixels actually ARE in each camera (box geometry is wrong by 10–30 px somewhere; too big eats, too small ghosts). The mask answers both sub-problems at once: object extent (rule 1) and per-camera occlusion (rule 2). Segmentation assigns OWNERSHIP only — every output pixel is still a real sensor pixel; no content is invented.
+
+**Plan (one /exec):** YOLOv8x-seg (ultralytics, ~140 MB, fits L4; EXP-A precedent) on the 2–3 cameras that see each moving object at the BMW anchor; match instances to box projections by IoU; build per-camera moving-object masks; render EMC + rule-1 (object rays: project at box distance into c_own, inside mask_own → force c_own; uniform per-object depth + single camera = fully consistent) + rule-2 (rect-minus-body background rays: a camera whose projection lands in its mask is invalid; pick next min-b_perp visible; none → DB-84 temporal fill with per-frame box tests). A/B board vs EMC base, 6× crops on the Porsche.
+
+**Kill criteria:** segmentation misses the object (no instance with IoU>0.3 to the box projection) → leave that object as EMC base (graceful), record rate; composite eats the car / leaves ghost / adds new artifacts vs EMC base (vision) → kill, keep EMC-only; >3 /execs → stop. NO text prompts, NO inpainting, NO generative fill.
+
+**Max scope:** BMW anchor first; crowd second only if BMW passes vision. L4; results non-repo + Read-verify; secret 0.
+
+**Required vision check (eyes over metrics):** the Porsche: ONE car, intact roof/nose/tail, no third wheel, no eaten regions; penumbra shows real wall/storefront; static scene untouched. Compare at 6×.
+
+**Output location:** `deliverables/db88_seg_composite/`.
+
+Result summary: TBD.
+
+---
+
 # DB-87: Moving-object handling on EMC — three variants, all killed; the failure triangle now POINTS at the missing piece (image-level silhouette)
 Status: **EXPLORED / KILLED after v1–v3 (2026-06-09 night, 3 /execs = brief cap)** — `deliverables/db87_emc_objlock/`. **cen_depth_b1_emc (no object handling) remains the best render.**
 **The complete failure map (each mechanism verified by eye):**

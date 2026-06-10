@@ -1,0 +1,19 @@
+{
+  "phase": "db88_seg_composite",
+  "started_utc": "2026-06-10T07:56:32Z",
+  "scope": {
+    "segmentation_ownership_only": true,
+    "generation": false
+  },
+  "status": "db88_completed",
+  "cases": [
+    {
+      "case": "02a00399_a000_bmw",
+      "n_objects_composited": 5,
+      "n_unmatched": 5,
+      "n_temporal_filled_px": 0
+    }
+  ],
+  "runtime_s": 15.2,
+  "ended_utc": "2026-06-10T07:56:47Z"
+}
