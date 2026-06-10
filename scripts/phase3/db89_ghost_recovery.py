@@ -39,7 +39,8 @@ OUT_DIR = ROOT / "deliverables" / "db89_ghost_recovery"
 REMOTE_OUT = "/content/drive/MyDrive/koi_waymo2pano_colab/results/db89_ghost_recovery"
 RESULT = REMOTE_OUT + "/DB89_remote_result.json"
 
-CASE_NAMES = ["02a00399_a000_bmw", "9f871fb4_a030_downtown", "fbee355f_a030_crowd"]
+CASE_NAMES = ["02a00399_a000_bmw", "9f871fb4_a030_downtown", "fbee355f_a030_crowd",
+              "0bae3b5e_a030_clean", "2c652f9e_a030_highway"]
 
 
 def remote_py() -> str:
@@ -52,7 +53,9 @@ DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argov
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
          ("9f871fb4-3b8e-34b3-9161-ed961e71a6da:30:downtown", "9f871fb4_a030_downtown"),
-         ("fbee355f-8878-31fa-8ac8-b9a45a3f130a:30:crowd", "fbee355f_a030_crowd")]
+         ("fbee355f-8878-31fa-8ac8-b9a45a3f130a:30:crowd", "fbee355f_a030_crowd"),
+         ("0bae3b5e-417d-3b03-abaa-806b433233b8:30:clean", "0bae3b5e_a030_clean"),
+         ("2c652f9e-8db8-3572-aa49-fae1344a875b:30:highway", "2c652f9e_a030_highway")]
 WINDOW = 10; DMIN, DMAX = 1.5, 80.0; STATIC_DISP_M = 0.5; SAT_LO, SAT_HI = 10, 245
 OBJ_MAX_DIST = 40.0; IOU_MIN = 0.30
 SEG_CLASSES = {1, 2, 3, 5, 7, 0}   # bicycle, car, motorcycle, bus, truck, person (COCO)
