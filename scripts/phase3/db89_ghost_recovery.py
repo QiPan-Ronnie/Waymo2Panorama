@@ -828,7 +828,7 @@ def run_case(case_spec, run_name):
             # viewpoint (the green reflection blob beside the Porsche nose). A filled
             # blob whose colour departs from its surrounding ring by far more than the
             # ring's own spread is unverifiable -> abstain back to the EMC pixel.
-            from scipy.ndimage import label as _lbl, binary_dilation as _bdl
+            from scipy.ndimage import label as _lbl, binary_dilation as _bdl, distance_transform_edt as _edt2
             ffm = np.zeros(len(Xf), bool); ffm[zone_flat[anyv]] = True
             ffm2 = ffm.reshape(H, W)
             labarr, nlab = _lbl(ffm2)
@@ -838,13 +838,42 @@ def run_case(case_spec, run_name):
                 blob = labarr == li
                 ring = _bdl(blob, iterations=4) & ~ffm2 & (body_cam.reshape(H, W) < 0)
                 if int(ring.sum()) < 30: continue
-                bmed = np.median(out2v[blob].astype(np.float32), 0)
-                rmed = np.median(out2v[ring].astype(np.float32), 0)
-                rmad = np.median(np.abs(out2v[ring].astype(np.float32) - rmed[None, :]), 0).mean() + 4.0
-                if float(np.abs(bmed - rmed).mean()) > 3.0 * rmad:
+                bpx = out2v[blob].astype(np.float32)
+                rpx = out2v[ring].astype(np.float32)
+                bmed = np.median(bpx, 0); rmed = np.median(rpx, 0)
+                rmad = np.median(np.abs(rpx - rmed[None, :]), 0).mean() + 4.0
+                if float(np.abs(bmed - rmed).mean()) > 5.0 * rmad:
+                    # content of a different CLASS entirely -> abstain to the EMC pixel
                     sel_b = blob.reshape(-1)[zone_flat]
                     out[zone_flat[sel_b]] = pre_fill[sel_b]
                     n_abstained += int(sel_b.sum())
+                    continue
+                # PHOTOMETRIC ALIGNMENT (seamless-cloning lite, Perez'03): the fill is
+                # content from another time/viewpoint — geometrically right but lit
+                # differently (and the object's cast shadow, absent from all evidence,
+                # falls on this band at anchor time). Match the blob's per-channel
+                # colour statistics to its surrounding ring so structure is kept and
+                # the ambient light (incl. shadow) transfers. Zero scene parameters.
+                # PER-PIXEL boundary-driven offset (harmonic-lite Poisson approx):
+                # each fill pixel takes the photometric offset of its NEAREST ring
+                # pixels, smoothed. Global blob shifts cannot serve heterogeneous
+                # rings (shadow on one side, sunlit kerb on the other): locally, the
+                # under-car pixels inherit the shadow falloff, the outer pixels stay
+                # sunlit, and wherever the fill already matches its surroundings the
+                # offset is ~0 so no foreign tint is introduced.
+                ys_b, xs_b = np.nonzero(blob)
+                y0b, y1b = max(0, int(ys_b.min()) - 12), min(H, int(ys_b.max()) + 13)
+                x0b, x1b = max(0, int(xs_b.min()) - 12), min(W, int(xs_b.max()) + 13)
+                bl = blob[y0b:y1b, x0b:x1b]; rg = ring[y0b:y1b, x0b:x1b]
+                patch = out2v[y0b:y1b, x0b:x1b].astype(np.float32)
+                if rg.any() and bl.any():
+                    _di, idx_in = _edt2(~bl, return_distances=True, return_indices=True)
+                    offs = np.zeros(bl.shape + (3,), np.float32)
+                    offs[rg] = patch[rg] - patch[idx_in[0][rg], idx_in[1][rg]]
+                    _dr, idx_rg = _edt2(~rg, return_distances=True, return_indices=True)
+                    field = _cv.GaussianBlur(offs[idx_rg[0], idx_rg[1]], (0, 0), 3.0)
+                    patch[bl] = np.clip(patch[bl] + field[bl], 0, 255)
+                    out2v[y0b:y1b, x0b:x1b] = patch.astype(np.uint8)
             n_filled -= n_abstained
     # ---- STAGE 3.5: VIEW-MORPH the straddle seam (Surround360/Megastereo-style) ----
     # A hard butt-joint between two cameras' halves of one object leaves a 1-2 px
