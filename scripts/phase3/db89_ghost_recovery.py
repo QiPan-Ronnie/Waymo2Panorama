@@ -202,6 +202,13 @@ def depth_field(lidar, C):
     valid = Z > 0
     dist_px, inds = distance_transform_edt(~valid, return_distances=True, return_indices=True)
     Zf = Z[inds[0], inds[1]].astype(np.float32)
+    # nearest-neighbour is a 1-SAMPLE depth estimator: on thin/sparse structures
+    # (poles, glass mullions) it flips per pixel between foreground and background
+    # returns, and every flip times the camera baseline becomes a sampling jump =
+    # GRAIN (user-confirmed vs the L1 baseline, present already in the EMC base).
+    # A neighbourhood MEDIAN keeps true depth edges but kills the bimodal jitter.
+    import cv2 as _cvd
+    Zf = _cvd.medianBlur(Zf, 5)
     dz = DIRS[:, :, 2]
     plane_t = np.where(dz < -0.05, (-C[2] - 0.33) / np.minimum(dz, -1e-3), np.inf).astype(np.float32)
     use_plane = (dist_px > 12) & np.isfinite(plane_t) & (plane_t > DMIN) & (plane_t < DMAX)
@@ -707,8 +714,13 @@ def run_case(case_spec, run_name):
         Xz = C[None, :] + Zv[:, None] * zdirs
         X_city = (Ra @ Xz.T).T + ta
         ai = int(anchor_idx)
-        chosen = np.full(zone_flat.size, -1, np.int32)
-        chosen_bp = np.full(zone_flat.size, np.inf)
+        # TEMPORAL CONSENSUS: keep the 3 best independent (frame, camera) sources per
+        # pixel and fill with their per-channel MEDIAN. The sightline gate tests
+        # LAGGED boxes (the dataset's ~0.2 s annotation lag), so a single source can
+        # leak a moving object (the user's green protrusion above the Porsche roof);
+        # an outlier among 3 independent times is voted out. Zero thresholds.
+        chosen = np.full((3, zone_flat.size), -1, np.int32)
+        chosen_bp = np.full((3, zone_flat.size), np.inf)
         def seg_blocked2(o, Xq, boxes_q):
             outb = np.zeros(len(Xq), bool)
             for c2, sz2, R2 in boxes_q:
@@ -747,26 +759,43 @@ def run_case(case_spec, run_name):
                 cvec2 = cam_anchor - C
                 along2 = zdirs @ cvec2
                 bp2 = np.sqrt(np.maximum(float(cvec2 @ cvec2) - along2 * along2, 0.0))
-                cand = visq & (bp2 < chosen_bp)
-                chosen[cand] = fi * 10 + ci2
-                chosen_bp[cand] = bp2[cand]
-        for code in np.unique(chosen[chosen >= 0]):
-            fi, ci2 = int(code) // 10, int(code) % 10
-            sel = chosen == code
-            fr2 = loader.load_synced_frame(int(all_ts[fi]))
-            Rf, tf = cte(int(all_ts[fi]))
-            Xq = (X_city[sel] - tf[None, :]) @ Rf
-            K2, _s2 = cals[ci2]
-            T2 = np.asarray(frame.calibrations[ring_cams[ci2]].T_ego_cam, float)
-            Tci2 = np.linalg.inv(T2)
-            Xc2 = (Tci2[:3, :3] @ Xq.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
-            px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
-            py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
-            img2 = fr2.images[ring_cams[ci2]]
-            g2 = np.exp(gains[ci2])[None, :]
-            col = np.clip(bilinear(img2, px2, py2) * g2, 0, 255)
-            out[zone_flat[sel]] = col.astype(np.uint8)
-            n_filled += int(sel.sum())
+                code_new = fi * 10 + ci2
+                c0 = visq & (bp2 < chosen_bp[0])
+                c1 = visq & ~c0 & (bp2 < chosen_bp[1])
+                c2 = visq & ~c0 & ~c1 & (bp2 < chosen_bp[2])
+                # slot insertion (best three by b_perp)
+                chosen[2][c0] = chosen[1][c0]; chosen_bp[2][c0] = chosen_bp[1][c0]
+                chosen[1][c0] = chosen[0][c0]; chosen_bp[1][c0] = chosen_bp[0][c0]
+                chosen[0][c0] = code_new; chosen_bp[0][c0] = bp2[c0]
+                chosen[2][c1] = chosen[1][c1]; chosen_bp[2][c1] = chosen_bp[1][c1]
+                chosen[1][c1] = code_new; chosen_bp[1][c1] = bp2[c1]
+                chosen[2][c2] = code_new; chosen_bp[2][c2] = bp2[c2]
+        colbuf = np.full((3, zone_flat.size, 3), np.nan, np.float32)
+        frame_cache = {}
+        for slot in range(3):
+            for code in np.unique(chosen[slot][chosen[slot] >= 0]):
+                fi, ci2 = int(code) // 10, int(code) % 10
+                sel = chosen[slot] == code
+                if int(all_ts[fi]) not in frame_cache:
+                    frame_cache[int(all_ts[fi])] = loader.load_synced_frame(int(all_ts[fi]))
+                fr2 = frame_cache[int(all_ts[fi])]
+                Rf, tf = cte(int(all_ts[fi]))
+                Xq = (X_city[sel] - tf[None, :]) @ Rf
+                K2, _s2 = cals[ci2]
+                T2 = np.asarray(frame.calibrations[ring_cams[ci2]].T_ego_cam, float)
+                Tci2 = np.linalg.inv(T2)
+                Xc2 = (Tci2[:3, :3] @ Xq.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
+                px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
+                py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
+                img2 = fr2.images[ring_cams[ci2]]
+                g2 = np.exp(gains[ci2])[None, :]
+                colbuf[slot][sel] = np.clip(bilinear(img2, px2, py2) * g2, 0, 255).astype(np.float32)
+        have = ~np.isnan(colbuf[:, :, 0])
+        anyv = have.any(0)
+        if anyv.any():
+            med = np.nanmedian(colbuf[:, anyv], axis=0)
+            out[zone_flat[anyv]] = np.clip(med, 0, 255).astype(np.uint8)
+            n_filled += int(anyv.sum())
     # ---- STAGE 3.5: VIEW-MORPH the straddle seam (Surround360/Megastereo-style) ----
     # A hard butt-joint between two cameras' halves of one object leaves a 1-2 px
     # registration step + a photometric step that the eye integrates as DOUBLING
