@@ -307,17 +307,23 @@ def run_case(case_spec, run_name):
         Ri, ti_ = cte(cam_ts[cam])
         poses_emc.append((Ra.T @ Ri @ T[:3, :3], Ra.T @ (Ri @ T[:3, 3] + ti_ - ta)))
     emc = render(frame, ring_cams, C, Zd, gains, poses_emc)
-    # moving-object lock: per-camera exposure-time box footprints, EMC-consistent
+    # v3 — the mechanism-complete design:
+    # BODY: ray-OBB of box@t_{c_own} (tight pad) -> FORCE c_own, depth untouched (the colour
+    #   c_own returns there IS the car; <1px placement error from the wrong depth).
+    # PENUMBRA: union-rect minus body -> these rays show background that c_own cannot see
+    #   (blocked by its own image of the car) -> TEMPORAL FILL (the car drives away within a
+    #   few frames; DB-84 measured 100% temporal visibility here). Depth never overridden.
     lockmap = np.full(H * W, -1, np.int16)
-    lockdepth = np.zeros(H * W, np.float32)
+    lockdepth = np.zeros(H * W, np.float32)   # stays zero: depth is NEVER overridden
+    penmask = np.zeros(H * W, bool)
     lockcam = []
     n_handled = 0
+    PAD_U, PAD_V = 14, 8
     for uid in sorted(moving):
         g = ann[ann["track_uuid"] == uid]
         nt = g["timestamp_ns"].to_numpy(np.int64)
         if np.abs(nt - ts).min() > 150_000_000: continue
-        per_cam = {}
-        oid = len(lockcam)
+        u_lo, u_hi, v_lo, v_hi = None, None, None, None
         best_ci, best_margin = -1, -1.0
         for ci, cam in enumerate(ring_cams):
             pose = track_pose_at(ann, uid, cam_ts[cam], cte, Ra, ta)
@@ -325,9 +331,19 @@ def run_case(case_spec, run_name):
             c_a, sz, R_a = pose
             dist = float(np.linalg.norm(c_a - C))
             if dist > OBJ_MAX_DIST or dist < 1.0: continue
-            flat, tent = ray_obb_region(c_a, sz, R_a, C)
-            if flat.size == 0: continue
-            per_cam[ci] = (flat, tent)
+            half = sz / 2
+            corners = np.array([[sx * half[0], sy * half[1], sz_ * half[2]]
+                                for sx in (-1, 1) for sy in (-1, 1) for sz_ in (-1, 1)])
+            P = (corners @ R_a.T) + c_a[None, :]
+            Q = P - C[None, :]
+            nrm = np.linalg.norm(Q, axis=1); dq = Q / nrm[:, None]
+            th = np.arctan2(dq[:, 1], dq[:, 0]); ph = np.arcsin(np.clip(dq[:, 2], -1, 1))
+            uu = (np.pi - th) / (2 * np.pi) * W; vv = (np.pi / 2 - ph) / np.pi * H
+            if uu.max() - uu.min() > W / 2: continue   # wrap case: skip (none in these scenes)
+            u_lo = uu.min() if u_lo is None else min(u_lo, uu.min())
+            u_hi = uu.max() if u_hi is None else max(u_hi, uu.max())
+            v_lo = vv.min() if v_lo is None else min(v_lo, vv.min())
+            v_hi = vv.max() if v_hi is None else max(v_hi, vv.max())
             K = np.asarray(frame.calibrations[cam].K, float)
             Rc, tc = poses_emc[ci]
             Xc = Rc.T @ (c_a - tc)
@@ -338,22 +354,105 @@ def run_case(case_spec, run_name):
             margin = min(px, ww - px) / ww
             if margin > best_margin:
                 best_margin = margin; best_ci = ci
-        if best_ci < 0 or not per_cam: continue
+        if best_ci < 0 or u_lo is None: continue
+        pose_b = track_pose_at(ann, uid, cam_ts[ring_cams[best_ci]], cte, Ra, ta)
+        if pose_b is None: continue
+        body_flat, _bt = ray_obb_region(pose_b[0], pose_b[1], pose_b[2], C, pad=1.0)
+        if body_flat.size == 0: continue
         n_handled += 1
+        oid = len(lockcam)
         lockcam.append(best_ci)
-        for ci, (flat, tent) in per_cam.items():
-            lockmap[flat] = oid
-        flat_b, tent_b = per_cam.get(best_ci, (np.zeros(0, np.int64), np.zeros(0, np.float32)))
-        lockdepth[flat_b] = tent_b
+        lockmap[body_flat] = oid          # BODY: forced to c_own
+        r0 = max(int(v_lo) - PAD_V, 0); r1 = min(int(v_hi) + PAD_V, H - 1)
+        c0 = max(int(u_lo) - PAD_U, 0); c1 = min(int(u_hi) + PAD_U, W - 1)
+        rectsel = np.zeros(H * W, bool)
+        rr, cc = np.meshgrid(np.arange(r0, r1 + 1), np.arange(c0, c1 + 1), indexing="ij")
+        rectsel[(rr * W + cc).reshape(-1)] = True
+        rectsel[body_flat] = False
+        penmask |= rectsel                # PENUMBRA: temporal fill targets
     lock = {"map": lockmap.reshape(H, W), "cam": np.array(lockcam, np.int8) if lockcam else np.zeros(0, np.int8),
             "depth": lockdepth.reshape(H, W)}
     fixed = render(frame, ring_cams, C, Zd, gains, poses_emc, lock=lock if lockcam else None)
+    # TEMPORAL FILL of the penumbra: real background from frames where the car has moved away.
+    n_filled = 0
+    if penmask.any():
+        from depth_visibility_seam_probe import _parse_case  # for loader reuse pattern
+        zone_flat = np.nonzero(penmask)[0]
+        zdirs = DIRS.reshape(-1, 3)[zone_flat]
+        Zv = Zd.reshape(-1)[zone_flat].astype(np.float64)
+        Xz = C[None, :] + Zv[:, None] * zdirs
+        X_city = (Ra @ Xz.T).T + ta
+        # synced frame list around the anchor
+        from waymo2panorama.data_io.av2_loader import AV2RingLoader
+        loader2 = AV2RingLoader(log_dir)
+        all_ts2 = loader2.anchor_timestamps_ns()
+        ai = int(np.argmin(np.abs(np.asarray(all_ts2) - ts)))
+        chosen = np.full(zone_flat.size, -1, np.int32)
+        chosen_bp = np.full(zone_flat.size, np.inf)
+        cals2 = [(np.asarray(frame.calibrations[c].K, float), np.asarray(frame.calibrations[c].T_ego_cam, float),
+                  frame.images[c].shape[:2]) for c in ring_cams]
+        def seg_blocked2(o, Xq, boxes_q):
+            outb = np.zeros(len(Xq), bool)
+            for c2, sz2, R2 in boxes_q:
+                half2 = sz2 / 2 * 1.05
+                o_loc = R2.T @ (o - c2)
+                d_loc = (Xq - o[None, :]) @ R2
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    inv = 1.0 / d_loc
+                    t1 = (-half2[None, :] - o_loc[None, :]) * inv
+                    t2 = (half2[None, :] - o_loc[None, :]) * inv
+                tmin = np.nanmax(np.minimum(t1, t2), axis=1)
+                tmax = np.nanmin(np.maximum(t1, t2), axis=1)
+                outb |= (tmax >= np.maximum(tmin, 0.0)) & (tmin < 0.97) & (tmin > 0.02)
+            return outb
+        for fi in range(max(0, ai - 10), min(len(all_ts2) - 1, ai + 10) + 1):
+            if fi == ai: continue
+            tsf = int(all_ts2[fi])
+            Rf, tf = cte(tsf)
+            Xf = (X_city - tf[None, :]) @ Rf
+            fboxes = boxes_at(ann, tsf, moving)   # moving objects at THAT frame block sightlines
+            for ci2, (K2, T2, (hh2, ww2)) in enumerate(cals2):
+                Tci2 = np.linalg.inv(T2)
+                Xc2 = (Tci2[:3, :3] @ Xf.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
+                px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
+                py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
+                okq = (z2 > 0.5) & (px2 >= 2) & (px2 < ww2 - 2) & (py2 >= 2) & (py2 < hh2 - 2)
+                if not okq.any(): continue
+                blocked = np.zeros(zone_flat.size, bool)
+                blocked[okq] = seg_blocked2(T2[:3, 3], Xf[okq], fboxes)
+                visq = okq & ~blocked
+                if not visq.any(): continue
+                cam_city = Rf @ T2[:3, 3] + tf
+                cam_anchor = Ra.T @ (cam_city - ta)
+                cvec2 = cam_anchor - C
+                along2 = zdirs @ cvec2
+                bp2 = np.sqrt(np.maximum(float(cvec2 @ cvec2) - along2 * along2, 0.0))
+                cand = visq & (bp2 < chosen_bp)
+                chosen[cand] = fi * 10 + ci2
+                chosen_bp[cand] = bp2[cand]
+        ffix = fixed.reshape(-1, 3)
+        for code in np.unique(chosen[chosen >= 0]):
+            fi, ci2 = int(code) // 10, int(code) % 10
+            sel = chosen == code
+            fr2 = loader2.load_synced_frame(int(all_ts2[fi]))
+            Rf, tf = cte(int(all_ts2[fi]))
+            Xf = (X_city[sel] - tf[None, :]) @ Rf
+            K2, T2, _s2 = cals2[ci2]
+            Tci2 = np.linalg.inv(T2)
+            Xc2 = (Tci2[:3, :3] @ Xf.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
+            px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
+            py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
+            img2 = fr2.images[ring_cams[ci2]]
+            g2 = np.exp(gains[ci2])[None, :]
+            col = np.clip(bilinear(img2, px2, py2) * g2, 0, 255)
+            ffix[zone_flat[sel]] = col.astype(np.uint8)
+            n_filled += int(sel.sum())
     save_rgb(REMOTE_OUT / f"{run_name}_emc.png", emc)
     save_rgb(REMOTE_OUT / f"{run_name}_emc_objlock.png", fixed)
     try: f = ImageFont.truetype("DejaVuSans.ttf", 16)
     except Exception: f = ImageFont.load_default()
     rows = []
-    for tag, im in (("EMC (DB-86 base)", emc), (f"EMC + moving-object single-camera lock (n={n_handled})", fixed)):
+    for tag, im in (("EMC (DB-86 base)", emc), (f"EMC + body-lock + temporal penumbra fill (n={n_handled}, filled={n_filled}px)", fixed)):
         pil = Image.fromarray(im).resize((1400, 700))
         bar = Image.new("RGB", (1400, 24), (15, 15, 22)); ImageDraw.Draw(bar).text((6, 4), f"{run_name}  {tag}", (235, 235, 245), font=f)
         o = Image.new("RGB", (1400, 724)); o.paste(bar, (0, 0)); o.paste(pil, (0, 24)); rows.append(o)
@@ -361,7 +460,7 @@ def run_case(case_spec, run_name):
     yo = 6
     for o in rows: board.paste(o, (0, yo)); yo += o.height
     board.save(REMOTE_OUT / f"{run_name}_db87_board.jpg", quality=90)
-    return {"case": run_name, "n_moving_locked": int(n_handled)}
+    return {"case": run_name, "n_moving_locked": int(n_handled), "n_penumbra_filled_px": int(n_filled)}
 
 
 try:

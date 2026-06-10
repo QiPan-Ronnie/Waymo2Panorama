@@ -172,8 +172,16 @@ Result summary: TBD.
 
 ---
 
-# DB-87: Moving-object single-camera lock ON TOP OF EMC — exposure-time box footprints with EMC poses (CPU/L4, pure geometry)
-Status: **EXPLORED / KILLED per its own clause (2026-06-09 night)** — one /exec, BMW. **Vision verdict: EMC-only WINS.** The objlock variant re-introduced the tail ghost-wheels (third independent confirmation that box-footprint depth claims the box's empty air margin and paints the car's own pixels beside it — the DB-83 v3 mechanism; box-level object tools are now conclusively harmful in this geometry). The pure-EMC render's Porsche is nearly intact: residual = a faint translucent nose-trace (the predicted ~16 px object-self-motion term, largely self-cancelling for this trajectory) + the source-data purple fringe (not geometric). **Decision: cen_depth_b1_emc (NO objlock) is the final renderer form for now.** The faint nose-trace's honest remediation lanes: thin-band flow softening (DB-78/B2) or simply the Cosmos consumer's own appearance re-generation — NOT more box geometry. `deliverables/db87_emc_objlock/`. Secret 0.
+# DB-87: Moving-object handling on EMC — three variants, all killed; the failure triangle now POINTS at the missing piece (image-level silhouette)
+Status: **EXPLORED / KILLED after v1–v3 (2026-06-09 night, 3 /execs = brief cap)** — `deliverables/db87_emc_objlock/`. **cen_depth_b1_emc (no object handling) remains the best render.**
+**The complete failure map (each mechanism verified by eye):**
+- v1 box-footprint + box-depth lock → tail ghost-wheels (box AIR margin painted with the car; 3rd confirmation of the DB-83 v3 mechanism).
+- v2 seam-routing (union rect, no depth change) → SAME ghost — which finally exposed the true mechanism: the ghost was never two-camera doubling; it is the SINGLE responsible camera's **disocclusion self-print** (the c\*-ray to the wall beside the car projects, via the 0.3 m offset, onto the car in that camera's image → the car prints onto the wall). EMC-base is clean there only because the natural Voronoi happened to give that wall to a camera that can actually see it.
+- v3 body-lock + temporal penumbra fill (22k px) → fill EATS the car roof/tail (the union-rect penumbra over-covers; any box-geometry estimate of "which pixels should show the car" is wrong by 10–30 px in some direction — too big eats the car, too small leaves ghost).
+**Conclusion (the three failures triangulate one missing input):** every lane needs the **image-level silhouette of the object in the chosen camera** — box geometry cannot provide it at the required precision. Two successor options (DB-88 candidates, user/Xinhan decision):
+- **(A) Segmentation-bounded compositing:** run an instance segmenter (YOLO-seg/SAM — fits the L4; EXP-A already used YOLO here) on c_own's image; car-mask pixels ← c_own; outside-mask penumbra ← temporal fill. Segmentation decides pixel OWNERSHIP only — no content invented; source-faithfulness preserved.
+- **(B) Static-world panorama:** REMOVE moving objects entirely via temporal fill (the background is 100 % temporally visible — DB-84). For the Cosmos first-frame this may be the more honest product: a 35 ms-skewed moving car is temporal noise to a video model whose geometry comes from the point-cloud track anyway. Changes product semantics — needs the user/Xinhan call.
+Residual on the EMC base meanwhile: a faint translucent nose-trace + source-data purple fringe — both thin-band class. Secret 0.
 
 ---
 

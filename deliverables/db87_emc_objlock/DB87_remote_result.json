@@ -1,6 +1,6 @@
 {
   "phase": "db87_emc_objlock",
-  "started_utc": "2026-06-10T03:57:33Z",
+  "started_utc": "2026-06-10T04:10:32Z",
   "scope": {
     "pure_geometry": true,
     "generation": false,
@@ -10,9 +10,10 @@
   "cases": [
     {
       "case": "02a00399_a000_bmw",
-      "n_moving_locked": 6
+      "n_moving_locked": 6,
+      "n_penumbra_filled_px": 22112
     }
   ],
-  "runtime_s": 6.88,
-  "ended_utc": "2026-06-10T03:57:40Z"
+  "runtime_s": 43.85,
+  "ended_utc": "2026-06-10T04:11:16Z"
 }
