@@ -784,7 +784,40 @@ def run_case(case_spec, run_name):
         B_w = _cv.remap(B_patch, xx - (1 - al) * dx, yy - (1 - al) * dy, _cv.INTER_LINEAR, borderMode=_cv.BORDER_REPLICATE)
         Av_w = _cv.remap(A_val.astype(np.uint8), xx + al * dx, yy + al * dy, _cv.INTER_NEAREST) > 0
         Bv_w = _cv.remap(B_val.astype(np.uint8), xx - (1 - al) * dx, yy - (1 - al) * dy, _cv.INTER_NEAREST) > 0
-        w_a = (1 - al) * Av_w; w_b = al * Bv_w
+        # CONTENT seam (Photomontage-style): geometry is interpolated by the alpha ramp
+        # above (continuous), but CONTENT must be winner-take-all where the two views
+        # disagree — glass reflections are VIEW-DEPENDENT (the mirrored storefront's
+        # parallax follows the reflected source's depth, not the body's), so any
+        # alpha-blend double-exposes them. A min-difference DP seam picks the switch
+        # path through whatever agrees (paint, pillars); 2 px feather.
+        diff_ab = np.abs(A_w.astype(np.float32) - B_w.astype(np.float32)).sum(2)
+        cost = np.where(body_p & Av_w & Bv_w, diff_ab, 0.0)
+        lo_c, hi_c = int(bi[0]), int(bi[-1])
+        ncol = hi_c - lo_c + 1
+        nrow = body_p.shape[0]
+        BIG = np.float32(1e9)
+        D = np.zeros((nrow, ncol), np.float32)
+        back = np.zeros((nrow, ncol), np.int32)
+        D[0] = cost[0, lo_c:hi_c + 1]
+        for r_ in range(1, nrow):
+            prev = D[r_ - 1]
+            s_l = np.concatenate([[BIG], prev[:-1]])
+            s_r = np.concatenate([prev[1:], [BIG]])
+            stacked = np.stack([s_l, prev, s_r])
+            arg = stacked.argmin(0)
+            D[r_] = cost[r_, lo_c:hi_c + 1] + stacked[arg, np.arange(ncol)]
+            back[r_] = arg - 1
+        s_col = np.zeros(nrow, np.int32)
+        s_col[-1] = int(D[-1].argmin())
+        for r_ in range(nrow - 2, -1, -1):
+            s_col[r_] = s_col[r_ + 1] + back[r_ + 1, s_col[r_ + 1]]
+        seam_x = (lo_c + s_col)[:, None].astype(np.float32)
+        xs_g = np.arange(body_p.shape[1], dtype=np.float32)[None, :]
+        if b_side_left:
+            w_cont = np.clip((seam_x + 2 - xs_g) / 4.0, 0, 1)
+        else:
+            w_cont = np.clip((xs_g - seam_x + 2) / 4.0, 0, 1)
+        w_a = (1 - w_cont) * Av_w; w_b = w_cont * Bv_w
         den = np.maximum(w_a + w_b, 1e-6)
         blend = (A_w * w_a[:, :, None] + B_w * w_b[:, :, None]) / den[:, :, None]
         write = body_p & ((Av_w | Bv_w))
@@ -792,9 +825,11 @@ def run_case(case_spec, run_name):
         tgt_r = rows_p[:, None] * np.ones_like(cols_p)[None, :]
         tgt_c = np.ones_like(rows_p)[:, None] * (cols_p % W)[None, :]
         out2[tgt_r[write], tgt_c[write]] = np.clip(blend[write], 0, 255).astype(np.uint8)
+        seam_diff = diff_ab[np.arange(nrow), lo_c + s_col]
         morph_report.append({"cam_pair": [ring_cams[ci_o], ring_cams[ci_s]],
                              "strip_cols": int(bi.size), "ecc_cc": round(float(cc_ecc), 3),
                              "max_reg_px": round(float(np.hypot(dx, dy)[mask_ecc > 0].max()) if (mask_ecc > 0).any() else 0.0, 2),
+                             "seam_diff_med": round(float(np.median(seam_diff[body_p[np.arange(nrow), lo_c + s_col]])) if body_p[np.arange(nrow), lo_c + s_col].any() else 0.0, 1),
                              "n_px": int(write.sum())})
     comp = out.reshape(H, W, 3)
     # plain EMC base for the A/B

@@ -1,6 +1,6 @@
 {
   "phase": "db89_ghost_recovery",
-  "started_utc": "2026-06-10T10:06:15Z",
+  "started_utc": "2026-06-10T10:26:20Z",
   "scope": {
     "segmentation_ownership_only": true,
     "generation": false
@@ -42,11 +42,12 @@
           "strip_cols": 32,
           "ecc_cc": 0.928,
           "max_reg_px": 8.96,
+          "seam_diff_med": 275.8,
           "n_px": 1104
         }
       ]
     }
   ],
-  "runtime_s": 16.66,
-  "ended_utc": "2026-06-10T10:06:32Z"
+  "runtime_s": 16.5,
+  "ended_utc": "2026-06-10T10:26:36Z"
 }
