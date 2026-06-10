@@ -1,0 +1,24 @@
+{
+  "phase": "db86_egomotion_shutter",
+  "started_utc": "2026-06-10T03:27:19Z",
+  "scope": {
+    "pure_geometry": true,
+    "generation": false,
+    "a100": false
+  },
+  "status": "db86_completed",
+  "cases": [
+    {
+      "case": "02a00399_a000_bmw",
+      "ego_speed_mps": 7.66,
+      "max_cam_displacement_m": 0.227
+    },
+    {
+      "case": "fbee355f_a030_crowd",
+      "ego_speed_mps": 9.22,
+      "max_cam_displacement_m": 0.215
+    }
+  ],
+  "runtime_s": 12.0,
+  "ended_utc": "2026-06-10T03:27:32Z"
+}
