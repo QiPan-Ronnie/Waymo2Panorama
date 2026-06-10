@@ -172,6 +172,25 @@ Result summary: TBD.
 
 ---
 
+# DB-85: Motion-aware object rendering — per-camera exposure-time box footprints + single-camera moving objects (CPU/L4, NO generation)
+Status: **EXPLORED / PARTIAL (2026-06-09)** — machinery built and runs (6/14/15 moving objects handled per scene, no new large-scale artifacts); the object-BODY doubling improves (single-camera footprint with exposure-time box works — car head cleaner), but the trailing-edge ghost persists because the temporal penumbra fill under-covers (198/475/97 px filled — the zone `union\best-footprint` is nearly empty since the per-camera exposure-time footprints mostly overlap). **Precise next step recorded for the successor:** the correct penumbra is "pixels whose chosen-camera sightline crosses box@t_chosen but which lie OUTSIDE footprint_chosen" — compute with the existing seg_blocked(best_cam, X, box@t_best), then temporal-fill those (the DB-84 search already works; the car drives away within ±3 frames so background is fully visible). One focused fix, not a redesign. Scripts `scripts/phase3/db85_motion_aware.py`, products `deliverables/db85_motion_aware/`. Secret 0, 2 /execs.
+Route: A (renderer correctness for MOVING objects; pure geometry + existing annotations)
+
+**Question:** Does rendering each moving object from ONE camera — with its box pose interpolated to each camera's actual exposure timestamp (AV2 ring cams are offset up to ±22.5 ms; a 17.7 m/s car moves 0.62 m between straddling exposures = the measured 16 px doubling) — eliminate the moving-object doubling that DB-83 misdiagnosed as a depth problem?
+
+**Hypothesis:** The doubling is per-camera capture-time motion parallax. Per moving track: interpolate box pose to each camera's exposure time; project each box@t_i into the centroid ERP (footprint_i); pick the camera seeing the object most completely (c_obj); inside ∪footprint_i lock the source to c_obj (its own exposure-time footprint carries box-surface depth; elsewhere in the union it sees background); other cameras' displaced car images are thereby suppressed. Time-consistency replaces the static case's depth-consistency.
+
+**Expected evidence:** BMW sedan ROI A/B (current cen_depth_b1 vs motion-aware) — the driving Porsche intact, single, no doubling, no erasure; downtown/crowd spot-check for regressions on their moving objects. Stats: n moving tracks handled, footprint union coverage.
+
+**Kill criteria:** residual shards/edges worse than the current doubling after ONE debug pass → record ("moving objects need video-prior/inpaint") and close; any static-scene regression → revert; >2 /execs → stop.
+**Max scope:** BMW + downtown + crowd anchors; CPU/L4; annotations only (no detector, no learning); results non-repo + Read-verify; secret 0.
+**Required vision check:** the Porsche: one car, intact, plausibly placed; box edges not visibly harsh; no new artifacts on static content. Eyes beat metrics.
+**Output location:** `deliverables/db85_motion_aware/`.
+
+Result summary: TBD.
+
+---
+
 ## ⭐⭐ PREVIOUS ACTIVE BRIEF (2026-06-06 v2) — DB-79 DONE; read `agent/2026-06-06-deep-retrospective.md` (its practical conclusion is now re-scoped by DB-80 above)
 
 > **Deep retrospective (19-agent workflow `wf_789ffbb7-1a7`) reset the priorities.** Root cause of the churn = the **source-faithful(A) vs look-good(B) fork was never resolved and we built under BOTH**. User decision (2026-06-06): **layer BOTH — A = canonical training-safe floor; B = a SEPARATE labeled presentation layer on top, never mixed into training truth.** Also found: the "3 geometry walls" are **~1.5 + 1 mislabeled** — DB-77B p90 15.4/12.8m is partly an NN-fill metric artifact scored across occlusion edges; DB-76a false-GREEN is rotation-only (no-depth baseline); only **EXP-B UniDepth** is a clean confirm (wall real at SILHOUETTES, over-credited on SURFACES). → settle the wall with a FAIR metric BEFORE any A100. User: **run DB-79 first, hold the A100.**

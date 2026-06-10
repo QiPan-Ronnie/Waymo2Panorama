@@ -1,0 +1,29 @@
+{
+  "phase": "db85_motion_aware",
+  "started_utc": "2026-06-10T00:56:09Z",
+  "scope": {
+    "annotations_only": true,
+    "generation": false,
+    "a100": false
+  },
+  "status": "db85_completed",
+  "cases": [
+    {
+      "case": "02a00399_a000_bmw",
+      "n_moving_handled": 6,
+      "n_temporal_filled_px": 198
+    },
+    {
+      "case": "9f871fb4_a030_downtown",
+      "n_moving_handled": 14,
+      "n_temporal_filled_px": 475
+    },
+    {
+      "case": "fbee355f_a030_crowd",
+      "n_moving_handled": 15,
+      "n_temporal_filled_px": 97
+    }
+  ],
+  "runtime_s": 114.78,
+  "ended_utc": "2026-06-10T00:58:04Z"
+}
