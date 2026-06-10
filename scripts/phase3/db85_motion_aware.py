@@ -316,6 +316,7 @@ def run_case(case_spec, run_name):
     lockmap = np.full(H * W, -1, np.int16)
     objdepth = np.zeros(H * W, np.float32)
     lockcam = []
+    obj_geo = []
     n_handled = 0
     # moving tracks present at anchor (nearest label within 150 ms) and near enough
     tss_all = ann["timestamp_ns"].to_numpy(np.int64) if ann is not None else np.zeros(0, np.int64)
@@ -358,6 +359,10 @@ def run_case(case_spec, run_name):
         # ensure c_obj's own footprint depth wins (write after union loop)
         flat_b, tent_b = per_cam.get(best_ci, (np.zeros(0, np.int64), np.zeros(0, np.float32)))
         objdepth[flat_b] = tent_b
+        # record geometry for the correct penumbra computation (successor-fix from the brief):
+        pose_b = track_pose_at(ann, uid, cam_ts[ring_cams[best_ci]], cte, Ra, ta)
+        if pose_b is not None:
+            obj_geo.append((best_ci, pose_b[0], pose_b[1], pose_b[2], flat_b))
     mov_lock = {"lockmap": lockmap.reshape(H, W), "lockcam": np.array(lockcam, np.int8) if lockcam else np.zeros(0, np.int8),
                 "objdepth": objdepth.reshape(H, W)}
     fixed = render(frame, ring_cams, C, Zd, gains, mov_lock=mov_lock if lockcam else None)
@@ -367,7 +372,35 @@ def run_case(case_spec, run_name):
     # The car MOVES AWAY within a few frames, so other timestamps see the true background.
     n_filled = 0
     if lockcam:
-        zone_flat = np.nonzero((lockmap >= 0) & (objdepth == 0))[0]
+        # CORRECT penumbra (successor fix): pixels whose chosen camera's sightline crosses
+        # box@t_chosen but which lie OUTSIDE footprint_chosen — there the chosen camera would
+        # paint its own image of the car onto the background. Computed per object in a padded
+        # rect around its footprint.
+        pen = np.zeros(H * W, bool)
+        Zflat = Zd.reshape(-1).astype(np.float64)
+        for (bci, c_b, sz_b, R_b, flat_b) in obj_geo:
+            if flat_b.size == 0: continue
+            vs = flat_b // W; us = flat_b % W
+            v0 = max(int(vs.min()) - 40, 0); v1 = min(int(vs.max()) + 40, H - 1)
+            u0 = max(int(us.min()) - 60, 0); u1 = min(int(us.max()) + 60, W - 1)
+            rr, cc = np.meshgrid(np.arange(v0, v1 + 1), np.arange(u0, u1 + 1), indexing="ij")
+            cand = (rr * W + cc).reshape(-1)
+            cdirs = DIRS.reshape(-1, 3)[cand]
+            Xc_ = C[None, :] + Zflat[cand][:, None] * cdirs
+            cam_o = np.asarray(frame.calibrations[ring_cams[bci]].T_ego_cam, float)[:3, 3]
+            half_b = sz_b / 2 * 1.0
+            o_loc = R_b.T @ (cam_o - c_b)
+            d_loc = (Xc_ - cam_o[None, :]) @ R_b
+            with np.errstate(divide="ignore", invalid="ignore"):
+                inv = 1.0 / d_loc
+                t1 = (-half_b[None, :] - o_loc[None, :]) * inv
+                t2 = (half_b[None, :] - o_loc[None, :]) * inv
+            tmin = np.nanmax(np.minimum(t1, t2), axis=1)
+            tmax = np.nanmin(np.maximum(t1, t2), axis=1)
+            crossed = (tmax >= np.maximum(tmin, 0.0)) & (tmin < 0.97) & (tmin > 0.02)
+            inside = np.zeros(H * W, bool); inside[flat_b] = True
+            pen[cand[crossed & ~inside[cand]]] = True
+        zone_flat = np.nonzero(pen)[0]
         if zone_flat.size:
             zdirs = DIRS.reshape(-1, 3)[zone_flat]
             Zv = Zd.reshape(-1)[zone_flat].astype(np.float64)
