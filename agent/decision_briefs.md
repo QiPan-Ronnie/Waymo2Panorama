@@ -172,6 +172,11 @@ Result summary: TBD.
 
 ---
 
+# DB-87: Moving-object single-camera lock ON TOP OF EMC — exposure-time box footprints with EMC poses (CPU/L4, pure geometry)
+Status: **EXPLORED / KILLED per its own clause (2026-06-09 night)** — one /exec, BMW. **Vision verdict: EMC-only WINS.** The objlock variant re-introduced the tail ghost-wheels (third independent confirmation that box-footprint depth claims the box's empty air margin and paints the car's own pixels beside it — the DB-83 v3 mechanism; box-level object tools are now conclusively harmful in this geometry). The pure-EMC render's Porsche is nearly intact: residual = a faint translucent nose-trace (the predicted ~16 px object-self-motion term, largely self-cancelling for this trajectory) + the source-data purple fringe (not geometric). **Decision: cen_depth_b1_emc (NO objlock) is the final renderer form for now.** The faint nose-trace's honest remediation lanes: thin-band flow softening (DB-78/B2) or simply the Cosmos consumer's own appearance re-generation — NOT more box geometry. `deliverables/db87_emc_objlock/`. Secret 0.
+
+---
+
 # DB-86: Ego-motion shutter compensation — per-camera exposure-time EGO POSE (CPU/L4, pure geometry) ⭐ NEW BASELINE COMPONENT
 Status: **EXPLORED / POS (2026-06-09 night, user-prompted)** — `scripts/phase3/db86_egomotion_shutter.py`, one /exec, BMW+crowd; brief written same-turn as the experiment (user was online and pointed at the defect; recorded honestly).
 **Trigger:** user marked overlap on BOTH the driving Porsche AND the **parked** BMW X3 — a static object's overlap cannot be object motion. First-principles re-derivation: the asynchronous shutter (±22.5 ms) also displaces the **ego itself** between exposures; with the ego at the measured **7.66 m/s**, each camera's TRUE optical centre is up to **22.7 cm** from its calibrated anchor-time position — the same order as the inter-camera baseline (25 cm), and a systematic, fully-known error nobody had compensated. (LiDAR accumulation always had per-return time compensation; cameras never did — a pipeline asymmetry.)
