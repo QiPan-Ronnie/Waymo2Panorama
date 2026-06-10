@@ -118,6 +118,29 @@ Result summary: TBD — archive to progress.md when done.
 
 ---
 
+# DB-83: Object-aware rendering — per-object source locking + box-consistent depth in the centroid renderer (CPU, NO A100, NO generation)
+Status: **EXPLORED / KILLED per pre-registered clause (2026-06-09)** — 9 renderer variants tried, none beats the baseline at the user-flagged sedan without introducing equal-or-worse artifacts; full mechanism chain understood and recorded (progress.md). **Baseline cen_depth_b1 stays unchanged (revert).**
+**What was learned (high-value NEG):** the sedan doubling is NOT a simple depth-inconsistency bug. The car straddles the front_left/side_left FOV boundary (each camera sees half — native crops verified by eye), and the region beside the car is a **disocclusion zone**: background occluded by the car has neither LiDAR depth nor any camera's colour from the blocked side. Every deterministic fix re-painted a ghost from the other camera: box-air footprint claimed → locked camera paints the tail twice; occlusion-test exemption leaks via box-air; background-only depth field EDT guesses 9 m where the wall is 14 m → segment-vs-box test misses and the other camera's wheel lands beside the car; LiDAR-silhouette has holes (dark/reflective body) → black patches. **Conclusion: object-boundary disocclusion needs either full layered rendering with inpaint (a real sub-project) or the thin-band learned/flow repair lane (DB-78/B2) — not a renderer patch.** The baseline's own artifact (soft head-ghost on boundary-straddling near vehicles, ~10–20 px, 1 instance found in 5 scenes) is recorded as a known limitation in the data contract.
+Route: A (renderer correctness fix) — ports the project's validated object-moat idea (`_seamroute.py`) into the DB-80 renderer.
+
+**Question:** Does forcing (a) a single source camera per annotated object and (b) a box-consistent depth inside each object's ERP footprint eliminate the object-interior doubling the user spotted (dark sedan, BMW scene) without introducing worse box-boundary artifacts?
+
+**Hypothesis (from the A/B/C diagnostic, vision-verified):** the doubling is caused by an INCONSISTENT depth field inside the car (sparse LiDAR on dark/reflective body mixed with ~9 m background EDT fill → pixels of one car projected to different azimuths). Plane-depth (uniformly wrong) keeps the car intact ⇒ consistency beats correctness for object integrity. Box-locked depth + single source = consistent by construction; expected outcome = C's integrity with B's global geometry.
+
+**Expected evidence:** render BMW + crowd + downtown with object-aware mode; A/B/C/D boards (old / cen_depth / cen_plane / cen_depth+objlock) tight-cropped on the user's sedan + crowd truck + downtown vehicles; vision gate.
+
+**Kill criteria:** box-boundary artifacts (background tearing at box edges) judged worse than the doubling they fix → revert; any object duplicated/deleted → fail; scope beyond renderer changes → stop.
+
+**Max scope:** one /exec CPU; 3 scenes; boxes from existing annotations (no detector); no learning/generation.
+
+**Required vision check:** the user's sedan intact AND correctly placed; truck/vehicles in crowd/downtown intact; box edges clean. Eyes beat metrics.
+
+**Output location:** `deliverables/db83_objectaware/`.
+
+Result summary: TBD.
+
+---
+
 ## ⭐⭐ PREVIOUS ACTIVE BRIEF (2026-06-06 v2) — DB-79 DONE; read `agent/2026-06-06-deep-retrospective.md` (its practical conclusion is now re-scoped by DB-80 above)
 
 > **Deep retrospective (19-agent workflow `wf_789ffbb7-1a7`) reset the priorities.** Root cause of the churn = the **source-faithful(A) vs look-good(B) fork was never resolved and we built under BOTH**. User decision (2026-06-06): **layer BOTH — A = canonical training-safe floor; B = a SEPARATE labeled presentation layer on top, never mixed into training truth.** Also found: the "3 geometry walls" are **~1.5 + 1 mislabeled** — DB-77B p90 15.4/12.8m is partly an NN-fill metric artifact scored across occlusion edges; DB-76a false-GREEN is rotation-only (no-depth baseline); only **EXP-B UniDepth** is a clean confirm (wall real at SILHOUETTES, over-credited on SURFACES). → settle the wall with a FAIR metric BEFORE any A100. User: **run DB-79 first, hold the A100.**

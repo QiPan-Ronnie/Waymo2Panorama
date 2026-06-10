@@ -1,0 +1,26 @@
+{
+  "phase": "db83_objectaware",
+  "started_utc": "2026-06-10T00:19:15Z",
+  "scope": {
+    "renderer_fix_only": true,
+    "generation": false,
+    "a100": false
+  },
+  "status": "db83_completed",
+  "cases": [
+    {
+      "case": "02a00399_a000_bmw",
+      "n_objects_locked": 2
+    },
+    {
+      "case": "9f871fb4_a030_downtown",
+      "n_objects_locked": 12
+    },
+    {
+      "case": "fbee355f_a030_crowd",
+      "n_objects_locked": 4
+    }
+  ],
+  "runtime_s": 25.07,
+  "ended_utc": "2026-06-10T00:19:40Z"
+}
