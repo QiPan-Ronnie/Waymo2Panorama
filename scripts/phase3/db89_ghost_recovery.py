@@ -1,13 +1,30 @@
 """DB-89: ghost-zone temporal recovery — the hardened v7 GENERAL algorithm (L4 for YOLO only).
 
-Four evidence-driven rules, zero scene parameters:
+Five evidence-driven rules, zero scene parameters:
   1. STATIC world <- EMC render (per-camera exposure-time ego poses).
-  2. OBJECT BODY <- one (Voronoi-dominant camera, its exposure time); extent = segmentation
-     mask UNION own-time-box ray-hit; uniform object-distance projection.
-  3. GHOST ZONE (union of the object's positions at EVERY camera's exposure time, minus body)
-     <- temporal recovery under a TRIPLE gate: object provably departed (|dframe|>=3) AND
-     padded-box-free sightline at that frame AND LiDAR-evidenced background depth.
-  4. Gate fails -> keep the EMC pixel. No depth overwrites anywhere.
+  2. OBJECT BODY <- ONE camera c_own at ONE exposure time, chosen by EVIDENCE
+     COMPLETENESS first (mask not truncated by its image border = that camera saw the
+     WHOLE object; splitting a straddler across two exposure times necessarily tears
+     it open by object_speed * dt at the FOV boundary), Voronoi dominance among
+     equals. Identity matching is ONE-TO-ONE (greedy by IoU; a camera instance is
+     evidence for exactly one object). Extent = matched mask under TOPOLOGICAL
+     CLOSURE (binary_fill_holes: parameter-free, boundary-preserving); uniform
+     object-distance projection.
+  3. SECONDARY BODY with OBJECT-MOTION SHUTTER COMPENSATION (OMC, the object-side
+     symmetric piece to DB-86's ego EMC): when no camera sees the whole object, the
+     split across exposure times is unavoidable — measure the object's ERP
+     displacement between the two exposures from the masks themselves (binary
+     alignment inside the overlap strip both cameras see) and shift the secondary
+     camera's contribution to c_own's exposure-time position before compositing.
+     Without OMC the halves tear open by object_speed * dt at the FOV boundary;
+     without secondary body at all, temporal fill erases the truncated half.
+  4. GHOST ZONE (other cameras' unshifted copies, minus ALL cameras' body evidence)
+     <- temporal recovery as the LAST RESORT: only where NO camera cleanly sees the
+     background at anchor time (all views poisoned, true mutual disocclusion), under
+     a TRIPLE gate: object provably departed (|dframe|>=3) AND padded-box-free
+     sightline at that frame AND LiDAR-evidenced background depth. Where a clean
+     camera exists, RULE 2 renders the true anchor-time background instead.
+  5. Gate fails -> keep the EMC pixel. No depth overwrites anywhere.
 Sanity asserts closing DB-88 v7's infra failure: (a) skip cameras with |cam_ts-anchor|>=60ms;
 (b) skip per-object box regions wider than 2x their expected angular size.
 """
@@ -327,20 +344,22 @@ def run_case(case_spec, run_name):
     # ---- per moving object: per-camera matched instance masks (MOVING ONLY) + choose c_own ----
     # poison masks must contain ONLY moving objects: a static car is consistent in every camera
     # and must not invalidate anyone (v1 used the full YOLO union -> 24% of the image got filled).
-    n_handled, n_unmatched = 0, 0
-    objects = []
-    poison_masks = [np.zeros(cals[ci][1], bool) for ci in range(len(ring_cams))]
+    # ---- ALL-IMAGE-EVIDENCE ARCHITECTURE (audit conclusion) ----
+    # The AV2 box 3D position is ~4 m off on fast tracks (audit: box projects 100 px away
+    # from where the camera actually imaged the car; label-time recalibration is killed by
+    # track-boundary clipping at anchor 0). Therefore: boxes do IDENTITY matching only;
+    # ALL spatial placement comes from image evidence (per-camera instance masks).
     # assert (a): a camera whose nearest image timestamp is far from the anchor would make
     # track_pose_at interpolate the box to a far position (the DB-88 v7 smear) — skip it.
     cam_valid = [abs(cam_ts[cam] - ts) < 60_000_000 for cam in ring_cams]
+    # pass 1: candidate (object, camera, instance) matches
+    obj_meta = []   # per moving uid passing the time gate: {"uid", "per_cam_pose"}
+    cand = []       # (iou, obj_idx, ci, mi)
     for uid in sorted(moving):
         g = ann[ann["track_uuid"] == uid]
         nt = g["timestamp_ns"].to_numpy(np.int64)
         if np.abs(nt - ts).min() > 150_000_000: continue
-        best = None   # (score, ci, mask, c_a, dist)
-        all_boxes = []
         per_cam_pose = {}
-        per_cam_mask = {}   # IMAGE evidence per camera (label-position-independent)
         for ci, cam in enumerate(ring_cams):
             if not cam_valid[ci]: continue
             pose = track_pose_at(ann, uid, cam_ts[cam], cte, Ra, ta)
@@ -348,43 +367,77 @@ def run_case(case_spec, run_name):
             c_a, sz, R_a = pose
             dist = float(np.linalg.norm(c_a - C))
             if dist > OBJ_MAX_DIST or dist < 1.0: continue
-            per_cam_pose[ci] = (c_a, sz, R_a, dist)
-            bflat, _bt = ray_obb_region(c_a, sz, R_a, C, pad=1.0)
-            if bflat.size: all_boxes.append(bflat)
             K, (hh, ww) = cals[ci]
             Rc, tc = poses_emc[ci]
             bb = box_img_bbox(c_a, sz, R_a, K, Rc, tc, hh, ww)
             if bb is None: continue
-            box_area = max((bb[2] - bb[0]) * (bb[3] - bb[1]), 1.0)
-            mbest, mi = 0.0, -1
-            for k, (sbb, sm) in enumerate(seg_insts[ci]):
-                v = iou(bb, sbb)
-                if v <= mbest: continue
-                ratio = float(sm.sum()) / box_area
-                if not (0.25 <= ratio <= 4.0): continue   # evidence sanity: reject giant/tiny instances
-                mbest, mi = v, k
-            if mbest < IOU_MIN: continue
-            poison_masks[ci] |= seg_insts[ci][mi][1]   # this camera sees THIS moving object here
-            per_cam_mask[ci] = (seg_insts[ci][mi][1], dist)   # image evidence: this object in THIS camera
             Xc = Rc.T @ (c_a - tc)
             if Xc[2] <= 0.3: continue
-            # c_own = the EMC-Voronoi DOMINANT camera at the object's direction (min b_perp)
+            per_cam_pose[ci] = (c_a, sz, R_a, dist)
+            box_area = max((bb[2] - bb[0]) * (bb[3] - bb[1]), 1.0)
+            for k, (sbb, sm) in enumerate(seg_insts[ci]):
+                v = iou(bb, sbb)
+                if v < IOU_MIN: continue
+                ratio = float(sm.sum()) / box_area
+                if not (0.25 <= ratio <= 4.0): continue   # evidence sanity: reject giant/tiny instances
+                cand.append((v, len(obj_meta), ci, k))
+        obj_meta.append({"uid": uid, "per_cam_pose": per_cam_pose})
+    # pass 2: ONE-TO-ONE greedy by IoU — a camera instance is evidence for exactly ONE
+    # object. An instance claimed by >=2 tracks is a MERGED BLOB (adjacent vehicles
+    # fused into one mask; identity unresolvable): ambiguous evidence may VETO
+    # (poison — conservative, keeps contaminated backgrounds out) but cannot ASSERT
+    # (a fused silhouette painted at one object's uniform distance drags the
+    # neighbour's pixels onto it — seen on the 6.1 m X3).
+    poison_masks = [np.zeros(cals[ci][1], bool) for ci in range(len(ring_cams))]
+    claims = {}
+    for v, oidx, ci, k in cand:
+        claims.setdefault((ci, k), set()).add(oidx)
+    ambiguous = {key for key, s in claims.items() if len(s) >= 2}
+    for ci, k in ambiguous:
+        poison_masks[ci] |= seg_insts[ci][k][1]
+    cand.sort(key=lambda t: -t[0])
+    taken_inst = set(); taken_slot = set()
+    assign = {}   # (obj_idx, ci) -> instance index
+    for v, oidx, ci, k in cand:
+        if (ci, k) in ambiguous: continue
+        if (ci, k) in taken_inst or (oidx, ci) in taken_slot: continue
+        taken_inst.add((ci, k)); taken_slot.add((oidx, ci))
+        assign[(oidx, ci)] = k
+    # pass 3: c_own choice — EVIDENCE COMPLETENESS first (a mask not truncated by its
+    # image border means this camera saw the WHOLE object: single-time render, no seam;
+    # splitting a straddler across two exposure times necessarily tears it open by
+    # object_speed * dt at the FOV boundary), Voronoi dominance among equals.
+    n_handled, n_unmatched = 0, 0
+    objects = []
+    for oidx, meta in enumerate(obj_meta):
+        per_cam_mask = {}   # IMAGE evidence per camera (label-position-independent)
+        best = None   # ((complete, neg_bperp), ci, mask, dist)
+        for ci in sorted(meta["per_cam_pose"]):
+            k = assign.get((oidx, ci))
+            if k is None: continue
+            m = seg_insts[ci][k][1]
+            c_a, sz, R_a, dist = meta["per_cam_pose"][ci]
+            poison_masks[ci] |= m   # this camera sees THIS moving object here
+            per_cam_mask[ci] = (m, dist)
+            # completeness margin: 1% of the image dimension — YOLO mask edges are ragged,
+            # a truncated mask can stop a few px short of the border (seen: x_min=4 on a
+            # nose cut off at x=0). False-incomplete is mild (falls back to the split
+            # path); false-complete tears the object. Asymmetric costs -> conservative.
+            mh, mw = m.shape; mgy, mgx = max(4, mh // 100), max(4, mw // 100)
+            complete = not (m[:mgy, :].any() or m[-mgy:, :].any() or m[:, :mgx].any() or m[:, -mgx:].any())
+            tc = poses_emc[ci][1]
             dvec = (c_a - C) / max(dist, 1e-6)
             cvec = tc - C
             along = float(dvec @ cvec)
             neg_bperp = -math.sqrt(max(float(cvec @ cvec) - along * along, 0.0))
-            if best is None or neg_bperp > best[0]:
-                best = (neg_bperp, ci, seg_insts[ci][mi][1], c_a, dist)
+            key = (1 if complete else 0, neg_bperp)
+            if best is None or key > best[0]:
+                best = (key, ci, m, dist)
         if best is None:
             n_unmatched += 1
             continue
         n_handled += 1
-        # ---- ALL-IMAGE-EVIDENCE ARCHITECTURE (audit conclusion) ----
-        # The AV2 box 3D position is ~4 m off on fast tracks (audit: box projects 100 px away
-        # from where the camera actually imaged the car; label-time recalibration is killed by
-        # track-boundary clipping at anchor 0). Therefore: boxes do IDENTITY matching only;
-        # ALL spatial placement comes from image evidence (per-camera instance masks).
-        objects.append({"ci": best[1], "mask": best[2], "dist": best[4],
+        objects.append({"ci": best[1], "mask": best[2], "dist": best[3],
                         "per_cam_mask": dict(per_cam_mask)})
     # ---- composite ----
     # base EMC render with per-pixel chosen-cam + projections retained
@@ -431,7 +484,24 @@ def run_case(case_spec, run_name):
     body_cam = np.full(len(Xf), -1, np.int8)
     body_px = np.zeros(len(Xf), np.float32); body_py = np.zeros(len(Xf), np.float32)
     ghost_zone = np.zeros(len(Xf), bool)
+    n_secondary = 0
+    omc = []   # per (object, camera-pair) measured shutter displacement
     df = DIRS.reshape(-1, 3)
+    from scipy.ndimage import binary_fill_holes
+    def close_region(flat_bool):
+        """Topological closure (parameter-free, boundary-preserving): a hole strictly
+        enclosed by an object's silhouette at uniform distance IS the object — YOLO
+        masks lose thin dark structures (A-pillars) and the ghost ledger would
+        otherwise temporally fill real background INTO the car. Roll by the region's
+        circular mean to respect the ERP u-wrap before hole-filling."""
+        ib2 = flat_bool.reshape(H, W)
+        cols = np.nonzero(ib2.any(0))[0]
+        if cols.size == 0: return flat_bool
+        ang = cols / W * 2 * np.pi
+        cmean = math.atan2(float(np.sin(ang).mean()), float(np.cos(ang).mean())) % (2 * np.pi)
+        shift = W // 2 - int(round(cmean / (2 * np.pi) * W))
+        ib2 = binary_fill_holes(np.roll(ib2, shift, axis=1))
+        return np.roll(ib2, -shift, axis=1).reshape(-1)
     for ob in objects:
         ci = ob["ci"]; K, (hh, ww) = cals[ci]; Rc, tc = poses_emc[ci]
         Xobj = C[None, :] + ob["dist"] * df
@@ -444,12 +514,33 @@ def run_case(case_spec, run_name):
         xi = np.clip(px[sel].astype(np.int64), 0, ww - 1); yi = np.clip(py[sel].astype(np.int64), 0, hh - 1)
         inbody = np.zeros(len(Xf), bool)
         inbody[sel] = ob["mask"][yi, xi]
+        inbody = close_region(inbody) & ok   # & ok: hole pixels must still project into c_own
         body_cam[inbody] = ci
         body_px[inbody] = px[inbody]; body_py[inbody] = py[inbody]
-        # GHOST ZONE from IMAGE evidence: each camera's matched instance mask, back-projected
-        # at the object distance = where THAT camera's copy of the object sits in the ERP.
-        for ci2, (m2, d2) in ob.get("per_cam_mask", {}).items():
-            if ci2 == ci: continue
+        # SECONDARY BODY with OBJECT-MOTION SHUTTER COMPENSATION (OMC) + GHOST LEDGER.
+        # Each camera's mask covers only the PART of a boundary-straddling object it
+        # sees, AND imaged it at a DIFFERENT exposure time — naively butting the two
+        # halves tears the object open by object_speed * dt at the FOV boundary.
+        # OMC is the object-side symmetric piece to DB-86's EMC: measure the object's
+        # ERP displacement between the two exposures FROM THE MASKS THEMSELVES (the
+        # overlap strip both cameras see images the same physical part twice), shift
+        # the secondary camera's contribution to c_own's exposure-time position, THEN
+        # composite. The secondary camera's UNSHIFTED copy becomes ghost (-> temporal
+        # background recovery). Zero scene parameters: the shift is measured per
+        # object per camera pair from image evidence alone.
+        # own_cover = where c_own's evidence is AUTHORITATIVE. Negative evidence
+        # (absence of mask = "background here") is unreliable within the ragged border
+        # margin of c_own's own image (seen: a truncated mask starting at x=4 left a
+        # 4-column "background" strip at the FOV edge that temporal fill painted with
+        # the real background INSIDE the car). Positive evidence (inbody) keeps the
+        # full 1-px bounds; the authority region shrinks by the same 1% margin as the
+        # completeness test.
+        mgy2, mgx2 = max(4, hh // 100), max(4, ww // 100)
+        own_cover = (z > 0.1) & (px >= mgx2) & (px < ww - mgx2) & (py >= mgy2) & (py < hh - mgy2)
+        others = [c2 for c2 in ob.get("per_cam_mask", {}) if c2 != ci]
+        others.sort(key=lambda c2: abs(cam_ts[ring_cams[c2]] - cam_ts[ring_cams[ci]]))
+        for ci2 in others:
+            m2, d2 = ob["per_cam_mask"][ci2]
             K2, (hh2, ww2) = cals[ci2]; Rc2, tc2 = poses_emc[ci2]
             Xo2 = C[None, :] + d2 * df
             Xc2 = (Rc2.T @ (Xo2 - tc2[None, :]).T).T
@@ -459,7 +550,48 @@ def run_case(case_spec, run_name):
             ok2 = (z2 > 0.1) & (px2 >= 1) & (px2 < ww2 - 1) & (py2 >= 1) & (py2 < hh2 - 1)
             s2 = np.nonzero(ok2)[0]
             xi2 = np.clip(px2[s2].astype(np.int64), 0, ww2 - 1); yi2 = np.clip(py2[s2].astype(np.int64), 0, hh2 - 1)
-            ghost_zone[s2[m2[yi2, xi2]]] = True
+            rep2f = np.zeros(len(Xf), bool)
+            rep2f[s2[m2[yi2, xi2]]] = True   # where THIS camera's copy of the object sits in the ERP
+            rep2b = close_region(rep2f) & ok2
+            # OMC shift estimate: binary alignment of the two masks inside the overlap strip
+            strip = own_cover & ok2
+            A2 = (inbody & strip).reshape(H, W); B2 = (rep2b & strip).reshape(H, W)
+            du_best, dv_best, sc_best = 0, 0, -1.0
+            if min(int(A2.sum()), int(B2.sum())) >= 50:   # evidence-sufficiency gate
+                yy, xx = np.nonzero(A2 | B2)
+                y0c = max(0, int(yy.min()) - 12); y1c = min(H, int(yy.max()) + 13)
+                x0c = max(0, int(xx.min()) - 70); x1c = min(W, int(xx.max()) + 71)
+                Ac = A2[y0c:y1c, x0c:x1c]; Bc = B2[y0c:y1c, x0c:x1c]
+                for dv2 in range(-8, 9, 2):
+                    for du2 in range(-60, 61, 2):
+                        Bs = np.roll(np.roll(Bc, dv2, axis=0), du2, axis=1)
+                        sc = float((Ac & Bs).sum()) / max(float((Ac | Bs).sum()), 1.0)
+                        if sc > sc_best: sc_best, du_best, dv_best = sc, du2, dv2
+                for dv2 in range(dv_best - 1, dv_best + 2):
+                    for du2 in range(du_best - 1, du_best + 2):
+                        Bs = np.roll(np.roll(Bc, dv2, axis=0), du2, axis=1)
+                        sc = float((Ac & Bs).sum()) / max(float((Ac | Bs).sum()), 1.0)
+                        if sc > sc_best: sc_best, du_best, dv_best = sc, du2, dv2
+            omc.append({"cam_pair": [ring_cams[ci], ring_cams[ci2]], "du": int(du_best),
+                        "dv": int(dv_best), "score": round(sc_best, 3)})
+            # secondary body = the OMC-shifted copy, only outside c_own's FOV
+            shifted = np.roll(np.roll(rep2b.reshape(H, W), dv_best, axis=0), du_best, axis=1).reshape(-1)
+            ti = np.nonzero(shifted & (~own_cover) & (body_cam < 0))[0]
+            sv = ti // W - dv_best; su = (ti % W - du_best) % W
+            keep = (sv >= 0) & (sv < H)
+            ti = ti[keep]; si = sv[keep] * W + su[keep]
+            if ti.size:
+                body_cam[ti] = ci2
+                body_px[ti] = px2[si]; body_py[ti] = py2[si]
+                n_secondary += int(ti.size)
+            # ghost: this camera's UNSHIFTED copy anywhere not claimed as body — but a
+            # ghost only EXISTS when the measured displacement exceeds the measurement
+            # quantisation (~2 px): at zero displacement the "displaced copy" IS the
+            # body, and rep2-minus-body is pure mask-edge noise (filling it paints
+            # shadowless road over the contact shadow). Anchor-time cameras already
+            # render those pixels correctly.
+            if abs(du_best) > 2 or abs(dv_best) > 2:
+                ghost_zone |= rep2b & (body_cam < 0)
     # assemble image
     out = np.zeros((len(Xf), 3), np.uint8)
     for ci, cam in enumerate(ring_cams):
@@ -480,7 +612,12 @@ def run_case(case_spec, run_name):
     # LiDAR-evidenced background depth; everything else falls back to EMC (rule 4).
     n_filled = 0
     sup_ok = (Zsupport.reshape(-1) <= 4.0)
-    zone_flat = np.nonzero(ghost_zone & (body_cam < 0) & sup_ok)[0]
+    # TEMPORAL RECOVERY IS THE LAST RESORT: only where NO camera cleanly sees the
+    # background at anchor time (needs_fill = all views poisoned, true mutual
+    # disocclusion). Where a clean camera exists, RULE 2 already renders the true
+    # anchor-time background (e.g. the shadowed road under the car — a fill from
+    # another TIME paints shadowless road and breaks the contact shadow).
+    zone_flat = np.nonzero(ghost_zone & needs_fill & (body_cam < 0) & sup_ok)[0]
     leftover = np.nonzero(needs_fill & (body_cam < 0) & ~(ghost_zone & sup_ok))[0]
     if leftover.size:
         for ci, cam in enumerate(ring_cams):
@@ -573,7 +710,7 @@ def run_case(case_spec, run_name):
     try: f = ImageFont.truetype("DejaVuSans.ttf", 16)
     except Exception: f = ImageFont.load_default()
     rows = []
-    for tag, im in (("EMC base", emc), (f"SEG-COMPOSITE (objs={n_handled} unmatched={n_unmatched} filled={n_filled}px)", comp)):
+    for tag, im in (("EMC base", emc), (f"SEG-COMPOSITE (objs={n_handled} unmatched={n_unmatched} secondary={n_secondary}px filled={n_filled}px)", comp)):
         pil = I.fromarray(im).resize((1400, 700))
         bar = I.new("RGB", (1400, 24), (15, 15, 22)); ImageDraw.Draw(bar).text((6, 4), f"{run_name}  {tag}", (235, 235, 245), font=f)
         o = I.new("RGB", (1400, 724)); o.paste(bar, (0, 0)); o.paste(pil, (0, 24)); rows.append(o)
@@ -582,7 +719,8 @@ def run_case(case_spec, run_name):
     for o in rows: board.paste(o, (0, yo)); yo += o.height
     board.save(REMOTE_OUT / f"{run_name}_db89_board.jpg", quality=90)
     return {"case": run_name, "n_objects_composited": int(n_handled), "n_unmatched": int(n_unmatched),
-            "n_temporal_filled_px": int(n_filled)}
+            "n_secondary_body_px": int(n_secondary), "n_temporal_filled_px": int(n_filled),
+            "omc_shifts": omc}
 
 
 try:

@@ -1,6 +1,6 @@
 {
   "phase": "db89_ghost_recovery",
-  "started_utc": "2026-06-10T08:58:35Z",
+  "started_utc": "2026-06-10T09:48:43Z",
   "scope": {
     "segmentation_ownership_only": true,
     "generation": false
@@ -9,11 +9,32 @@
   "cases": [
     {
       "case": "02a00399_a000_bmw",
-      "n_objects_composited": 5,
-      "n_unmatched": 5,
-      "n_temporal_filled_px": 1665
+      "n_objects_composited": 4,
+      "n_unmatched": 6,
+      "n_secondary_body_px": 1607,
+      "n_temporal_filled_px": 0,
+      "omc_shifts": [
+        {
+          "cam_pair": [
+            "ring_rear_left",
+            "ring_rear_right"
+          ],
+          "du": 0,
+          "dv": -1,
+          "score": 0.921
+        },
+        {
+          "cam_pair": [
+            "ring_front_left",
+            "ring_side_left"
+          ],
+          "du": 0,
+          "dv": -1,
+          "score": 0.946
+        }
+      ]
     }
   ],
-  "runtime_s": 16.8,
-  "ended_utc": "2026-06-10T08:58:52Z"
+  "runtime_s": 16.48,
+  "ended_utc": "2026-06-10T09:49:00Z"
 }
