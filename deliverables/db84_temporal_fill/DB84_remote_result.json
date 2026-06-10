@@ -1,0 +1,16 @@
+{
+  "phase": "db84_temporal_fill",
+  "started_utc": "2026-06-10T00:39:31Z",
+  "scope": {
+    "evidence_only_fill": true,
+    "generation": false,
+    "a100": false
+  },
+  "status": "db84_failed",
+  "error": {
+    "type": "TypeError",
+    "message": "unsupported format string passed to NoneType.__format__",
+    "trace_tail": "Traceback (most recent call last):\n  File \"<db84_remote>\", line 351, in <module>\n  File \"<db84_remote>\", line 327, in run_case\nTypeError: unsupported format string passed to NoneType.__format__\n"
+  },
+  "ended_utc": "2026-06-10T00:39:34Z"
+}

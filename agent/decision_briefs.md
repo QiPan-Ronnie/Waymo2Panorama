@@ -141,6 +141,37 @@ Result summary: TBD.
 
 ---
 
+# DB-84: Temporal disocclusion repair — fill the no-evidence zone beside near objects with REAL pixels from other timestamps (CPU/L4, NO generation)
+Status: **EXPLORED (2026-06-09 evening)** — Step-1 measurement POS (temporal visibility **100 %** sedan zone / **78 %** crowd-truck zone, both far above the 60 % pre-registration); Step-2 render BLOCKED by a discovery that **re-diagnoses DB-83 entirely** (below). Render lane handed to DB-85.
+**★ MAJOR MECHANISM CORRECTION (data-verified):** the BMW "sedan" is a REGULAR_VEHICLE with **track displacement 111.65 m over 63 frames (~17.7 m/s)** — it is a *moving* car. And AV2's 7 ring cameras are **NOT synchronized**: measured capture offsets front_center 0 / front_left −12.5 ms / side_left +22.5 ms / side_right −22.4 ms (etc.). The car straddles front_left↔side_left whose offset is **35 ms → the car moves 0.62 m between the two exposures → 326·0.62/12.5 ≈ 16 ERP px** — exactly the observed doubling. ⇒ **DB-83's doubling was never a depth / disocclusion problem; it is motion × asynchronous shutter.** All 9 DB-83 geometry fixes were treating a disease the pixel did not have; v9's soft steering also failed because the annotation-time box projection is 25–50 px displaced from where each camera actually imaged the car (box at label time vs exposure times). DB-83's kill stands but its diagnosis is REWRITTEN.
+**What survives of DB-84:** the temporal-visibility result (static disocclusion zones ARE recoverable from ±1 s real pixels: 100 %/78 %) and the search machinery. Static-zone filling must first EXCLUDE moving-object regions (their box-time mislocation polluted the v1–v3 zone and erased the car from the fill); a clean static-only fill is folded into DB-85's scope.
+**Follow-on = DB-85 (next active): motion-aware object rendering** — for moving tracks, interpolate the box pose to EACH CAMERA's exposure time (pose + track interpolation, all data available), build per-camera-time footprints, prefer the single camera that images the object most completely; optionally place via anchor-time box (motion compensation). Static disocclusion fill rides on top once moving objects are excluded from the zone.
+Products: `deliverables/db84_temporal_fill/` (stats JSON, A/B + zone boards = the evidence trail incl. the failed fills); diag JSONs non-repo. Secret 0.
+Route: A (source-faithful; time = the one evidence source the renderer has not used for RGB)
+
+**Question:** For the disocclusion zone beside boundary-straddling near objects (the exact region where DB-83's 9 deterministic fixes all failed because depth AND colour evidence are missing at the anchor instant), can other timestamps in the ±2 s window supply (a) real LiDAR depth (the occluded wall IS hit from other ego positions — multi-frame accumulation already contains those points) and (b) real RGB (a camera at another timestamp sees around the object), giving an evidence-based fill with zero hallucination?
+
+**Hypothesis:** Static-scene disocclusion is not "unknowable" — it is unknown only at one instant. As the ego translates ~5–15 m over the window, the line-of-sight to the blocked background sweeps around the foreground object; for most of the zone there exists a (frame, camera) pair whose optical centre sees the 3D point unobstructed. Per-pixel procedure: take the 3D point X from the accumulated (multi-frame) LiDAR background; search the window for the (frame, camera) with X visible (in-FOV, not blocked by any annotated box AT THAT FRAME's box positions) and minimal perpendicular ray-baseline; sample RGB there (with DB-81 gains; note cross-time exposure is a risk bucket).
+*Pre-registered prediction:* ≥60 % of the sedan's disocclusion zone becomes temporally visible; the filled render shows real wall/storefront instead of ghost wheels, vision-clean.
+
+**Why now:** (1) DB-83's kill report names exactly two proper lanes — layered rendering (expensive) or honest repair; temporal fill is a THIRD lane that is cheaper than both and strictly evidence-based, and nobody has used cross-time RGB in this project's renderer (DB-74's NEG was temporal labels into a 2D optimizer — different thing; the leader's own §7 flagged ring-temporal as "dismissed too fast"). (2) It is the entry point of the common-path idea (B4 follow-on): per-direction (frame, camera) selection with minimal b_perp — forward/backward sectors reach near-zero parallax. (3) All ingredients exist in the DB-80 pipeline (pose interpolation, accumulation, box handling, gains).
+**Expected evidence (cost-ascending):**
+- **Step 1 (measurement, one /exec):** for the BMW sedan ROI (and the crowd truck ROI), compute the disocclusion zone (pixels whose anchor-time min-b_perp camera is box-blocked); for each, search ±10 frames × 7 cams for unobstructed visibility of the background X; report `temporal_visibility_fraction`, the chosen (frame, cam) histogram, and the b_perp distribution of the chosen pairs.
+- **Step 2 (render A/B, same /exec or second):** render the ROI with temporal fill (anchor pixels everywhere else; fill ONLY where anchor evidence is missing AND temporal evidence exists; remaining gap = honest abstain/black); board base vs filled; vision gate.
+- **Step 3 (only if 1–2 pass): generality** — apply to all 5 scenes' near-vehicle zones; count fills, vision-sample 2 scenes.
+
+**Kill criteria:** temporal_visibility_fraction < 30 % on the sedan zone → time does not reach this geometry, close. Render shows cross-time artifacts WORSE than the ghost (exposure jump / moving-object residue / pose-error smear) after ONE debug pass → record + close (the exposure-jump failure specifically gates on whether per-frame gain re-solve fixes it; if not, close). Any generative fill / any fill outside the no-evidence zone → out of scope. More than 3 /execs total → stop and report.
+
+**Max scope:** BMW + crowd ROIs first; 5-scene step only after vision pass; CPU/L4; reuse DB-80/81 pipeline code; results non-repo + Read-verify; secret 0.
+
+**Required vision check:** the sedan ROI: ghost wheels region must show plausible REAL background (storefront/wall continuation), no new doubling, no exposure patch; boundaries of the fill not harshly visible. Eyes beat metrics.
+
+**Output location:** `deliverables/db84_temporal_fill/`.
+
+Result summary: TBD.
+
+---
+
 ## ⭐⭐ PREVIOUS ACTIVE BRIEF (2026-06-06 v2) — DB-79 DONE; read `agent/2026-06-06-deep-retrospective.md` (its practical conclusion is now re-scoped by DB-80 above)
 
 > **Deep retrospective (19-agent workflow `wf_789ffbb7-1a7`) reset the priorities.** Root cause of the churn = the **source-faithful(A) vs look-good(B) fork was never resolved and we built under BOTH**. User decision (2026-06-06): **layer BOTH — A = canonical training-safe floor; B = a SEPARATE labeled presentation layer on top, never mixed into training truth.** Also found: the "3 geometry walls" are **~1.5 + 1 mislabeled** — DB-77B p90 15.4/12.8m is partly an NN-fill metric artifact scored across occlusion edges; DB-76a false-GREEN is rotation-only (no-depth baseline); only **EXP-B UniDepth** is a clean confirm (wall real at SILHOUETTES, over-credited on SURFACES). → settle the wall with a FAIR metric BEFORE any A100. User: **run DB-79 first, hold the A100.**

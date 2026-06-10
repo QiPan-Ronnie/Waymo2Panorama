@@ -1,0 +1,28 @@
+{
+ "by_case": [
+  {
+   "case": "bmw_sedan",
+   "stats": {
+    "n_roi_px": 51000,
+    "n_zone_px": 5502,
+    "zone_frac_of_roi": 0.10788235294117647,
+    "temporal_visibility_fraction": 1.0,
+    "fillable_fraction": 1.0,
+    "chosen_bperp_p50": 1.7865867509258548,
+    "n_frames_searched": 10
+   }
+  },
+  {
+   "case": "crowd_truck",
+   "stats": {
+    "n_roi_px": 122200,
+    "n_zone_px": 56016,
+    "zone_frac_of_roi": 0.4583960720130933,
+    "temporal_visibility_fraction": 0.7796165381319623,
+    "fillable_fraction": 0.6341402456441017,
+    "chosen_bperp_p50": 1.875275640467481,
+    "n_frames_searched": 20
+   }
+  }
+ ]
+}
