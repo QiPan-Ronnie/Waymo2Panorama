@@ -172,6 +172,20 @@ Result summary: TBD.
 
 ---
 
+# DB-91: Three user-found residuals vs L1 baseline (QUEUED — token break; algorithm milestone SAFE at tag db90-v3-porsche-solved)
+Status: **queued (2026-06-10 night).** User confirmed the Porsche overlap is SOLVED, then A/B'd the new render against the ORIGINAL L1 baseline and found 3 residuals the L1 didn't have:
+1. **Granulation above the downpipe/storefront (left, mark 1)** — area noisy/grainy vs clean L1.
+2. **Green protrusion above the Porsche roof (mark 2)** — a bump of wrong content sticking out of the roofline.
+3. **Granulation on the wall ahead of the white X3 (mark 3)** — same grain class as (1).
+
+**Preliminary diagnosis (UNVERIFIED — first action next session is the ledger overlay on marks 1/3 and a temporal-fill dump on mark 2):**
+- (1)+(3) granulation: both sit near MOVING-object poison regions (mark 3 = exactly the 514k ambiguous-instance veto-poison around the X3; mark 1 = near the pedestrian track). Poison evicts the natural min-b_perp camera, the fallback renders those backgrounds from LARGE-b_perp cameras where the LiDAR-EDT depth field's per-pixel jumps translate into per-pixel sampling jitter = grain. The "veto is harmless" assumption was wrong: poison has a COST (worse cameras + depth noise amplification). Candidate general fixes: (a) poison only blocks cameras whose projection actually lands on the MATCHED instance (not the whole merged blob); (b) fallback in poison regions prefers ONE coherent donor camera per region (region-level choice) instead of per-pixel min-b_perp; (c) depth-evidence-gated smoothing of Zd where LiDAR support is sparse.
+- (2) green protrusion: the ~259 temporally-filled ghost px live exactly above the roof (side_left's vacated unshifted copy). The fill passed the geometric triple gate but imported content/colour inconsistent with the surrounding wall (wrong frame/camera tint or a genuinely different object at that time). Candidate general fix: photometric consistency gate — temporal fill must agree with the local EMC neighbourhood within the gain-solve residual, else abstain to EMC (rule 5).
+
+**Hard constraint: every fix must be general (zero scene parameters) and must not regress the tagged milestone. A/B against BOTH the L1 baseline and db90-v3.**
+
+---
+
 # DB-90: View-morph the straddle seam — selection answers WHO/WHERE, interpolation answers HOW (literature: Surround360/Jump/Megastereo flow-corrected blending)
 Status: **POS ⭐ (2026-06-10 evening, 2 /execs)** — ECC converged cc=0.928, measured misregistration up to **9 px**; 16x: roofline/sill/shoulder CONTINUOUS. **v2 addendum (user-prompted, the greenhouse 'overlap'):** the alpha-ramp DOUBLE-EXPOSED the glass — reflections are VIEW-DEPENDENT (mirrored content's parallax follows the reflected source's depth, not the body's), so no registration can align them and any blend ghosts. ABC adjudication (native-warp truth vs composite vs EMC) localised it to the morph strip; outside the strip the 'two arcs' are REAL optics (far-side window edge through tinted glass + storefront reflection). **Fix = RULE 7: blending is only legal where the two views agree; view-dependent content takes a winner-take-all min-difference DP seam (Photomontage, Agarwala'04) + 2 px feather, with geometry still morph-interpolated.** Vision: composite now matches the native-warp truth in the shared region; double-exposure gone. seam_diff_med 276 (the seam crosses glass at one hidden switch point — expected). Residuals: native chroma fringe, static-bg photometric seam (next: apply the same strip machinery to static seams).
 
