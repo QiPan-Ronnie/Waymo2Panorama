@@ -486,6 +486,7 @@ def run_case(case_spec, run_name):
     ghost_zone = np.zeros(len(Xf), bool)
     n_secondary = 0
     omc = []   # per (object, camera-pair) measured shutter displacement
+    morph_jobs = []   # straddle objects: (ci_own, ci_sec, d_own, d_sec, shift, body_flat)
     df = DIRS.reshape(-1, 3)
     from scipy.ndimage import binary_fill_holes
     def close_region(flat_bool):
@@ -537,6 +538,8 @@ def run_case(case_spec, run_name):
         # completeness test.
         mgy2, mgx2 = max(4, hh // 100), max(4, ww // 100)
         own_cover = (z > 0.1) & (px >= mgx2) & (px < ww - mgx2) & (py >= mgy2) & (py < hh - mgy2)
+        obj_body = inbody.copy()
+        best_sec = None   # (n_px, ci2, d2, (dv,du))
         others = [c2 for c2 in ob.get("per_cam_mask", {}) if c2 != ci]
         others.sort(key=lambda c2: abs(cam_ts[ring_cams[c2]] - cam_ts[ring_cams[ci]]))
         for ci2 in others:
@@ -584,6 +587,9 @@ def run_case(case_spec, run_name):
                 body_cam[ti] = ci2
                 body_px[ti] = px2[si]; body_py[ti] = py2[si]
                 n_secondary += int(ti.size)
+                obj_body[ti] = True
+                if best_sec is None or ti.size > best_sec[0]:
+                    best_sec = (int(ti.size), ci2, d2, (dv_best, du_best))
             # ghost: this camera's UNSHIFTED copy anywhere not claimed as body — but a
             # ghost only EXISTS when the measured displacement exceeds the measurement
             # quantisation (~2 px): at zero displacement the "displaced copy" IS the
@@ -592,6 +598,8 @@ def run_case(case_spec, run_name):
             # render those pixels correctly.
             if abs(du_best) > 2 or abs(dv_best) > 2:
                 ghost_zone |= rep2b & (body_cam < 0)
+        if best_sec is not None and best_sec[0] >= 50:
+            morph_jobs.append((ci, best_sec[1], ob["dist"], best_sec[2], best_sec[3], obj_body))
     # assemble image
     out = np.zeros((len(Xf), 3), np.uint8)
     for ci, cam in enumerate(ring_cams):
@@ -693,6 +701,101 @@ def run_case(case_spec, run_name):
             col = np.clip(bilinear(img2, px2, py2) * g2, 0, 255)
             out[zone_flat[sel]] = col.astype(np.uint8)
             n_filled += int(sel.sum())
+    # ---- STAGE 3.5: VIEW-MORPH the straddle seam (Surround360/Megastereo-style) ----
+    # A hard butt-joint between two cameras' halves of one object leaves a 1-2 px
+    # registration step + a photometric step that the eye integrates as DOUBLING
+    # (user-confirmed at 16x: roofline/sill/shoulder lines all step at the seam).
+    # Selection answers WHO/WHERE (evidence calculus); interpolation answers HOW to
+    # transition: ECC-affine registration (rigid object, small view change) + an
+    # alpha-ramp Beier-Neely morph across the evidence-bounded overlap strip.
+    import cv2 as _cv
+    gimgs = [np.clip(frame.images[cam].astype(np.float32) * np.exp(gains[ci_]).astype(np.float32)[None, None, :], 0, 255).astype(np.uint8)
+             for ci_, cam in enumerate(ring_cams)]
+
+    def sample_cam_patch(ci_s, dist_s, rows_s, cols_s, shift=(0, 0)):
+        """ERP patch (rows x cols grid at uniform distance) rendered from one camera.
+        shift=(dv,du): sample the source at y-shift (OMC: content appears moved +shift)."""
+        rr, cc = np.meshgrid(rows_s, cols_s, indexing="ij")
+        rr2 = np.clip(rr - shift[0], 0, H - 1)
+        cc2 = (cc - shift[1]) % W
+        dirs_p = DIRS[rr2, cc2]
+        Xp = (C[None, None, :] + dist_s * dirs_p).reshape(-1, 3)
+        K_, (hh_, ww_) = cals[ci_s]
+        Rc_, tc_ = poses_emc[ci_s]
+        Xc_ = (Xp - tc_[None, :]) @ Rc_
+        z_ = Xc_[:, 2]
+        px_ = (K_[0, 0] * Xc_[:, 0] / np.maximum(z_, 1e-6) + K_[0, 2]).astype(np.float32)
+        py_ = (K_[1, 1] * Xc_[:, 1] / np.maximum(z_, 1e-6) + K_[1, 2]).astype(np.float32)
+        valid = (z_ > 0.1) & (px_ >= 1) & (px_ < ww_ - 1) & (py_ >= 1) & (py_ < hh_ - 1)
+        col = np.zeros((len(z_), 3), np.float32)
+        if valid.any():
+            col[valid] = bilinear(gimgs[ci_s], px_[valid], py_[valid]).astype(np.float32)
+        return col.reshape(rr.shape + (3,)), valid.reshape(rr.shape)
+
+    out2 = out.reshape(H, W, 3)
+    morph_report = []
+    for ci_o, ci_s, d_o, d_s, shift_s, body_flat in morph_jobs:
+        m2d = body_flat.reshape(H, W)
+        rows_any = np.nonzero(m2d.any(1))[0]; cols_any = np.nonzero(m2d.any(0))[0]
+        if rows_any.size == 0 or cols_any.size > W // 2: continue   # skip wrap/degenerate
+        v0o, v1o = int(rows_any.min()), int(rows_any.max())
+        u0o, u1o = int(cols_any.min()), int(cols_any.max())
+        rows_p = np.arange(max(0, v0o - 8), min(H, v1o + 9))
+        cols_p = np.arange(u0o - 8, u1o + 9)   # may exceed [0,W); helper wraps
+        A_patch, A_val = sample_cam_patch(ci_o, d_o, rows_p, cols_p)
+        B_patch, B_val = sample_cam_patch(ci_s, d_s, rows_p, cols_p, shift_s)
+        body_p = m2d[np.ix_(rows_p, cols_p % W)]
+        # overlap strip: columns where BOTH cameras cover the object's rows
+        colA = (A_val & body_p).sum(0); colB = (B_val & body_p).sum(0); colN = body_p.sum(0)
+        both = (colN > 0) & (colA >= 0.9 * colN) & (colB >= 0.9 * colN)
+        bi = np.nonzero(both)[0]
+        if bi.size < 4: continue
+        # B-pure end = the side where A loses coverage beyond the strip
+        left_A = colA[:bi[0]].sum(); right_A = colA[bi[-1] + 1:].sum()
+        b_side_left = left_A <= right_A
+        # clamp strip to 32 cols hugging the B side
+        if bi.size > 32: bi = bi[:32] if b_side_left else bi[-32:]
+        # ECC affine registration B->A on the strip (gray, masked)
+        gA = _cv.cvtColor(A_patch.astype(np.uint8), _cv.COLOR_RGB2GRAY).astype(np.float32) / 255.0
+        gB = _cv.cvtColor(B_patch.astype(np.uint8), _cv.COLOR_RGB2GRAY).astype(np.float32) / 255.0
+        mask_ecc = np.zeros(body_p.shape, np.uint8)
+        mask_ecc[:, bi] = (body_p[:, bi] & A_val[:, bi] & B_val[:, bi]).astype(np.uint8) * 255
+        M = np.eye(2, 3, dtype=np.float32)
+        cc_ecc = 0.0
+        try:
+            cc_ecc, M = _cv.findTransformECC(gA, gB, M, _cv.MOTION_AFFINE,
+                                             (_cv.TERM_CRITERIA_EPS | _cv.TERM_CRITERIA_COUNT, 60, 1e-5),
+                                             mask_ecc, 3)
+        except _cv.error:
+            M = np.eye(2, 3, dtype=np.float32)   # fallback: pure cross-fade
+        # alpha ramp across the strip (1.0 at the B-pure end)
+        alpha_col = np.zeros(body_p.shape[1], np.float32)
+        ramp = np.linspace(1.0, 0.0, bi.size, dtype=np.float32)
+        alpha_col[bi] = ramp if b_side_left else ramp[::-1]
+        if b_side_left: alpha_col[:bi[0]] = 1.0
+        else: alpha_col[bi[-1] + 1:] = 1.0
+        # Beier-Neely with the affine displacement field d(y) = M·y - y
+        yy, xx = np.meshgrid(np.arange(body_p.shape[0], dtype=np.float32),
+                             np.arange(body_p.shape[1], dtype=np.float32), indexing="ij")
+        dx = M[0, 0] * xx + M[0, 1] * yy + M[0, 2] - xx
+        dy = M[1, 0] * xx + M[1, 1] * yy + M[1, 2] - yy
+        al = np.broadcast_to(alpha_col[None, :], body_p.shape).astype(np.float32)
+        A_w = _cv.remap(A_patch, xx + al * dx, yy + al * dy, _cv.INTER_LINEAR, borderMode=_cv.BORDER_REPLICATE)
+        B_w = _cv.remap(B_patch, xx - (1 - al) * dx, yy - (1 - al) * dy, _cv.INTER_LINEAR, borderMode=_cv.BORDER_REPLICATE)
+        Av_w = _cv.remap(A_val.astype(np.uint8), xx + al * dx, yy + al * dy, _cv.INTER_NEAREST) > 0
+        Bv_w = _cv.remap(B_val.astype(np.uint8), xx - (1 - al) * dx, yy - (1 - al) * dy, _cv.INTER_NEAREST) > 0
+        w_a = (1 - al) * Av_w; w_b = al * Bv_w
+        den = np.maximum(w_a + w_b, 1e-6)
+        blend = (A_w * w_a[:, :, None] + B_w * w_b[:, :, None]) / den[:, :, None]
+        write = body_p & ((Av_w | Bv_w))
+        write[:, ~((alpha_col > 0) & (alpha_col < 1))] &= False   # only strip interior
+        tgt_r = rows_p[:, None] * np.ones_like(cols_p)[None, :]
+        tgt_c = np.ones_like(rows_p)[:, None] * (cols_p % W)[None, :]
+        out2[tgt_r[write], tgt_c[write]] = np.clip(blend[write], 0, 255).astype(np.uint8)
+        morph_report.append({"cam_pair": [ring_cams[ci_o], ring_cams[ci_s]],
+                             "strip_cols": int(bi.size), "ecc_cc": round(float(cc_ecc), 3),
+                             "max_reg_px": round(float(np.hypot(dx, dy)[mask_ecc > 0].max()) if (mask_ecc > 0).any() else 0.0, 2),
+                             "n_px": int(write.sum())})
     comp = out.reshape(H, W, 3)
     # plain EMC base for the A/B
     embase = np.zeros((len(Xf), 3), np.uint8)
@@ -720,7 +823,7 @@ def run_case(case_spec, run_name):
     board.save(REMOTE_OUT / f"{run_name}_db89_board.jpg", quality=90)
     return {"case": run_name, "n_objects_composited": int(n_handled), "n_unmatched": int(n_unmatched),
             "n_secondary_body_px": int(n_secondary), "n_temporal_filled_px": int(n_filled),
-            "omc_shifts": omc}
+            "omc_shifts": omc, "view_morph": morph_report}
 
 
 try:

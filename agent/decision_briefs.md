@@ -172,6 +172,23 @@ Result summary: TBD.
 
 ---
 
+# DB-90: View-morph the straddle seam — selection answers WHO/WHERE, interpolation answers HOW (literature: Surround360/Jump/Megastereo flow-corrected blending)
+Status: **POS ⭐ (2026-06-10 evening, 1 /exec)** — ECC converged cc=0.928, measured misregistration up to **9 px** (far above the eyeballed 1-2 px — the affine absorbed it all), 1104 px morphed over a 32-col strip. 16x: roofline/sill/shoulder CONTINUOUS through the former seam; 8x: ONE car, no doubling, slight in-strip softness (acceptable). Residuals: source-data chroma fringe (in native), pre-existing static-background photometric seam right of the car.
+
+**Trigger:** user marked 4 arrows on the v12 Porsche reading as "two overlapping cars". 16x forensics: every long horizontal feature (roofline/sill/shoulder) takes a 1-2 px vertical STEP + photometric break at the u~604 butt-joint between the front_left and side_left halves. Diff-vs-EMC proved the composite only changed thin edges — the doubling reading IS the seam misregistration.
+
+**First-principles admission:** hard per-pixel ownership (mosaic) treats the seam as a decision problem; the physical scene is view-CONTINUOUS. The correct primitive at the boundary between two views of the same surface is ray-space interpolation (view morphing), not selection. Selection's accuracy floor = registration residual (1-2 px) + photometric step — exactly what the user saw. Literature is unambiguous: Megastereo (CVPR'13), Jump (SIGGRAPH Asia'16), Facebook Surround360 (2016) all flow-register and alpha-morph the overlap strip; APAP/parallax-tolerant stitching use local warps for the same reason. Our own memory already blessed "Surround360 flow view-interp on the overlap strip" as the clean L1++ tool — we never applied it to the OBJECT strip.
+
+**Design (stage 3.5 in db89_ghost_recovery.py):** per straddling object: evidence-bounded overlap strip (columns where BOTH cameras cover >=90% of the object's rows, clamped to 32, hugging the secondary side) -> ECC-affine registration B->A on the strip (rigid object, small view delta; ECC = Evangelidis & Psarakis PAMI'08; fallback identity = pure cross-fade) -> Beier-Neely alpha-ramp morph with the affine displacement field (A sampled at y+alpha*d, B at y-(1-alpha)*d), validity-weighted blend. Evidence calculus keeps WHO/WHERE (cameras, strip, moving-object isolation — our delta vs vanilla Surround360 which flows the whole overlap).
+
+**Kill criteria:** morph introduces wobble/blur worse than the step (vision at 8x/16x) -> revert to v12 butt-joint; ECC diverges on >half the jobs -> rethink. Max 3 /execs.
+
+**Required vision check:** roofline/sill/shoulder lines CONTINUOUS through the strip at 16x; no new blur outside the strip; X3 and full pano regression-free.
+
+Result summary: TBD.
+
+---
+
 # DB-89: Ghost-zone temporal recovery — the hardened v7 general algorithm (CPU+L4 YOLO, NO generation)
 Status: **CONVERGED / POS ⭐ (2026-06-10 v12 — new best render)**
 Route: A (source-faithful; evidence-driven, zero scene parameters).

@@ -1,6 +1,6 @@
 {
   "phase": "db89_ghost_recovery",
-  "started_utc": "2026-06-10T09:48:43Z",
+  "started_utc": "2026-06-10T10:06:15Z",
   "scope": {
     "segmentation_ownership_only": true,
     "generation": false
@@ -32,9 +32,21 @@
           "dv": -1,
           "score": 0.946
         }
+      ],
+      "view_morph": [
+        {
+          "cam_pair": [
+            "ring_front_left",
+            "ring_side_left"
+          ],
+          "strip_cols": 32,
+          "ecc_cc": 0.928,
+          "max_reg_px": 8.96,
+          "n_px": 1104
+        }
       ]
     }
   ],
-  "runtime_s": 16.48,
-  "ended_utc": "2026-06-10T09:49:00Z"
+  "runtime_s": 16.66,
+  "ended_utc": "2026-06-10T10:06:32Z"
 }
