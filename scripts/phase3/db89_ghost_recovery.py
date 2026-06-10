@@ -503,6 +503,29 @@ def run_case(case_spec, run_name):
         shift = W // 2 - int(round(cmean / (2 * np.pi) * W))
         ib2 = binary_fill_holes(np.roll(ib2, shift, axis=1))
         return np.roll(ib2, -shift, axis=1).reshape(-1)
+    import cv2 as _cv
+    gimgs = [np.clip(frame.images[cam].astype(np.float32) * np.exp(gains[ci_]).astype(np.float32)[None, None, :], 0, 255).astype(np.uint8)
+             for ci_, cam in enumerate(ring_cams)]
+
+    def sample_cam_patch(ci_s, dist_s, rows_s, cols_s, shift=(0, 0)):
+        """ERP patch (rows x cols grid at uniform distance) rendered from one camera.
+        shift=(dv,du): sample the source at y-shift (OMC: content appears moved +shift)."""
+        rr, cc = np.meshgrid(rows_s, cols_s, indexing="ij")
+        rr2 = np.clip(rr - shift[0], 0, H - 1)
+        cc2 = (cc - shift[1]) % W
+        dirs_p = DIRS[rr2, cc2]
+        Xp = (C[None, None, :] + dist_s * dirs_p).reshape(-1, 3)
+        K_, (hh_, ww_) = cals[ci_s]
+        Rc_, tc_ = poses_emc[ci_s]
+        Xc_ = (Xp - tc_[None, :]) @ Rc_
+        z_ = Xc_[:, 2]
+        px_ = (K_[0, 0] * Xc_[:, 0] / np.maximum(z_, 1e-6) + K_[0, 2]).astype(np.float32)
+        py_ = (K_[1, 1] * Xc_[:, 1] / np.maximum(z_, 1e-6) + K_[1, 2]).astype(np.float32)
+        valid = (z_ > 0.1) & (px_ >= 1) & (px_ < ww_ - 1) & (py_ >= 1) & (py_ < hh_ - 1)
+        col = np.zeros((len(z_), 3), np.float32)
+        if valid.any():
+            col[valid] = bilinear(gimgs[ci_s], px_[valid], py_[valid]).astype(np.float32)
+        return col.reshape(rr.shape + (3,)), valid.reshape(rr.shape)
     for ob in objects:
         ci = ob["ci"]; K, (hh, ww) = cals[ci]; Rc, tc = poses_emc[ci]
         Xobj = C[None, :] + ob["dist"] * df
@@ -555,11 +578,16 @@ def run_case(case_spec, run_name):
             xi2 = np.clip(px2[s2].astype(np.int64), 0, ww2 - 1); yi2 = np.clip(py2[s2].astype(np.int64), 0, hh2 - 1)
             rep2f = np.zeros(len(Xf), bool)
             rep2f[s2[m2[yi2, xi2]]] = True   # where THIS camera's copy of the object sits in the ERP
-            rep2b = close_region(rep2f) & ok2
+            # the DONOR's positive evidence inside its own border margin is rectification
+            # junk (black border columns get pulled in by mask raggedness) — same 1%
+            # border rule as c_own's negative evidence, applied symmetrically.
+            mgy2c, mgx2c = max(4, hh2 // 100), max(4, ww2 // 100)
+            ok2m = (z2 > 0.1) & (px2 >= mgx2c) & (px2 < ww2 - mgx2c) & (py2 >= mgy2c) & (py2 < hh2 - mgy2c)
+            rep2b = close_region(rep2f) & ok2m
             # OMC shift estimate: binary alignment of the two masks inside the overlap strip
             strip = own_cover & ok2
             A2 = (inbody & strip).reshape(H, W); B2 = (rep2b & strip).reshape(H, W)
-            du_best, dv_best, sc_best = 0, 0, -1.0
+            du_best, dv_best, sc_best, ncc_best = 0, 0, -1.0, -9.0
             if min(int(A2.sum()), int(B2.sum())) >= 50:   # evidence-sufficiency gate
                 yy, xx = np.nonzero(A2 | B2)
                 y0c = max(0, int(yy.min()) - 12); y1c = min(H, int(yy.max()) + 13)
@@ -575,11 +603,45 @@ def run_case(case_spec, run_name):
                         Bs = np.roll(np.roll(Bc, dv2, axis=0), du2, axis=1)
                         sc = float((Ac & Bs).sum()) / max(float((Ac | Bs).sum()), 1.0)
                         if sc > sc_best: sc_best, du_best, dv_best = sc, du2, dv2
+                # ECC IMAGE refinement: mask-IoU is blind to ~15 px shifts (coarse ragged
+                # silhouettes barely change IoU), while the physics budget says
+                # object_speed * dt / dist is exactly that order (17.7 m/s * 35 ms at
+                # 13 m ~ 15 px). Estimate pure translation on the RENDERED GRAYS inside
+                # the masks; arbitrate candidates (coarse, +ecc, -ecc) by masked NCC so
+                # a sign mistake cannot slip through.
+                rows_e = np.arange(y0c, y1c); cols_e = np.arange(x0c, x1c)
+                Ae, Aev = sample_cam_patch(ci, ob["dist"], rows_e, cols_e)
+                Be, Bev = sample_cam_patch(ci2, d2, rows_e, cols_e)
+                gAe = Ae.mean(2).astype(np.float32) / 255.0
+                gBe = Be.mean(2).astype(np.float32) / 255.0
+                def ncc_at(du_c, dv_c):
+                    Bs2 = np.roll(np.roll(gBe, dv_c, 0), du_c, 1)
+                    Ms2 = np.roll(np.roll(Bc & Bev, dv_c, 0), du_c, 1) & Ac & Aev
+                    if Ms2.sum() < 50: return -2.0
+                    a_ = gAe[Ms2] - gAe[Ms2].mean(); b_ = Bs2[Ms2] - Bs2[Ms2].mean()
+                    return float((a_ * b_).sum() / max(np.sqrt((a_ * a_).sum() * (b_ * b_).sum()), 1e-9))
+                cand = [(du_best, dv_best)]
+                Mt = np.eye(2, 3, dtype=np.float32); Mt[0, 2] = -du_best; Mt[1, 2] = -dv_best
+                try:
+                    _cce, Mt = _cv.findTransformECC(gAe, gBe, Mt, _cv.MOTION_TRANSLATION,
+                                                    (_cv.TERM_CRITERIA_EPS | _cv.TERM_CRITERIA_COUNT, 80, 1e-5),
+                                                    ((Ac | Bc) & Aev & Bev).astype(np.uint8) * 255, 3)
+                    cand += [(int(round(-Mt[0, 2])), int(round(-Mt[1, 2]))),
+                             (int(round(Mt[0, 2])), int(round(Mt[1, 2])))]
+                except _cv.error:
+                    pass
+                scored = sorted(((ncc_at(dc, vc), dc, vc) for dc, vc in cand), reverse=True)
+                ncc_best, du_best, dv_best = scored[0]
             omc.append({"cam_pair": [ring_cams[ci], ring_cams[ci2]], "du": int(du_best),
-                        "dv": int(dv_best), "score": round(sc_best, 3)})
-            # secondary body = the OMC-shifted copy, only outside c_own's FOV
+                        "dv": int(dv_best), "score": round(sc_best, 3),
+                        "ncc": round(float(ncc_best) if isinstance(ncc_best, float) else -9.0, 3)})
+            # secondary body = the OMC-shifted copy, wherever no body evidence exists yet.
+            # POSITIVE evidence (the NCC-verified shifted copy says car) outranks
+            # NEGATIVE evidence (c_own's mask gap says background) — same hierarchy as
+            # the border-margin rule; without it a shift opens a sliver between the
+            # halves that temporal fill paints with true (dark) background.
             shifted = np.roll(np.roll(rep2b.reshape(H, W), dv_best, axis=0), du_best, axis=1).reshape(-1)
-            ti = np.nonzero(shifted & (~own_cover) & (body_cam < 0))[0]
+            ti = np.nonzero(shifted & (body_cam < 0))[0]
             sv = ti // W - dv_best; su = (ti % W - du_best) % W
             keep = (sv >= 0) & (sv < H)
             ti = ti[keep]; si = sv[keep] * W + su[keep]
@@ -598,6 +660,10 @@ def run_case(case_spec, run_name):
             # render those pixels correctly.
             if abs(du_best) > 2 or abs(dv_best) > 2:
                 ghost_zone |= rep2b & (body_cam < 0)
+        # Temporal recovery must NEVER target the INTERIOR of a solid object's
+        # silhouette closure (mask notches between the halves would get painted with
+        # true dark background INSIDE the car) — interior holes fall back to RULE 2/EMC.
+        ghost_zone &= ~close_region(obj_body)
         if best_sec is not None and best_sec[0] >= 50:
             morph_jobs.append((ci, best_sec[1], ob["dist"], best_sec[2], best_sec[3], obj_body))
     # assemble image
@@ -708,30 +774,6 @@ def run_case(case_spec, run_name):
     # Selection answers WHO/WHERE (evidence calculus); interpolation answers HOW to
     # transition: ECC-affine registration (rigid object, small view change) + an
     # alpha-ramp Beier-Neely morph across the evidence-bounded overlap strip.
-    import cv2 as _cv
-    gimgs = [np.clip(frame.images[cam].astype(np.float32) * np.exp(gains[ci_]).astype(np.float32)[None, None, :], 0, 255).astype(np.uint8)
-             for ci_, cam in enumerate(ring_cams)]
-
-    def sample_cam_patch(ci_s, dist_s, rows_s, cols_s, shift=(0, 0)):
-        """ERP patch (rows x cols grid at uniform distance) rendered from one camera.
-        shift=(dv,du): sample the source at y-shift (OMC: content appears moved +shift)."""
-        rr, cc = np.meshgrid(rows_s, cols_s, indexing="ij")
-        rr2 = np.clip(rr - shift[0], 0, H - 1)
-        cc2 = (cc - shift[1]) % W
-        dirs_p = DIRS[rr2, cc2]
-        Xp = (C[None, None, :] + dist_s * dirs_p).reshape(-1, 3)
-        K_, (hh_, ww_) = cals[ci_s]
-        Rc_, tc_ = poses_emc[ci_s]
-        Xc_ = (Xp - tc_[None, :]) @ Rc_
-        z_ = Xc_[:, 2]
-        px_ = (K_[0, 0] * Xc_[:, 0] / np.maximum(z_, 1e-6) + K_[0, 2]).astype(np.float32)
-        py_ = (K_[1, 1] * Xc_[:, 1] / np.maximum(z_, 1e-6) + K_[1, 2]).astype(np.float32)
-        valid = (z_ > 0.1) & (px_ >= 1) & (px_ < ww_ - 1) & (py_ >= 1) & (py_ < hh_ - 1)
-        col = np.zeros((len(z_), 3), np.float32)
-        if valid.any():
-            col[valid] = bilinear(gimgs[ci_s], px_[valid], py_[valid]).astype(np.float32)
-        return col.reshape(rr.shape + (3,)), valid.reshape(rr.shape)
-
     out2 = out.reshape(H, W, 3)
     morph_report = []
     for ci_o, ci_s, d_o, d_s, shift_s, body_flat in morph_jobs:
@@ -744,6 +786,10 @@ def run_case(case_spec, run_name):
         cols_p = np.arange(u0o - 8, u1o + 9)   # may exceed [0,W); helper wraps
         A_patch, A_val = sample_cam_patch(ci_o, d_o, rows_p, cols_p)
         B_patch, B_val = sample_cam_patch(ci_s, d_s, rows_p, cols_p, shift_s)
+        # invalid patch pixels are literal zeros — bilinear remap across the validity
+        # edge would bleed BLACK into the blend. Cross-fill so black never exists.
+        A_patch[~A_val] = B_patch[~A_val]
+        B_patch[~B_val] = A_patch[~B_val]
         body_p = m2d[np.ix_(rows_p, cols_p % W)]
         # overlap strip: columns where BOTH cameras cover the object's rows
         colA = (A_val & body_p).sum(0); colB = (B_val & body_p).sum(0); colN = body_p.sum(0)

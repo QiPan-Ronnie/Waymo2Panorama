@@ -1,6 +1,6 @@
 {
   "phase": "db89_ghost_recovery",
-  "started_utc": "2026-06-10T10:26:20Z",
+  "started_utc": "2026-06-10T10:52:41Z",
   "scope": {
     "segmentation_ownership_only": true,
     "generation": false
@@ -11,26 +11,28 @@
       "case": "02a00399_a000_bmw",
       "n_objects_composited": 4,
       "n_unmatched": 6,
-      "n_secondary_body_px": 1607,
-      "n_temporal_filled_px": 0,
+      "n_secondary_body_px": 1440,
+      "n_temporal_filled_px": 259,
       "omc_shifts": [
         {
           "cam_pair": [
             "ring_rear_left",
             "ring_rear_right"
           ],
-          "du": 0,
-          "dv": -1,
-          "score": 0.921
+          "du": -1,
+          "dv": 0,
+          "score": 0.727,
+          "ncc": 0.838
         },
         {
           "cam_pair": [
             "ring_front_left",
             "ring_side_left"
           ],
-          "du": 0,
-          "dv": -1,
-          "score": 0.946
+          "du": 6,
+          "dv": 0,
+          "score": 0.899,
+          "ncc": 0.784
         }
       ],
       "view_morph": [
@@ -40,14 +42,14 @@
             "ring_side_left"
           ],
           "strip_cols": 32,
-          "ecc_cc": 0.928,
-          "max_reg_px": 8.96,
-          "seam_diff_med": 275.8,
-          "n_px": 1104
+          "ecc_cc": 0.889,
+          "max_reg_px": 21.75,
+          "seam_diff_med": 11.6,
+          "n_px": 1114
         }
       ]
     }
   ],
-  "runtime_s": 16.5,
-  "ended_utc": "2026-06-10T10:26:36Z"
+  "runtime_s": 17.78,
+  "ended_utc": "2026-06-10T10:52:59Z"
 }
