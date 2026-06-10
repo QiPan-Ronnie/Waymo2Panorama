@@ -329,8 +329,17 @@ def run_case(case_spec, run_name):
     lidar, _, moving = accumulate_lidar(log_dir, ts, cte, tri, ann)
     cents = np.stack([np.asarray(frame.calibrations[c].T_ego_cam, float)[:3, 3] for c in ring_cams], 0)
     C = cents.mean(axis=0)
-    gains = solve_gains_for(frame, ring_cams, lidar, C)
-    Zd, Zsupport = depth_field(lidar, C)
+    # GRACEFUL NO-LiDAR DEGRADATION (evidence-insufficiency fallbacks): without LiDAR
+    # the gains stay identity, depth degrades to ground-plane + far shell, and the
+    # LiDAR-gated temporal fill disarms itself (Zsupport=inf -> sup_ok empty).
+    if len(lidar) < 1000:
+        gains = np.zeros((len(ring_cams), 3))
+        dz0 = DIRS[:, :, 2]
+        Zd = np.where(dz0 < -0.05, np.clip((-C[2] - 0.33) / np.minimum(dz0, -1e-3), DMIN, DMAX), 100.0).astype(np.float32)
+        Zsupport = np.full((H, W), 1e9, np.float32)
+    else:
+        gains = solve_gains_for(frame, ring_cams, lidar, C)
+        Zd, Zsupport = depth_field(lidar, C)
     poses_emc = []
     for cam in ring_cams:
         T = np.asarray(frame.calibrations[cam].T_ego_cam, float)
