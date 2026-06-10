@@ -269,10 +269,16 @@ def run_case(case_spec, run_name):
         full = np.zeros((hh, ww), bool)
         insts = []
         if res.masks is not None:
+            kclose = np.ones((15, 15), np.uint8); kdil = np.ones((9, 9), np.uint8)
             for k in range(len(res.boxes)):
                 if int(res.boxes.cls[k]) not in SEG_CLASSES: continue
                 m = res.masks.data[k].cpu().numpy()
                 m = cv2.resize(m, (ww, hh), interpolation=cv2.INTER_NEAREST) > 0.5
+                # close+dilate: seg masks miss mirrors/pillars/window glass -> those details
+                # would render from another camera/time = detail-level double images. The cost
+                # of over-covering is ~1px of single-camera-consistent background shift.
+                m = cv2.morphologyEx(m.astype(np.uint8), cv2.MORPH_CLOSE, kclose)
+                m = cv2.dilate(m, kdil) > 0
                 bb = res.boxes.xyxy[k].cpu().numpy().tolist()
                 insts.append((bb, m))
                 full |= m
