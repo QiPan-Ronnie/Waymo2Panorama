@@ -172,6 +172,33 @@ Result summary: TBD.
 
 ---
 
+# DB-89: Ghost-zone temporal recovery — the hardened v7 general algorithm (CPU+L4 YOLO, NO generation)
+Status: **running** (2026-06-10, fresh budget; user-approved continuation of DB-88's v7 design after its infra bug)
+Route: A (source-faithful; evidence-driven, zero scene parameters).
+
+**Question:** Does the four-rule general algorithm — (1) static world via EMC; (2) object body from ONE (Voronoi-dominant camera, its exposure time) with extent = segmentation-mask UNION own-time-box-ray-hit and uniform object-distance projection; (3) ghost zone (union of the object's positions at every camera's exposure time, minus body) recovered from TIME under a triple evidence gate (object provably departed |dframe|>=3 by box track AND padded-box-free sightline at that frame AND LiDAR-evidenced background depth); (4) gate-fail -> keep EMC pixel — eliminate the residual double A-pillar without eating the car, once two infra sanity asserts are added?
+
+**Hypothesis:** DB-88 v7's failure was infrastructure, not design: per-camera nearest-image-timestamp can land seconds away when frames are missing, so the box pose interpolates far away and regions explode. Two asserts close it: (a) skip any camera whose |cam_ts - anchor_ts| >= 60 ms; (b) skip any per-object box region whose ERP width exceeds 2x its expected angular size (box diagonal / distance).
+
+**Why now:** the user explicitly rejected morphological mask completion as a non-general patch and approved this principled successor; the design survived two rounds of first-principles review; all machinery exists (DB-84 temporal search, DB-86 EMC, DB-88 segmentation matching).
+
+**Expected evidence:** BMW anchor render, A/B vs the v6 best; 6x and 8x crops on the driving Porsche (A-pillar, mirrors, window, tail); n_objects, n_ghost_px, n_recovered_px, n_gate_failed_px.
+
+**Kill criteria:** double A-pillar persists after the asserts -> the ghost-zone definition is wrong, stop and re-diagnose (no parameter fiddling); car eaten or stretched -> assert (b) insufficient, stop; >3 /execs -> stop. NO generation, no morphology beyond the evidence-union.
+
+**Max scope:** BMW first, crowd second only on vision pass; L4; results non-repo + Read-verify; secret 0.
+
+**Required vision check:** ONE car, single A-pillar/mirror/window, intact roof-nose-tail; ghost zone shows real background; static scene untouched. Eyes over metrics.
+
+**Output location:** deliverables/db89_ghost_recovery/.
+
+Result summary: **EXPLORED / MAJOR DATASET FINDING + architecture converged, implementation one ledger short (2026-06-10, 8 /execs).**
+**DATASET-LEVEL DISCOVERY (alignment audit, proof align_audit.png non-repo):** the AV2 annotation box of the fast-moving BMW-scene car projects ~100 px / ~4 m BEHIND where the cameras actually imaged it (~0.2 s of its motion), while the YOLO mask back-projection lands EXACTLY on the car. Every box-driven spatial tool since DB-83 was steering with a 4-m-displaced box - this retroactively explains much of the DB-83 nine-variant failure chain and DB-87/88 box-region artifacts. Label-time recalibration (dt from mask-box angular offset) was implemented but is killed at THIS anchor by track-boundary clipping (anchor=0 = log start, cannot query into the past) and an unstable sign probe.
+**Architecture conclusion (v4, partially verified):** boxes demoted to IDENTITY matching only; ALL spatial placement from image evidence (per-camera matched instance masks): body = c_own mask back-projection (verified correct); ghost zone = union of OTHER cameras' mask back-projections. v4 run: the stretched-bar artifact GONE (box-body retirement validated); NEW residual: temporal fill erodes the car's front half - the ledger must subtract the union of ALL cameras' body evidence (each camera sees only PART of a boundary-straddling object), not c_own's only. That one-line ledger fix = next session's first action. v1-v4 forensics (giant-instance mismatch, morphology retirement, area-ratio gate, dt-clipping) recorded in git history.
+**Standing best render remains DB-88 v6** (deliverables/db88_seg_composite/02a00399_a000_bmw_segcomposite.png, residual = 16 px A-pillar band). Secret 0.
+
+---
+
 # DB-88: Segmentation-bounded moving-object compositing on EMC (GPU-light: YOLO-seg on L4; segmentation decides ownership only, NO generation) ⭐ WIN
 Status: **EXPLORED / POS (2026-06-10)** — v5 is the FIRST variant in seven attempts (DB-83/85/87/88 v1–v4) that renders the driving Porsche as ONE intact car AND strictly improves on the EMC base (the EMC head-ghost block is gone; tail clean; full-pano regression-free). 5 /execs (cap exceeded by 2 with the user online and explicitly approving continuation).
 **Winning recipe:** YOLOv8x-seg per camera → instances matched to moving-track box projections (IoU≥0.3, exposure-time poses) → (RULE 1) ERP rays projecting inside the chosen camera's instance mask at the object's distance ← that camera, uniform depth; (RULE 2) background rays whose camera projection lands in ANY camera's MOVING-object mask → next non-poisoned camera; residual all-poisoned penumbra → EMC fallback (no temporal fill); **c_own = the EMC-Voronoi-dominant camera at the object's direction** (v5's key: body capture time matches the surrounding remnants' time → natural join; the "most-frontal camera" choice displaced the body 16 px against its own penumbra).
