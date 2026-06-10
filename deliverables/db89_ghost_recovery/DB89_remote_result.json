@@ -1,6 +1,6 @@
 {
   "phase": "db89_ghost_recovery",
-  "started_utc": "2026-06-10T13:51:43Z",
+  "started_utc": "2026-06-10T14:06:05Z",
   "scope": {
     "segmentation_ownership_only": true,
     "generation": false
@@ -48,8 +48,110 @@
           "n_px": 1114
         }
       ]
+    },
+    {
+      "case": "9f871fb4_a030_downtown",
+      "n_objects_composited": 7,
+      "n_unmatched": 16,
+      "n_secondary_body_px": 19,
+      "n_temporal_filled_px": 0,
+      "omc_shifts": [
+        {
+          "cam_pair": [
+            "ring_front_center",
+            "ring_front_left"
+          ],
+          "du": 2,
+          "dv": 0,
+          "score": 0.843,
+          "ncc": -0.068
+        },
+        {
+          "cam_pair": [
+            "ring_front_center",
+            "ring_front_left"
+          ],
+          "du": 2,
+          "dv": 0,
+          "score": 0.685,
+          "ncc": 0.46
+        },
+        {
+          "cam_pair": [
+            "ring_rear_left",
+            "ring_rear_right"
+          ],
+          "du": 0,
+          "dv": 0,
+          "score": -1.0,
+          "ncc": -9.0
+        }
+      ],
+      "view_morph": []
+    },
+    {
+      "case": "fbee355f_a030_crowd",
+      "n_objects_composited": 9,
+      "n_unmatched": 48,
+      "n_secondary_body_px": 1299,
+      "n_temporal_filled_px": 0,
+      "omc_shifts": [
+        {
+          "cam_pair": [
+            "ring_front_center",
+            "ring_front_left"
+          ],
+          "du": 2,
+          "dv": 0,
+          "score": 0.716,
+          "ncc": 0.179
+        },
+        {
+          "cam_pair": [
+            "ring_front_right",
+            "ring_rear_right"
+          ],
+          "du": 0,
+          "dv": 0,
+          "score": -1.0,
+          "ncc": -9.0
+        },
+        {
+          "cam_pair": [
+            "ring_front_right",
+            "ring_front_center"
+          ],
+          "du": 0,
+          "dv": 0,
+          "score": 0.938,
+          "ncc": 0.85
+        },
+        {
+          "cam_pair": [
+            "ring_front_center",
+            "ring_front_left"
+          ],
+          "du": 0,
+          "dv": 0,
+          "score": -1.0,
+          "ncc": -9.0
+        }
+      ],
+      "view_morph": [
+        {
+          "cam_pair": [
+            "ring_front_right",
+            "ring_front_center"
+          ],
+          "strip_cols": 32,
+          "ecc_cc": 0.977,
+          "max_reg_px": 0.87,
+          "seam_diff_med": 4.0,
+          "n_px": 1419
+        }
+      ]
     }
   ],
-  "runtime_s": 21.77,
-  "ended_utc": "2026-06-10T13:52:05Z"
+  "runtime_s": 113.59,
+  "ended_utc": "2026-06-10T14:07:59Z"
 }

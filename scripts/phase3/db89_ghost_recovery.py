@@ -39,7 +39,7 @@ OUT_DIR = ROOT / "deliverables" / "db89_ghost_recovery"
 REMOTE_OUT = "/content/drive/MyDrive/koi_waymo2pano_colab/results/db89_ghost_recovery"
 RESULT = REMOTE_OUT + "/DB89_remote_result.json"
 
-CASE_NAMES = ["02a00399_a000_bmw"]
+CASE_NAMES = ["02a00399_a000_bmw", "9f871fb4_a030_downtown", "fbee355f_a030_crowd"]
 
 
 def remote_py() -> str:
@@ -50,7 +50,9 @@ import numpy as np
 REMOTE_OUT = pathlib.Path("__REMOTE_OUT__"); REMOTE_RESULT = pathlib.Path("__RESULT__")
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
-CASES = [("02a00399:0:bmw", "02a00399_a000_bmw")]
+CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
+         ("9f871fb4-3b8e-34b3-9161-ed961e71a6da:30:downtown", "9f871fb4_a030_downtown"),
+         ("fbee355f-8878-31fa-8ac8-b9a45a3f130a:30:crowd", "fbee355f_a030_crowd")]
 WINDOW = 10; DMIN, DMAX = 1.5, 80.0; STATIC_DISP_M = 0.5; SAT_LO, SAT_HI = 10, 245
 OBJ_MAX_DIST = 40.0; IOU_MIN = 0.30
 SEG_CLASSES = {1, 2, 3, 5, 7, 0}   # bicycle, car, motorcycle, bus, truck, person (COCO)
