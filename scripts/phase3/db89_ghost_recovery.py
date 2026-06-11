@@ -1097,12 +1097,18 @@ def run_case(case_spec, run_name):
             # SOURCE-EGO SELF-OCCLUSION (proven by single-source isolation): rays
             # from a source camera to ground points ~5-9 m ahead graze the source's
             # OWN hood, so the sample is hood sky-reflection (bluish smears), not
-            # road. egod is the wrong geometry (point distance, not ray clearance);
-            # exact slab test vs the SAME ego box used for the anchor (centre-frame
-            # constants shifted by C), 1.1x inflated for the marginal grazing band.
+            # road. egod is the wrong geometry (point distance, not ray clearance).
+            # TWO-BOX ego model: a roof-height single box over the full length
+            # blocks legal over-the-trunk rear views (downtown's only inner-cap
+            # sources, 15-19.6 m, collapsed to 22% coverage) — the real vehicle is
+            # cabin-high only mid-body; hood and trunk are ~1.0 m. Full-length low
+            # box + cabin-height short box, gseg's internal 1.05 the only margin.
+            body_lo = np.array([-2.2, -1.6, -C[2] - 0.33]); body_hi = np.array([4.6, 1.6, -C[2] + 0.67])
+            cab_lo = np.array([-1.7, -1.6, -C[2] - 0.33]); cab_hi = np.array([1.0, 1.6, -0.35])
+            ego_boxes = [(C + (bn_ + bx_) / 2.0, bx_ - bn_, np.eye(3))
+                         for bn_, bx_ in ((body_lo, body_hi), (cab_lo, cab_hi))]
             selfocc = np.zeros(len(flat_g), bool)
-            selfocc[okq] = gseg_blocked(T2[:3, 3], Xq[okq],
-                                        [(C + (bmin_e + bmax_e) / 2.0, (bmax_e - bmin_e) * 1.1, np.eye(3))])
+            selfocc[okq] = gseg_blocked(T2[:3, 3], Xq[okq], ego_boxes)
             visq = okq & ~blocked & ~selfocc
             if not visq.any(): continue
             code_g = fi * 10 + ci2
