@@ -25,9 +25,7 @@
 
 ---
 
-## 完整演进时间线(我们一路做了什么)
-
-> 代号含义按档案核实;细节见 `progress.md` 编年史。
+## 完整演进时间线
 
 - **L1 baseline**(tag `v0.1-l1-mvp`)— 球面投影 + multi-band blending 出第一版 360 全景 → 能跑通,但接缝不对齐、近场重影,是基线。
 - **L1 hard select(单源)** — 重影根因查实为「对两份未对齐拷贝做 averaging」,改为每像素只取单一相机、从不混合 → 消掉颜色融合鬼影,留下的是结构错位(非颜色跳变)。
@@ -82,32 +80,10 @@ north-star 第二半证明:清空 LiDAR 后渲染同一辆完整车,**OMC 测得
 v8 多天气三场景——bmw 晴天积云 / downtown **自动判定黄昏**(暖橙天空与金光砖楼匹配)/ highway 晴天高积云无缝延续。auto-prompt 从可见天空带统计自动选词,5 场景全对。
 
 - 天空:历史上 DiT360 outpaint"补出不相关内容"的根因已定论——文生全景模型无"延续"机制,RF-inversion 全图统一化会整街重画(NEG 已归档);换 FLUX.1-Fill(mask 条件、延续是训练目标)一击解决。
+
 - 地面:重新定义为确定性时间反投影问题。v8 经 **9 轮 A/B(全程眼检)**推导出三条约束并全部内化为零参数算法:① 候选源帧资格由**几何**定(全 log 搜索自车位移 5–58 m;固定时间窗在红灯静止 9.5 s 的 downtown 上产出 0 个候选 = 此前地面糊的根因),桶内按**时间**就近选(保自动曝光一致);② **前 pod 物理约束**:AV2 七相机同装于前挡上方,源车自身引擎盖/座舱遮挡其 0–9 m 前方与近后方视线(精确双盒 slab 光线检验;此前"干净"的填充实为引擎盖天空反光被涂上路面);③ 内圈天底只能以 4–6° 掠射角被观测 → **渲染分辨率诚实降到证据的光学分辨率**(逐行低通,不发明内容)。
+
 - 状态:**v8 全 5 场景定稿**(覆盖 94.5–100%,`low_coverage_warning` 哨兵全绿)。
-- 交付路径:`deliverables/complete_pano_v8/`(5 张成品 + 五连板)+ `scripts/phase3/sky_fill_flux.py`(天空生产)+ `db89_ghost_recovery.py` STAGE 4(地面)。
 
----
+	
 
-## 数字一行表
-
-| 指标 | 值 |
-|---|---|
-| 5 场景合成对象数 | bmw 4 / downtown 7 / crowd 9 / clean 15 / highway 3 |
-| unmatched | 全部优雅降级到 EMC base(无崩溃、无新 artifact 类) |
-| git 里程碑 tag | 12 个(`v0.1-l1-mvp` → `v2.2-harmonic-fill`) |
-| 主交付路径 | `deliverables/db89_ghost_recovery/`(5 张 v2.2 全景)+ `scripts/phase3/db89_ghost_recovery.py`(单文件全栈) |
-
----
-
-## 下一步
-
-| 项 | 状态 | 说明 |
-|---|---|---|
-| DB-93 天空+地面补全 | **v8 全 5 场景定稿** | FLUX.1-Fill 天空 + 时间反投影地面(几何资格×时间偏好选源、双盒自遮挡、分辨率匹配渲染);覆盖 94.5–100% |
-| DB-94 Xinhan 中心契约 | queued,需对接 | 确认下游 Cosmos 点云首帧中心 = 我们的环相机质心,否则偏 0.5–1.5m |
-| DB-95 Waymo 迁移 | queued,**the big one** | 仅靠 loader 级改动能否跑通 Waymo(5 相机、不同 stagger);需算法改动则记为数据集特定限制 |
-| DB-96 接触阴影 | icebox | 唯一剩余可见 artifact 类(填充带无阴影背景),现由谐和填充缓解,按设计未建模 |
-
----
-
-*完整版见 `2026-06-11-project-summary-for-koi.md`。*
