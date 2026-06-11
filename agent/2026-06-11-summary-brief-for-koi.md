@@ -25,9 +25,25 @@
 
 ---
 
-## 演进(一段话)
+## 完整演进时间线(我们一路做了什么)
 
-起点是 **L1 multi-band blending**,重影根源被定位为**对两份未对齐拷贝做 averaging** → 换成 **hard select**(单源,从不混合)。随后围绕 source-faithful 主线做了 **ghostkill / seamroute / object-moat** 等大量接缝拓扑与对齐变体:对**可判定接缝**是干净的 L1++,但宽基线**近场 doubling** 一律撞**深度精度墙**。再试 **DiT360** 生成式修补,结论边界清晰——**只许补天**(sky-only outpaint = WIN,gate-clean)、**不许碰缝**(seam-completion 会发明小汽车、融化切口 = NEG)。学习/3D 路线(DrivingForward / VGGT / UniDepthV2 / flow view-interp)被**三重否定**——几何墙在 `c*=ego-origin` 这个默认中心下反复出现。**Fable 5 第一性原理重构**发现两个被忽略的隐藏假设:**球心从 L1 起就被钉死在 ego 原点**(从不是设计变量,把深度误差放大 5–20×),以及**第四个误差源「异步快门」**;据此把模糊的"接缝问题"重构为**八层零参数确定性栈**(虚拟中心质心化 → 深度渲染 → 光度增益 → EMC 快门补偿 → YOLO-seg 身份 → ECC-OMC view-morph → 时间共识 → 色度收尾)+ **证据演算八条规则**。
+> 代号含义按档案核实;细节见 `progress.md` 编年史。
+
+- **L1 baseline**(tag `v0.1-l1-mvp`)— 球面投影 + multi-band blending 出第一版 360 全景 → 能跑通,但接缝不对齐、近场重影,是基线。
+- **L1 hard select(单源)** — 重影根因查实为「对两份未对齐拷贝做 averaging」,改为每像素只取单一相机、从不混合 → 消掉颜色融合鬼影,留下的是结构错位(非颜色跳变)。
+- **L2 柱面 baseline** — 试柱面投影替球面:覆盖率 +24.9pp、视觉略好,但 cycle-PSNR 非 win → 与球面同级,仅作论文对照。
+- **L3(Pi3 + forward-splat)** — 单目深度 lift 成点云再 forward-splat 到 ERP:**10/10 anchor 全输 L1**(ΔPSNR −3.15dB)→ forward-splat 不是 L3 的正确输出形式,L3 真正产物是 `.ply` 点云供下游消费。
+- **ghostkill 系列(GK / 单源 PICK)** — 5-way kill-test + 扰动验证三重确证「ghost = averaging 实现 bug」,single-source PICK 平地消鬼影 → 把「不许平均几何」立为铁律。
+- **seamroute / object-moat(SR,即 G 全景)** — `_seamroute.py`:align(warp-to-agree)+ object-moat 最小割接缝 + 虚拟中心选源;产出 `G_bmw_pano`(用户主观排名「最接近目标」),`BEST_bmw_pano` 则是被否的早期 averaging 鬼影版。结论:这是**源忠实天花板**,残留近地 wavy 缝/curb 是物理地基(含 ground-plane IPM 第 4 次否定)。
+- **A1(Surround360 风格 overlap-strip 光流 view-interp)** — `run_a1_pipeline --mode view`:在重叠条带上做光流视图插值;`a1_view_none` = 其 `--prealign none` 变体,因 outpaint 补 out-of-FOV/天空最完整,被 DB-77C 选作展示 base(代号含义按档案,细节见 progress.md)。
+- **line-snap / Poisson tone / IPM 等地基探索** — line-snap 实测 no-op、Poisson 增量 faint、IPM 重投影 NEG → 证明非生成式手段在近地缝已到天花板(BEV 是上限)。
+- **DiT360 生成式修补(db14 trimap / db19 sky)** — 边界清晰:**只许补天**(sky-only outpaint = WIN,gate-clean)、**不许碰缝**(seam-completion 会发明小汽车、融化切口 = NEG)。
+- **学习 / 3D 路线(DrivingForward / VGGT / UniDepthV2 / flow view-interp)** — **几何墙三重否定**:learned 单中心更软更碎、curb 是 co-observation 物理地基、VGGT-prior 视觉失败 → 几何墙在默认中心 `c*=ego-origin` 下反复出现。
+- **DB-78 flow 定量** — Surround360 光流 view-interp 在 5 场景 A100 跑出定量 abstain 表(结构指标),是非生成路径的「不差」终点。
+- **Fable 5 第一性原理重构** — 发现两个被忽略的隐藏假设:**球心从 L1 起就被钉死在 ego 原点**(从不是设计变量,把深度误差放大 5–20×)与**第四个误差源「异步快门」**。据此重做:虚拟中心质心化(DB-80,18–96× 残差下降)→ 颜色/光度层(DB-81)→ 鲁棒化(DB-82)→ **发现 ±22.5ms 异步快门**(DB-84)→ 自运动快门补偿 EMC(DB-86)→ 九连败逼出「缺图像级轮廓」(DB-83/85/87)→ 分割合成(DB-88,运动车首次单一完整)→ 证据演算 + 标注滞后(DB-89)→ ECC-OMC + morph + 内容缝(DB-90)→ 深度门控 + 共识(DB-91)→ 泛化 + 无 LiDAR 优雅降级(DB-92)。
+- **完整球面 v2.1/v2.2 → v7** — chroma-fringe 收尾(v2.1/2.2,5 场景成品)→ 完整球面 v7:天空用 FLUX.1-Fill(mask 条件、延续真实云带)+ 地面用**时间反投影**(前后帧真实路面像素,97.9% 覆盖、移除自车引擎盖)。
+
+每一次转向都由实验否定驱动并完整归档(progress.md 编年史 + 12 git tag),没有一步是凭感觉的。
 
 ---
 
