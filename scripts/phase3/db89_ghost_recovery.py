@@ -1003,8 +1003,9 @@ def run_case(case_spec, run_name):
     # cameras seconds before/after. Ego zone = rays intersecting the ego 3D box
     # (slab test; the hood occludes ground out to ~5-8 m, footprint alone misses it).
     # Sources gated by ego-distance 5-28 m (no ego shadow/body) and lagged-box
-    # occlusion; ADAPTIVE window extends until the ego has moved >5 m (stationary
-    # scenes); 6-source median VALIDATES, the nearest-to-median single source
+    # occlusion; candidates = WHOLE-LOG geometry search (ego displacement 5-58 m,
+    # displacement-stratified), never a time window — a stationary ego (red light)
+    # defeats any fixed window; 6-source median VALIDATES, the nearest-to-median single source
     # RENDERS (blending smears misaligned markings). Residual (never-visible) px
     # get small-area diffusion inpaint from the surrounding real road.
     def gseg_blocked(o, Xq_, boxes_q):
@@ -1048,13 +1049,20 @@ def run_case(case_spec, run_name):
     chosen_g = np.full((NSLOT, len(flat_g)), -1, np.int64)
     score_g = np.full((NSLOT, len(flat_g)), np.inf)
     ai_g = int(anchor_idx)
-    cand_fis = []
-    for fi in range(max(0, ai_g - 60), min(len(all_ts) - 1, ai_g + 60) + 1):
-        if abs(fi - ai_g) < 5: continue
-        _, tf_ = cte(int(all_ts[fi]))
-        if np.linalg.norm(tf_ - ta) > 5.0:
-            cand_fis.append((abs(fi - ai_g), fi))
-    cand_fis = [fi for _, fi in sorted(cand_fis)[:30]]
+    # Candidate viewpoints are defined by GEOMETRY, not by a time window: the road
+    # is static and lighting constant within one log, so ANY frame whose ego sits
+    # 5-28 m from a cap point qualifies (upper frame bound 58 = 28 + 30 m point
+    # reach). A fixed +-3 s window silently yields ZERO candidates when the ego
+    # idles at a light (downtown: 9.5 s stationary -> whole-cap Telea smear) even
+    # though dozens of qualifying viewpoints exist seconds later. Search the WHOLE
+    # log; take up to 30 frames stratified across displacement (diverse geometry
+    # covers more of the cap than nearest-in-time).
+    disp_g = np.array([np.linalg.norm(cte(int(t_))[1] - ta) for t_ in all_ts])
+    qual_g = np.where((np.abs(np.arange(len(all_ts)) - ai_g) >= 5)
+                      & (disp_g > 5.0) & (disp_g < 58.0))[0]
+    qual_g = qual_g[np.argsort(disp_g[qual_g])]
+    take_g = np.unique(np.linspace(0, len(qual_g) - 1, min(30, len(qual_g))).astype(int)) if len(qual_g) else []
+    cand_fis = sorted(int(fi) for fi in qual_g[take_g]) if len(qual_g) else []
     for fi in cand_fis:
         tsf = int(all_ts[fi]); Rf, tf = cte(tsf)
         egod = np.linalg.norm(Xg_city - tf[None, :], axis=1)
@@ -1121,7 +1129,10 @@ def run_case(case_spec, run_name):
         comp = _cv.inpaint(comp, resid_m.astype(np.uint8) * 255, 5, _cv.INPAINT_TELEA)
     ground_stats = {"cap_px": int(capg.sum()), "filled_px": int(anyg.sum()),
                     "coverage_pct": round(float(anyg.mean() * 100), 1) if len(flat_g) else 0.0,
-                    "residual_inpaint_px": int(resid_m.sum())}
+                    "residual_inpaint_px": int(resid_m.sum()),
+                    "cand_frames": len(cand_fis),
+                    "cand_disp_m": [round(float(disp_g[cand_fis[0]]), 1), round(float(disp_g[cand_fis[-1]]), 1)] if cand_fis else None,
+                    "low_coverage_warning": bool(len(flat_g) and anyg.mean() < 0.5)}
     # plain EMC base for the A/B
     embase = np.zeros((len(Xf), 3), np.uint8)
     for ci, cam in enumerate(ring_cams):
