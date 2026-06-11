@@ -1049,20 +1049,25 @@ def run_case(case_spec, run_name):
     chosen_g = np.full((NSLOT, len(flat_g)), -1, np.int64)
     score_g = np.full((NSLOT, len(flat_g)), np.inf)
     ai_g = int(anchor_idx)
-    # Candidate viewpoints are defined by GEOMETRY, not by a time window: the road
-    # is static and lighting constant within one log, so ANY frame whose ego sits
-    # 5-28 m from a cap point qualifies (upper frame bound 58 = 28 + 30 m point
-    # reach). A fixed +-3 s window silently yields ZERO candidates when the ego
-    # idles at a light (downtown: 9.5 s stationary -> whole-cap Telea smear) even
-    # though dozens of qualifying viewpoints exist seconds later. Search the WHOLE
-    # log; take up to 30 frames stratified across displacement (diverse geometry
-    # covers more of the cap than nearest-in-time).
+    # CANDIDATES: displacement-BUCKETED, time-nearest WITHIN each bucket. Physics:
+    # all 7 ring cameras sit in one front-roof pod, so a source ego self-occludes
+    # ground 0-20 m behind itself (ray must clear its own trunk) and 0-9 m ahead
+    # (hood) — the INNER cap is only ever visible from sources 20-28 m away, while
+    # the outer ring prefers near ones. A pure time-nearest list misses the 20-28 m
+    # band entirely (v3f: 4% coverage); a pure displacement-stratified list drags
+    # in +-15 s frames whose auto-exposure drifted (v3: lavender wash). Buckets of
+    # 5 m over the eligible 5-58 m range (58 = 28 + 30 m point reach), 3 frames per
+    # bucket nearest in TIME = every viewing geometry present, freshest exposure
+    # available for each. Whole-log search (a fixed window yields ZERO eligible
+    # frames when the ego idles at a light — downtown 9.5 s stationary).
     disp_g = np.array([np.linalg.norm(cte(int(t_))[1] - ta) for t_ in all_ts])
-    qual_g = np.where((np.abs(np.arange(len(all_ts)) - ai_g) >= 5)
-                      & (disp_g > 5.0) & (disp_g < 58.0))[0]
-    qual_g = qual_g[np.argsort(disp_g[qual_g])]
-    take_g = np.unique(np.linspace(0, len(qual_g) - 1, min(30, len(qual_g))).astype(int)) if len(qual_g) else []
-    cand_fis = sorted(int(fi) for fi in qual_g[take_g]) if len(qual_g) else []
+    fis_all = np.arange(len(all_ts))
+    elig_g = (np.abs(fis_all - ai_g) >= 5) & (disp_g > 5.0) & (disp_g < 58.0)
+    cand_fis = []
+    for b0_ in np.arange(5.0, 58.0, 5.0):
+        inb_ = np.where(elig_g & (disp_g >= b0_) & (disp_g < b0_ + 5.0))[0]
+        cand_fis.extend(int(x_) for x_ in inb_[np.argsort(np.abs(inb_ - ai_g))][:3])
+    cand_fis = sorted(set(cand_fis))
     # EMC FOR GROUND SOURCES: each ring camera fires up to +-22.5 ms off the sync
     # timestamp; at source-frame speeds (highway: >10 m/s) the SYNC pose is ~0.3 m
     # wrong along travel, so 6 slots land the same stripe at 6 offsets and the
@@ -1138,19 +1143,24 @@ def run_case(case_spec, run_name):
     dist_s[~haveg] = np.inf
     pick = np.argmin(dist_s, axis=0)
     sel_px = colg[pick, np.arange(len(flat_g))]
-    # PHOTOMETRIC HARMONIZATION: whole-log sources span the log's exposure range,
-    # so adjacent pixels picking different (frame,cam) sources show a quilt of gray
-    # levels. Geometry stays single-source; only a single per-source RGB gain to
-    # the 6-slot median field (the consensus photometric reference) is applied.
-    final_code = chosen_g[pick, np.arange(len(flat_g))]
-    for code in np.unique(final_code[anyg]):
-        if code < 0: continue
-        reg = anyg & (final_code == code)
-        if reg.sum() < 200: continue
-        gmed = np.nanmedian(medg[reg], axis=0)
-        smed = np.nanmedian(sel_px[reg], axis=0)
-        gn = np.clip(gmed / np.maximum(smed, 1.0), 0.75, 1.35)
-        sel_px[reg] = sel_px[reg] * gn[None, :]
+    # GLOBAL cast correction to the anchor truth ring: the inner cap is only ever
+    # visible at 4-6 deg grazing (front-pod rig blocks all steeper views), where
+    # asphalt specularly reflects the SKY — sunny scene -> blue-lavender cast that
+    # clashes with the steep-view road in the scene band directly above. ONE global
+    # per-channel gain to the median of the anchor's own lowest scene-band rows:
+    # no regional boundaries (per-region clipped gains quilted, tested NEG), the
+    # within-fill texture untouched, only the cast removed.
+    nonb_r = comp.astype(np.int32).sum(2) >= 12
+    ring_px = []
+    for u_ in range(0, W, 4):
+        rs_ = np.nonzero(nonb_r[H // 2:, u_])[0]
+        if len(rs_) >= 4:
+            ring_px.append(comp[H // 2 + rs_[-10:], u_])
+    if ring_px and anyg.any():
+        ref_med = np.median(np.concatenate(ring_px).reshape(-1, 3).astype(np.float32), axis=0)
+        fill_med = np.median(sel_px[anyg], axis=0)
+        gn_glob = np.clip(ref_med / np.maximum(fill_med, 1.0), 0.7, 1.5)
+        sel_px[anyg] = sel_px[anyg] * gn_glob[None, :]
     cflat = comp.reshape(-1, 3).copy()
     cflat[flat_g[anyg]] = np.clip(sel_px[anyg], 0, 255).astype(np.uint8)
     comp = cflat.reshape(H, W, 3)
@@ -1158,6 +1168,20 @@ def run_case(case_spec, run_name):
     resid_m[:H // 2] = False
     if resid_m.any():
         comp = _cv.inpaint(comp, resid_m.astype(np.uint8) * 255, 5, _cv.INPAINT_TELEA)
+    # RESOLUTION-MATCHED RENDERING: the inner cap's only evidence is 4-6 deg grazing
+    # views whose ground sampling distance is decimeters-to-meters per ERP pixel;
+    # rendering that at full ERP frequency shows resampling swirl, not real texture.
+    # Low-pass the fill toward the nadir to the evidence's true optical resolution
+    # (row-weighted Gaussian pyramid blend, fill rows only) — invents nothing.
+    fillzone = capg | resid_m
+    if fillzone.any():
+        comp_f = comp.astype(np.float32)
+        b1_ = _cv.GaussianBlur(comp_f, (0, 0), 3)
+        b2_ = _cv.GaussianBlur(comp_f, (0, 0), 9)
+        wv_ = np.clip((np.arange(H, dtype=np.float32) - H * 0.55) / (H * 0.45), 0, 1) ** 1.5
+        low_ = b1_ * (1 - wv_[:, None, None]) + b2_ * wv_[:, None, None]
+        sm_ = comp_f * (1 - wv_[:, None, None]) + low_ * wv_[:, None, None]
+        comp[fillzone] = np.clip(sm_[fillzone], 0, 255).astype(np.uint8)
     ground_stats = {"cap_px": int(capg.sum()), "filled_px": int(anyg.sum()),
                     "coverage_pct": round(float(anyg.mean() * 100), 1) if len(flat_g) else 0.0,
                     "residual_inpaint_px": int(resid_m.sum()),
