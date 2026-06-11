@@ -42,9 +42,11 @@ def fill_sky(img: np.ndarray) -> np.ndarray:
             b, g, r = s[2], s[1], s[0]  # note: caller passes RGB; treat generically
             bright = s.mean()
             blueish = s[2] >= s[0] - 8   # RGB: B channel >= R - 8
-            # sky has two photometric modes: CLOUD (very bright, any hue) or BLUE SKY
-            # (blueish and moderately bright); building/awning grays are neither.
-            valid[u] = (bright > 180) or (bright > 110 and s[2] >= s[0] + 15)
+            # anchor on STRICTLY BLUE sky only: brightness cannot separate a white
+            # cloud from a white awning at the FOV cut, but neither cloud nor awning
+            # should anchor the dome — the dome is a clear-sky gradient and real
+            # clouds stay in the observed band. B >= R + 15 excludes neutral grays.
+            valid[u] = bright > 110 and s[2] >= s[0] + 15
     if not valid.any():
         valid[:] = True
     # non-sky columns borrow the nearest sky column (circular EDT in u)
