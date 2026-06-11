@@ -997,6 +997,131 @@ def run_case(case_spec, run_name):
     _ycc[:, :, 1] = _ycc[:, :, 1] * (1 - _w) + 128 * _w
     _ycc[:, :, 2] = _ycc[:, :, 2] * (1 - _w) + 128 * _w
     comp = _cv.cvtColor(np.clip(_ycc, 0, 255).astype(np.uint8), _cv.COLOR_YCrCb2RGB)
+    # ---- STAGE 4: GROUND TEMPORAL FILL (deterministic, real pixels) ----
+    # The nadir cap and the ego-occluded zone are a REPROJECTION problem, not a
+    # generation problem: the road under/around the ego was fully visible to the
+    # cameras seconds before/after. Ego zone = rays intersecting the ego 3D box
+    # (slab test; the hood occludes ground out to ~5-8 m, footprint alone misses it).
+    # Sources gated by ego-distance 5-28 m (no ego shadow/body) and lagged-box
+    # occlusion; ADAPTIVE window extends until the ego has moved >5 m (stationary
+    # scenes); 6-source median VALIDATES, the nearest-to-median single source
+    # RENDERS (blending smears misaligned markings). Residual (never-visible) px
+    # get small-area diffusion inpaint from the surrounding real road.
+    def gseg_blocked(o, Xq_, boxes_q):
+        outb = np.zeros(len(Xq_), bool)
+        for c2_, sz2_, R2_ in boxes_q:
+            half2 = sz2_ / 2 * 1.05
+            o_loc = R2_.T @ (o - c2_)
+            d_loc = (Xq_ - o[None, :]) @ R2_
+            with np.errstate(divide="ignore", invalid="ignore"):
+                inv_ = 1.0 / d_loc
+                t1_ = (-half2[None, :] - o_loc[None, :]) * inv_
+                t2_ = (half2[None, :] - o_loc[None, :]) * inv_
+            tmin_ = np.nanmax(np.minimum(t1_, t2_), axis=1)
+            tmax_ = np.nanmin(np.maximum(t1_, t2_), axis=1)
+            outb |= (tmax_ >= np.maximum(tmin_, 0.0)) & (tmin_ < 0.97) & (tmin_ > 0.02)
+        return outb
+    df3 = DIRS.reshape(-1, 3)
+    dzf = df3[:, 2]
+    bmin_e = np.array([-2.2, -1.6, -C[2] - 0.33])
+    bmax_e = np.array([4.6, 1.6, -0.35])
+    with np.errstate(divide="ignore", invalid="ignore"):
+        invd = 1.0 / df3
+        ta_e = bmin_e[None, :] * invd
+        tb_e = bmax_e[None, :] * invd
+    tmin_e = np.nanmax(np.minimum(ta_e, tb_e), axis=1)
+    tmax_e = np.nanmin(np.maximum(ta_e, tb_e), axis=1)
+    egoproj = (tmax_e >= np.maximum(tmin_e, 0.0)) & (tmax_e > 0) & (dzf < -0.02)
+    blackg = (comp.astype(np.int32).sum(2) < 12) | egoproj.reshape(H, W)
+    capg = blackg.copy()
+    capg[:H // 2] = False
+    flat_g = np.nonzero(capg.reshape(-1))[0]
+    dirs_g = df3[flat_g]
+    okd = dirs_g[:, 2] < -0.08
+    flat_g = flat_g[okd]; dirs_g = dirs_g[okd]
+    t_g = (-C[2] - 0.33) / dirs_g[:, 2]
+    keepn = (t_g > 0) & (t_g < 30.0)
+    flat_g = flat_g[keepn]; dirs_g = dirs_g[keepn]; t_g = t_g[keepn]
+    Xg = C[None, :] + t_g[:, None] * dirs_g
+    Xg_city = (Ra @ Xg.T).T + ta
+    NSLOT = 6
+    chosen_g = np.full((NSLOT, len(flat_g)), -1, np.int64)
+    score_g = np.full((NSLOT, len(flat_g)), np.inf)
+    ai_g = int(anchor_idx)
+    cand_fis = []
+    for fi in range(max(0, ai_g - 60), min(len(all_ts) - 1, ai_g + 60) + 1):
+        if abs(fi - ai_g) < 5: continue
+        _, tf_ = cte(int(all_ts[fi]))
+        if np.linalg.norm(tf_ - ta) > 5.0:
+            cand_fis.append((abs(fi - ai_g), fi))
+    cand_fis = [fi for _, fi in sorted(cand_fis)[:30]]
+    for fi in cand_fis:
+        tsf = int(all_ts[fi]); Rf, tf = cte(tsf)
+        egod = np.linalg.norm(Xg_city - tf[None, :], axis=1)
+        Xq = (Xg_city - tf[None, :]) @ Rf
+        fboxes = [(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, tsf, moving)]
+        for ci2, cam in enumerate(ring_cams):
+            K2, (hh2, ww2) = cals[ci2]
+            T2 = np.asarray(frame.calibrations[cam].T_ego_cam, float)
+            Tci2 = np.linalg.inv(T2)
+            Xc2 = (Tci2[:3, :3] @ Xq.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
+            px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
+            py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
+            okq = (z2 > 0.5) & (px2 >= 2) & (px2 < ww2 - 2) & (py2 >= 2) & (py2 < hh2 - 2) & (egod > 5.0) & (egod < 28.0)
+            if not okq.any(): continue
+            blocked = np.zeros(len(flat_g), bool)
+            if fboxes:
+                blocked[okq] = gseg_blocked(T2[:3, 3], Xq[okq], fboxes)
+            visq = okq & ~blocked
+            if not visq.any(): continue
+            code_g = fi * 10 + ci2
+            sc = egod.copy()
+            rem = visq.copy()
+            for s_ in range(NSLOT):
+                better = rem & (sc < score_g[s_])
+                if not better.any(): continue
+                for t_ in range(NSLOT - 1, s_, -1):
+                    chosen_g[t_][better] = chosen_g[t_ - 1][better]; score_g[t_][better] = score_g[t_ - 1][better]
+                chosen_g[s_][better] = code_g; score_g[s_][better] = sc[better]
+                rem = rem & ~better
+    colg = np.full((NSLOT, len(flat_g), 3), np.nan, np.float32)
+    gcache = {}
+    for slot in range(NSLOT):
+        for code in np.unique(chosen_g[slot][chosen_g[slot] >= 0]):
+            fi, ci2 = int(code) // 10, int(code) % 10
+            sel = chosen_g[slot] == code
+            tsf = int(all_ts[fi])
+            if tsf not in gcache:
+                gcache[tsf] = loader.load_synced_frame(tsf)
+            fr2 = gcache[tsf]
+            Rf, tf = cte(tsf)
+            Xq = (Xg_city[sel] - tf[None, :]) @ Rf
+            K2, _s2 = cals[ci2]
+            T2 = np.asarray(frame.calibrations[ring_cams[ci2]].T_ego_cam, float)
+            Tci2 = np.linalg.inv(T2)
+            Xc2 = (Tci2[:3, :3] @ Xq.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
+            px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
+            py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
+            img2 = fr2.images[ring_cams[ci2]]
+            g2 = np.exp(gains[ci2])[None, :]
+            colg[slot][sel] = np.clip(bilinear(img2, px2, py2) * g2, 0, 255).astype(np.float32)
+    haveg = ~np.isnan(colg[:, :, 0])
+    anyg = haveg.any(0)
+    medg = np.nanmedian(colg, axis=0)
+    dist_s = np.abs(colg - medg[None]).sum(2)
+    dist_s[~haveg] = np.inf
+    pick = np.argmin(dist_s, axis=0)
+    sel_px = colg[pick, np.arange(len(flat_g))]
+    cflat = comp.reshape(-1, 3).copy()
+    cflat[flat_g[anyg]] = np.clip(sel_px[anyg], 0, 255).astype(np.uint8)
+    comp = cflat.reshape(H, W, 3)
+    resid_m = ((comp.astype(np.int32).sum(2) < 12) | (egoproj.reshape(H, W) & ~capg))
+    resid_m[:H // 2] = False
+    if resid_m.any():
+        comp = _cv.inpaint(comp, resid_m.astype(np.uint8) * 255, 5, _cv.INPAINT_TELEA)
+    ground_stats = {"cap_px": int(capg.sum()), "filled_px": int(anyg.sum()),
+                    "coverage_pct": round(float(anyg.mean() * 100), 1) if len(flat_g) else 0.0,
+                    "residual_inpaint_px": int(resid_m.sum())}
     # plain EMC base for the A/B
     embase = np.zeros((len(Xf), 3), np.uint8)
     for ci, cam in enumerate(ring_cams):
@@ -1023,7 +1148,7 @@ def run_case(case_spec, run_name):
     board.save(REMOTE_OUT / f"{run_name}_db89_board.jpg", quality=90)
     return {"case": run_name, "n_objects_composited": int(n_handled), "n_unmatched": int(n_unmatched),
             "n_secondary_body_px": int(n_secondary), "n_temporal_filled_px": int(n_filled),
-            "omc_shifts": omc, "view_morph": morph_report}
+            "omc_shifts": omc, "view_morph": morph_report, "ground_fill": ground_stats}
 
 
 try:
