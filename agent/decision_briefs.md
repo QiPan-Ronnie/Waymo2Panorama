@@ -11,7 +11,7 @@ DB-80..DB-92 + V2.1/V2.2 all completed and recorded in progress.md (milestone ta
 ---
 
 # DB-93: Sky outpainting integration (upper hemisphere)
-Status: queued - BLOCKED on user approval (needs FLUX env, likely A100 GPU).
+Status: **v2 RUNNING on A100 (2026-06-11).** User's eyes overruled the old "sky-only WIN" record: the generated sky was a postcard-blue cumulus wallpaper inconsistent with the scene's actual haze/tone (verified by eye on the db19_0bae overall_review). FIRST-PRINCIPLES root cause: init had a BLACK cap = no photometric anchor -> FLUX prior free-ran to its ideal-sky mode; plus the lever-mining prompt bug (DEFAULT_PROMPT enumerated the very object classes the gate rejects). **v2 fix: init = sky-fill v3 gradient dome (photometry 100% from OBSERVED sky) + match-existing/anti-object prompt + tau sweep {15,50}.** FLUX 67.5GB cache intact on Drive (cache/huggingface/hub); honest-gradient fallback (scripts/phase3/sky_fill_gradient.py, deliverables/sky_fill_v3) already shipped as the abstain-compatible baseline and applied to all 75 dataset panoramas.
 Question: does the previously validated DiT360 sky-only outpaint (gate-clean upper-hemisphere fill; constraint+object-gate recipe, tau=50) compose cleanly on top of the v2.2 5-scene composites?
 Why: the v2.2 panoramas have black upper hemispheres; the sky outpaint was validated as a WIN earlier (recipe in memory: local FLUX cache, uninstall torchao, torchvision gate).
 Plan: restore the FLUX env (ask user for A100), run sky-only outpaint on the 5 v2.2 panoramas, object-gate as validated, A/B board.
