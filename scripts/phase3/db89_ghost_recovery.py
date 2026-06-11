@@ -1063,12 +1063,21 @@ def run_case(case_spec, run_name):
     qual_g = qual_g[np.argsort(disp_g[qual_g])]
     take_g = np.unique(np.linspace(0, len(qual_g) - 1, min(30, len(qual_g))).astype(int)) if len(qual_g) else []
     cand_fis = sorted(int(fi) for fi in qual_g[take_g]) if len(qual_g) else []
+    # EMC FOR GROUND SOURCES: each ring camera fires up to +-22.5 ms off the sync
+    # timestamp; at source-frame speeds (highway: >10 m/s) the SYNC pose is ~0.3 m
+    # wrong along travel, so 6 slots land the same stripe at 6 offsets and the
+    # per-pixel median pick interleaves them into a smeared multi-ghost band. Use
+    # each camera's OWN capture-time pose (same principle as the scene-band EMC).
+    cam_ts_arr = {ci2: np.array([int(p_.stem) for p_ in loader._image_paths[cam]], np.int64)
+                  for ci2, cam in enumerate(ring_cams)}
     for fi in cand_fis:
-        tsf = int(all_ts[fi]); Rf, tf = cte(tsf)
-        egod = np.linalg.norm(Xg_city - tf[None, :], axis=1)
-        Xq = (Xg_city - tf[None, :]) @ Rf
+        tsf = int(all_ts[fi])
         fboxes = [(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, tsf, moving)]
         for ci2, cam in enumerate(ring_cams):
+            cts_ = cam_ts_arr[ci2]
+            Rf, tf = cte(int(cts_[np.argmin(np.abs(cts_ - tsf))]))
+            egod = np.linalg.norm(Xg_city - tf[None, :], axis=1)
+            Xq = (Xg_city - tf[None, :]) @ Rf
             K2, (hh2, ww2) = cals[ci2]
             T2 = np.asarray(frame.calibrations[cam].T_ego_cam, float)
             Tci2 = np.linalg.inv(T2)
@@ -1080,7 +1089,16 @@ def run_case(case_spec, run_name):
             blocked = np.zeros(len(flat_g), bool)
             if fboxes:
                 blocked[okq] = gseg_blocked(T2[:3, 3], Xq[okq], fboxes)
-            visq = okq & ~blocked
+            # SOURCE-EGO SELF-OCCLUSION (proven by single-source isolation): rays
+            # from a source camera to ground points ~5-9 m ahead graze the source's
+            # OWN hood, so the sample is hood sky-reflection (bluish smears), not
+            # road. egod is the wrong geometry (point distance, not ray clearance);
+            # exact slab test vs the SAME ego box used for the anchor (centre-frame
+            # constants shifted by C), 1.1x inflated for the marginal grazing band.
+            selfocc = np.zeros(len(flat_g), bool)
+            selfocc[okq] = gseg_blocked(T2[:3, 3], Xq[okq],
+                                        [(C + (bmin_e + bmax_e) / 2.0, (bmax_e - bmin_e) * 1.1, np.eye(3))])
+            visq = okq & ~blocked & ~selfocc
             if not visq.any(): continue
             code_g = fi * 10 + ci2
             sc = egod.copy()
@@ -1102,7 +1120,7 @@ def run_case(case_spec, run_name):
             if tsf not in gcache:
                 gcache[tsf] = loader.load_synced_frame(tsf)
             fr2 = gcache[tsf]
-            Rf, tf = cte(tsf)
+            Rf, tf = cte(int(fr2.timestamps_ns[ring_cams[ci2]]))   # capture-time pose (EMC)
             Xq = (Xg_city[sel] - tf[None, :]) @ Rf
             K2, _s2 = cals[ci2]
             T2 = np.asarray(frame.calibrations[ring_cams[ci2]].T_ego_cam, float)
@@ -1120,6 +1138,19 @@ def run_case(case_spec, run_name):
     dist_s[~haveg] = np.inf
     pick = np.argmin(dist_s, axis=0)
     sel_px = colg[pick, np.arange(len(flat_g))]
+    # PHOTOMETRIC HARMONIZATION: whole-log sources span the log's exposure range,
+    # so adjacent pixels picking different (frame,cam) sources show a quilt of gray
+    # levels. Geometry stays single-source; only a single per-source RGB gain to
+    # the 6-slot median field (the consensus photometric reference) is applied.
+    final_code = chosen_g[pick, np.arange(len(flat_g))]
+    for code in np.unique(final_code[anyg]):
+        if code < 0: continue
+        reg = anyg & (final_code == code)
+        if reg.sum() < 200: continue
+        gmed = np.nanmedian(medg[reg], axis=0)
+        smed = np.nanmedian(sel_px[reg], axis=0)
+        gn = np.clip(gmed / np.maximum(smed, 1.0), 0.75, 1.35)
+        sel_px[reg] = sel_px[reg] * gn[None, :]
     cflat = comp.reshape(-1, 3).copy()
     cflat[flat_g[anyg]] = np.clip(sel_px[anyg], 0, 255).astype(np.uint8)
     comp = cflat.reshape(H, W, 3)
