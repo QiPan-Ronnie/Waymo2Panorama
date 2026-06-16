@@ -1,0 +1,11 @@
+[
+  {
+    "name": "2c65_bevfinal_sky_t50_s0",
+    "core_mae": 146.83346557617188,
+    "halo_mae": 0.0,
+    "far_mae": 0.0,
+    "case_runtime_s": 136.496,
+    "gate_fail": null,
+    "netnew": []
+  }
+]

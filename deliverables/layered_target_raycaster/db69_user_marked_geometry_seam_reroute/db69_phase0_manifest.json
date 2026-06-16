@@ -1,0 +1,61 @@
+{
+  "created_utc": "2026-06-05T23:37:25.996582+00:00",
+  "status": "db69_phase0_user_marked_geometry_audit_complete",
+  "claim_classification": "source-boundary audit / diagnostic evidence only; no RGB repair",
+  "scope": {
+    "cpu_local_only": true,
+    "phase0_audit_only": true,
+    "reroute_candidate_created": false,
+    "rgb_repair": false,
+    "remote_status_exec": false,
+    "a100": false,
+    "vggt_pi3_hf_model_inference": false,
+    "dit_flux_3dgs_inpaint_generation": false,
+    "source_replacement": false,
+    "geometry_warp": false,
+    "db32_edit": false,
+    "red_promotion": false
+  },
+  "inputs": {
+    "hard_select": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_hard_select.jpg",
+    "db65": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_best_visible_photometric_candidate.png",
+    "db68": "deliverables/layered_target_raycaster/db68_edge_aware_photometric_polish_v2/db68_best_edge_aware_candidate.png",
+    "source_id": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_source_id_map.png",
+    "source_id_viz": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_source_id_map_viz.png",
+    "hard_select_source_id": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_hard_select_source_id_map.png",
+    "source_boundary": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_source_boundary_risk_mask.png",
+    "seam_band": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_seam_band_mask.png",
+    "risk_map": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_risk_map.png",
+    "unknown": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_unknown_mask.png",
+    "lidar_support": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_support_map.png",
+    "visibility_count": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_visibility_count_map.png",
+    "z_cause": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/fetch/02a00399_a000_bmw/02a00399_a000_bmw_z_cause_primary_map.png",
+    "z_repairability": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/fetch/02a00399_a000_bmw/02a00399_a000_bmw_z_repairability_map.png"
+  },
+  "outputs": {
+    "main_board": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_user_marked_geometry_audit_board.jpg",
+    "roi_sheet": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_marked_roi_sheet.jpg",
+    "cost_components_board": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_route_cost_components_board.jpg",
+    "source_boundary_overlay": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_source_boundary_overlay.png",
+    "structure_risk_proxy": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_structure_risk_proxy.png",
+    "corridor_map": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_route_corridor_map.png",
+    "feasibility_map": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_marked_roi_feasibility_map.png",
+    "feasibility_json": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_marked_roi_feasibility.json",
+    "segment_overlay": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_seam_segment_overlay.png",
+    "segment_table": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_seam_segment_table.json",
+    "metrics": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_metrics.json",
+    "manifest": "deliverables/layered_target_raycaster/db69_user_marked_geometry_seam_reroute/db69_phase0_manifest.json"
+  },
+  "decision": {
+    "phase1_reroute_allowed": false,
+    "phase1_blockers": [
+      "no per-camera ERP slab/source-candidate stack found locally for source-label-only reroute"
+    ],
+    "local_geometry_alignment_allowed": false,
+    "reason": "Phase0 audits source-boundary placement and route feasibility only. Reroute needs per-camera source candidates; local warp needs a later brief."
+  },
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}

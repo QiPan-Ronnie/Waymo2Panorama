@@ -1,0 +1,23 @@
+{
+  "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db14_inputs/BEST_bmw_pano.jpg",
+  "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db14_thin_v14/BEST_bmw_pano/best_r008_h016_w025_tau5/best_r008_h016_w025_tau5_corecompose.png",
+  "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_seam_completion/inputs_v14_trimap/02a00399_a000/02a00399_a000_mask_preserve_nonseam_r008.png",
+  "conf": 0.5,
+  "src_salient": 8,
+  "gen_salient": 10,
+  "netnew_count": 1,
+  "PASS": false,
+  "netnew": [
+    {
+      "cls": "car",
+      "box": [
+        888.0,
+        527.5,
+        915.2,
+        549.9
+      ],
+      "conf": 0.656,
+      "gen_overlap": 0.66
+    }
+  ]
+}

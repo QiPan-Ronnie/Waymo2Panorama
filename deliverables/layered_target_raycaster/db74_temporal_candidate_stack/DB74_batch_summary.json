@@ -1,0 +1,3472 @@
+{
+  "status": "DB74_phase0_phase1_complete",
+  "claim_classification": "temporal raw-source candidate pending vision",
+  "source_faithful_repair_claim_allowed": false,
+  "phase2_operator_eligibility_allowed": false,
+  "temporal_candidate_result_requires_vision": true,
+  "clean_control_degraded": false,
+  "by_case": {
+    "02a00399_a000_bmw": {
+      "case": "02a00399_a000_bmw",
+      "best_variant_id": "temporal_probe_t8",
+      "baseline_metrics": {
+        "global_boundary_fraction": 0.0017852783203125,
+        "global_changed_fraction": 0.0,
+        "global_abstain_fraction": 0.0,
+        "global_protected_boundary_fraction": 0.0011572837829589844,
+        "global_seam_energy": 10.48851490020752,
+        "roi_mean_seam_energy": 10.531932830810547,
+        "component_count": 8,
+        "small_component_fraction": 0.00034785452028252744,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 14.56632137298584,
+            "boundary_fraction": 0.006880952380952381,
+            "protected_boundary_fraction": 0.00669047619047619,
+            "changed_fraction": 0.0,
+            "abstain_fraction": 0.0,
+            "source_ids": [
+              2,
+              3
+            ]
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 9.258546829223633,
+            "boundary_fraction": 0.003525423728813559,
+            "protected_boundary_fraction": 0.003525423728813559,
+            "changed_fraction": 0.0,
+            "abstain_fraction": 0.0,
+            "source_ids": [
+              0,
+              1
+            ]
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 11.97686767578125,
+            "boundary_fraction": 0.004884437596302003,
+            "protected_boundary_fraction": 0.0016795069337442218,
+            "changed_fraction": 0.0,
+            "abstain_fraction": 0.0,
+            "source_ids": [
+              0,
+              6
+            ]
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 6.325995445251465,
+            "boundary_fraction": 0.004447552447552448,
+            "protected_boundary_fraction": 0.0005314685314685315,
+            "changed_fraction": 0.0,
+            "abstain_fraction": 0.0,
+            "source_ids": [
+              5,
+              6
+            ]
+          }
+        ]
+      },
+      "best_metrics": {
+        "global_boundary_fraction": 0.0018405914306640625,
+        "global_changed_fraction": 0.001911163330078125,
+        "global_abstain_fraction": 0.00026607513427734375,
+        "global_protected_boundary_fraction": 0.0011038780212402344,
+        "global_seam_energy": 9.43592357635498,
+        "roi_mean_seam_energy": 10.093998551368713,
+        "component_count": 8,
+        "small_component_fraction": 2.2610543818364284e-05,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 14.69545841217041,
+            "boundary_fraction": 0.007166666666666667,
+            "protected_boundary_fraction": 0.006857142857142857,
+            "changed_fraction": 0.006976190476190476,
+            "abstain_fraction": 0.0006428571428571428,
+            "source_ids": [
+              2,
+              3
+            ]
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 9.183759689331055,
+            "boundary_fraction": 0.003525423728813559,
+            "protected_boundary_fraction": 0.003525423728813559,
+            "changed_fraction": 0.0035028248587570623,
+            "abstain_fraction": 0.0,
+            "source_ids": [
+              0,
+              1
+            ]
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 9.909276008605957,
+            "boundary_fraction": 0.005038520801232666,
+            "protected_boundary_fraction": 0.0012788906009244992,
+            "changed_fraction": 0.005701078582434515,
+            "abstain_fraction": 0.0008628659476117103,
+            "source_ids": [
+              0,
+              6
+            ]
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 6.587500095367432,
+            "boundary_fraction": 0.0044755244755244755,
+            "protected_boundary_fraction": 0.00012587412587412587,
+            "changed_fraction": 0.00558041958041958,
+            "abstain_fraction": 0.0003356643356643357,
+            "source_ids": [
+              5,
+              6
+            ]
+          }
+        ]
+      },
+      "best_roi_gain_vs_base": 0.041581567835362813,
+      "best_changed_fraction": 0.001911163330078125,
+      "best_abstain_fraction": 0.00026607513427734375,
+      "best_small_component_fraction": 2.2610543818364284e-05,
+      "best_protected_boundary_fraction": 0.0011038780212402344,
+      "variants": [
+        {
+          "variant": "source_only_t16",
+          "metrics": {
+            "global_boundary_fraction": 0.0018568038940429688,
+            "global_changed_fraction": 0.0038084983825683594,
+            "global_abstain_fraction": 0.0009336471557617188,
+            "global_protected_boundary_fraction": 0.0010895729064941406,
+            "global_seam_energy": 10.020030975341797,
+            "roi_mean_seam_energy": 10.18169105052948,
+            "component_count": 8,
+            "small_component_fraction": 5.043890544096648e-05,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 14.528428077697754,
+                "boundary_fraction": 0.0071190476190476195,
+                "protected_boundary_fraction": 0.00680952380952381,
+                "changed_fraction": 0.008333333333333333,
+                "abstain_fraction": 0.002119047619047619,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 10.033333778381348,
+                "boundary_fraction": 0.0031638418079096044,
+                "protected_boundary_fraction": 0.002598870056497175,
+                "changed_fraction": 0.009943502824858758,
+                "abstain_fraction": 0.0031864406779661017,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 9.22191333770752,
+                "boundary_fraction": 0.005531587057010786,
+                "protected_boundary_fraction": 0.0009399075500770416,
+                "changed_fraction": 0.012357473035439137,
+                "abstain_fraction": 0.0022496147919876734,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 6.943089008331299,
+                "boundary_fraction": 0.004587412587412587,
+                "protected_boundary_fraction": 0.00016783216783216784,
+                "changed_fraction": 0.011874125874125873,
+                "abstain_fraction": 0.0007412587412587413,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 16,
+            "tile_grid": [
+              64,
+              128
+            ],
+            "tile_count": 8192,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 25,
+                "energy_proxy": 2391.44482421875
+              },
+              {
+                "iter": 1,
+                "changes": 2,
+                "energy_proxy": 2292.966064453125
+              },
+              {
+                "iter": 2,
+                "changes": 0,
+                "energy_proxy": 2286.531494140625
+              }
+            ],
+            "tile_label_counts": {
+              "0": 354,
+              "1": 318,
+              "2": 333,
+              "3": 347,
+              "4": 341,
+              "5": 344,
+              "6": 324,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 5831
+            },
+            "allowed_source_tile_counts": {
+              "0": 393,
+              "1": 402,
+              "2": 404,
+              "3": 405,
+              "4": 404,
+              "5": 408,
+              "6": 404,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 8192
+            }
+          },
+          "component_stats": {
+            "component_count": 8,
+            "small_component_fraction": 5.043890544096648e-05,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 85366,
+                "bbox": [
+                  888,
+                  342,
+                  271,
+                  341
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 84490,
+                "bbox": [
+                  0,
+                  371,
+                  330,
+                  281
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 83416,
+                "bbox": [
+                  1715,
+                  373,
+                  333,
+                  281
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 82669,
+                "bbox": [
+                  1434,
+                  393,
+                  336,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 81415,
+                "bbox": [
+                  278,
+                  386,
+                  340,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 79231,
+                "bbox": [
+                  1136,
+                  392,
+                  304,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 78337,
+                "bbox": [
+                  608,
+                  386,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 29,
+                "bbox": [
+                  2046,
+                  385,
+                  2,
+                  15
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": 0.03325522351001473,
+          "score": 10.288891196250916
+        },
+        {
+          "variant": "source_only_t32",
+          "metrics": {
+            "global_boundary_fraction": 0.0018243789672851562,
+            "global_changed_fraction": 0.004671573638916016,
+            "global_abstain_fraction": 0.0047817230224609375,
+            "global_protected_boundary_fraction": 0.0011053085327148438,
+            "global_seam_energy": 10.159870147705078,
+            "roi_mean_seam_energy": 10.61353313922882,
+            "component_count": 8,
+            "small_component_fraction": 0.00010609562868617086,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 14.435215950012207,
+                "boundary_fraction": 0.007166666666666667,
+                "protected_boundary_fraction": 0.006976190476190476,
+                "changed_fraction": 0.03219047619047619,
+                "abstain_fraction": 0.025666666666666667,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 10.033333778381348,
+                "boundary_fraction": 0.0031638418079096044,
+                "protected_boundary_fraction": 0.002598870056497175,
+                "changed_fraction": 0.009943502824858758,
+                "abstain_fraction": 0.016429378531073447,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 11.365663528442383,
+                "boundary_fraction": 0.00460708782742681,
+                "protected_boundary_fraction": 0.0012326656394453005,
+                "changed_fraction": 0.011032357473035439,
+                "abstain_fraction": 0.012342064714946071,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 6.619919300079346,
+                "boundary_fraction": 0.004587412587412587,
+                "protected_boundary_fraction": 0.0004055944055944056,
+                "changed_fraction": 0.010531468531468531,
+                "abstain_fraction": 0.009174825174825174,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 32,
+            "tile_grid": [
+              32,
+              64
+            ],
+            "tile_count": 2048,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 15,
+                "energy_proxy": 1272.3851318359375
+              },
+              {
+                "iter": 1,
+                "changes": 1,
+                "energy_proxy": 1236.448974609375
+              },
+              {
+                "iter": 2,
+                "changes": 0,
+                "energy_proxy": 1230.93701171875
+              }
+            ],
+            "tile_label_counts": {
+              "0": 99,
+              "1": 77,
+              "2": 84,
+              "3": 94,
+              "4": 92,
+              "5": 88,
+              "6": 79,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 1435
+            },
+            "allowed_source_tile_counts": {
+              "0": 112,
+              "1": 108,
+              "2": 105,
+              "3": 115,
+              "4": 114,
+              "5": 107,
+              "6": 109,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 2048
+            }
+          },
+          "component_stats": {
+            "component_count": 8,
+            "small_component_fraction": 0.00010609562868617086,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 86327,
+                "bbox": [
+                  888,
+                  342,
+                  271,
+                  341
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 83260,
+                "bbox": [
+                  0,
+                  371,
+                  330,
+                  281
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 83219,
+                "bbox": [
+                  1715,
+                  373,
+                  333,
+                  281
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 82930,
+                "bbox": [
+                  1434,
+                  393,
+                  336,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 82757,
+                "bbox": [
+                  278,
+                  386,
+                  340,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 78260,
+                "bbox": [
+                  1152,
+                  392,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 78139,
+                "bbox": [
+                  608,
+                  386,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 61,
+                "bbox": [
+                  2046,
+                  385,
+                  2,
+                  31
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": -0.007747894876385562,
+          "score": 10.797768712043762
+        },
+        {
+          "variant": "temporal_probe_t8",
+          "metrics": {
+            "global_boundary_fraction": 0.0018405914306640625,
+            "global_changed_fraction": 0.001911163330078125,
+            "global_abstain_fraction": 0.00026607513427734375,
+            "global_protected_boundary_fraction": 0.0011038780212402344,
+            "global_seam_energy": 9.43592357635498,
+            "roi_mean_seam_energy": 10.093998551368713,
+            "component_count": 8,
+            "small_component_fraction": 2.2610543818364284e-05,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 14.69545841217041,
+                "boundary_fraction": 0.007166666666666667,
+                "protected_boundary_fraction": 0.006857142857142857,
+                "changed_fraction": 0.006976190476190476,
+                "abstain_fraction": 0.0006428571428571428,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 9.183759689331055,
+                "boundary_fraction": 0.003525423728813559,
+                "protected_boundary_fraction": 0.003525423728813559,
+                "changed_fraction": 0.0035028248587570623,
+                "abstain_fraction": 0.0,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 9.909276008605957,
+                "boundary_fraction": 0.005038520801232666,
+                "protected_boundary_fraction": 0.0012788906009244992,
+                "changed_fraction": 0.005701078582434515,
+                "abstain_fraction": 0.0008628659476117103,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 6.587500095367432,
+                "boundary_fraction": 0.0044755244755244755,
+                "protected_boundary_fraction": 0.00012587412587412587,
+                "changed_fraction": 0.00558041958041958,
+                "abstain_fraction": 0.0003356643356643357,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 8,
+            "tile_grid": [
+              128,
+              256
+            ],
+            "tile_count": 32768,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 43,
+                "energy_proxy": 3840.406982421875
+              },
+              {
+                "iter": 1,
+                "changes": 1,
+                "energy_proxy": 3808.712158203125
+              },
+              {
+                "iter": 2,
+                "changes": 0,
+                "energy_proxy": 3806.789794921875
+              }
+            ],
+            "tile_label_counts": {
+              "0": 1371,
+              "1": 1236,
+              "2": 1352,
+              "3": 1346,
+              "4": 1351,
+              "5": 1343,
+              "6": 1225,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 23544
+            },
+            "allowed_source_tile_counts": {
+              "0": 1454,
+              "1": 1558,
+              "2": 1555,
+              "3": 1569,
+              "4": 1553,
+              "5": 1557,
+              "6": 1548,
+              "7": 10,
+              "8": 15,
+              "9": 22,
+              "10": 24,
+              "11": 24,
+              "12": 12,
+              "13": 12,
+              "14": 32768
+            }
+          },
+          "component_stats": {
+            "component_count": 8,
+            "small_component_fraction": 2.2610543818364284e-05,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 85125,
+                "bbox": [
+                  888,
+                  342,
+                  271,
+                  341
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 84154,
+                "bbox": [
+                  278,
+                  386,
+                  340,
+                  281
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 84143,
+                "bbox": [
+                  1715,
+                  373,
+                  333,
+                  281
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 83902,
+                "bbox": [
+                  1432,
+                  393,
+                  338,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 83682,
+                "bbox": [
+                  0,
+                  371,
+                  330,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 76967,
+                "bbox": [
+                  612,
+                  386,
+                  292,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 76967,
+                "bbox": [
+                  1144,
+                  392,
+                  291,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 13,
+                "bbox": [
+                  2046,
+                  385,
+                  2,
+                  7
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": 0.041581567835362813,
+          "score": 10.174790501594543
+        },
+        {
+          "variant": "temporal_conservative_t16",
+          "metrics": {
+            "global_boundary_fraction": 0.0018224716186523438,
+            "global_changed_fraction": 0.002097606658935547,
+            "global_abstain_fraction": 0.007174491882324219,
+            "global_protected_boundary_fraction": 0.0011110305786132812,
+            "global_seam_energy": 9.658905029296875,
+            "roi_mean_seam_energy": 10.834944605827332,
+            "component_count": 8,
+            "small_component_fraction": 5.043890544096648e-05,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 14.997692108154297,
+                "boundary_fraction": 0.006880952380952381,
+                "protected_boundary_fraction": 0.006571428571428572,
+                "changed_fraction": 0.0011666666666666668,
+                "abstain_fraction": 0.05366666666666667,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 10.033333778381348,
+                "boundary_fraction": 0.0031638418079096044,
+                "protected_boundary_fraction": 0.002598870056497175,
+                "changed_fraction": 0.009943502824858758,
+                "abstain_fraction": 0.025242937853107345,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 11.365663528442383,
+                "boundary_fraction": 0.00460708782742681,
+                "protected_boundary_fraction": 0.0012326656394453005,
+                "changed_fraction": 0.011032357473035439,
+                "abstain_fraction": 0.0022650231124807397,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 6.943089008331299,
+                "boundary_fraction": 0.004587412587412587,
+                "protected_boundary_fraction": 0.00016783216783216784,
+                "changed_fraction": 0.011874125874125873,
+                "abstain_fraction": 0.0007412587412587413,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 16,
+            "tile_grid": [
+              64,
+              128
+            ],
+            "tile_count": 8192,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 60,
+                "energy_proxy": 1686.4715576171875
+              },
+              {
+                "iter": 1,
+                "changes": 25,
+                "energy_proxy": 1604.580810546875
+              },
+              {
+                "iter": 2,
+                "changes": 0,
+                "energy_proxy": 1580.839111328125
+              }
+            ],
+            "tile_label_counts": {
+              "0": 356,
+              "1": 291,
+              "2": 333,
+              "3": 333,
+              "4": 339,
+              "5": 338,
+              "6": 317,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 5885
+            },
+            "allowed_source_tile_counts": {
+              "0": 393,
+              "1": 402,
+              "2": 404,
+              "3": 405,
+              "4": 404,
+              "5": 408,
+              "6": 404,
+              "7": 8,
+              "8": 4,
+              "9": 8,
+              "10": 9,
+              "11": 10,
+              "12": 7,
+              "13": 7,
+              "14": 8192
+            }
+          },
+          "component_stats": {
+            "component_count": 8,
+            "small_component_fraction": 5.043890544096648e-05,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 86811,
+                "bbox": [
+                  888,
+                  342,
+                  271,
+                  341
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 83950,
+                "bbox": [
+                  278,
+                  386,
+                  346,
+                  281
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 83708,
+                "bbox": [
+                  1715,
+                  373,
+                  333,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 83331,
+                "bbox": [
+                  0,
+                  371,
+                  330,
+                  281
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 82377,
+                "bbox": [
+                  1434,
+                  393,
+                  336,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 78078,
+                "bbox": [
+                  1152,
+                  392,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 76669,
+                "bbox": [
+                  608,
+                  386,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 29,
+                "bbox": [
+                  2046,
+                  385,
+                  2,
+                  15
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": -0.028770766001311898,
+          "score": 11.041972994804382
+        },
+        {
+          "variant": "temporal_smooth_t16",
+          "metrics": {
+            "global_boundary_fraction": 0.0018301010131835938,
+            "global_changed_fraction": 0.0023550987243652344,
+            "global_abstain_fraction": 0.00991058349609375,
+            "global_protected_boundary_fraction": 0.0011444091796875,
+            "global_seam_energy": 10.232673645019531,
+            "roi_mean_seam_energy": 10.694404244422913,
+            "component_count": 8,
+            "small_component_fraction": 5.043890544096648e-05,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 14.9163818359375,
+                "boundary_fraction": 0.006928571428571429,
+                "protected_boundary_fraction": 0.006619047619047619,
+                "changed_fraction": 0.005547619047619048,
+                "abstain_fraction": 0.04973809523809524,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 10.033333778381348,
+                "boundary_fraction": 0.0031638418079096044,
+                "protected_boundary_fraction": 0.002598870056497175,
+                "changed_fraction": 0.009943502824858758,
+                "abstain_fraction": 0.025242937853107345,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 10.884812355041504,
+                "boundary_fraction": 0.005038520801232666,
+                "protected_boundary_fraction": 0.0016332819722650231,
+                "changed_fraction": 0.0038674884437596303,
+                "abstain_fraction": 0.02963020030816641,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 6.943089008331299,
+                "boundary_fraction": 0.004587412587412587,
+                "protected_boundary_fraction": 0.00016783216783216784,
+                "changed_fraction": 0.011874125874125873,
+                "abstain_fraction": 0.0007412587412587413,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 16,
+            "tile_grid": [
+              64,
+              128
+            ],
+            "tile_count": 8192,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 97,
+                "energy_proxy": 1669.7850341796875
+              },
+              {
+                "iter": 1,
+                "changes": 13,
+                "energy_proxy": 1623.670166015625
+              },
+              {
+                "iter": 2,
+                "changes": 0,
+                "energy_proxy": 1620.142822265625
+              }
+            ],
+            "tile_label_counts": {
+              "0": 348,
+              "1": 299,
+              "2": 329,
+              "3": 326,
+              "4": 341,
+              "5": 327,
+              "6": 314,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 5908
+            },
+            "allowed_source_tile_counts": {
+              "0": 393,
+              "1": 402,
+              "2": 404,
+              "3": 405,
+              "4": 404,
+              "5": 408,
+              "6": 404,
+              "7": 8,
+              "8": 4,
+              "9": 8,
+              "10": 9,
+              "11": 10,
+              "12": 7,
+              "13": 7,
+              "14": 8192
+            }
+          },
+          "component_stats": {
+            "component_count": 8,
+            "small_component_fraction": 5.043890544096648e-05,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 86458,
+                "bbox": [
+                  888,
+                  342,
+                  271,
+                  341
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 84209,
+                "bbox": [
+                  1715,
+                  373,
+                  333,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 83530,
+                "bbox": [
+                  278,
+                  386,
+                  340,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 82711,
+                "bbox": [
+                  0,
+                  371,
+                  330,
+                  281
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 81876,
+                "bbox": [
+                  1434,
+                  393,
+                  336,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 78431,
+                "bbox": [
+                  1141,
+                  392,
+                  299,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 77709,
+                "bbox": [
+                  608,
+                  386,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 29,
+                "bbox": [
+                  2046,
+                  385,
+                  2,
+                  15
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": -0.015426552392839537,
+          "score": 10.954578042030334
+        },
+        {
+          "variant": "temporal_strict_t16",
+          "metrics": {
+            "global_boundary_fraction": 0.0018205642700195312,
+            "global_changed_fraction": 0.002429962158203125,
+            "global_abstain_fraction": 0.00954437255859375,
+            "global_protected_boundary_fraction": 0.0011386871337890625,
+            "global_seam_energy": 10.093941688537598,
+            "roi_mean_seam_energy": 10.694404244422913,
+            "component_count": 8,
+            "small_component_fraction": 5.043890544096648e-05,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 14.9163818359375,
+                "boundary_fraction": 0.006928571428571429,
+                "protected_boundary_fraction": 0.006619047619047619,
+                "changed_fraction": 0.005547619047619048,
+                "abstain_fraction": 0.04973809523809524,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 10.033333778381348,
+                "boundary_fraction": 0.0031638418079096044,
+                "protected_boundary_fraction": 0.002598870056497175,
+                "changed_fraction": 0.009943502824858758,
+                "abstain_fraction": 0.025242937853107345,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 10.884812355041504,
+                "boundary_fraction": 0.005038520801232666,
+                "protected_boundary_fraction": 0.0016332819722650231,
+                "changed_fraction": 0.0038674884437596303,
+                "abstain_fraction": 0.02568567026194145,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 6.943089008331299,
+                "boundary_fraction": 0.004587412587412587,
+                "protected_boundary_fraction": 0.00016783216783216784,
+                "changed_fraction": 0.011874125874125873,
+                "abstain_fraction": 0.0007412587412587413,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 16,
+            "tile_grid": [
+              64,
+              128
+            ],
+            "tile_count": 8192,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 90,
+                "energy_proxy": 1691.70751953125
+              },
+              {
+                "iter": 1,
+                "changes": 11,
+                "energy_proxy": 1655.2452392578125
+              },
+              {
+                "iter": 2,
+                "changes": 0,
+                "energy_proxy": 1641.5635986328125
+              }
+            ],
+            "tile_label_counts": {
+              "0": 348,
+              "1": 300,
+              "2": 328,
+              "3": 326,
+              "4": 341,
+              "5": 328,
+              "6": 316,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 5905
+            },
+            "allowed_source_tile_counts": {
+              "0": 393,
+              "1": 402,
+              "2": 404,
+              "3": 405,
+              "4": 404,
+              "5": 408,
+              "6": 404,
+              "7": 5,
+              "8": 4,
+              "9": 8,
+              "10": 8,
+              "11": 10,
+              "12": 7,
+              "13": 7,
+              "14": 8192
+            }
+          },
+          "component_stats": {
+            "component_count": 8,
+            "small_component_fraction": 5.043890544096648e-05,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 86413,
+                "bbox": [
+                  888,
+                  342,
+                  271,
+                  341
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 84209,
+                "bbox": [
+                  1715,
+                  373,
+                  333,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 83418,
+                "bbox": [
+                  278,
+                  386,
+                  340,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 82711,
+                "bbox": [
+                  0,
+                  371,
+                  330,
+                  281
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 81876,
+                "bbox": [
+                  1434,
+                  393,
+                  336,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 78476,
+                "bbox": [
+                  1141,
+                  392,
+                  299,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 77821,
+                "bbox": [
+                  608,
+                  386,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 29,
+                "bbox": [
+                  2046,
+                  385,
+                  2,
+                  15
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": -0.015426552392839537,
+          "score": 10.948270440101624
+        }
+      ],
+      "inventory": {
+        "case": "02a00399_a000_bmw",
+        "valid_pixel_fraction": 0.27415895462036133,
+        "valid_count_distribution": {
+          "0": 1522199,
+          "1": 486479,
+          "2": 86254,
+          "3": 2134,
+          "4": 86,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0,
+          "13": 0,
+          "14": 0
+        },
+        "candidate_valid_fraction": {
+          "0": 0.04257822036743164,
+          "1": 0.04560041427612305,
+          "2": 0.04561662673950195,
+          "3": 0.04552173614501953,
+          "4": 0.04557085037231445,
+          "5": 0.04568910598754883,
+          "6": 0.045680999755859375,
+          "7": 7.62939453125e-05,
+          "8": 7.2479248046875e-05,
+          "9": 0.00017976760864257812,
+          "10": 0.0001983642578125,
+          "11": 0.0003161430358886719,
+          "12": 0.00019884109497070312,
+          "13": 0.00014638900756835938
+        },
+        "raw_camera_valid_fraction": {
+          "0": 0.04257822036743164,
+          "1": 0.04560041427612305,
+          "2": 0.04561662673950195,
+          "3": 0.04552173614501953,
+          "4": 0.04557085037231445,
+          "5": 0.04568910598754883,
+          "6": 0.045680999755859375
+        },
+        "temporal_candidate_valid_fraction": {
+          "0": 7.62939453125e-05,
+          "1": 7.2479248046875e-05,
+          "2": 0.00017976760864257812,
+          "3": 0.0001983642578125,
+          "4": 0.0003161430358886719,
+          "5": 0.00019884109497070312,
+          "6": 0.00014638900756835938
+        },
+        "temporal_candidate_status": {
+          "status": "temporal_candidates_complete",
+          "candidate_family": "temporal_multiframe_ground_source_derived",
+          "candidate_labels": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "eligible_fraction": 0.0017247200012207031,
+          "offsets_requested": [
+            -4,
+            -2,
+            2,
+            4
+          ],
+          "offset_diagnostics": [
+            {
+              "offset": -4,
+              "src_idx": -4,
+              "status": "out_of_range"
+            },
+            {
+              "offset": -2,
+              "src_idx": -2,
+              "status": "out_of_range"
+            },
+            {
+              "offset": 2,
+              "src_idx": 2,
+              "status": "ok",
+              "valid_fraction_before_eligibility": 0.15058326721191406,
+              "valid_fraction_after_eligibility": 0.0011472702026367188,
+              "ego_delta_m": 0.9771566507832882,
+              "pose_dt_ms": 100.000002
+            },
+            {
+              "offset": 4,
+              "src_idx": 4,
+              "status": "ok",
+              "valid_fraction_before_eligibility": 0.16451120376586914,
+              "valid_fraction_after_eligibility": 0.0011472702026367188,
+              "ego_delta_m": 1.9237396828474969,
+              "pose_dt_ms": 200.000007
+            }
+          ],
+          "temporal_ground": {
+            "n": [
+              -0.009299625231700519,
+              0.01952640616906561,
+              0.9997660908595923
+            ],
+            "d": -0.25961599455863865,
+            "n_inl": 16248,
+            "resid_m": 0.03631839853202129
+          },
+          "temporal_any_valid_fraction": 0.0011472702026367188,
+          "temporal_candidate_valid_fraction": [
+            7.62939453125e-05,
+            7.2479248046875e-05,
+            0.00017976760864257812,
+            0.0001983642578125,
+            0.0003161430358886719,
+            0.00019884109497070312,
+            0.00014638900756835938
+          ],
+          "boundary_band_fraction": 0.034191131591796875,
+          "tall_veto_fraction": 0.10414361953735352,
+          "protected_soft_risk_fraction": 0.019385814666748047,
+          "structure_risk_limit": 0.88,
+          "ground_z_m_used": -0.25967673532058133,
+          "panorama_center_z_m": 1.4442600832419257,
+          "lidar_delta_ms": 9.76879
+        },
+        "temporal_selected_fraction": 0.0,
+        "photometric_gains_for_cost_only": [
+          [
+            1.0,
+            1.006250023841858,
+            0.936170220375061
+          ],
+          [
+            0.9430379867553711,
+            0.9415204524993896,
+            0.9263157844543457
+          ],
+          [
+            0.9141104221343994,
+            0.9252873659133911,
+            0.8756219148635864
+          ],
+          [
+            0.8370786309242249,
+            0.8214285969734192,
+            0.7963801026344299
+          ],
+          [
+            1.0,
+            1.006250023841858,
+            0.95652174949646
+          ],
+          [
+            1.0492957830429077,
+            1.0592105388641357,
+            1.1354838609695435
+          ],
+          [
+            1.3200000524520874,
+            1.3200000524520874,
+            1.3200000524520874
+          ],
+          [
+            1.3200000524520874,
+            1.3200000524520874,
+            1.3200000524520874
+          ],
+          [
+            0.8514285683631897,
+            0.8797814249992371,
+            0.9805014133453369
+          ],
+          [
+            0.8975903391838074,
+            0.9415204524993896,
+            1.0
+          ],
+          [
+            0.9169231057167053,
+            0.9698795080184937,
+            0.9643835425376892
+          ],
+          [
+            1.3200000524520874,
+            1.3200000524520874,
+            1.3200000524520874
+          ],
+          [
+            1.3200000524520874,
+            1.3200000524520874,
+            1.3200000524520874
+          ],
+          [
+            1.3200000524520874,
+            1.3200000524520874,
+            1.3200000524520874
+          ]
+        ],
+        "lidar_evidence_status": "lidar_zbuffer_evidence_complete",
+        "lidar_visible_fraction": 0.05321550369262695,
+        "lidar_support_fraction": 0.12054061889648438,
+        "raw_uv_validity_proxy": "render_camera_to_erp valid/FOV weights; exact raw_uv sidecar not emitted by current renderer API"
+      },
+      "temporal_info": {
+        "status": "temporal_candidates_complete",
+        "candidate_family": "temporal_multiframe_ground_source_derived",
+        "candidate_labels": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "eligible_fraction": 0.0017247200012207031,
+        "offsets_requested": [
+          -4,
+          -2,
+          2,
+          4
+        ],
+        "offset_diagnostics": [
+          {
+            "offset": -4,
+            "src_idx": -4,
+            "status": "out_of_range"
+          },
+          {
+            "offset": -2,
+            "src_idx": -2,
+            "status": "out_of_range"
+          },
+          {
+            "offset": 2,
+            "src_idx": 2,
+            "status": "ok",
+            "valid_fraction_before_eligibility": 0.15058326721191406,
+            "valid_fraction_after_eligibility": 0.0011472702026367188,
+            "ego_delta_m": 0.9771566507832882,
+            "pose_dt_ms": 100.000002
+          },
+          {
+            "offset": 4,
+            "src_idx": 4,
+            "status": "ok",
+            "valid_fraction_before_eligibility": 0.16451120376586914,
+            "valid_fraction_after_eligibility": 0.0011472702026367188,
+            "ego_delta_m": 1.9237396828474969,
+            "pose_dt_ms": 200.000007
+          }
+        ],
+        "temporal_ground": {
+          "n": [
+            -0.009299625231700519,
+            0.01952640616906561,
+            0.9997660908595923
+          ],
+          "d": -0.25961599455863865,
+          "n_inl": 16248,
+          "resid_m": 0.03631839853202129
+        },
+        "temporal_any_valid_fraction": 0.0011472702026367188,
+        "temporal_candidate_valid_fraction": [
+          7.62939453125e-05,
+          7.2479248046875e-05,
+          0.00017976760864257812,
+          0.0001983642578125,
+          0.0003161430358886719,
+          0.00019884109497070312,
+          0.00014638900756835938
+        ],
+        "boundary_band_fraction": 0.034191131591796875,
+        "tall_veto_fraction": 0.10414361953735352,
+        "protected_soft_risk_fraction": 0.019385814666748047,
+        "structure_risk_limit": 0.88,
+        "ground_z_m_used": -0.25967673532058133,
+        "panorama_center_z_m": 1.4442600832419257,
+        "lidar_delta_ms": 9.76879
+      },
+      "runtime_s": 34.04
+    },
+    "0bae3b5e_a030_clean_far": {
+      "case": "0bae3b5e_a030_clean_far",
+      "best_variant_id": "source_only_t16",
+      "baseline_metrics": {
+        "global_boundary_fraction": 0.0017895698547363281,
+        "global_changed_fraction": 0.0,
+        "global_abstain_fraction": 0.0,
+        "global_protected_boundary_fraction": 0.0008130073547363281,
+        "global_seam_energy": 16.65938377380371,
+        "roi_mean_seam_energy": 11.223577737808228,
+        "component_count": 9,
+        "small_component_fraction": 6.954792112570265e-06,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 9.024944305419922,
+            "boundary_fraction": 0.007,
+            "protected_boundary_fraction": 0.0005952380952380953,
+            "changed_fraction": 0.0,
+            "abstain_fraction": 0.0,
+            "source_ids": [
+              2,
+              3
+            ]
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 8.482179641723633,
+            "boundary_fraction": 0.0035932203389830507,
+            "protected_boundary_fraction": 0.0009943502824858758,
+            "changed_fraction": 0.0,
+            "abstain_fraction": 0.0,
+            "source_ids": [
+              0,
+              1
+            ]
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 16.751306533813477,
+            "boundary_fraction": 0.004915254237288135,
+            "protected_boundary_fraction": 0.0027580893682588596,
+            "changed_fraction": 0.0,
+            "abstain_fraction": 0.0,
+            "source_ids": [
+              0,
+              6
+            ]
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 10.635880470275879,
+            "boundary_fraction": 0.0043916083916083915,
+            "protected_boundary_fraction": 0.0017062937062937062,
+            "changed_fraction": 0.0,
+            "abstain_fraction": 0.0,
+            "source_ids": [
+              5,
+              6
+            ]
+          }
+        ]
+      },
+      "best_metrics": {
+        "global_boundary_fraction": 0.0018739700317382812,
+        "global_changed_fraction": 0.003536224365234375,
+        "global_abstain_fraction": 0.0010485649108886719,
+        "global_protected_boundary_fraction": 0.0008516311645507812,
+        "global_seam_energy": 15.412553787231445,
+        "roi_mean_seam_energy": 10.812343835830688,
+        "component_count": 9,
+        "small_component_fraction": 7.650271323827292e-05,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 10.198718070983887,
+            "boundary_fraction": 0.0074285714285714285,
+            "protected_boundary_fraction": 0.0005476190476190477,
+            "changed_fraction": 0.011238095238095238,
+            "abstain_fraction": 0.0035476190476190477,
+            "source_ids": [
+              2,
+              3
+            ]
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 8.174941062927246,
+            "boundary_fraction": 0.0031864406779661017,
+            "protected_boundary_fraction": 0.000384180790960452,
+            "changed_fraction": 0.01080225988700565,
+            "abstain_fraction": 0.0033220338983050847,
+            "source_ids": [
+              0,
+              1
+            ]
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 14.827298164367676,
+            "boundary_fraction": 0.005531587057010786,
+            "protected_boundary_fraction": 0.0023882896764252696,
+            "changed_fraction": 0.012742681047765794,
+            "abstain_fraction": 0.002095531587057011,
+            "source_ids": [
+              0,
+              6
+            ]
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 10.048418045043945,
+            "boundary_fraction": 0.005006993006993007,
+            "protected_boundary_fraction": 0.0015944055944055943,
+            "changed_fraction": 0.016181818181818183,
+            "abstain_fraction": 0.0004195804195804196,
+            "source_ids": [
+              5,
+              6
+            ]
+          }
+        ]
+      },
+      "best_roi_gain_vs_base": 0.036640179413756704,
+      "best_changed_fraction": 0.003536224365234375,
+      "best_abstain_fraction": 0.0010485649108886719,
+      "best_small_component_fraction": 7.650271323827292e-05,
+      "best_protected_boundary_fraction": 0.0008516311645507812,
+      "variants": [
+        {
+          "variant": "source_only_t16",
+          "metrics": {
+            "global_boundary_fraction": 0.0018739700317382812,
+            "global_changed_fraction": 0.003536224365234375,
+            "global_abstain_fraction": 0.0010485649108886719,
+            "global_protected_boundary_fraction": 0.0008516311645507812,
+            "global_seam_energy": 15.412553787231445,
+            "roi_mean_seam_energy": 10.812343835830688,
+            "component_count": 9,
+            "small_component_fraction": 7.650271323827292e-05,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 10.198718070983887,
+                "boundary_fraction": 0.0074285714285714285,
+                "protected_boundary_fraction": 0.0005476190476190477,
+                "changed_fraction": 0.011238095238095238,
+                "abstain_fraction": 0.0035476190476190477,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 8.174941062927246,
+                "boundary_fraction": 0.0031864406779661017,
+                "protected_boundary_fraction": 0.000384180790960452,
+                "changed_fraction": 0.01080225988700565,
+                "abstain_fraction": 0.0033220338983050847,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 14.827298164367676,
+                "boundary_fraction": 0.005531587057010786,
+                "protected_boundary_fraction": 0.0023882896764252696,
+                "changed_fraction": 0.012742681047765794,
+                "abstain_fraction": 0.002095531587057011,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 10.048418045043945,
+                "boundary_fraction": 0.005006993006993007,
+                "protected_boundary_fraction": 0.0015944055944055943,
+                "changed_fraction": 0.016181818181818183,
+                "abstain_fraction": 0.0004195804195804196,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 16,
+            "tile_grid": [
+              64,
+              128
+            ],
+            "tile_count": 8192,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 22,
+                "energy_proxy": 2147.6884765625
+              },
+              {
+                "iter": 1,
+                "changes": 0,
+                "energy_proxy": 2110.179931640625
+              }
+            ],
+            "tile_label_counts": {
+              "0": 354,
+              "1": 319,
+              "2": 339,
+              "3": 340,
+              "4": 342,
+              "5": 344,
+              "6": 320,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 5834
+            },
+            "allowed_source_tile_counts": {
+              "0": 392,
+              "1": 401,
+              "2": 405,
+              "3": 404,
+              "4": 404,
+              "5": 410,
+              "6": 398,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 8192
+            }
+          },
+          "component_stats": {
+            "component_count": 9,
+            "small_component_fraction": 7.650271323827292e-05,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 85549,
+                "bbox": [
+                  889,
+                  341,
+                  269,
+                  341
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 83750,
+                "bbox": [
+                  1716,
+                  373,
+                  332,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 83218,
+                "bbox": [
+                  0,
+                  372,
+                  329,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 82705,
+                "bbox": [
+                  275,
+                  390,
+                  337,
+                  281
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 82689,
+                "bbox": [
+                  1424,
+                  393,
+                  345,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 78710,
+                "bbox": [
+                  1136,
+                  389,
+                  304,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 78478,
+                "bbox": [
+                  608,
+                  390,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 40,
+                "bbox": [
+                  2041,
+                  384,
+                  7,
+                  16
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 4,
+                "bbox": [
+                  0,
+                  639,
+                  4,
+                  1
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": 0.036640179413756704,
+          "score": 10.906347513198853
+        },
+        {
+          "variant": "source_only_t32",
+          "metrics": {
+            "global_boundary_fraction": 0.0018324851989746094,
+            "global_changed_fraction": 0.005173683166503906,
+            "global_abstain_fraction": 0.004280567169189453,
+            "global_protected_boundary_fraction": 0.0008153915405273438,
+            "global_seam_energy": 16.746118545532227,
+            "roi_mean_seam_energy": 11.150920629501343,
+            "component_count": 9,
+            "small_component_fraction": 0.00013214105013883504,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 8.660852432250977,
+                "boundary_fraction": 0.00819047619047619,
+                "protected_boundary_fraction": 0.00028571428571428574,
+                "changed_fraction": 0.038285714285714284,
+                "abstain_fraction": 0.0057857142857142855,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 8.174941062927246,
+                "boundary_fraction": 0.0031864406779661017,
+                "protected_boundary_fraction": 0.000384180790960452,
+                "changed_fraction": 0.01080225988700565,
+                "abstain_fraction": 0.017717514124293784,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 17.110368728637695,
+                "boundary_fraction": 0.00460708782742681,
+                "protected_boundary_fraction": 0.002357473035439137,
+                "changed_fraction": 0.013944530046224961,
+                "abstain_fraction": 0.011694915254237288,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 10.657520294189453,
+                "boundary_fraction": 0.004587412587412587,
+                "protected_boundary_fraction": 0.0015244755244755244,
+                "changed_fraction": 0.014391608391608392,
+                "abstain_fraction": 0.008363636363636363,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 32,
+            "tile_grid": [
+              32,
+              64
+            ],
+            "tile_count": 2048,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 16,
+                "energy_proxy": 1150.8250732421875
+              },
+              {
+                "iter": 1,
+                "changes": 0,
+                "energy_proxy": 1122.187255859375
+              }
+            ],
+            "tile_label_counts": {
+              "0": 98,
+              "1": 77,
+              "2": 84,
+              "3": 93,
+              "4": 95,
+              "5": 85,
+              "6": 77,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 1439
+            },
+            "allowed_source_tile_counts": {
+              "0": 116,
+              "1": 107,
+              "2": 106,
+              "3": 114,
+              "4": 114,
+              "5": 106,
+              "6": 108,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 2048
+            }
+          },
+          "component_stats": {
+            "component_count": 9,
+            "small_component_fraction": 0.00013214105013883504,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 86253,
+                "bbox": [
+                  889,
+                  341,
+                  269,
+                  341
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 85766,
+                "bbox": [
+                  1716,
+                  373,
+                  332,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 83730,
+                "bbox": [
+                  0,
+                  372,
+                  329,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 82257,
+                "bbox": [
+                  275,
+                  390,
+                  337,
+                  281
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 80513,
+                "bbox": [
+                  1432,
+                  393,
+                  337,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 78318,
+                "bbox": [
+                  608,
+                  390,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 78230,
+                "bbox": [
+                  1152,
+                  389,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 72,
+                "bbox": [
+                  2041,
+                  384,
+                  7,
+                  32
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 4,
+                "bbox": [
+                  0,
+                  639,
+                  4,
+                  1
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": 0.006473613851501994,
+          "score": 11.314206838607788
+        },
+        {
+          "variant": "temporal_probe_t8",
+          "metrics": {
+            "global_boundary_fraction": 0.0018482208251953125,
+            "global_changed_fraction": 0.002250194549560547,
+            "global_abstain_fraction": 0.0003046989440917969,
+            "global_protected_boundary_fraction": 0.0007948875427246094,
+            "global_seam_energy": 15.365496635437012,
+            "roi_mean_seam_energy": 11.566049695014954,
+            "component_count": 9,
+            "small_component_fraction": 0.0001077992777448391,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 10.456196784973145,
+                "boundary_fraction": 0.0074285714285714285,
+                "protected_boundary_fraction": 0.0005714285714285715,
+                "changed_fraction": 0.0067619047619047615,
+                "abstain_fraction": 0.0013095238095238095,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 7.3293890953063965,
+                "boundary_fraction": 0.0038192090395480225,
+                "protected_boundary_fraction": 0.000384180790960452,
+                "changed_fraction": 0.004384180790960452,
+                "abstain_fraction": 0.002214689265536723,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 15.721712112426758,
+                "boundary_fraction": 0.005038520801232666,
+                "protected_boundary_fraction": 0.002095531587057011,
+                "changed_fraction": 0.005993836671802774,
+                "abstain_fraction": 0.0014483821263482281,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 12.756900787353516,
+                "boundary_fraction": 0.0043916083916083915,
+                "protected_boundary_fraction": 0.0017062937062937062,
+                "changed_fraction": 0.0012727272727272728,
+                "abstain_fraction": 0.0,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 8,
+            "tile_grid": [
+              128,
+              256
+            ],
+            "tile_count": 32768,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 45,
+                "energy_proxy": 3677.14013671875
+              },
+              {
+                "iter": 1,
+                "changes": 4,
+                "energy_proxy": 3627.741455078125
+              },
+              {
+                "iter": 2,
+                "changes": 0,
+                "energy_proxy": 3623.135009765625
+              }
+            ],
+            "tile_label_counts": {
+              "0": 1363,
+              "1": 1263,
+              "2": 1329,
+              "3": 1338,
+              "4": 1349,
+              "5": 1348,
+              "6": 1239,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 23539
+            },
+            "allowed_source_tile_counts": {
+              "0": 1450,
+              "1": 1558,
+              "2": 1556,
+              "3": 1557,
+              "4": 1554,
+              "5": 1559,
+              "6": 1555,
+              "7": 24,
+              "8": 29,
+              "9": 24,
+              "10": 22,
+              "11": 33,
+              "12": 36,
+              "13": 31,
+              "14": 32768
+            }
+          },
+          "component_stats": {
+            "component_count": 9,
+            "small_component_fraction": 0.0001077992777448391,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 84973,
+                "bbox": [
+                  889,
+                  341,
+                  269,
+                  341
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 84173,
+                "bbox": [
+                  1432,
+                  393,
+                  337,
+                  281
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 83928,
+                "bbox": [
+                  1716,
+                  373,
+                  332,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 83071,
+                "bbox": [
+                  0,
+                  372,
+                  329,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 82820,
+                "bbox": [
+                  275,
+                  390,
+                  337,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 78894,
+                "bbox": [
+                  608,
+                  390,
+                  296,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 77222,
+                "bbox": [
+                  1144,
+                  389,
+                  292,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 58,
+                "bbox": [
+                  2040,
+                  384,
+                  8,
+                  8
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 4,
+                "bbox": [
+                  0,
+                  639,
+                  4,
+                  1
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": -0.030513617422816993,
+          "score": 11.633254647254944
+        },
+        {
+          "variant": "temporal_conservative_t16",
+          "metrics": {
+            "global_boundary_fraction": 0.0018472671508789062,
+            "global_changed_fraction": 0.0027341842651367188,
+            "global_abstain_fraction": 0.005070209503173828,
+            "global_protected_boundary_fraction": 0.0008063316345214844,
+            "global_seam_energy": 15.631129264831543,
+            "roi_mean_seam_energy": 10.996123552322388,
+            "component_count": 9,
+            "small_component_fraction": 7.650271323827292e-05,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 10.198718070983887,
+                "boundary_fraction": 0.0074285714285714285,
+                "protected_boundary_fraction": 0.0005476190476190477,
+                "changed_fraction": 0.011238095238095238,
+                "abstain_fraction": 0.0035476190476190477,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 8.174941062927246,
+                "boundary_fraction": 0.0031864406779661017,
+                "protected_boundary_fraction": 0.000384180790960452,
+                "changed_fraction": 0.01080225988700565,
+                "abstain_fraction": 0.0033220338983050847,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 14.953314781188965,
+                "boundary_fraction": 0.005500770416024653,
+                "protected_boundary_fraction": 0.0027426810477657933,
+                "changed_fraction": 0.009537750385208012,
+                "abstain_fraction": 0.02896764252696456,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 10.657520294189453,
+                "boundary_fraction": 0.004587412587412587,
+                "protected_boundary_fraction": 0.0015244755244755244,
+                "changed_fraction": 0.014391608391608392,
+                "abstain_fraction": 0.004,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 16,
+            "tile_grid": [
+              64,
+              128
+            ],
+            "tile_count": 8192,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 56,
+                "energy_proxy": 1593.44775390625
+              },
+              {
+                "iter": 1,
+                "changes": 2,
+                "energy_proxy": 1524.5015869140625
+              },
+              {
+                "iter": 2,
+                "changes": 0,
+                "energy_proxy": 1523.7025146484375
+              }
+            ],
+            "tile_label_counts": {
+              "0": 351,
+              "1": 313,
+              "2": 332,
+              "3": 340,
+              "4": 341,
+              "5": 341,
+              "6": 305,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 5869
+            },
+            "allowed_source_tile_counts": {
+              "0": 392,
+              "1": 401,
+              "2": 405,
+              "3": 404,
+              "4": 404,
+              "5": 410,
+              "6": 398,
+              "7": 11,
+              "8": 13,
+              "9": 10,
+              "10": 10,
+              "11": 16,
+              "12": 15,
+              "13": 14,
+              "14": 8192
+            }
+          },
+          "component_stats": {
+            "component_count": 9,
+            "small_component_fraction": 7.650271323827292e-05,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 86243,
+                "bbox": [
+                  889,
+                  341,
+                  269,
+                  341
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 83666,
+                "bbox": [
+                  1716,
+                  373,
+                  332,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 83218,
+                "bbox": [
+                  0,
+                  372,
+                  329,
+                  281
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 82933,
+                "bbox": [
+                  1432,
+                  393,
+                  337,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 82705,
+                "bbox": [
+                  275,
+                  390,
+                  337,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 78375,
+                "bbox": [
+                  1136,
+                  389,
+                  304,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 77959,
+                "bbox": [
+                  608,
+                  390,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 40,
+                "bbox": [
+                  2041,
+                  384,
+                  7,
+                  16
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 4,
+                "bbox": [
+                  0,
+                  639,
+                  4,
+                  1
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": 0.020265746876740372,
+          "score": 11.153609037399292
+        },
+        {
+          "variant": "temporal_smooth_t16",
+          "metrics": {
+            "global_boundary_fraction": 0.0018572807312011719,
+            "global_changed_fraction": 0.0018620491027832031,
+            "global_abstain_fraction": 0.010315418243408203,
+            "global_protected_boundary_fraction": 0.0008363723754882812,
+            "global_seam_energy": 15.310054779052734,
+            "roi_mean_seam_energy": 10.769127011299133,
+            "component_count": 9,
+            "small_component_fraction": 7.650271323827292e-05,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 8.51602554321289,
+                "boundary_fraction": 0.0074285714285714285,
+                "protected_boundary_fraction": 0.0005476190476190477,
+                "changed_fraction": 0.006190476190476191,
+                "abstain_fraction": 0.034023809523809526,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 7.6783623695373535,
+                "boundary_fraction": 0.003864406779661017,
+                "protected_boundary_fraction": 0.0007231638418079096,
+                "changed_fraction": 0.004632768361581921,
+                "abstain_fraction": 0.014892655367231639,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 16.751306533813477,
+                "boundary_fraction": 0.004915254237288135,
+                "protected_boundary_fraction": 0.0027580893682588596,
+                "changed_fraction": 0.0,
+                "abstain_fraction": 0.040801232665639446,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 10.130813598632812,
+                "boundary_fraction": 0.0048111888111888115,
+                "protected_boundary_fraction": 0.0017622377622377623,
+                "changed_fraction": 0.00916083916083916,
+                "abstain_fraction": 0.017426573426573427,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 16,
+            "tile_grid": [
+              64,
+              128
+            ],
+            "tile_count": 8192,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 99,
+                "energy_proxy": 1569.2567138671875
+              },
+              {
+                "iter": 1,
+                "changes": 12,
+                "energy_proxy": 1528.101318359375
+              },
+              {
+                "iter": 2,
+                "changes": 1,
+                "energy_proxy": 1532.1768798828125
+              },
+              {
+                "iter": 3,
+                "changes": 0,
+                "energy_proxy": 1530.3466796875
+              }
+            ],
+            "tile_label_counts": {
+              "0": 336,
+              "1": 306,
+              "2": 318,
+              "3": 338,
+              "4": 338,
+              "5": 339,
+              "6": 305,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 5912
+            },
+            "allowed_source_tile_counts": {
+              "0": 392,
+              "1": 401,
+              "2": 405,
+              "3": 404,
+              "4": 404,
+              "5": 410,
+              "6": 398,
+              "7": 12,
+              "8": 13,
+              "9": 10,
+              "10": 11,
+              "11": 16,
+              "12": 15,
+              "13": 14,
+              "14": 8192
+            }
+          },
+          "component_stats": {
+            "component_count": 9,
+            "small_component_fraction": 7.650271323827292e-05,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 85458,
+                "bbox": [
+                  889,
+                  341,
+                  269,
+                  341
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 84479,
+                "bbox": [
+                  1424,
+                  393,
+                  345,
+                  281
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 83935,
+                "bbox": [
+                  1716,
+                  373,
+                  332,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 83502,
+                "bbox": [
+                  0,
+                  372,
+                  329,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 82485,
+                "bbox": [
+                  275,
+                  390,
+                  337,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 78108,
+                "bbox": [
+                  608,
+                  390,
+                  298,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 77132,
+                "bbox": [
+                  1140,
+                  389,
+                  300,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 40,
+                "bbox": [
+                  2041,
+                  384,
+                  7,
+                  16
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 4,
+                "bbox": [
+                  0,
+                  639,
+                  4,
+                  1
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": 0.04049071847902937,
+          "score": 11.015701413154602
+        },
+        {
+          "variant": "temporal_strict_t16",
+          "metrics": {
+            "global_boundary_fraction": 0.0018787384033203125,
+            "global_changed_fraction": 0.0023441314697265625,
+            "global_abstain_fraction": 0.007994651794433594,
+            "global_protected_boundary_fraction": 0.0008301734924316406,
+            "global_seam_energy": 15.297378540039062,
+            "roi_mean_seam_energy": 10.962705850601196,
+            "component_count": 9,
+            "small_component_fraction": 7.650271323827292e-05,
+            "marked_rois": [
+              {
+                "roi": "left_road_patch",
+                "seam_energy": 10.264068603515625,
+                "boundary_fraction": 0.007333333333333333,
+                "protected_boundary_fraction": 0.0005,
+                "changed_fraction": 0.007857142857142858,
+                "abstain_fraction": 0.009642857142857142,
+                "source_ids": [
+                  2,
+                  3
+                ]
+              },
+              {
+                "roi": "lower_center_road_patch",
+                "seam_energy": 8.174941062927246,
+                "boundary_fraction": 0.0031864406779661017,
+                "protected_boundary_fraction": 0.000384180790960452,
+                "changed_fraction": 0.01080225988700565,
+                "abstain_fraction": 0.0033220338983050847,
+                "source_ids": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "roi": "center_lane_marking",
+                "seam_energy": 15.808552742004395,
+                "boundary_fraction": 0.005285053929121725,
+                "protected_boundary_fraction": 0.002696456086286595,
+                "changed_fraction": 0.005485362095531587,
+                "abstain_fraction": 0.02896764252696456,
+                "source_ids": [
+                  0,
+                  6
+                ]
+              },
+              {
+                "roi": "right_curb_sidewalk_wall_base",
+                "seam_energy": 9.60326099395752,
+                "boundary_fraction": 0.005146853146853147,
+                "protected_boundary_fraction": 0.001804195804195804,
+                "changed_fraction": 0.008517482517482517,
+                "abstain_fraction": 0.017426573426573427,
+                "source_ids": [
+                  5,
+                  6
+                ]
+              }
+            ]
+          },
+          "optimizer_debug": {
+            "tile": 16,
+            "tile_grid": [
+              64,
+              128
+            ],
+            "tile_count": 8192,
+            "iterations": [
+              {
+                "iter": 0,
+                "changes": 82,
+                "energy_proxy": 1608.3580322265625
+              },
+              {
+                "iter": 1,
+                "changes": 6,
+                "energy_proxy": 1583.3909912109375
+              },
+              {
+                "iter": 2,
+                "changes": 1,
+                "energy_proxy": 1584.7080078125
+              },
+              {
+                "iter": 3,
+                "changes": 0,
+                "energy_proxy": 1585.776123046875
+              }
+            ],
+            "tile_label_counts": {
+              "0": 337,
+              "1": 308,
+              "2": 327,
+              "3": 339,
+              "4": 337,
+              "5": 340,
+              "6": 312,
+              "7": 0,
+              "8": 0,
+              "9": 0,
+              "10": 0,
+              "11": 0,
+              "12": 0,
+              "13": 0,
+              "14": 5892
+            },
+            "allowed_source_tile_counts": {
+              "0": 392,
+              "1": 401,
+              "2": 405,
+              "3": 404,
+              "4": 404,
+              "5": 410,
+              "6": 398,
+              "7": 11,
+              "8": 12,
+              "9": 10,
+              "10": 10,
+              "11": 16,
+              "12": 15,
+              "13": 13,
+              "14": 8192
+            }
+          },
+          "component_stats": {
+            "component_count": 9,
+            "small_component_fraction": 7.650271323827292e-05,
+            "largest_components_sample": [
+              {
+                "source": 0,
+                "area_px": 85336,
+                "bbox": [
+                  889,
+                  341,
+                  269,
+                  341
+                ]
+              },
+              {
+                "source": 5,
+                "area_px": 83818,
+                "bbox": [
+                  1424,
+                  393,
+                  345,
+                  281
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 83741,
+                "bbox": [
+                  1716,
+                  373,
+                  332,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 83104,
+                "bbox": [
+                  0,
+                  372,
+                  329,
+                  281
+                ]
+              },
+              {
+                "source": 2,
+                "area_px": 82883,
+                "bbox": [
+                  275,
+                  390,
+                  337,
+                  281
+                ]
+              },
+              {
+                "source": 6,
+                "area_px": 78343,
+                "bbox": [
+                  1136,
+                  389,
+                  304,
+                  281
+                ]
+              },
+              {
+                "source": 1,
+                "area_px": 77874,
+                "bbox": [
+                  608,
+                  390,
+                  288,
+                  281
+                ]
+              },
+              {
+                "source": 3,
+                "area_px": 40,
+                "bbox": [
+                  2041,
+                  384,
+                  7,
+                  16
+                ]
+              },
+              {
+                "source": 4,
+                "area_px": 4,
+                "bbox": [
+                  0,
+                  639,
+                  4,
+                  1
+                ]
+              }
+            ]
+          },
+          "roi_gain_vs_base": 0.023243202239179667,
+          "score": 11.171022176742554
+        }
+      ],
+      "inventory": {
+        "case": "0bae3b5e_a030_clean_far",
+        "valid_pixel_fraction": 0.2742495536804199,
+        "valid_count_distribution": {
+          "0": 1522009,
+          "1": 486490,
+          "2": 85058,
+          "3": 2133,
+          "4": 1462,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": 0,
+          "9": 0,
+          "10": 0,
+          "11": 0,
+          "12": 0,
+          "13": 0,
+          "14": 0
+        },
+        "candidate_valid_fraction": {
+          "0": 0.0425262451171875,
+          "1": 0.04567861557006836,
+          "2": 0.045565128326416016,
+          "3": 0.04563188552856445,
+          "4": 0.045599937438964844,
+          "5": 0.04569053649902344,
+          "6": 0.04571676254272461,
+          "7": 0.00019502639770507812,
+          "8": 0.000270843505859375,
+          "9": 0.0004792213439941406,
+          "10": 0.000396728515625,
+          "11": 0.0005249977111816406,
+          "12": 0.0003895759582519531,
+          "13": 0.0002684593200683594
+        },
+        "raw_camera_valid_fraction": {
+          "0": 0.0425262451171875,
+          "1": 0.04567861557006836,
+          "2": 0.045565128326416016,
+          "3": 0.04563188552856445,
+          "4": 0.045599937438964844,
+          "5": 0.04569053649902344,
+          "6": 0.04571676254272461
+        },
+        "temporal_candidate_valid_fraction": {
+          "0": 0.00019502639770507812,
+          "1": 0.000270843505859375,
+          "2": 0.0004792213439941406,
+          "3": 0.000396728515625,
+          "4": 0.0005249977111816406,
+          "5": 0.0003895759582519531,
+          "6": 0.0002684593200683594
+        },
+        "temporal_candidate_status": {
+          "status": "temporal_candidates_complete",
+          "candidate_family": "temporal_multiframe_ground_source_derived",
+          "candidate_labels": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "eligible_fraction": 0.0020170211791992188,
+          "offsets_requested": [
+            -4,
+            -2,
+            2,
+            4
+          ],
+          "offset_diagnostics": [
+            {
+              "offset": -4,
+              "src_idx": 26,
+              "status": "ok",
+              "valid_fraction_before_eligibility": 0.1266617774963379,
+              "valid_fraction_after_eligibility": 0.0018277168273925781,
+              "ego_delta_m": 1.1041584169652485,
+              "pose_dt_ms": -199.999996
+            },
+            {
+              "offset": -2,
+              "src_idx": 28,
+              "status": "ok",
+              "valid_fraction_before_eligibility": 0.12762737274169922,
+              "valid_fraction_after_eligibility": 0.0018277168273925781,
+              "ego_delta_m": 0.5599936979326086,
+              "pose_dt_ms": -99.999994
+            },
+            {
+              "offset": 2,
+              "src_idx": 32,
+              "status": "ok",
+              "valid_fraction_before_eligibility": 0.14131832122802734,
+              "valid_fraction_after_eligibility": 0.0018277168273925781,
+              "ego_delta_m": 0.5531496729365935,
+              "pose_dt_ms": 100.000003
+            },
+            {
+              "offset": 4,
+              "src_idx": 34,
+              "status": "ok",
+              "valid_fraction_before_eligibility": 0.15524959564208984,
+              "valid_fraction_after_eligibility": 0.0018277168273925781,
+              "ego_delta_m": 1.1085614043769307,
+              "pose_dt_ms": 200.00001
+            }
+          ],
+          "temporal_ground": {
+            "n": [
+              0.0002949339064820217,
+              -0.01153073682518687,
+              0.999933475348365
+            ],
+            "d": -0.3227576132939823,
+            "n_inl": 18917,
+            "resid_m": 0.039186795527852716
+          },
+          "temporal_any_valid_fraction": 0.0018277168273925781,
+          "temporal_candidate_valid_fraction": [
+            0.00019502639770507812,
+            0.000270843505859375,
+            0.0004792213439941406,
+            0.000396728515625,
+            0.0005249977111816406,
+            0.0003895759582519531,
+            0.0002684593200683594
+          ],
+          "boundary_band_fraction": 0.03356218338012695,
+          "tall_veto_fraction": 0.10801410675048828,
+          "protected_soft_risk_fraction": 0.0128936767578125,
+          "structure_risk_limit": 0.88,
+          "ground_z_m_used": -0.32277908606023753,
+          "panorama_center_z_m": 1.3787067176088592,
+          "lidar_delta_ms": 10.114788
+        },
+        "temporal_selected_fraction": 0.0,
+        "photometric_gains_for_cost_only": [
+          [
+            1.0370370149612427,
+            1.106796145439148,
+            1.2061855792999268
+          ],
+          [
+            1.2307692766189575,
+            1.225806474685669,
+            1.2580645084381104
+          ],
+          [
+            0.9572649598121643,
+            0.9661017060279846,
+            0.8931297659873962
+          ],
+          [
+            1.0370370149612427,
+            1.0088495016098022,
+            1.0086207389831543
+          ],
+          [
+            1.0467289686203003,
+            1.045871615409851,
+            1.017391324043274
+          ],
+          [
+            0.9572649598121643,
+            0.942148745059967,
+            0.9212598204612732
+          ],
+          [
+            1.0,
+            0.991304337978363,
+            1.017391324043274
+          ],
+          [
+            0.8358209133148193,
+            0.8636363744735718,
+            0.9359999895095825
+          ],
+          [
+            1.2307692766189575,
+            1.2127659320831299,
+            1.1938775777816772
+          ],
+          [
+            0.9491525292396545,
+            0.9268292784690857,
+            0.8540145754814148
+          ],
+          [
+            1.0873786211013794,
+            1.045871615409851,
+            1.073394536972046
+          ],
+          [
+            1.1666666269302368,
+            1.1515151262283325,
+            1.125
+          ],
+          [
+            0.875,
+            0.9193548560142517,
+            0.9831932783126831
+          ],
+          [
+            0.7200000286102295,
+            0.7307692170143127,
+            0.795918345451355
+          ]
+        ],
+        "lidar_evidence_status": "lidar_zbuffer_evidence_complete",
+        "lidar_visible_fraction": 0.05559206008911133,
+        "lidar_support_fraction": 0.13627147674560547,
+        "raw_uv_validity_proxy": "render_camera_to_erp valid/FOV weights; exact raw_uv sidecar not emitted by current renderer API"
+      },
+      "temporal_info": {
+        "status": "temporal_candidates_complete",
+        "candidate_family": "temporal_multiframe_ground_source_derived",
+        "candidate_labels": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "eligible_fraction": 0.0020170211791992188,
+        "offsets_requested": [
+          -4,
+          -2,
+          2,
+          4
+        ],
+        "offset_diagnostics": [
+          {
+            "offset": -4,
+            "src_idx": 26,
+            "status": "ok",
+            "valid_fraction_before_eligibility": 0.1266617774963379,
+            "valid_fraction_after_eligibility": 0.0018277168273925781,
+            "ego_delta_m": 1.1041584169652485,
+            "pose_dt_ms": -199.999996
+          },
+          {
+            "offset": -2,
+            "src_idx": 28,
+            "status": "ok",
+            "valid_fraction_before_eligibility": 0.12762737274169922,
+            "valid_fraction_after_eligibility": 0.0018277168273925781,
+            "ego_delta_m": 0.5599936979326086,
+            "pose_dt_ms": -99.999994
+          },
+          {
+            "offset": 2,
+            "src_idx": 32,
+            "status": "ok",
+            "valid_fraction_before_eligibility": 0.14131832122802734,
+            "valid_fraction_after_eligibility": 0.0018277168273925781,
+            "ego_delta_m": 0.5531496729365935,
+            "pose_dt_ms": 100.000003
+          },
+          {
+            "offset": 4,
+            "src_idx": 34,
+            "status": "ok",
+            "valid_fraction_before_eligibility": 0.15524959564208984,
+            "valid_fraction_after_eligibility": 0.0018277168273925781,
+            "ego_delta_m": 1.1085614043769307,
+            "pose_dt_ms": 200.00001
+          }
+        ],
+        "temporal_ground": {
+          "n": [
+            0.0002949339064820217,
+            -0.01153073682518687,
+            0.999933475348365
+          ],
+          "d": -0.3227576132939823,
+          "n_inl": 18917,
+          "resid_m": 0.039186795527852716
+        },
+        "temporal_any_valid_fraction": 0.0018277168273925781,
+        "temporal_candidate_valid_fraction": [
+          0.00019502639770507812,
+          0.000270843505859375,
+          0.0004792213439941406,
+          0.000396728515625,
+          0.0005249977111816406,
+          0.0003895759582519531,
+          0.0002684593200683594
+        ],
+        "boundary_band_fraction": 0.03356218338012695,
+        "tall_veto_fraction": 0.10801410675048828,
+        "protected_soft_risk_fraction": 0.0128936767578125,
+        "structure_risk_limit": 0.88,
+        "ground_z_m_used": -0.32277908606023753,
+        "panorama_center_z_m": 1.3787067176088592,
+        "lidar_delta_ms": 10.114788
+      },
+      "runtime_s": 43.2,
+      "clean_control_degraded": false
+    }
+  },
+  "scope": {
+    "cases": [
+      "02a00399:0:bmw",
+      "0bae3b5e:30:clean_far"
+    ],
+    "full_erp": true,
+    "raw_erp_slabs": true,
+    "source_label_optimizer": true,
+    "temporal_multiframe_source_labels": true,
+    "abstain_label": true,
+    "raw_camera_sourced_rgb_only": true,
+    "source_derived_temporal_ground_backprojection_used": true,
+    "temporal_offsets": [
+      -4,
+      -2,
+      2,
+      4
+    ],
+    "temporal_labels": "raw cam0..6 plus temporal-ground cam0..6 plus abstain",
+    "flow_warp": false,
+    "apap_or_homography": false,
+    "ground_ipm_rgb_replacement": false,
+    "model_inference": false,
+    "inpaint_generation": false,
+    "dense_renderer": false,
+    "db32_edit": false,
+    "red_promotion": false
+  },
+  "runtime_s": 77.31
+}

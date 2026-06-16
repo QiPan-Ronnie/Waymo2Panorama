@@ -1,0 +1,1253 @@
+{
+  "created_utc": "2026-06-06T02:07:14.098311+00:00",
+  "status": "db75_full_erp_source_mixed_fallback",
+  "scope": {
+    "remote_status_used": true,
+    "remote_exec_used": true,
+    "exec_count": 1,
+    "fixed_cases_only": [
+      "02a00399:0:bmw",
+      "0bae3b5e:30:clean_far"
+    ],
+    "full_erp": true,
+    "raw_camera_slabs_only": true,
+    "source_mixed_blending": true,
+    "generated_mask": 0,
+    "model_inference_used": false,
+    "dit_flux_generation_used": false,
+    "freeform_warp_or_apap_or_homography_used": false,
+    "db32_edit": false,
+    "red_promotion": false
+  },
+  "runtime": {
+    "secret_source_kind": "non_repo_file",
+    "status": {
+      "runtime_type": "colab-gpu",
+      "active_jobs": 0,
+      "version": "0.1.0a1",
+      "gpu_name": "NVIDIA A100-SXM4-40GB"
+    }
+  },
+  "job": {
+    "cwd": "/content",
+    "duration_s": 29.50851082801819,
+    "elapsed_s": 29.50851082801819,
+    "exit_code": 0,
+    "finished_at": 1780711561.5973935,
+    "job_id": "be13a889e46d4d0397a90ac6f5e1b0c1",
+    "started_at": 1780711532.0888827,
+    "state": "done",
+    "timeout_s": 1800
+  },
+  "remote_result": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_remote_result.json",
+  "remote_status": "DB75_completed",
+  "summary": {
+    "status": "DB75_complete",
+    "claim_classification": "presentation_only_source_mixed_candidate_pending_vision",
+    "source_faithful_repair_claim_allowed": false,
+    "bosch_training_ready": false,
+    "generated_mask": 0,
+    "clean_control_degraded": false,
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "case": "02a00399_a000_bmw",
+        "best_variant_id": "soft_r64_a080_g1",
+        "best_variant_params": {
+          "id": "soft_r64_a080_g1",
+          "radius": 64,
+          "alpha": 0.8,
+          "gamma": 1.0
+        },
+        "baseline_metrics": {
+          "global_seam_energy": 83.81035614013672,
+          "global_changed_fraction": 0.0,
+          "p95_abs_delta": 0.0,
+          "max_abs_delta": 0,
+          "marked_rois": [
+            {
+              "roi": "left_road_patch",
+              "seam_energy": 92.1676025390625,
+              "changed_fraction": 0.0,
+              "p95_abs_delta": 0.0
+            },
+            {
+              "roi": "lower_center_road_patch",
+              "seam_energy": 113.67552947998047,
+              "changed_fraction": 0.0,
+              "p95_abs_delta": 0.0
+            },
+            {
+              "roi": "center_lane_marking",
+              "seam_energy": 127.42171478271484,
+              "changed_fraction": 0.0,
+              "p95_abs_delta": 0.0
+            },
+            {
+              "roi": "right_curb_sidewalk_wall_base",
+              "seam_energy": 50.47861862182617,
+              "changed_fraction": 0.0,
+              "p95_abs_delta": 0.0
+            }
+          ],
+          "roi_mean_seam_energy": 95.935866355896
+        },
+        "best_metrics": {
+          "global_seam_energy": 56.674198150634766,
+          "global_changed_fraction": 0.0343632698059082,
+          "p95_abs_delta": 6.0,
+          "max_abs_delta": 81,
+          "marked_rois": [
+            {
+              "roi": "left_road_patch",
+              "seam_energy": 56.85990905761719,
+              "changed_fraction": 0.14147619047619048,
+              "p95_abs_delta": 10.0
+            },
+            {
+              "roi": "lower_center_road_patch",
+              "seam_energy": 76.95948791503906,
+              "changed_fraction": 0.0784632768361582,
+              "p95_abs_delta": 7.0
+            },
+            {
+              "roi": "center_lane_marking",
+              "seam_energy": 74.44136047363281,
+              "changed_fraction": 0.08021571648690293,
+              "p95_abs_delta": 4.0
+            },
+            {
+              "roi": "right_curb_sidewalk_wall_base",
+              "seam_energy": 16.554218292236328,
+              "changed_fraction": 0.08102097902097902,
+              "p95_abs_delta": 4.0
+            }
+          ],
+          "roi_mean_seam_energy": 56.20374393463135
+        },
+        "best_roi_gain_vs_base": 0.4141529537437987,
+        "best_changed_fraction": 0.0343632698059082,
+        "source_mix_fraction": 0.1170644760131836,
+        "variants": [
+          {
+            "variant": "soft_r16_a035_g2",
+            "params": {
+              "id": "soft_r16_a035_g2",
+              "radius": 16,
+              "alpha": 0.35,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 71.01177215576172,
+              "global_changed_fraction": 0.009874343872070312,
+              "p95_abs_delta": 1.0,
+              "max_abs_delta": 34,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 74.5871810913086,
+                  "changed_fraction": 0.06138095238095238,
+                  "p95_abs_delta": 3.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 97.262939453125,
+                  "changed_fraction": 0.022734463276836158,
+                  "p95_abs_delta": 1.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 101.3511962890625,
+                  "changed_fraction": 0.02157164869029276,
+                  "p95_abs_delta": 1.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 35.72953414916992,
+                  "changed_fraction": 0.01695104895104895,
+                  "p95_abs_delta": 1.0
+                }
+              ],
+              "roi_mean_seam_energy": 77.2327127456665
+            },
+            "score": 77.36620487213135
+          },
+          {
+            "variant": "soft_r24_a045_g2",
+            "params": {
+              "id": "soft_r24_a045_g2",
+              "radius": 24,
+              "alpha": 0.45,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 67.36690521240234,
+              "global_changed_fraction": 0.016876220703125,
+              "p95_abs_delta": 2.0,
+              "max_abs_delta": 44,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 69.6651611328125,
+                  "changed_fraction": 0.09804761904761905,
+                  "p95_abs_delta": 4.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 92.6122055053711,
+                  "changed_fraction": 0.03853107344632768,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 94.33369445800781,
+                  "changed_fraction": 0.031587057010785825,
+                  "p95_abs_delta": 1.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 31.50143051147461,
+                  "changed_fraction": 0.030377622377622378,
+                  "p95_abs_delta": 1.0
+                }
+              ],
+              "roi_mean_seam_energy": 72.0281229019165
+            },
+            "score": 72.260637550354
+          },
+          {
+            "variant": "soft_r32_a055_g2",
+            "params": {
+              "id": "soft_r32_a055_g2",
+              "radius": 32,
+              "alpha": 0.55,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 63.91069793701172,
+              "global_changed_fraction": 0.02346944808959961,
+              "p95_abs_delta": 3.0,
+              "max_abs_delta": 54,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 65.26708221435547,
+                  "changed_fraction": 0.12573809523809523,
+                  "p95_abs_delta": 6.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 88.1739730834961,
+                  "changed_fraction": 0.05136723163841808,
+                  "p95_abs_delta": 3.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 87.66673278808594,
+                  "changed_fraction": 0.04337442218798151,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 26.058034896850586,
+                  "changed_fraction": 0.0460979020979021,
+                  "p95_abs_delta": 2.0
+                }
+              ],
+              "roi_mean_seam_energy": 66.79145574569702
+            },
+            "score": 67.11808912277222
+          },
+          {
+            "variant": "soft_r48_a060_g2",
+            "params": {
+              "id": "soft_r48_a060_g2",
+              "radius": 48,
+              "alpha": 0.6,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 62.3889045715332,
+              "global_changed_fraction": 0.028727054595947266,
+              "p95_abs_delta": 4.0,
+              "max_abs_delta": 60,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 63.26782989501953,
+                  "changed_fraction": 0.1372857142857143,
+                  "p95_abs_delta": 7.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 85.92054748535156,
+                  "changed_fraction": 0.06750282485875707,
+                  "p95_abs_delta": 4.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 84.66777801513672,
+                  "changed_fraction": 0.058628659476117104,
+                  "p95_abs_delta": 3.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 24.68049430847168,
+                  "changed_fraction": 0.05893706293706294,
+                  "p95_abs_delta": 3.0
+                }
+              ],
+              "roi_mean_seam_energy": 64.63416242599487
+            },
+            "score": 65.03888708114624
+          },
+          {
+            "variant": "soft_r48_a075_g2",
+            "params": {
+              "id": "soft_r48_a075_g2",
+              "radius": 48,
+              "alpha": 0.75,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 58.05368423461914,
+              "global_changed_fraction": 0.031058311462402344,
+              "p95_abs_delta": 5.0,
+              "max_abs_delta": 75,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 58.21887969970703,
+                  "changed_fraction": 0.13976190476190475,
+                  "p95_abs_delta": 9.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 79.71815490722656,
+                  "changed_fraction": 0.07068926553672317,
+                  "p95_abs_delta": 5.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 77.09584045410156,
+                  "changed_fraction": 0.0663482280431433,
+                  "p95_abs_delta": 3.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 18.65007972717285,
+                  "changed_fraction": 0.07060139860139861,
+                  "p95_abs_delta": 3.0
+                }
+              ],
+              "roi_mean_seam_energy": 58.420738697052
+            },
+            "score": 58.86843843460083
+          },
+          {
+            "variant": "soft_r64_a065_g1",
+            "params": {
+              "id": "soft_r64_a065_g1",
+              "radius": 64,
+              "alpha": 0.65,
+              "gamma": 1.0
+            },
+            "metrics": {
+              "global_seam_energy": 60.835628509521484,
+              "global_changed_fraction": 0.03216886520385742,
+              "p95_abs_delta": 5.0,
+              "max_abs_delta": 66,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 61.311805725097656,
+                  "changed_fraction": 0.13985714285714285,
+                  "p95_abs_delta": 8.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 83.26783752441406,
+                  "changed_fraction": 0.07633898305084746,
+                  "p95_abs_delta": 5.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 81.6183090209961,
+                  "changed_fraction": 0.07075500770416025,
+                  "p95_abs_delta": 4.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 22.871606826782227,
+                  "changed_fraction": 0.06709090909090909,
+                  "p95_abs_delta": 3.0
+                }
+              ],
+              "roi_mean_seam_energy": 62.26738977432251
+            },
+            "score": 62.7284161567688
+          },
+          {
+            "variant": "soft_r64_a080_g1",
+            "params": {
+              "id": "soft_r64_a080_g1",
+              "radius": 64,
+              "alpha": 0.8,
+              "gamma": 1.0
+            },
+            "metrics": {
+              "global_seam_energy": 56.674198150634766,
+              "global_changed_fraction": 0.0343632698059082,
+              "p95_abs_delta": 6.0,
+              "max_abs_delta": 81,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 56.85990905761719,
+                  "changed_fraction": 0.14147619047619048,
+                  "p95_abs_delta": 10.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 76.95948791503906,
+                  "changed_fraction": 0.0784632768361582,
+                  "p95_abs_delta": 7.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 74.44136047363281,
+                  "changed_fraction": 0.08021571648690293,
+                  "p95_abs_delta": 4.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 16.554218292236328,
+                  "changed_fraction": 0.08102097902097902,
+                  "p95_abs_delta": 4.0
+                }
+              ],
+              "roi_mean_seam_energy": 56.20374393463135
+            },
+            "score": 56.70610317230225
+          },
+          {
+            "variant": "soft_r80_a070_g1",
+            "params": {
+              "id": "soft_r80_a070_g1",
+              "radius": 80,
+              "alpha": 0.7,
+              "gamma": 1.0
+            },
+            "metrics": {
+              "global_seam_energy": 59.24127197265625,
+              "global_changed_fraction": 0.03412151336669922,
+              "p95_abs_delta": 5.0,
+              "max_abs_delta": 72,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 59.65968322753906,
+                  "changed_fraction": 0.14095238095238094,
+                  "p95_abs_delta": 9.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 81.05745697021484,
+                  "changed_fraction": 0.07889265536723164,
+                  "p95_abs_delta": 6.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 78.7830581665039,
+                  "changed_fraction": 0.07930662557781201,
+                  "p95_abs_delta": 4.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 19.984397888183594,
+                  "changed_fraction": 0.07503496503496504,
+                  "p95_abs_delta": 3.0
+                }
+              ],
+              "roi_mean_seam_energy": 59.87114906311035
+            },
+            "score": 60.355607223510745
+          },
+          {
+            "variant": "soft_r32_a050_g4",
+            "params": {
+              "id": "soft_r32_a050_g4",
+              "radius": 32,
+              "alpha": 0.5,
+              "gamma": 4.0
+            },
+            "metrics": {
+              "global_seam_energy": 65.94390869140625,
+              "global_changed_fraction": 0.02099132537841797,
+              "p95_abs_delta": 2.0,
+              "max_abs_delta": 49,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 67.68279266357422,
+                  "changed_fraction": 0.11771428571428572,
+                  "p95_abs_delta": 5.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 91.02863311767578,
+                  "changed_fraction": 0.04779661016949153,
+                  "p95_abs_delta": 3.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 91.60945892333984,
+                  "changed_fraction": 0.03850539291217257,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 29.452695846557617,
+                  "changed_fraction": 0.03923076923076923,
+                  "p95_abs_delta": 2.0
+                }
+              ],
+              "roi_mean_seam_energy": 69.94339513778687
+            },
+            "score": 70.22529104232788
+          },
+          {
+            "variant": "soft_r48_a060_g4",
+            "params": {
+              "id": "soft_r48_a060_g4",
+              "radius": 48,
+              "alpha": 0.6,
+              "gamma": 4.0
+            },
+            "metrics": {
+              "global_seam_energy": 62.51931381225586,
+              "global_changed_fraction": 0.02748584747314453,
+              "p95_abs_delta": 3.0,
+              "max_abs_delta": 59,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 63.410804748535156,
+                  "changed_fraction": 0.13507142857142856,
+                  "p95_abs_delta": 7.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 86.76446533203125,
+                  "changed_fraction": 0.06440677966101695,
+                  "p95_abs_delta": 4.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 85.32205200195312,
+                  "changed_fraction": 0.05530046224961479,
+                  "p95_abs_delta": 3.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 24.703378677368164,
+                  "changed_fraction": 0.056363636363636366,
+                  "p95_abs_delta": 2.0
+                }
+              ],
+              "roi_mean_seam_energy": 65.05017518997192
+            },
+            "score": 65.42500535964966
+          }
+        ],
+        "runtime_s": 14.57
+      },
+      "0bae3b5e_a030_clean_far": {
+        "case": "0bae3b5e_a030_clean_far",
+        "best_variant_id": "soft_r64_a080_g1",
+        "best_variant_params": {
+          "id": "soft_r64_a080_g1",
+          "radius": 64,
+          "alpha": 0.8,
+          "gamma": 1.0
+        },
+        "baseline_metrics": {
+          "global_seam_energy": 123.5700454711914,
+          "global_changed_fraction": 0.0,
+          "p95_abs_delta": 0.0,
+          "max_abs_delta": 0,
+          "marked_rois": [
+            {
+              "roi": "left_road_patch",
+              "seam_energy": 60.45305252075195,
+              "changed_fraction": 0.0,
+              "p95_abs_delta": 0.0
+            },
+            {
+              "roi": "lower_center_road_patch",
+              "seam_energy": 90.9907455444336,
+              "changed_fraction": 0.0,
+              "p95_abs_delta": 0.0
+            },
+            {
+              "roi": "center_lane_marking",
+              "seam_energy": 143.73097229003906,
+              "changed_fraction": 0.0,
+              "p95_abs_delta": 0.0
+            },
+            {
+              "roi": "right_curb_sidewalk_wall_base",
+              "seam_energy": 70.77776336669922,
+              "changed_fraction": 0.0,
+              "p95_abs_delta": 0.0
+            }
+          ],
+          "roi_mean_seam_energy": 91.48813343048096
+        },
+        "best_metrics": {
+          "global_seam_energy": 82.37462615966797,
+          "global_changed_fraction": 0.03611612319946289,
+          "p95_abs_delta": 10.0,
+          "max_abs_delta": 70,
+          "marked_rois": [
+            {
+              "roi": "left_road_patch",
+              "seam_energy": 44.129310607910156,
+              "changed_fraction": 0.14435714285714285,
+              "p95_abs_delta": 9.0
+            },
+            {
+              "roi": "lower_center_road_patch",
+              "seam_energy": 57.59769821166992,
+              "changed_fraction": 0.04854237288135593,
+              "p95_abs_delta": 2.0
+            },
+            {
+              "roi": "center_lane_marking",
+              "seam_energy": 67.17591857910156,
+              "changed_fraction": 0.12553158705701079,
+              "p95_abs_delta": 11.0
+            },
+            {
+              "roi": "right_curb_sidewalk_wall_base",
+              "seam_energy": 51.4422492980957,
+              "changed_fraction": 0.09611188811188812,
+              "p95_abs_delta": 7.0
+            }
+          ],
+          "roi_mean_seam_energy": 55.086294174194336
+        },
+        "best_roi_gain_vs_base": 0.3978859103508464,
+        "best_changed_fraction": 0.03611612319946289,
+        "source_mix_fraction": 0.1143503189086914,
+        "variants": [
+          {
+            "variant": "soft_r16_a035_g2",
+            "params": {
+              "id": "soft_r16_a035_g2",
+              "radius": 16,
+              "alpha": 0.35,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 104.3756103515625,
+              "global_changed_fraction": 0.013647079467773438,
+              "p95_abs_delta": 1.0,
+              "max_abs_delta": 25,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 51.14091110229492,
+                  "changed_fraction": 0.050976190476190474,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 76.3885269165039,
+                  "changed_fraction": 0.008045197740112994,
+                  "p95_abs_delta": 1.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 109.65169525146484,
+                  "changed_fraction": 0.047919876733436055,
+                  "p95_abs_delta": 3.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 61.56037902832031,
+                  "changed_fraction": 0.028223776223776222,
+                  "p95_abs_delta": 1.0
+                }
+              ],
+              "roi_mean_seam_energy": 74.685378074646
+            },
+            "score": 74.86414302825928
+          },
+          {
+            "variant": "soft_r24_a045_g2",
+            "params": {
+              "id": "soft_r24_a045_g2",
+              "radius": 24,
+              "alpha": 0.45,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 98.78740692138672,
+              "global_changed_fraction": 0.02137613296508789,
+              "p95_abs_delta": 3.0,
+              "max_abs_delta": 35,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 48.98246765136719,
+                  "changed_fraction": 0.0828095238095238,
+                  "p95_abs_delta": 3.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 72.14100646972656,
+                  "changed_fraction": 0.015005649717514124,
+                  "p95_abs_delta": 1.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 99.31172943115234,
+                  "changed_fraction": 0.06305084745762712,
+                  "p95_abs_delta": 4.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 58.999637603759766,
+                  "changed_fraction": 0.05148251748251748,
+                  "p95_abs_delta": 2.0
+                }
+              ],
+              "roi_mean_seam_energy": 69.85871028900146
+            },
+            "score": 70.16022388458252
+          },
+          {
+            "variant": "soft_r32_a055_g2",
+            "params": {
+              "id": "soft_r32_a055_g2",
+              "radius": 32,
+              "alpha": 0.55,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 93.65284729003906,
+              "global_changed_fraction": 0.02705669403076172,
+              "p95_abs_delta": 5.0,
+              "max_abs_delta": 45,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 47.10246276855469,
+                  "changed_fraction": 0.11266666666666666,
+                  "p95_abs_delta": 5.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 67.89706420898438,
+                  "changed_fraction": 0.024022598870056498,
+                  "p95_abs_delta": 1.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 89.48385620117188,
+                  "changed_fraction": 0.07824345146379044,
+                  "p95_abs_delta": 6.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 56.487178802490234,
+                  "changed_fraction": 0.07020979020979021,
+                  "p95_abs_delta": 4.0
+                }
+              ],
+              "roi_mean_seam_energy": 65.2426404953003
+            },
+            "score": 65.64232082366944
+          },
+          {
+            "variant": "soft_r48_a060_g2",
+            "params": {
+              "id": "soft_r48_a060_g2",
+              "radius": 48,
+              "alpha": 0.6,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 91.1883316040039,
+              "global_changed_fraction": 0.03171873092651367,
+              "p95_abs_delta": 6.0,
+              "max_abs_delta": 51,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 46.44935989379883,
+                  "changed_fraction": 0.13054761904761905,
+                  "p95_abs_delta": 6.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 65.76883697509766,
+                  "changed_fraction": 0.032971751412429376,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 84.724365234375,
+                  "changed_fraction": 0.10379044684129429,
+                  "p95_abs_delta": 7.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 55.426143646240234,
+                  "changed_fraction": 0.08268531468531469,
+                  "p95_abs_delta": 5.0
+                }
+              ],
+              "roi_mean_seam_energy": 63.09217643737793
+            },
+            "score": 63.5628012084961
+          },
+          {
+            "variant": "soft_r48_a075_g2",
+            "params": {
+              "id": "soft_r48_a075_g2",
+              "radius": 48,
+              "alpha": 0.75,
+              "gamma": 2.0
+            },
+            "metrics": {
+              "global_seam_energy": 84.50732421875,
+              "global_changed_fraction": 0.03339099884033203,
+              "p95_abs_delta": 8.0,
+              "max_abs_delta": 63,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 44.64918899536133,
+                  "changed_fraction": 0.13923809523809524,
+                  "p95_abs_delta": 8.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 59.937408447265625,
+                  "changed_fraction": 0.039163841807909605,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 71.58189392089844,
+                  "changed_fraction": 0.10935285053929121,
+                  "p95_abs_delta": 9.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 52.41423797607422,
+                  "changed_fraction": 0.09062937062937063,
+                  "p95_abs_delta": 6.0
+                }
+              ],
+              "roi_mean_seam_energy": 57.1456823348999
+            },
+            "score": 57.666374320983884
+          },
+          {
+            "variant": "soft_r64_a065_g1",
+            "params": {
+              "id": "soft_r64_a065_g1",
+              "radius": 64,
+              "alpha": 0.65,
+              "gamma": 1.0
+            },
+            "metrics": {
+              "global_seam_energy": 88.76902770996094,
+              "global_changed_fraction": 0.03479337692260742,
+              "p95_abs_delta": 8.0,
+              "max_abs_delta": 57,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 45.597232818603516,
+                  "changed_fraction": 0.1392857142857143,
+                  "p95_abs_delta": 8.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 63.59383010864258,
+                  "changed_fraction": 0.0407683615819209,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 79.83709716796875,
+                  "changed_fraction": 0.12408320493066256,
+                  "p95_abs_delta": 9.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 54.385009765625,
+                  "changed_fraction": 0.0899020979020979,
+                  "p95_abs_delta": 5.0
+                }
+              ],
+              "roi_mean_seam_energy": 60.85329246520996
+            },
+            "score": 61.39081298828125
+          },
+          {
+            "variant": "soft_r64_a080_g1",
+            "params": {
+              "id": "soft_r64_a080_g1",
+              "radius": 64,
+              "alpha": 0.8,
+              "gamma": 1.0
+            },
+            "metrics": {
+              "global_seam_energy": 82.37462615966797,
+              "global_changed_fraction": 0.03611612319946289,
+              "p95_abs_delta": 10.0,
+              "max_abs_delta": 70,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 44.129310607910156,
+                  "changed_fraction": 0.14435714285714285,
+                  "p95_abs_delta": 9.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 57.59769821166992,
+                  "changed_fraction": 0.04854237288135593,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 67.17591857910156,
+                  "changed_fraction": 0.12553158705701079,
+                  "p95_abs_delta": 11.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 51.4422492980957,
+                  "changed_fraction": 0.09611188811188812,
+                  "p95_abs_delta": 7.0
+                }
+              ],
+              "roi_mean_seam_energy": 55.086294174194336
+            },
+            "score": 55.66968765258789
+          },
+          {
+            "variant": "soft_r80_a070_g1",
+            "params": {
+              "id": "soft_r80_a070_g1",
+              "radius": 80,
+              "alpha": 0.7,
+              "gamma": 1.0
+            },
+            "metrics": {
+              "global_seam_energy": 86.4925537109375,
+              "global_changed_fraction": 0.03606224060058594,
+              "p95_abs_delta": 9.0,
+              "max_abs_delta": 62,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 44.897281646728516,
+                  "changed_fraction": 0.14283333333333334,
+                  "p95_abs_delta": 8.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 61.361698150634766,
+                  "changed_fraction": 0.046824858757062146,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 75.53971099853516,
+                  "changed_fraction": 0.12582434514637905,
+                  "p95_abs_delta": 10.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 53.229610443115234,
+                  "changed_fraction": 0.09397202797202797,
+                  "p95_abs_delta": 6.0
+                }
+              ],
+              "roi_mean_seam_energy": 58.75707530975342
+            },
+            "score": 59.32482219696045
+          },
+          {
+            "variant": "soft_r32_a050_g4",
+            "params": {
+              "id": "soft_r32_a050_g4",
+              "radius": 32,
+              "alpha": 0.5,
+              "gamma": 4.0
+            },
+            "metrics": {
+              "global_seam_energy": 96.40863800048828,
+              "global_changed_fraction": 0.025165081024169922,
+              "p95_abs_delta": 4.0,
+              "max_abs_delta": 40,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 48.35410690307617,
+                  "changed_fraction": 0.09971428571428571,
+                  "p95_abs_delta": 4.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 70.49276733398438,
+                  "changed_fraction": 0.01943502824858757,
+                  "p95_abs_delta": 1.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 94.63599395751953,
+                  "changed_fraction": 0.07334360554699537,
+                  "p95_abs_delta": 5.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 57.834991455078125,
+                  "changed_fraction": 0.06258741258741259,
+                  "p95_abs_delta": 3.0
+                }
+              ],
+              "roi_mean_seam_energy": 67.82946491241455
+            },
+            "score": 68.19144588470459
+          },
+          {
+            "variant": "soft_r48_a060_g4",
+            "params": {
+              "id": "soft_r48_a060_g4",
+              "radius": 48,
+              "alpha": 0.6,
+              "gamma": 4.0
+            },
+            "metrics": {
+              "global_seam_energy": 91.3326187133789,
+              "global_changed_fraction": 0.03063821792602539,
+              "p95_abs_delta": 6.0,
+              "max_abs_delta": 50,
+              "marked_rois": [
+                {
+                  "roi": "left_road_patch",
+                  "seam_energy": 46.51987838745117,
+                  "changed_fraction": 0.126,
+                  "p95_abs_delta": 6.0
+                },
+                {
+                  "roi": "lower_center_road_patch",
+                  "seam_energy": 66.5001449584961,
+                  "changed_fraction": 0.031186440677966103,
+                  "p95_abs_delta": 2.0
+                },
+                {
+                  "roi": "center_lane_marking",
+                  "seam_energy": 85.07160186767578,
+                  "changed_fraction": 0.09741140215716487,
+                  "p95_abs_delta": 7.0
+                },
+                {
+                  "roi": "right_curb_sidewalk_wall_base",
+                  "seam_energy": 55.470298767089844,
+                  "changed_fraction": 0.0792027972027972,
+                  "p95_abs_delta": 4.0
+                }
+              ],
+              "roi_mean_seam_energy": 63.39048099517822
+            },
+            "score": 63.84813961029053
+          }
+        ],
+        "runtime_s": 13.9,
+        "clean_control_degraded": false
+      }
+    },
+    "scope": {
+      "cases": [
+        "02a00399:0:bmw",
+        "0bae3b5e:30:clean_far"
+      ],
+      "full_erp": true,
+      "raw_camera_slabs_only": true,
+      "source_mixed_blending": true,
+      "generated_mask": 0,
+      "model_inference": false,
+      "inpaint_generation": false,
+      "flow_apap_homography": false,
+      "ground_ipm_replacement": false,
+      "db32_edit": false,
+      "source_faithful_repair_claim_allowed": false
+    },
+    "runtime_s": 28.52
+  },
+  "fetched_outputs": {
+    "summary": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_batch_summary.json",
+      "bytes": 35162
+    },
+    "remote_result": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_remote_result.json",
+      "bytes": 37963
+    },
+    "board": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_full_review_board.jpg",
+      "bytes": 330001,
+      "size": [
+        2320,
+        1540
+      ]
+    },
+    "roi_sheet": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_same_roi_comparison_sheet.jpg",
+      "bytes": 200661,
+      "size": [
+        1840,
+        1720
+      ]
+    },
+    "bmw_baseline": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_hard_select_raw.png",
+      "bytes": 981633,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "bmw_candidate": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_source_mixed_candidate.png",
+      "bytes": 988631,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "bmw_alpha": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_alpha_map.png",
+      "bytes": 74107,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "bmw_mix": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_source_mix_mask.png",
+      "bytes": 11844,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "bmw_changed": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_changed_mask.png",
+      "bytes": 15796,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "bmw_diff": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_diff_x6.png",
+      "bytes": 81964,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "bmw_report": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_marked_roi_report.json",
+      "bytes": 15127
+    },
+    "bmw_claim": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_claim.json",
+      "bytes": 521
+    },
+    "clean_baseline": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/0bae3b5e_a030_clean_far_hard_select_raw.png",
+      "bytes": 1168014,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "clean_candidate": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/0bae3b5e_a030_clean_far_source_mixed_candidate.png",
+      "bytes": 1168543,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "clean_alpha": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/0bae3b5e_a030_clean_far_alpha_map.png",
+      "bytes": 73154,
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "clean_report": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/0bae3b5e_a030_clean_far_marked_roi_report.json",
+      "bytes": 15131
+    },
+    "clean_claim": {
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/0bae3b5e_a030_clean_far_claim.json",
+      "bytes": 527
+    }
+  },
+  "output_location": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback",
+  "drive_output_location": "results/layered_target_raycaster/db75_full_erp_source_mixed_fallback/",
+  "decision": {
+    "run_ok": true,
+    "complete_outputs": true,
+    "accepted_as_source_faithful_repair": false,
+    "accepted_as_bosch_training_ready": false,
+    "vision_check_required": true,
+    "kill_criteria_hit": false
+  },
+  "claim_boundary": [
+    "DB75 is a full-ERP source-mixed presentation fallback.",
+    "Inputs are raw camera slabs, but pixels in alpha/mix masks may combine multiple sources.",
+    "generated_mask is zero; no model inference, inpaint, generation, flow, APAP, homography, DB32 edit, or RED promotion was used.",
+    "The only possible positive claim is presentation-only; never source-faithful single-source repair or Bosch training-ready data."
+  ],
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  },
+  "outputs": {
+    "manifest": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_manifest.json",
+    "summary": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_batch_summary.json",
+    "board": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_full_review_board.jpg",
+    "roi_sheet": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_same_roi_comparison_sheet.jpg"
+  }
+}

@@ -1,0 +1,1 @@
+{'name': 'darkwall_lower', 'core_fraction': 0.013625621795654297, 'core_pixels': 28575, 'content_threshold': 20, 'polygons': [[(1110, 585), (1500, 605), (1500, 716), (1110, 690)]]}

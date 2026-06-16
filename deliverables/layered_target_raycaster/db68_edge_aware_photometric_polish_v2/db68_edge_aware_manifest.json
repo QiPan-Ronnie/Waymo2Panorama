@@ -1,0 +1,97 @@
+{
+  "created_utc": "2026-06-05T22:49:15.067240+00:00",
+  "status": "db68_edge_aware_polish_complete",
+  "claim_classification": "presentation/diagnostic photometric polish candidate; not source-faithful repair",
+  "auto_candidate_pass_requires_vision": true,
+  "scope": {
+    "cpu_local_only": true,
+    "existing_db64_db65_db67_artifacts_only": true,
+    "remote_status_exec": false,
+    "a100": false,
+    "vggt_pi3_hf_model_inference": false,
+    "dit_flux_3dgs": false,
+    "inpaint_generation": false,
+    "source_replacement": false,
+    "geometry_warp": false,
+    "db32_edit": false,
+    "red_promotion": false
+  },
+  "inputs": {
+    "hard_select": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_hard_select.jpg",
+    "db64_visible_rejected": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_current_best_visible_candidate_rejected.png",
+    "db65_current_best": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_best_visible_photometric_candidate.png",
+    "db65_edit_mask": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_best_edit_mask.png",
+    "phase5a_transition_map": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/fetch/02a00399_a000_bmw/02a00399_a000_bmw_before_after_transition_map.png",
+    "phase5a_veto_proxy": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/fetch/02a00399_a000_bmw/02a00399_a000_bmw_protected_veto_proxy_map.png",
+    "db67_summary": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/db67_phase1_vggt_dense_batch_summary.json"
+  },
+  "outputs": {
+    "best_candidate": "deliverables/layered_target_raycaster/db68_edge_aware_photometric_polish_v2/db68_best_edge_aware_candidate.png",
+    "incremental_edit_mask": "deliverables/layered_target_raycaster/db68_edge_aware_photometric_polish_v2/db68_best_incremental_edit_mask.png",
+    "diff_x6_vs_db65": "deliverables/layered_target_raycaster/db68_edge_aware_photometric_polish_v2/db68_best_diff_x6_vs_db65.png",
+    "diff_x6_vs_db64": "deliverables/layered_target_raycaster/db68_edge_aware_photometric_polish_v2/db68_best_diff_x6_vs_db64.png",
+    "board": "deliverables/layered_target_raycaster/db68_edge_aware_photometric_polish_v2/db68_edge_aware_polish_board.jpg",
+    "top_variant_roi_sheet": "deliverables/layered_target_raycaster/db68_edge_aware_photometric_polish_v2/db68_top_variant_roi_sheet.jpg",
+    "metrics": "deliverables/layered_target_raycaster/db68_edge_aware_photometric_polish_v2/db68_edge_aware_metrics.json",
+    "manifest": "deliverables/layered_target_raycaster/db68_edge_aware_photometric_polish_v2/db68_edge_aware_manifest.json"
+  },
+  "db67_context": {
+    "status": "phase1_vggt_dense_maps_complete",
+    "aggregate_success": false,
+    "phase2_renderer_allowed": false,
+    "clean_control_degraded": true,
+    "route_verdict": "phase1_evidence_failed_or_diagnostic_only"
+  },
+  "best": {
+    "name": "db65_best_micro_median_r3_m0_s0.40_d5_ef0.22",
+    "file": "db65_best_micro_median_r3_m0_s0.40_d5_ef0.22.png",
+    "base": "db65_best",
+    "mode": "micro_median",
+    "radius": 3,
+    "mask_radius": 0,
+    "strength": 0.4,
+    "max_delta": 5.0,
+    "edge_floor": 0.22,
+    "score": 8.907103554616572,
+    "db65_seam_energy": 6.185503005981445,
+    "candidate_seam_energy": 5.570237636566162,
+    "db65_roi_energy": 6.4243574142456055,
+    "candidate_roi_energy": 5.811269760131836,
+    "seam_gain_vs_db65_pct": 9.94689306302681,
+    "roi_gain_vs_db65_pct": 9.543174742337444,
+    "seam_gain_vs_db64_pct": 50.145900987570485,
+    "roi_gain_vs_db64_pct": 47.46458581218494,
+    "changed_fraction_vs_db65": 0.017303943634033203,
+    "outside_allowed_changed_fraction": 0.00017404556274414062,
+    "p95_abs_delta_vs_db65": 0.0,
+    "max_abs_delta_vs_db65": 5.0,
+    "edit_fraction": 0.017524242401123047
+  },
+  "hard_checks": {
+    "beats_db65_seam_metric": true,
+    "beats_db65_roi_metric": true,
+    "small_incremental_change": true,
+    "outside_allowed_low": true,
+    "max_delta_bounded": true,
+    "phase2_renderer_allowed": false,
+    "source_faithful_repair_allowed": false
+  },
+  "decision": {
+    "accepted_as_visible_result_if_vision_ok": true,
+    "phase2_renderer_allowed": false,
+    "source_faithful_repair_allowed": false,
+    "reason": "DB68 is bounded local photometric polish after DB67 evidence failure; it does not create target-surface or raw-visibility evidence."
+  },
+  "mask_stats": {
+    "db65_mask_fraction": 0.022739887237548828,
+    "seed_fraction": 0.02296590805053711,
+    "eval_mask_fraction": 0.025669574737548828,
+    "allowed_envelope_fraction": 0.034958839416503906,
+    "best_incremental_edit_fraction": 0.017524242401123047,
+    "veto_fraction": 0.005079746246337891
+  },
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}

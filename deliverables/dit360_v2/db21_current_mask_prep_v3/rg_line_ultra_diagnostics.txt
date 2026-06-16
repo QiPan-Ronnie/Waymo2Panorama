@@ -1,0 +1,1 @@
+{'name': 'rg_line_ultra', 'core_fraction': 0.006477832794189453, 'core_pixels': 13585, 'content_threshold': 20, 'polygons': [[(1810, 574), (2047, 558), (2047, 612), (1810, 634)]]}

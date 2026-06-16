@@ -1,0 +1,916 @@
+{
+  "anchor": 0,
+  "db": "DB-61",
+  "deps_after": {
+    "PIL": true,
+    "einops": true,
+    "huggingface_hub": true,
+    "numpy": true,
+    "safetensors": true,
+    "torch": true,
+    "torchvision": true,
+    "vggt": false
+  },
+  "deps_before": {
+    "PIL": true,
+    "einops": true,
+    "huggingface_hub": true,
+    "numpy": true,
+    "safetensors": true,
+    "torch": true,
+    "torchvision": true,
+    "vggt": false
+  },
+  "editable_install_no_deps": {
+    "cmd": [
+      "/usr/bin/python3",
+      "-m",
+      "pip",
+      "..."
+    ],
+    "duration_s": 5.94,
+    "returncode": 0,
+    "tail": ""
+  },
+  "ended_utc": "2026-06-05T08:31:31Z",
+  "official_preprocess": {
+    "function": "vggt.utils.load_fn.load_and_preprocess_images",
+    "input_tensor_shape": [
+      7,
+      3,
+      518,
+      518
+    ],
+    "mode": "crop",
+    "params_by_camera": {
+      "0": {
+        "crop_y": 84,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 686,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 0,
+        "post_crop_height": 518,
+        "post_crop_width": 518,
+        "raw_height": 2048,
+        "raw_width": 1550,
+        "target_size": 518
+      },
+      "1": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "2": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "3": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "4": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "5": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      },
+      "6": {
+        "crop_y": 0,
+        "final_height": 518,
+        "final_width": 518,
+        "mode": "crop",
+        "new_height": 392,
+        "new_width": 518,
+        "pad_left": 0,
+        "pad_top": 63,
+        "post_crop_height": 392,
+        "post_crop_width": 518,
+        "raw_height": 1550,
+        "raw_width": 2048,
+        "target_size": 518
+      }
+    },
+    "source": "/content/vggt_db45d/vggt/vggt/utils/load_fn.py"
+  },
+  "official_repo_clone": {
+    "cmd": [
+      "git",
+      "clone",
+      "--depth",
+      "..."
+    ],
+    "duration_s": 1.91,
+    "returncode": 0,
+    "tail": "Cloning into '/content/vggt_db45d/vggt'...\n"
+  },
+  "raw_camera_load": {
+    "camera_names": [
+      "ring_front_center",
+      "ring_front_left",
+      "ring_side_left",
+      "ring_rear_left",
+      "ring_rear_right",
+      "ring_side_right",
+      "ring_front_right"
+    ],
+    "ok": true,
+    "raw_shapes_hw": [
+      [
+        2048,
+        1550
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ],
+      [
+        1550,
+        2048
+      ]
+    ]
+  },
+  "scope": {
+    "erp_repair": false,
+    "generated_image": false,
+    "old_uniform_wrapper_used": false,
+    "one_anchor": true,
+    "one_log": true,
+    "raw_ring_cameras": 7,
+    "renderer": false,
+    "source_replacement": false
+  },
+  "secret_policy": "HF token, if needed, is supplied from approved env/non-repo secret source and not written to output.",
+  "small_dep_install": {
+    "duration_s": 0.0,
+    "returncode": 0,
+    "tail": "all small deps already importable"
+  },
+  "started_utc": "2026-06-05T08:28:56Z",
+  "target_uv_sampling": {
+    "db25_longline": {
+      "admissibility": {
+        "permission_promotion_allowed_by_vggt_alone": false,
+        "preprocessing_mapping_recorded": true,
+        "still_model_diagnostic_only": true,
+        "target_uv_mapping_available": true
+      },
+      "coverage_valid_frac": 0.840092,
+      "heatmap_grids": {
+        "depth_conf": [
+          [
+            1.01915,
+            1.00617,
+            1.00004,
+            1.00004,
+            1.00531,
+            1.06484,
+            1.14025,
+            1.07013,
+            1.11482,
+            1.05364,
+            1.06689,
+            1.07283,
+            1.1839,
+            1.11368,
+            1.07458,
+            1.08568
+          ],
+          [
+            1.02143,
+            1.0039,
+            1.00372,
+            1.00165,
+            1.06272,
+            1.10824,
+            1.07855,
+            1.08286,
+            1.11139,
+            1.04,
+            1.02999,
+            1.1046,
+            1.29573,
+            1.07972,
+            1.0304,
+            1.07636
+          ],
+          [
+            1.04848,
+            1.05059,
+            1.03402,
+            1.02195,
+            1.04705,
+            1.03043,
+            1.0246,
+            1.0932,
+            1.13962,
+            1.06216,
+            1.08348,
+            1.22129,
+            1.51111,
+            1.05839,
+            1.00357,
+            1.00252
+          ],
+          [
+            1.33817,
+            1.24545,
+            1.19627,
+            1.11438,
+            1.1284,
+            1.11658,
+            1.02685,
+            1.06133,
+            1.11393,
+            1.15154,
+            1.18629,
+            1.36343,
+            1.60797,
+            1.07068,
+            1.0039,
+            1.02419
+          ],
+          [
+            1.04645,
+            1.19548,
+            1.20564,
+            1.12634,
+            1.04643,
+            1.10492,
+            1.21685,
+            1.11705,
+            1.12277,
+            1.09331,
+            1.06361,
+            1.35053,
+            1.6315,
+            1.17628,
+            1.19288,
+            1.33701
+          ],
+          [
+            1.0016,
+            1.31902,
+            1.23522,
+            1.16077,
+            1.08559,
+            1.04923,
+            1.24672,
+            1.34627,
+            1.24369,
+            1.20152,
+            1.1876,
+            1.38233,
+            1.64081,
+            1.28862,
+            1.35706,
+            1.43053
+          ],
+          [
+            1.00041,
+            1.00034,
+            1.18758,
+            1.09363,
+            1.0985,
+            1.16046,
+            1.19904,
+            1.30463,
+            1.3937,
+            1.22975,
+            1.21598,
+            1.31449,
+            1.36748,
+            1.17931,
+            1.2048,
+            1.28254
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ],
+        "preprocess_valid": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ],
+        "world_points_conf": [
+          [
+            1.00006,
+            1.00012,
+            1.0,
+            1.0,
+            1.00051,
+            1.00225,
+            1.031,
+            1.00075,
+            1.00027,
+            1.00005,
+            1.00002,
+            1.0,
+            1.0,
+            1.00001,
+            1.00006,
+            1.00022
+          ],
+          [
+            1.00019,
+            1.00076,
+            1.0,
+            1.0,
+            1.01193,
+            1.07149,
+            1.01747,
+            1.0009,
+            1.00033,
+            1.00005,
+            1.00001,
+            1.0,
+            1.0,
+            1.0,
+            1.00001,
+            1.00002
+          ],
+          [
+            1.01838,
+            1.03398,
+            1.01917,
+            1.01667,
+            1.00867,
+            1.00315,
+            1.0001,
+            1.00138,
+            1.00067,
+            1.00015,
+            1.00003,
+            1.00001,
+            1.00001,
+            1.00001,
+            1.0,
+            1.0
+          ],
+          [
+            1.07258,
+            1.1885,
+            1.15547,
+            1.1229,
+            1.06957,
+            1.04289,
+            1.00231,
+            1.00354,
+            1.00213,
+            1.00105,
+            1.00019,
+            1.00006,
+            1.00001,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.00662,
+            1.00872,
+            1.02209,
+            1.00896,
+            1.00438,
+            1.00576,
+            1.01268,
+            1.00417,
+            1.00117,
+            1.00062,
+            1.00016,
+            1.00008,
+            1.00003,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.00005,
+            1.00109,
+            1.00218,
+            1.00056,
+            1.00018,
+            1.00011,
+            1.00037,
+            1.00136,
+            1.00151,
+            1.00068,
+            1.00026,
+            1.00005,
+            1.00002,
+            1.00003,
+            1.00003,
+            1.00001
+          ],
+          [
+            1.0,
+            1.0,
+            1.01486,
+            1.00179,
+            1.00528,
+            1.00002,
+            1.00008,
+            1.00005,
+            1.00004,
+            1.00014,
+            1.00016,
+            1.00002,
+            1.00001,
+            1.00002,
+            1.00002,
+            1.00002
+          ],
+          [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ]
+        ]
+      },
+      "model_internal_overlap_pair_disagreement": {
+        "0-1": {
+          "overlap_px": 13816,
+          "valid_px": 12847,
+          "world_points_l2": {
+            "mean": 0.1681,
+            "med": 0.022759,
+            "n": 12843,
+            "p10": 0.012195,
+            "p90": 0.175254,
+            "std": 0.486259,
+            "valid": 0.999689
+          }
+        },
+        "0-6": {
+          "overlap_px": 12960,
+          "valid_px": 12001,
+          "world_points_l2": {
+            "mean": 0.0436,
+            "med": 0.021105,
+            "n": 11998,
+            "p10": 0.009997,
+            "p90": 0.038724,
+            "std": 0.134154,
+            "valid": 0.99975
+          }
+        },
+        "6-5": {
+          "overlap_px": 12010,
+          "valid_px": 11926,
+          "world_points_l2": {
+            "mean": 0.039051,
+            "med": 0.039867,
+            "n": 11921,
+            "p10": 0.035156,
+            "p90": 0.041728,
+            "std": 0.002866,
+            "valid": 0.999581
+          }
+        }
+      },
+      "owner_counts": {
+        "0": 65752,
+        "1": 11530,
+        "5": 53816,
+        "6": 70524
+      },
+      "owner_preprocess_valid_frac_of_roi": 0.802392,
+      "owner_uv_valid_frac_of_roi": 0.840092,
+      "per_owner_camera": {
+        "0": {
+          "depth_conf": {
+            "mean": 1.089867,
+            "med": 1.057078,
+            "n": 56702,
+            "p10": 1.0,
+            "p90": 1.238338,
+            "std": 0.10153,
+            "valid": 0.862362
+          },
+          "owner_px": 65752,
+          "preprocess_valid_frac_of_owner": 0.862392,
+          "uv_valid_frac_of_owner": 1.0,
+          "world_points_conf": {
+            "mean": 1.027086,
+            "med": 1.000476,
+            "n": 56702,
+            "p10": 1.0,
+            "p90": 1.096541,
+            "std": 0.066415,
+            "valid": 0.862362
+          }
+        },
+        "1": {
+          "depth_conf": {
+            "mean": 1.075334,
+            "med": 1.010113,
+            "n": 11530,
+            "p10": 1.0,
+            "p90": 1.313465,
+            "std": 0.127828,
+            "valid": 1.0
+          },
+          "owner_px": 11530,
+          "preprocess_valid_frac_of_owner": 1.0,
+          "uv_valid_frac_of_owner": 1.0,
+          "world_points_conf": {
+            "mean": 1.014325,
+            "med": 1.000052,
+            "n": 11530,
+            "p10": 1.0,
+            "p90": 1.058588,
+            "std": 0.031045,
+            "valid": 1.0
+          }
+        },
+        "5": {
+          "depth_conf": {
+            "mean": 1.239818,
+            "med": 1.15474,
+            "n": 53816,
+            "p10": 1.000134,
+            "p90": 1.60899,
+            "std": 0.231827,
+            "valid": 1.0
+          },
+          "owner_px": 53816,
+          "preprocess_valid_frac_of_owner": 1.0,
+          "uv_valid_frac_of_owner": 1.0,
+          "world_points_conf": {
+            "mean": 1.000019,
+            "med": 1.000003,
+            "n": 53816,
+            "p10": 1.0,
+            "p90": 1.000036,
+            "std": 6.5e-05,
+            "valid": 1.0
+          }
+        },
+        "6": {
+          "depth_conf": {
+            "mean": 1.138416,
+            "med": 1.118121,
+            "n": 70524,
+            "p10": 1.014029,
+            "p90": 1.290756,
+            "std": 0.108171,
+            "valid": 1.0
+          },
+          "owner_px": 70524,
+          "preprocess_valid_frac_of_owner": 1.0,
+          "uv_valid_frac_of_owner": 1.0,
+          "world_points_conf": {
+            "mean": 1.002286,
+            "med": 1.000178,
+            "n": 70524,
+            "p10": 1.000005,
+            "p90": 1.002676,
+            "std": 0.014399,
+            "valid": 1.0
+          }
+        }
+      },
+      "roi_xyxy": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "target_sampled_stats": {
+        "depth": {
+          "mean": 0.561245,
+          "med": 0.287988,
+          "n": 192572,
+          "p10": 0.183714,
+          "p90": 1.521397,
+          "std": 0.677713,
+          "valid": 0.802383
+        },
+        "depth_conf": {
+          "mean": 1.148682,
+          "med": 1.103723,
+          "n": 192572,
+          "p10": 1.000002,
+          "p90": 1.38906,
+          "std": 0.164372,
+          "valid": 0.802383
+        },
+        "world_points_conf": {
+          "mean": 1.009675,
+          "med": 1.000036,
+          "n": 192572,
+          "p10": 1.0,
+          "p90": 1.010957,
+          "std": 0.039611,
+          "valid": 0.802383
+        },
+        "world_points_norm": {
+          "mean": 0.545455,
+          "med": 0.279855,
+          "n": 192572,
+          "p10": 0.198594,
+          "p90": 1.262696,
+          "std": 0.632777,
+          "valid": 0.802383
+        }
+      }
+    }
+  },
+  "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+  "vggt": {
+    "cuda_free_gb_after": 26.77,
+    "duration_s": 123.59,
+    "field_shapes": {
+      "depth": [
+        7,
+        518,
+        518
+      ],
+      "depth_conf": [
+        7,
+        518,
+        518
+      ],
+      "world_points": [
+        7,
+        518,
+        518,
+        3
+      ],
+      "world_points_conf": [
+        7,
+        518,
+        518
+      ]
+    },
+    "inference_ok": true,
+    "model_id": "facebook/VGGT-1B-Commercial",
+    "prediction_keys": [
+      "depth",
+      "depth_conf",
+      "images",
+      "pose_enc",
+      "pose_enc_list",
+      "world_points",
+      "world_points_conf"
+    ]
+  },
+  "colab_job": {
+    "job_id": "9a7816f47c254717bf02ed82b5745168",
+    "state": "done",
+    "exit_code": 0,
+    "duration_s": 0.500274658203125,
+    "purpose": "recover_db61_drive_json"
+  },
+  "recovered_after_log_truncation": true,
+  "runtime_status_pre_exec": {
+    "runtime_type": "colab-gpu",
+    "gpu_name": "NVIDIA A100-SXM4-40GB",
+    "gpu_mem_free_mb": null,
+    "active_jobs": 0
+  },
+  "runtime_secret_source": "approved_env_or_non_repo_file"
+}

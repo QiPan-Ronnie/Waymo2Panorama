@@ -1,0 +1,29 @@
+[
+  {
+    "name": "a1view_r008_h016_w025_tau5",
+    "core_mae": 37.006656646728516,
+    "halo_mae": 0.0,
+    "far_mae": 0.0,
+    "case_runtime_s": 137.621,
+    "gate_fail": null,
+    "netnew": []
+  },
+  {
+    "name": "a1view_r008_h016_w025_tau8",
+    "core_mae": 37.006656646728516,
+    "halo_mae": 0.0,
+    "far_mae": 0.0,
+    "case_runtime_s": 137.872,
+    "gate_fail": null,
+    "netnew": []
+  },
+  {
+    "name": "a1view_r008_h016_w025_tau12",
+    "core_mae": 37.05149841308594,
+    "halo_mae": 0.0,
+    "far_mae": 0.0,
+    "case_runtime_s": 137.451,
+    "gate_fail": null,
+    "netnew": []
+  }
+]

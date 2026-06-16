@@ -1,0 +1,375 @@
+{
+  "created_utc": "2026-06-05T21:02:38.870576+00:00",
+  "status": "db64_phase5a_continuous_surface_completed",
+  "scope": {
+    "fixed_cases_only": [
+      "02a00399:0:bmw",
+      "0bae3b5e:30:clean_far"
+    ],
+    "continuous_surface_evidence_only": true,
+    "accum_sweeps": 5,
+    "uses_current_sweep_zbuffer_for_visibility": true,
+    "rgb_repair_created": false,
+    "a100_required": false,
+    "model_inference": false,
+    "vggt_hf": false,
+    "dit_flux_generation": false,
+    "source_replacement": false,
+    "bounded_dependency_bootstrap": "av2>=0.3 only if missing"
+  },
+  "paths": {
+    "remote_out": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface",
+    "av2_root_exists": true
+  },
+  "workdir": "/content/waymo2panorama",
+  "dependency": {
+    "name": "av2",
+    "import_before": false,
+    "install_attempted": true,
+    "import_after": true,
+    "import_before_error": "ModuleNotFoundError(\"No module named 'av2'\")",
+    "install_returncode": 0,
+    "install_duration_s": 12.12,
+    "install_stdout_tail": "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 15.2/15.2 MB 57.4 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 36.3/36.3 MB 25.2 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 66.5 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 75.5/75.5 kB 7.3 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 83.5/83.5 kB 8.2 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 43.8/43.8 kB 4.3 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.7/3.7 MB 101.4 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.6/7.6 MB 87.1 MB/s eta 0:00:00\n   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 469.2/469.2 kB 38.3 MB/s eta 0:00:00\n",
+    "install_stderr_tail": ""
+  },
+  "batch_summary": {
+    "status": "phase5a_maps_complete",
+    "n_cases": 2,
+    "aggregate_success": false,
+    "clean_control_degraded": false,
+    "by_case_classification": {
+      "02a00399_a000_bmw": "diagnostic_evidence_only_preflight_fail",
+      "0bae3b5e_a030_clean_far": "clean_control_evidence_only"
+    },
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "current": {
+          "seam_lidar_support_frac": 0.42741668404332306,
+          "seam_visible_any_frac": 0.17532841880603972,
+          "seam_visible_ge2_frac": 0.09115998380904486,
+          "seam_single_visible_frac": 0.08416843499699486,
+          "seam_no_surface_frac": 0.5725833159566769,
+          "seam_no_camera_geom_valid_frac": 0.0197848565505906,
+          "seam_no_raw_zbuffer_support_frac": 0.19571430323696445,
+          "seam_z_mismatch_conflict_frac": 0.036589105449728314,
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_source_boundary_proxy_frac": 0.12240116771131036,
+          "longest_supported_component_frac": 0.14652956298200515,
+          "longest_supported_component_px": 57,
+          "seam_length_px": 389,
+          "z_residual_min_m_seam": {
+            "n": 17277,
+            "mean": 2.5656402111053467,
+            "p50": 0.01116180419921875,
+            "p90": 12.56171989440918,
+            "p95": 16.918893814086914
+          }
+        },
+        "fused": {
+          "seam_lidar_support_frac": 0.48257632440786485,
+          "seam_visible_any_frac": 0.1602904559225778,
+          "seam_visible_ge2_frac": 0.08436468899873661,
+          "seam_single_visible_frac": 0.07592576692384118,
+          "seam_no_surface_frac": 0.5174236755921351,
+          "seam_no_camera_geom_valid_frac": 0.0444024678940719,
+          "seam_no_raw_zbuffer_support_frac": 0.23740601273197837,
+          "seam_z_mismatch_conflict_frac": 0.04047738785923682,
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_source_boundary_proxy_frac": 0.12240116771131036,
+          "longest_supported_component_frac": 0.14652956298200515,
+          "longest_supported_component_px": 57,
+          "seam_length_px": 389,
+          "z_residual_min_m_seam": {
+            "n": 16368,
+            "mean": 2.6769254207611084,
+            "p50": 0.02115345001220703,
+            "p90": 12.440671920776367,
+            "p95": 17.90330696105957
+          }
+        },
+        "improvements": {
+          "delta_no_surface_frac": 0.055159640364541795,
+          "gain_visible_any_frac": -0.01503796288346193,
+          "gain_visible_ge2_frac": -0.0067952948103082444,
+          "delta_no_raw_zbuffer_support_frac": -0.04169170949501391,
+          "delta_z_mismatch_conflict_frac": 0.0038882824095085033,
+          "fused_longest_supported_component_frac": 0.14652956298200515
+        },
+        "success_checks": {
+          "bmw_no_surface_drop": false,
+          "bmw_visible_gain": false,
+          "bmw_no_zbuf_drop": false,
+          "bmw_component_continuity": false,
+          "z_conflict_not_up_gt_0p03": true
+        }
+      },
+      "0bae3b5e_a030_clean_far": {
+        "current": {
+          "seam_lidar_support_frac": 0.4937949772360112,
+          "seam_visible_any_frac": 0.21104420619767955,
+          "seam_visible_ge2_frac": 0.12421060361286533,
+          "seam_single_visible_frac": 0.08683360258481422,
+          "seam_no_surface_frac": 0.5062050227639888,
+          "seam_no_camera_geom_valid_frac": 0.018835364958143634,
+          "seam_no_raw_zbuffer_support_frac": 0.22599990209037057,
+          "seam_z_mismatch_conflict_frac": 0.0379155039898174,
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_source_boundary_proxy_frac": 0.12708669897684438,
+          "longest_supported_component_frac": 0.1557377049180328,
+          "longest_supported_component_px": 57,
+          "seam_length_px": 366,
+          "z_residual_min_m_seam": {
+            "n": 20342,
+            "mean": 1.6399189233779907,
+            "p50": 0.013585090637207031,
+            "p90": 5.326924800872803,
+            "p95": 10.470126152038574
+          }
+        },
+        "fused": {
+          "seam_lidar_support_frac": 0.5230944338375679,
+          "seam_visible_any_frac": 0.1814265433005336,
+          "seam_visible_ge2_frac": 0.10893670142458511,
+          "seam_single_visible_frac": 0.0724898418759485,
+          "seam_no_surface_frac": 0.47690556616243207,
+          "seam_no_camera_geom_valid_frac": 0.03218779066921232,
+          "seam_no_raw_zbuffer_support_frac": 0.2683458168110834,
+          "seam_z_mismatch_conflict_frac": 0.04113428305673863,
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_source_boundary_proxy_frac": 0.12708669897684438,
+          "longest_supported_component_frac": 0.15846994535519127,
+          "longest_supported_component_px": 58,
+          "seam_length_px": 366,
+          "z_residual_min_m_seam": {
+            "n": 18185,
+            "mean": 1.9677588939666748,
+            "p50": 0.030731201171875,
+            "p90": 6.502644062042236,
+            "p95": 11.637447357177734
+          }
+        },
+        "improvements": {
+          "delta_no_surface_frac": 0.02929945660155675,
+          "gain_visible_any_frac": -0.029617662897145958,
+          "gain_visible_ge2_frac": -0.015273902188280217,
+          "delta_no_raw_zbuffer_support_frac": -0.04234591472071281,
+          "delta_z_mismatch_conflict_frac": 0.0032187790669212304,
+          "fused_longest_supported_component_frac": 0.15846994535519127
+        },
+        "success_checks": {
+          "bmw_no_surface_drop": false,
+          "bmw_visible_gain": false,
+          "bmw_no_zbuf_drop": false,
+          "bmw_component_continuity": false,
+          "z_conflict_not_up_gt_0p03": true
+        }
+      }
+    },
+    "mean_current": {
+      "seam_no_surface_frac": 0.5393941693603328,
+      "seam_visible_any_frac": 0.19318631250185964,
+      "seam_visible_ge2_frac": 0.10768529371095509,
+      "seam_no_raw_zbuffer_support_frac": 0.21085710266366753,
+      "seam_z_mismatch_conflict_frac": 0.03725230471977285
+    },
+    "mean_fused": {
+      "seam_no_surface_frac": 0.4971646208772836,
+      "seam_visible_any_frac": 0.1708584996115557,
+      "seam_visible_ge2_frac": 0.09665069521166086,
+      "seam_no_raw_zbuffer_support_frac": 0.2528759147715309,
+      "seam_z_mismatch_conflict_frac": 0.04080583545798772
+    },
+    "mean_improvements": {
+      "delta_no_surface_frac": 0.04222954848304927,
+      "gain_visible_any_frac": -0.022327812890303944,
+      "gain_visible_ge2_frac": -0.01103459849929423,
+      "delta_no_raw_zbuffer_support_frac": -0.04201881210786336,
+      "delta_z_mismatch_conflict_frac": 0.003553530738214867,
+      "fused_longest_supported_component_frac": 0.1524997541685982
+    },
+    "errors": []
+  },
+  "outputs": {
+    "batch_summary": {
+      "exists": true,
+      "bytes": 6407,
+      "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/batch_summary.json"
+    },
+    "02a00399_a000_bmw": {
+      "diagnostics": {
+        "exists": true,
+        "bytes": 8974,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_phase5a_breakdown.json"
+      },
+      "review": {
+        "exists": true,
+        "bytes": 359401,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_phase5a_evidence_review_768.jpg"
+      },
+      "crop_review": {
+        "exists": true,
+        "bytes": 906694,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_phase5a_crop_review.jpg"
+      },
+      "current_support_map": {
+        "exists": true,
+        "bytes": 8750,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_current_support_map.png"
+      },
+      "fused_support_map": {
+        "exists": true,
+        "bytes": 9000,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_fused_support_map.png"
+      },
+      "temporal_support_count_map": {
+        "exists": true,
+        "bytes": 14834,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_temporal_support_count_map.png"
+      },
+      "surface_hypothesis_id_map": {
+        "exists": true,
+        "bytes": 11850,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_surface_hypothesis_id_map.png"
+      },
+      "surface_confidence_map": {
+        "exists": true,
+        "bytes": 14855,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_surface_confidence_map.png"
+      },
+      "raw_projection_valid_count_map": {
+        "exists": true,
+        "bytes": 11402,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_raw_projection_valid_count_map.png"
+      },
+      "current_zbuffer_visible_count_map": {
+        "exists": true,
+        "bytes": 25375,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_current_zbuffer_visible_count_map.png"
+      },
+      "current_z_cause_primary_map": {
+        "exists": true,
+        "bytes": 35106,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_current_z_cause_primary_map.png"
+      },
+      "fused_z_cause_primary_map": {
+        "exists": true,
+        "bytes": 39009,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_fused_z_cause_primary_map.png"
+      },
+      "current_z_repairability_map": {
+        "exists": true,
+        "bytes": 10174,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_current_z_repairability_map.png"
+      },
+      "fused_z_repairability_map": {
+        "exists": true,
+        "bytes": 10305,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_fused_z_repairability_map.png"
+      },
+      "before_after_transition_map": {
+        "exists": true,
+        "bytes": 8984,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_before_after_transition_map.png"
+      },
+      "protected_veto_proxy_map": {
+        "exists": true,
+        "bytes": 3391,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_protected_veto_proxy_map.png"
+      },
+      "z_residual_min_cm_u16": {
+        "exists": true,
+        "bytes": 128242,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/02a00399_a000_bmw/02a00399_a000_bmw_z_residual_min_cm_u16.png"
+      }
+    },
+    "0bae3b5e_a030_clean_far": {
+      "diagnostics": {
+        "exists": true,
+        "bytes": 9700,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_phase5a_breakdown.json"
+      },
+      "review": {
+        "exists": true,
+        "bytes": 378503,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_phase5a_evidence_review_768.jpg"
+      },
+      "crop_review": {
+        "exists": true,
+        "bytes": 1062142,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_phase5a_crop_review.jpg"
+      },
+      "current_support_map": {
+        "exists": true,
+        "bytes": 8550,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_current_support_map.png"
+      },
+      "fused_support_map": {
+        "exists": true,
+        "bytes": 8778,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_fused_support_map.png"
+      },
+      "temporal_support_count_map": {
+        "exists": true,
+        "bytes": 20463,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_temporal_support_count_map.png"
+      },
+      "surface_hypothesis_id_map": {
+        "exists": true,
+        "bytes": 12825,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_surface_hypothesis_id_map.png"
+      },
+      "surface_confidence_map": {
+        "exists": true,
+        "bytes": 20514,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_surface_confidence_map.png"
+      },
+      "raw_projection_valid_count_map": {
+        "exists": true,
+        "bytes": 10426,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_raw_projection_valid_count_map.png"
+      },
+      "current_zbuffer_visible_count_map": {
+        "exists": true,
+        "bytes": 28083,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_current_zbuffer_visible_count_map.png"
+      },
+      "current_z_cause_primary_map": {
+        "exists": true,
+        "bytes": 43059,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_current_z_cause_primary_map.png"
+      },
+      "fused_z_cause_primary_map": {
+        "exists": true,
+        "bytes": 44017,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_fused_z_cause_primary_map.png"
+      },
+      "current_z_repairability_map": {
+        "exists": true,
+        "bytes": 10695,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_current_z_repairability_map.png"
+      },
+      "fused_z_repairability_map": {
+        "exists": true,
+        "bytes": 10495,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_fused_z_repairability_map.png"
+      },
+      "before_after_transition_map": {
+        "exists": true,
+        "bytes": 10329,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_before_after_transition_map.png"
+      },
+      "protected_veto_proxy_map": {
+        "exists": true,
+        "bytes": 3414,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_protected_veto_proxy_map.png"
+      },
+      "z_residual_min_cm_u16": {
+        "exists": true,
+        "bytes": 159490,
+        "path": "/content/drive/MyDrive/koi_waymo2pano_colab/results/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_z_residual_min_cm_u16.png"
+      }
+    }
+  },
+  "runtime_s": 67.3
+}

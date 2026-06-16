@@ -1,0 +1,258 @@
+{
+  "claim_boundaries": {
+    "a1_g_repaired": false,
+    "abstain_or_no_permission_state": true,
+    "bosch_training_ready": false,
+    "db32_changed": false,
+    "diagnostic": true,
+    "generated": false,
+    "presentation_only": true,
+    "raw_camera_backed_repair": false,
+    "source_faithful": false
+  },
+  "created_utc": "2026-06-05T08:02:43.475650+00:00",
+  "db": "DB-60",
+  "hard_checks_passed": true,
+  "inputs": {
+    "a1_editmask": "deliverables/a1_streetview_pipeline/A1_view_none_editmask.jpg",
+    "a1_view_none": "deliverables/dit360_v2/db40_v14_mask_alignment/A1_view_none_bmw_1024x2048.png",
+    "db25_camid_overlay": "deliverables/dit360_v2/db25_longline_evidence_fetch/roi_camid_overlay.jpg",
+    "db45f_remote_vggt_result": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45f_vggt_remote_target_uv_sampling_result.json",
+    "db45f_result_type": "existing official VGGT raw-anchor ROI heatmap grids and statistics",
+    "g_bmw_pano": "deliverables/ghostkill/G_bmw_pano.jpg"
+  },
+  "operator": {
+    "alpha_stats": {
+      "a1_g_diff_mask_mean": 0.3651942014694214,
+      "alpha_changed_frac_gt_0_05": 0.8638958333333333,
+      "alpha_max": 0.3890823423862457,
+      "alpha_mean": 0.14768826961517334,
+      "alpha_min": 0.0,
+      "cam_boundary_mean": 0.18244554102420807,
+      "edit_mask_mean": 0.4776434600353241,
+      "prior_max": 0.7333333492279053,
+      "prior_mean": 0.3456200063228607,
+      "prior_min": 0.0,
+      "vggt_stats": {
+        "coverage_valid_frac": 0.840092,
+        "heatmap_grid_shapes": {
+          "depth_conf": [
+            4,
+            8
+          ],
+          "preprocess_valid": [
+            4,
+            8
+          ],
+          "world_points_conf": [
+            4,
+            8
+          ]
+        },
+        "owner_preprocess_valid_frac_of_roi": 0.802392,
+        "owner_uv_valid_frac_of_roi": 0.840092,
+        "target_sampled_stats": {
+          "depth": {
+            "mean": 0.561245,
+            "med": 0.287988,
+            "n": 192572,
+            "p10": 0.183714,
+            "p90": 1.521397,
+            "std": 0.677713,
+            "valid": 0.802383
+          },
+          "depth_conf": {
+            "mean": 1.148682,
+            "med": 1.103723,
+            "n": 192572,
+            "p10": 1.000002,
+            "p90": 1.38906,
+            "std": 0.164372,
+            "valid": 0.802383
+          },
+          "world_points_conf": {
+            "mean": 1.009675,
+            "med": 1.000036,
+            "n": 192572,
+            "p10": 1.0,
+            "p90": 1.010957,
+            "std": 0.039611,
+            "valid": 0.802383
+          },
+          "world_points_norm": {
+            "mean": 0.545455,
+            "med": 0.279855,
+            "n": 192572,
+            "p10": 0.198594,
+            "p90": 1.262696,
+            "std": 0.632777,
+            "valid": 0.802383
+          }
+        }
+      }
+    },
+    "description": "Upsample DB45f DB25 depth_conf/world_points_conf/preprocess_valid heatmap grids into a VGGT prior; combine with A1 edit-mask energy, DB25 camera-boundary energy, and A1-vs-G visual difference to form a soft alpha; inside DB25 ROI only, blend each base crop with 62% local blur and 38% opposite diagnostic pano donor under alpha max 0.48.",
+    "ungated": true,
+    "vggt_prior_stats": {
+      "coverage_valid_frac": 0.840092,
+      "heatmap_grid_shapes": {
+        "depth_conf": [
+          4,
+          8
+        ],
+        "preprocess_valid": [
+          4,
+          8
+        ],
+        "world_points_conf": [
+          4,
+          8
+        ]
+      },
+      "owner_preprocess_valid_frac_of_roi": 0.802392,
+      "owner_uv_valid_frac_of_roi": 0.840092,
+      "target_sampled_stats": {
+        "depth": {
+          "mean": 0.561245,
+          "med": 0.287988,
+          "n": 192572,
+          "p10": 0.183714,
+          "p90": 1.521397,
+          "std": 0.677713,
+          "valid": 0.802383
+        },
+        "depth_conf": {
+          "mean": 1.148682,
+          "med": 1.103723,
+          "n": 192572,
+          "p10": 1.000002,
+          "p90": 1.38906,
+          "std": 0.164372,
+          "valid": 0.802383
+        },
+        "world_points_conf": {
+          "mean": 1.009675,
+          "med": 1.000036,
+          "n": 192572,
+          "p10": 1.0,
+          "p90": 1.010957,
+          "std": 0.039611,
+          "valid": 0.802383
+        },
+        "world_points_norm": {
+          "mean": 0.545455,
+          "med": 0.279855,
+          "n": 192572,
+          "p10": 0.198594,
+          "p90": 1.262696,
+          "std": 0.632777,
+          "valid": 0.802383
+        }
+      }
+    },
+    "why_not_source_faithful": "Uses diagnostic pano donor/blur and rejected evidence gates; intended only to see visual behavior."
+  },
+  "outputs": {
+    "a1_candidate": {
+      "bytes": 929798,
+      "exists": true,
+      "metrics": {
+        "roi_changed_frac_alpha_gt_0_05": 0.8638958333333333,
+        "roi_max_abs_delta": 28.836313247680664,
+        "roi_mean_abs_delta": 2.044733762741089,
+        "roi_p95_abs_delta": 8.717921257019043
+      },
+      "path": "deliverables/dit360_v2/db60_vggt_ungated_quicklook/db60_a1_view_none_vggt_prior_ungated_quicklook.png",
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "a1_roi_crop": {
+      "bytes": 291258,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db60_vggt_ungated_quicklook/db60_a1_quicklook_roi_crop.png",
+      "size": [
+        800,
+        300
+      ]
+    },
+    "alpha_mask": {
+      "bytes": 51531,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db60_vggt_ungated_quicklook/db60_vggt_prior_alpha_mask.png",
+      "size": [
+        800,
+        300
+      ]
+    },
+    "board": {
+      "path": "deliverables/dit360_v2/db60_vggt_ungated_quicklook/db60_vggt_ungated_quicklook_board.jpg"
+    },
+    "g_candidate": {
+      "bytes": 894844,
+      "exists": true,
+      "metrics": {
+        "roi_changed_frac_alpha_gt_0_05": 0.8638958333333333,
+        "roi_max_abs_delta": 31.778898239135742,
+        "roi_mean_abs_delta": 2.0189309120178223,
+        "roi_p95_abs_delta": 8.689610481262207
+      },
+      "path": "deliverables/dit360_v2/db60_vggt_ungated_quicklook/db60_g_bmw_pano_vggt_prior_ungated_quicklook.png",
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "g_roi_crop": {
+      "bytes": 273484,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db60_vggt_ungated_quicklook/db60_g_quicklook_roi_crop.png",
+      "size": [
+        800,
+        300
+      ]
+    },
+    "manifest": {
+      "path": "deliverables/dit360_v2/db60_vggt_ungated_quicklook/db60_vggt_ungated_quicklook_manifest.json"
+    },
+    "vggt_prior_heatmap": {
+      "bytes": 37030,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db60_vggt_ungated_quicklook/db60_vggt_prior_heatmap.png",
+      "size": [
+        800,
+        300
+      ]
+    }
+  },
+  "scope": {
+    "a100_used": false,
+    "cpu_local_only": true,
+    "db41_edited": false,
+    "dit_flux_prompt_generation": false,
+    "edits_limited_to_db25_roi": true,
+    "full_panorama_synthesis": false,
+    "inpainting": false,
+    "network_used": false,
+    "new_vggt_inference": false,
+    "permission_change": false,
+    "red_promotion": false,
+    "remote_status_or_exec": false,
+    "source_id_map_created": false,
+    "source_replacement": false
+  },
+  "status": "presentation_only_vggt_prior_ungated_quicklook",
+  "target": {
+    "anchor": 0,
+    "roi_key": "db25_longline",
+    "roi_xyxy": [
+      850,
+      420,
+      1650,
+      720
+    ],
+    "uuid": "02a00399-3857-444e-8db3-a8f58489c394"
+  },
+  "token_scan_hits": []
+}

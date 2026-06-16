@@ -1,0 +1,23 @@
+[
+  {
+    "name": "best_r008_h016_w025_tau5",
+    "core_mae": 44.46162033081055,
+    "halo_mae": 0.0,
+    "far_mae": 0.0,
+    "case_runtime_s": 137.449,
+    "gate_fail": null,
+    "netnew": [
+      {
+        "cls": "car",
+        "box": [
+          888.0,
+          527.5,
+          915.2,
+          549.9
+        ],
+        "conf": 0.656,
+        "gen_overlap": 0.66
+      }
+    ]
+  }
+]

@@ -1,0 +1,38 @@
+{
+  "case": "02a00399_a000_bmw",
+  "method": "DB72 full-ERP source-candidate stack + structure-aware source-label optimizer",
+  "verdict_date": "2026-06-05",
+  "claim_classification": "source-owned diagnostic/operator-eligibility evidence; rejected as seam repair",
+  "source_faithful_repair_claim_allowed": false,
+  "phase2_operator_execution_allowed_after_vision": false,
+  "metrics_only_phase2_field_overridden": true,
+  "best_variant_id": "source_only_t16",
+  "key_metrics": {
+    "roi_mean_seam_energy_before": 10.531932830810547,
+    "roi_mean_seam_energy_after": 10.18169105052948,
+    "roi_mean_gain_fraction": 0.03325522351001473,
+    "global_changed_fraction": 0.0038084983825683594,
+    "global_abstain_fraction": 0.0009336471557617188,
+    "left_road_patch_energy_before": 14.56632137298584,
+    "left_road_patch_energy_after": 14.528428077697754,
+    "lower_center_road_patch_energy_before": 9.258546829223633,
+    "lower_center_road_patch_energy_after": 10.033333778381348,
+    "center_lane_marking_energy_before": 11.97686767578125,
+    "center_lane_marking_energy_after": 9.22191333770752,
+    "right_curb_wall_base_energy_before": 6.325995445251465,
+    "right_curb_wall_base_energy_after": 6.943089008331299
+  },
+  "candidate_stack_boundary": {
+    "valid_raw_source_coverage_fraction": 0.27415895462036133,
+    "two_source_overlap_pixels": 88288,
+    "three_or_more_source_overlap_pixels": 0,
+    "lidar_visible_fraction": 0.05321550369262695,
+    "lidar_support_fraction": 0.12054061889648438
+  },
+  "vision_summary": [
+    "Source boundaries are more regular than DB69, but the user's marked road, lane, curb, sidewalk, and wall-base seams remain geometrically misaligned.",
+    "Lower-center road patch and right curb/wall-base metrics worsen, matching the visual failure.",
+    "DB72 proves same-frame source selection is a useful global preflight but not a sufficient repair operator."
+  ],
+  "next_route": "Open DB73 before any further run: add conservative source-derived geometry candidate labels with projection/residual/support sidecars, then rerun the global optimizer."
+}

@@ -1,0 +1,261 @@
+{
+  "db": "DB-67",
+  "phase": "phase1_vggt_dense_raw_aligned_evidence",
+  "started_utc": "2026-06-05T22:32:19Z",
+  "scope": {
+    "fixed_cases_only": [
+      "02a00399:0:bmw",
+      "0bae3b5e:30:clean_far"
+    ],
+    "a100_dense_inference": true,
+    "rgb_repair_created": false,
+    "source_replacement": false,
+    "generation": false,
+    "db32_edit": false,
+    "red_promotion": false
+  },
+  "secret_policy": "runtime/HF secrets are read only from approved env or non-repo files and are not written to outputs",
+  "official_repo_clone": {
+    "returncode": 0,
+    "tail": "repo already present",
+    "duration_s": 0.0
+  },
+  "deps_before": {
+    "torch": true,
+    "torchvision": true,
+    "numpy": true,
+    "PIL": true,
+    "huggingface_hub": true,
+    "safetensors": true,
+    "einops": true,
+    "vggt": true
+  },
+  "small_dep_install": {
+    "returncode": 0,
+    "tail": "all small deps already importable",
+    "duration_s": 0.0
+  },
+  "editable_install_no_deps": {
+    "cmd": [
+      "/usr/bin/python3",
+      "-m",
+      "pip",
+      "..."
+    ],
+    "returncode": 0,
+    "duration_s": 8.41,
+    "tail": ""
+  },
+  "deps_after": {
+    "torch": true,
+    "torchvision": true,
+    "numpy": true,
+    "PIL": true,
+    "huggingface_hub": true,
+    "safetensors": true,
+    "einops": true,
+    "vggt": true
+  },
+  "av2_before": false,
+  "av2_install": {
+    "cmd": [
+      "/usr/bin/python3",
+      "-m",
+      "pip",
+      "..."
+    ],
+    "returncode": 0,
+    "duration_s": 7.92,
+    "tail": "   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 15.2/15.2 MB 70.4 MB/s eta 0:00:00\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 36.3/36.3 MB 71.6 MB/s eta 0:00:00\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 1.2/1.2 MB 76.1 MB/s eta 0:00:00\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 75.5/75.5 kB 8.6 MB/s eta 0:00:00\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 83.5/83.5 kB 9.6 MB/s eta 0:00:00\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 43.8/43.8 kB 4.7 MB/s eta 0:00:00\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 3.7/3.7 MB 125.3 MB/s eta 0:00:00\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 7.6/7.6 MB 152.7 MB/s eta 0:00:00\n   \u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501 469.2/469.2 kB 46.6 MB/s eta 0:00:00\n"
+  },
+  "av2_after": true,
+  "model": {
+    "model_id": "facebook/VGGT-1B-Commercial",
+    "load_s": 15.18,
+    "device": "cuda",
+    "cuda_free_gb_after_load": 34.36
+  },
+  "batch_summary": {
+    "status": "phase1_vggt_dense_maps_complete",
+    "n_cases": 2,
+    "aggregate_success": false,
+    "phase2_renderer_allowed": false,
+    "clean_control_degraded": true,
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "current": {
+          "seam_source_valid_frac": 1.0,
+          "seam_support_frac": 0.42741668404332306,
+          "seam_visible_any_frac": 0.17532841880603972,
+          "seam_visible_ge2_frac": 0.09115998380904486,
+          "seam_single_visible_frac": 0.08416843499699486,
+          "seam_no_surface_frac": 0.5725833159566769,
+          "seam_no_camera_geom_valid_frac": 0.0197848565505906,
+          "seam_no_raw_zbuffer_support_frac": 0.19571430323696445,
+          "seam_z_mismatch_conflict_frac": 0.036589105449728314,
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_source_boundary_proxy_frac": 0.12240116771131036,
+          "supported_no_visible_no_zbuf_frac": 0.8238168132678717,
+          "supported_no_visible_z_conflict_frac": 0.12619072169036874,
+          "supported_no_visible_no_geom_frac": 0.04999246504175953
+        },
+        "dense": {
+          "seam_source_valid_frac": 1.0,
+          "seam_support_frac": 0.232021293559189,
+          "seam_visible_any_frac": 0.0020361352680707003,
+          "seam_visible_ge2_frac": 0.00012265875108859642,
+          "seam_single_visible_frac": 0.0019134765169821042,
+          "seam_no_surface_frac": 0.767978706440811,
+          "seam_no_camera_geom_valid_frac": 0.10843033596231923,
+          "seam_no_raw_zbuffer_support_frac": 0.11134961423822783,
+          "seam_z_mismatch_conflict_frac": 0.010205208090571221,
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_source_boundary_proxy_frac": 0.12240116771131036,
+          "supported_no_visible_no_zbuf_frac": 0.5945254516830347,
+          "supported_no_visible_z_conflict_frac": 0.0655690081715271,
+          "supported_no_visible_no_geom_frac": 0.33990554014543817
+        },
+        "dense_extra": {
+          "seam_dense_candidate_frac": 0.232021293559189,
+          "seam_dense_only_no_lidar_frac": 0.2190930611944509,
+          "seam_lidar_agreed_dense_frac": 0.012928232364738062,
+          "seam_lidar_disagree_frac": 0.31858157420241145,
+          "lidar_residual_m_seam": {
+            "valid": 1.0,
+            "n": 34834,
+            "mean": 9.406485,
+            "med": 5.697145,
+            "p10": 0.339888,
+            "p90": 25.638081,
+            "p95": 34.930153,
+            "std": 10.765431
+          },
+          "longest_visible_component": {
+            "frac": 0.06426735218508997,
+            "px": 25,
+            "area": 47,
+            "seam_length_px": 389
+          },
+          "longest_support_component": {
+            "frac": 0.15424164524421594,
+            "px": 60,
+            "area": 2607,
+            "seam_length_px": 389
+          }
+        },
+        "improvements": {
+          "delta_no_surface_frac": -0.19539539048413412,
+          "gain_visible_any_frac": -0.17329228353796902,
+          "gain_visible_ge2_frac": -0.09103732505795627,
+          "delta_no_raw_zbuffer_support_frac": 0.08436468899873663,
+          "delta_z_mismatch_conflict_frac": -0.026383897359157093,
+          "dense_longest_visible_component_frac": 0.06426735218508997,
+          "dense_longest_support_component_frac": 0.15424164524421594
+        },
+        "success_checks": {
+          "no_surface_drop_or_threshold": false,
+          "visible_any_gain": false,
+          "visible_ge2_gain_or_coherent_single": false,
+          "no_zbuffer_not_worse": true,
+          "no_zbuffer_drop_or_threshold": true,
+          "visible_component_continuity": false,
+          "support_component_continuity": false,
+          "z_conflict_not_up_gt_0p03": true
+        }
+      },
+      "0bae3b5e_a030_clean_far": {
+        "current": {
+          "seam_source_valid_frac": 1.0,
+          "seam_support_frac": 0.4937949772360112,
+          "seam_visible_any_frac": 0.21104420619767955,
+          "seam_visible_ge2_frac": 0.12421060361286533,
+          "seam_single_visible_frac": 0.08683360258481422,
+          "seam_no_surface_frac": 0.5062050227639888,
+          "seam_no_camera_geom_valid_frac": 0.018835364958143634,
+          "seam_no_raw_zbuffer_support_frac": 0.22599990209037057,
+          "seam_z_mismatch_conflict_frac": 0.0379155039898174,
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_source_boundary_proxy_frac": 0.12708669897684438,
+          "supported_no_visible_no_zbuf_frac": 0.8197061274847584,
+          "supported_no_visible_z_conflict_frac": 0.14998129663536314,
+          "supported_no_visible_no_geom_frac": 0.03031257587987846
+        },
+        "dense": {
+          "seam_source_valid_frac": 1.0,
+          "seam_support_frac": 0.4455622460468987,
+          "seam_visible_any_frac": 0.016546727370636904,
+          "seam_visible_ge2_frac": 0.007110686836050326,
+          "seam_single_visible_frac": 0.009436040534586576,
+          "seam_no_surface_frac": 0.5544377539531012,
+          "seam_no_camera_geom_valid_frac": 0.19752043863513977,
+          "seam_no_raw_zbuffer_support_frac": 0.20882900083223185,
+          "seam_z_mismatch_conflict_frac": 0.022666079208890196,
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_source_boundary_proxy_frac": 0.12708669897684438,
+          "supported_no_visible_no_zbuf_frac": 0.5209918131238523,
+          "supported_no_visible_z_conflict_frac": 0.049705705042360986,
+          "supported_no_visible_no_geom_frac": 0.4293024818337866
+        },
+        "dense_extra": {
+          "seam_dense_candidate_frac": 0.4455622460468987,
+          "seam_dense_only_no_lidar_frac": 0.3892519704312919,
+          "seam_lidar_agreed_dense_frac": 0.056310275615606795,
+          "seam_lidar_disagree_frac": 0.37928966563861555,
+          "lidar_residual_m_seam": {
+            "valid": 1.0,
+            "n": 40347,
+            "mean": 12.576282,
+            "med": 9.573597,
+            "p10": 0.500087,
+            "p90": 26.119448,
+            "p95": 36.617298,
+            "std": 14.290195
+          },
+          "longest_visible_component": {
+            "frac": 0.12568306010928962,
+            "px": 46,
+            "area": 83,
+            "seam_length_px": 366
+          },
+          "longest_support_component": {
+            "frac": 0.16939890710382513,
+            "px": 62,
+            "area": 6270,
+            "seam_length_px": 366
+          }
+        },
+        "improvements": {
+          "delta_no_surface_frac": -0.04823273118911242,
+          "gain_visible_any_frac": -0.19449747882704266,
+          "gain_visible_ge2_frac": -0.117099916776815,
+          "delta_no_raw_zbuffer_support_frac": 0.01717090125813872,
+          "delta_z_mismatch_conflict_frac": -0.015249424780927202,
+          "dense_longest_visible_component_frac": 0.12568306010928962,
+          "dense_longest_support_component_frac": 0.16939890710382513
+        },
+        "success_checks": {
+          "no_surface_drop_or_threshold": false,
+          "visible_any_gain": false,
+          "visible_ge2_gain_or_coherent_single": false,
+          "no_zbuffer_not_worse": true,
+          "no_zbuffer_drop_or_threshold": false,
+          "visible_component_continuity": false,
+          "support_component_continuity": false,
+          "z_conflict_not_up_gt_0p03": true
+        }
+      }
+    },
+    "mean_improvements": {
+      "delta_no_surface_frac": -0.12181406083662327,
+      "gain_visible_any_frac": -0.18389488118250585,
+      "gain_visible_ge2_frac": -0.10406862091738564,
+      "delta_no_raw_zbuffer_support_frac": 0.050767795128437675,
+      "delta_z_mismatch_conflict_frac": -0.020816661070042146
+    },
+    "route_verdict": "phase1_evidence_failed_or_diagnostic_only",
+    "errors": []
+  },
+  "status": "db67_phase1_vggt_dense_completed",
+  "runtime_s": 58.95,
+  "ended_utc": "2026-06-05T22:33:18Z"
+}

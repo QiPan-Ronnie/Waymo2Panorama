@@ -91,3 +91,9 @@ _tmp_*.py
 
 # Fable5 session disposable vision crops
 agent/_fable5_vision_tmp/
+
+# External reference papers (preserved by Baidu sync, NOT in git) — added 2026-06-12
+paper_reading/
+
+# Colab fetch archives — keep the extracted dirs (browsable), ignore the .zip duplicates — 2026-06-12
+deliverables/**/*.zip

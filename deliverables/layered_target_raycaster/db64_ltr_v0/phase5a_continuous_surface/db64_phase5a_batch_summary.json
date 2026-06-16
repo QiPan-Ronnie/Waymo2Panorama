@@ -1,0 +1,157 @@
+{
+  "status": "phase5a_maps_complete",
+  "n_cases": 2,
+  "aggregate_success": false,
+  "clean_control_degraded": false,
+  "by_case_classification": {
+    "02a00399_a000_bmw": "diagnostic_evidence_only_preflight_fail",
+    "0bae3b5e_a030_clean_far": "clean_control_evidence_only"
+  },
+  "by_case": {
+    "02a00399_a000_bmw": {
+      "current": {
+        "seam_lidar_support_frac": 0.42741668404332306,
+        "seam_visible_any_frac": 0.17532841880603972,
+        "seam_visible_ge2_frac": 0.09115998380904486,
+        "seam_single_visible_frac": 0.08416843499699486,
+        "seam_no_surface_frac": 0.5725833159566769,
+        "seam_no_camera_geom_valid_frac": 0.0197848565505906,
+        "seam_no_raw_zbuffer_support_frac": 0.19571430323696445,
+        "seam_z_mismatch_conflict_frac": 0.036589105449728314,
+        "seam_mixed_no_visible_frac": 0.0,
+        "seam_source_boundary_proxy_frac": 0.12240116771131036,
+        "longest_supported_component_frac": 0.14652956298200515,
+        "longest_supported_component_px": 57,
+        "seam_length_px": 389,
+        "z_residual_min_m_seam": {
+          "n": 17277,
+          "mean": 2.5656402111053467,
+          "p50": 0.01116180419921875,
+          "p90": 12.56171989440918,
+          "p95": 16.918893814086914
+        }
+      },
+      "fused": {
+        "seam_lidar_support_frac": 0.48257632440786485,
+        "seam_visible_any_frac": 0.1602904559225778,
+        "seam_visible_ge2_frac": 0.08436468899873661,
+        "seam_single_visible_frac": 0.07592576692384118,
+        "seam_no_surface_frac": 0.5174236755921351,
+        "seam_no_camera_geom_valid_frac": 0.0444024678940719,
+        "seam_no_raw_zbuffer_support_frac": 0.23740601273197837,
+        "seam_z_mismatch_conflict_frac": 0.04047738785923682,
+        "seam_mixed_no_visible_frac": 0.0,
+        "seam_source_boundary_proxy_frac": 0.12240116771131036,
+        "longest_supported_component_frac": 0.14652956298200515,
+        "longest_supported_component_px": 57,
+        "seam_length_px": 389,
+        "z_residual_min_m_seam": {
+          "n": 16368,
+          "mean": 2.6769254207611084,
+          "p50": 0.02115345001220703,
+          "p90": 12.440671920776367,
+          "p95": 17.90330696105957
+        }
+      },
+      "improvements": {
+        "delta_no_surface_frac": 0.055159640364541795,
+        "gain_visible_any_frac": -0.01503796288346193,
+        "gain_visible_ge2_frac": -0.0067952948103082444,
+        "delta_no_raw_zbuffer_support_frac": -0.04169170949501391,
+        "delta_z_mismatch_conflict_frac": 0.0038882824095085033,
+        "fused_longest_supported_component_frac": 0.14652956298200515
+      },
+      "success_checks": {
+        "bmw_no_surface_drop": false,
+        "bmw_visible_gain": false,
+        "bmw_no_zbuf_drop": false,
+        "bmw_component_continuity": false,
+        "z_conflict_not_up_gt_0p03": true
+      }
+    },
+    "0bae3b5e_a030_clean_far": {
+      "current": {
+        "seam_lidar_support_frac": 0.4937949772360112,
+        "seam_visible_any_frac": 0.21104420619767955,
+        "seam_visible_ge2_frac": 0.12421060361286533,
+        "seam_single_visible_frac": 0.08683360258481422,
+        "seam_no_surface_frac": 0.5062050227639888,
+        "seam_no_camera_geom_valid_frac": 0.018835364958143634,
+        "seam_no_raw_zbuffer_support_frac": 0.22599990209037057,
+        "seam_z_mismatch_conflict_frac": 0.0379155039898174,
+        "seam_mixed_no_visible_frac": 0.0,
+        "seam_source_boundary_proxy_frac": 0.12708669897684438,
+        "longest_supported_component_frac": 0.1557377049180328,
+        "longest_supported_component_px": 57,
+        "seam_length_px": 366,
+        "z_residual_min_m_seam": {
+          "n": 20342,
+          "mean": 1.6399189233779907,
+          "p50": 0.013585090637207031,
+          "p90": 5.326924800872803,
+          "p95": 10.470126152038574
+        }
+      },
+      "fused": {
+        "seam_lidar_support_frac": 0.5230944338375679,
+        "seam_visible_any_frac": 0.1814265433005336,
+        "seam_visible_ge2_frac": 0.10893670142458511,
+        "seam_single_visible_frac": 0.0724898418759485,
+        "seam_no_surface_frac": 0.47690556616243207,
+        "seam_no_camera_geom_valid_frac": 0.03218779066921232,
+        "seam_no_raw_zbuffer_support_frac": 0.2683458168110834,
+        "seam_z_mismatch_conflict_frac": 0.04113428305673863,
+        "seam_mixed_no_visible_frac": 0.0,
+        "seam_source_boundary_proxy_frac": 0.12708669897684438,
+        "longest_supported_component_frac": 0.15846994535519127,
+        "longest_supported_component_px": 58,
+        "seam_length_px": 366,
+        "z_residual_min_m_seam": {
+          "n": 18185,
+          "mean": 1.9677588939666748,
+          "p50": 0.030731201171875,
+          "p90": 6.502644062042236,
+          "p95": 11.637447357177734
+        }
+      },
+      "improvements": {
+        "delta_no_surface_frac": 0.02929945660155675,
+        "gain_visible_any_frac": -0.029617662897145958,
+        "gain_visible_ge2_frac": -0.015273902188280217,
+        "delta_no_raw_zbuffer_support_frac": -0.04234591472071281,
+        "delta_z_mismatch_conflict_frac": 0.0032187790669212304,
+        "fused_longest_supported_component_frac": 0.15846994535519127
+      },
+      "success_checks": {
+        "bmw_no_surface_drop": false,
+        "bmw_visible_gain": false,
+        "bmw_no_zbuf_drop": false,
+        "bmw_component_continuity": false,
+        "z_conflict_not_up_gt_0p03": true
+      }
+    }
+  },
+  "mean_current": {
+    "seam_no_surface_frac": 0.5393941693603328,
+    "seam_visible_any_frac": 0.19318631250185964,
+    "seam_visible_ge2_frac": 0.10768529371095509,
+    "seam_no_raw_zbuffer_support_frac": 0.21085710266366753,
+    "seam_z_mismatch_conflict_frac": 0.03725230471977285
+  },
+  "mean_fused": {
+    "seam_no_surface_frac": 0.4971646208772836,
+    "seam_visible_any_frac": 0.1708584996115557,
+    "seam_visible_ge2_frac": 0.09665069521166086,
+    "seam_no_raw_zbuffer_support_frac": 0.2528759147715309,
+    "seam_z_mismatch_conflict_frac": 0.04080583545798772
+  },
+  "mean_improvements": {
+    "delta_no_surface_frac": 0.04222954848304927,
+    "gain_visible_any_frac": -0.022327812890303944,
+    "gain_visible_ge2_frac": -0.01103459849929423,
+    "delta_no_raw_zbuffer_support_frac": -0.04201881210786336,
+    "delta_z_mismatch_conflict_frac": 0.003553530738214867,
+    "fused_longest_supported_component_frac": 0.1524997541685982
+  },
+  "errors": []
+}

@@ -1,0 +1,345 @@
+{
+  "db": "DB58",
+  "status": "abstain_no_repair_after_cpu_local_preflight",
+  "created_utc": "2026-06-05T07:17:49.125303+00:00",
+  "purpose": "Test whether existing DB25/DB45/DB49 evidence permits the next DB58 remote/model or raw-camera-backed local warp/composite step.",
+  "target": {
+    "uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+    "anchor": 0,
+    "roi_xyxy": [
+      850,
+      420,
+      1650,
+      720
+    ],
+    "roi_name": "DB25 longline ROI"
+  },
+  "scope": {
+    "cpu_local_existing_artifacts_only": true,
+    "remote_used": false,
+    "a100_used": false,
+    "network_used": false,
+    "vggt_inference_ran": false,
+    "renderer_or_seamroute_ran": false,
+    "warp_or_composite_attempted": false,
+    "generation_or_inpainting_used": false,
+    "source_replacement": false,
+    "source_id_map_created": false,
+    "permission_change": false,
+    "red_promotion": false
+  },
+  "inputs": {
+    "db25_summary": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_summary.json",
+    "db45f_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45f_vggt_target_uv_sampling_gate_manifest.json",
+    "db45k_manifest": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45k_vggt_pose_reflection_audit_manifest.json",
+    "db49c_manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_manifest.json",
+    "db49d_manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49d_seamroute_source_map_instrumentation_manifest.json",
+    "db49e_manifest": "deliverables/dit360_v2/db49_bosch_data_contract/db49e_exact_lineage_preflight_manifest.json"
+  },
+  "fixed_evidence": {
+    "db25": {
+      "roi_valid_frac": 0.8400916666666667,
+      "camera_label_counts": {
+        "0": 65752,
+        "1": 11530,
+        "5": 53816,
+        "6": 70524
+      },
+      "top_camera_labels": [
+        6,
+        0,
+        5
+      ],
+      "near_ground_frac": 0.6233333333333333,
+      "lidar_support_frac": 0.09380416666666666,
+      "best_flow_pair": "0-1",
+      "best_flow_reliable_frac": 0.6823972206137812,
+      "key_pair_6_5_flow_frac": 0.10466278101582015,
+      "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence"
+    },
+    "db45f_target_uv": {
+      "accepted_evidence_type": "vggt-target-uv-sampling-diagnostic-only",
+      "accepted_db45_geometry_evidence": false,
+      "target_uv_mapping_available": true,
+      "still_model_diagnostic_only": true,
+      "owner_uv_valid_frac_of_roi": 0.840092,
+      "owner_preprocess_valid_frac_of_roi": 0.802392,
+      "final_permission": {
+        "evidence_state": "RED",
+        "claim": "abstain",
+        "permission_delta": "unchanged",
+        "reason": "Target-ROI owner-UV VGGT sampling is model-diagnostic evidence; existing LiDAR/raw-flow target-surface support still fails DB45b promotion criteria."
+      }
+    },
+    "db45k_pose_and_target_boundary": {
+      "accepted_evidence_type": "vggt-pose-reflection-coordinate-audit-diagnostic-only",
+      "accepted_db45_geometry_evidence": false,
+      "official_center_admissible": false,
+      "official_center_reflection_preferred": true,
+      "official_center_mean_residual_m": 0.21799,
+      "translation_column_admissible": false,
+      "target_roi_boundary": {
+        "roi": "db25_longline",
+        "known_lidar_support_frac": 0.094,
+        "coverage_valid_frac": 0.840092,
+        "owner_vggt_valid_frac_of_roi": 0.802392,
+        "raw_reprojection_med_px": 2309.346191,
+        "raw_reprojection_p90_px": 3700.071533,
+        "nearest_lidar_match_frac": 0.251721,
+        "nearest_lidar_3d_residual_med_m": 13.319297,
+        "permission_promotion_allowed": false
+      }
+    },
+    "db49_source_map": {
+      "db49c_status": "source_id_map_feasibility_inventory_only",
+      "source_id_map_status": "unknown",
+      "complete_source_id_map_found": false,
+      "source_id_map_created": false,
+      "db49d_instrumentation_ready_default_off": true,
+      "db49e_status": "preflight_paused"
+    }
+  },
+  "evidence_gates": [
+    {
+      "id": "scope_fixed_db58_target",
+      "state": "pass",
+      "evidence": "uuid=02a00399-3857-444e-8db3-a8f58489c394 anchor=0 roi=[850, 420, 1650, 720]"
+    },
+    {
+      "id": "existing_artifacts_present",
+      "state": "pass",
+      "evidence": "DB25 summary, DB45f target-UV manifest, DB45k coordinate audit, and DB49 source-map manifests are present."
+    },
+    {
+      "id": "raw_owner_uv_preflight",
+      "state": "partial_diagnostic_only",
+      "evidence": "DB45f target_uv_mapping_available=True; owner_uv_valid_frac=0.840092; owner_preprocess_valid_frac=0.802392; DB49 source_id_status=unknown",
+      "repair_allowed_after_gate": false
+    },
+    {
+      "id": "vggt_pose_coordinate_admissibility",
+      "state": "fail",
+      "evidence": "DB45k keeps accepted_db45_geometry_evidence=false: official center reflection_preferred=True mean_residual_m=0.21799 translation-column diagnostic admissible=False",
+      "kill_triggered": true
+    },
+    {
+      "id": "target_surface_lidar_flow_support",
+      "state": "fail",
+      "evidence": "known_lidar_support_frac=0.094; key_pair_6_5_flow_frac=0.105; best_flow_pair=0-1 best_flow_reliable_frac=0.682; raw_reprojection_med_px=2309.346191 nearest_lidar_3d_residual_med_m=13.319297",
+      "kill_triggered": true
+    },
+    {
+      "id": "source_id_and_sidecar_support",
+      "state": "blocked_not_fabricated",
+      "evidence": "DB49c source_id_map missing=True; DB49d instrumented_default_off=True; DB49e paused=True",
+      "repair_allowed_after_gate": false
+    },
+    {
+      "id": "protected_structure_and_composite_gate",
+      "state": "not_attempted_due_prior_kill",
+      "evidence": "No warp/composite attempted, so lane/curb/object/building-edge protected masks remain a required future gate, not a passed gate.",
+      "repair_allowed_after_gate": false
+    }
+  ],
+  "gate_summary": {
+    "failed_gate_ids": [
+      "vggt_pose_coordinate_admissibility",
+      "target_surface_lidar_flow_support"
+    ],
+    "blocked_or_diagnostic_gate_ids": [
+      "raw_owner_uv_preflight",
+      "source_id_and_sidecar_support"
+    ],
+    "may_run_remote_or_model_next": false,
+    "may_attempt_raw_camera_warp_or_composite": false
+  },
+  "adversarial_reasoning_summary": {
+    "question": "Should DB58 proceed past CPU-local preflight into new VGGT/model action or raw-camera-backed composite?",
+    "positions": [
+      {
+        "id": "ARG-KEEP-STRICT",
+        "claim": "Stop now: DB45k coordinate/reflection and DB25 target-surface evidence fail DB58's admissibility gates.",
+        "score": 9
+      },
+      {
+        "id": "ARG-PARTIAL-UV",
+        "claim": "Use DB45f target-UV diagnostics as useful metadata, but only for a no-repair evidence board because it cannot promote geometry alone.",
+        "score": 8
+      },
+      {
+        "id": "ARG-RUN-MORE-VGGT",
+        "claim": "Run another VGGT pass to seek a better convention or residual result.",
+        "score": 3,
+        "rebuttal": "DB58 kill criteria forbid continuing when pose/depth coordinate ambiguity remains unresolved; DB45k already says no residual patch-on-patch."
+      }
+    ],
+    "verdict": "ARG-KEEP-STRICT wins: DB58 should close as abstain/no-repair under existing evidence, with no remote/model action."
+  },
+  "decision": {
+    "accepted_evidence_type": "db58_cpu_local_preflight_abstain_no_repair",
+    "repair_result": "abstain/no-repair",
+    "reason": "VGGT coordinate/reflection evidence is not admissible and target-surface LiDAR/flow support remains too weak for a raw-camera-backed local warp/composite.",
+    "db32_boundary": "unchanged; DB32 s40 remains caveated source-sidestep/generated-sky handoff candidate only.",
+    "g_bmw_boundary": "unchanged; G_bmw_pano remains diagnostic failure/reference only.",
+    "db41_boundary": "unchanged; DB41 right/lower-right remains no-evidence/abstain negative control.",
+    "next_allowed_step": "No DB58 patch-on-patch. A future attempt needs a fresh brief with new official coordinate evidence or new raw/LiDAR/flow target-surface evidence."
+  },
+  "required_vision_assets": {
+    "db25_montage": {
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_evidence_montage.jpg",
+      "exists": true,
+      "size": [
+        1860,
+        1056
+      ],
+      "bytes": 274519
+    },
+    "roi_current": {
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/roi_current.jpg",
+      "exists": true,
+      "size": [
+        800,
+        300
+      ],
+      "bytes": 70280
+    },
+    "roi_camid_overlay": {
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/roi_camid_overlay.jpg",
+      "exists": true,
+      "size": [
+        800,
+        300
+      ],
+      "bytes": 48929
+    },
+    "roi_lidar_support": {
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/roi_lidar_support.jpg",
+      "exists": true,
+      "size": [
+        800,
+        300
+      ],
+      "bytes": 93896
+    },
+    "roi_flow_reliable": {
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/roi_flow_reliable.jpg",
+      "exists": true,
+      "size": [
+        800,
+        300
+      ],
+      "bytes": 73145
+    },
+    "roi_nearground": {
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/roi_nearground.jpg",
+      "exists": true,
+      "size": [
+        800,
+        300
+      ],
+      "bytes": 58774
+    },
+    "db45f_board": {
+      "path": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45f_vggt_target_uv_sampling_gate_board.jpg",
+      "exists": true,
+      "size": [
+        1900,
+        1900
+      ],
+      "bytes": 384530
+    },
+    "db45k_board": {
+      "path": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45k_vggt_pose_reflection_audit_board.jpg",
+      "exists": true,
+      "size": [
+        1800,
+        1200
+      ],
+      "bytes": 317784
+    },
+    "db49c_board": {
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_board.jpg",
+      "exists": true,
+      "size": [
+        2200,
+        1700
+      ],
+      "bytes": 542605
+    },
+    "db32": {
+      "path": "deliverables/dit360_v2/db32_generated_sky_harmonize_v2/db32_generated_sky_harmonize_s40.png",
+      "exists": true,
+      "size": [
+        2048,
+        1024
+      ],
+      "bytes": 1823340
+    },
+    "db41_board": {
+      "path": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_board.jpg",
+      "exists": true,
+      "size": [
+        1700,
+        1960
+      ],
+      "bytes": 481406
+    },
+    "g_bmw": {
+      "path": "deliverables/ghostkill/G_bmw_pano.jpg",
+      "exists": true,
+      "size": [
+        2048,
+        1024
+      ],
+      "bytes": 278458
+    }
+  },
+  "outputs": {
+    "manifest": "deliverables/dit360_v2/db58_vggt_raw_camera_seam_roi/db58_vggt_raw_camera_seam_roi_preflight_manifest.json",
+    "board": "deliverables/dit360_v2/db58_vggt_raw_camera_seam_roi/db58_vggt_raw_camera_seam_roi_preflight_board.jpg"
+  },
+  "hard_checks": [
+    {
+      "id": "db58_brief_present",
+      "pass": true,
+      "evidence": "DB58 brief exists before CPU-local preflight."
+    },
+    {
+      "id": "fixed_target_matches_db58",
+      "pass": true,
+      "evidence": "DB25 target uuid=02a00399-3857-444e-8db3-a8f58489c394 anchor=0 roi=[850, 420, 1650, 720]"
+    },
+    {
+      "id": "db45f_diagnostic_only_preserved",
+      "pass": true,
+      "evidence": "DB45f target-UV sampling is not accepted geometry evidence."
+    },
+    {
+      "id": "db45k_coordinate_kill_preserved",
+      "pass": true,
+      "evidence": "DB45k keeps VGGT pose/reflection coordinate evidence diagnostic-only."
+    },
+    {
+      "id": "target_surface_support_kill_preserved",
+      "pass": true,
+      "evidence": "lidar=0.094; key_pair_6_5_flow=0.105; permission=False"
+    },
+    {
+      "id": "no_repair_or_model_scope",
+      "pass": true,
+      "evidence": "CPU/local existing-artifact preflight only."
+    },
+    {
+      "id": "boundaries_preserved",
+      "pass": true,
+      "evidence": "DB32, G, and DB41 boundaries are unchanged."
+    },
+    {
+      "id": "strict_secret_scan_zero",
+      "pass": true,
+      "evidence": "hits=0 across DB58 script, living docs, and selected non-image inputs."
+    }
+  ],
+  "secret_scan_hits": [],
+  "hard_checks_pass": true
+}

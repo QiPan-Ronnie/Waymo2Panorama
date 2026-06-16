@@ -1,0 +1,92 @@
+{
+  "marked_rois": [
+    {
+      "roi": "left_road_patch",
+      "bbox": [
+        250,
+        515,
+        460,
+        715
+      ],
+      "verdict": "RED",
+      "reason": "current boundary crosses structure and no clear low-risk corridor appears locally",
+      "source_ids_present": [
+        2,
+        3
+      ],
+      "boundary_fraction": 0.021238095238095236,
+      "corridor_fraction": 0.22592857142857142,
+      "low_risk_corridor_fraction": 0.019333333333333334,
+      "lane_marking_proxy_fraction": 0.6634523809523809,
+      "wall_curb_base_proxy_fraction": 0.0495,
+      "edge_mean": 0.10749635854341737,
+      "mean_cost_on_boundary": 0.7038301825523376
+    },
+    {
+      "roi": "lower_center_road_patch",
+      "bbox": [
+        740,
+        595,
+        1035,
+        745
+      ],
+      "verdict": "RED",
+      "reason": "current boundary crosses structure and no clear low-risk corridor appears locally",
+      "source_ids_present": [
+        0,
+        1
+      ],
+      "boundary_fraction": 0.01087005649717514,
+      "corridor_fraction": 0.12097175141242938,
+      "low_risk_corridor_fraction": 0.011163841807909605,
+      "lane_marking_proxy_fraction": 0.423909604519774,
+      "wall_curb_base_proxy_fraction": 0.026689265536723163,
+      "edge_mean": 0.050876082862523535,
+      "mean_cost_on_boundary": 0.7361316084861755
+    },
+    {
+      "roi": "center_lane_marking",
+      "bbox": [
+        1030,
+        515,
+        1325,
+        735
+      ],
+      "verdict": "GREEN",
+      "reason": "low-risk alternate corridor exists near current boundary",
+      "source_ids_present": [
+        0,
+        6
+      ],
+      "boundary_fraction": 0.015439137134052388,
+      "corridor_fraction": 0.1664406779661017,
+      "low_risk_corridor_fraction": 0.09969183359013868,
+      "lane_marking_proxy_fraction": 0.08471494607087827,
+      "wall_curb_base_proxy_fraction": 0.02674884437596302,
+      "edge_mean": 0.07230423879875525,
+      "mean_cost_on_boundary": 0.4995853006839752
+    },
+    {
+      "roi": "right_curb_sidewalk_wall_base",
+      "bbox": [
+        1300,
+        500,
+        1575,
+        760
+      ],
+      "verdict": "GREEN",
+      "reason": "low-risk alternate corridor exists near current boundary",
+      "source_ids_present": [
+        5,
+        6
+      ],
+      "boundary_fraction": 0.013398601398601398,
+      "corridor_fraction": 0.14923076923076922,
+      "low_risk_corridor_fraction": 0.10186013986013986,
+      "lane_marking_proxy_fraction": 0.159006993006993,
+      "wall_curb_base_proxy_fraction": 0.02379020979020979,
+      "edge_mean": 0.06671531605649253,
+      "mean_cost_on_boundary": 0.4424065053462982
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db14_inputs/G_bmw_pano.jpg",
+  "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db21_current_mask/G_bmw_pano_rg_line_ultra_lineprompt/db21_rgline_tau5_lineprompt/db21_rgline_tau5_lineprompt_corecompose.png",
+  "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db21_current_masks/rg_line_ultra_mask_preserve_nonseam.png",
+  "conf": 0.5,
+  "src_salient": 10,
+  "gen_salient": 10,
+  "netnew_count": 0,
+  "PASS": true,
+  "netnew": []
+}

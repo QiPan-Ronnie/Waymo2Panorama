@@ -1,0 +1,12 @@
+{
+  "case": "02a00399_a000_bmw",
+  "raw_camera_sourced_rgb": true,
+  "selected_pixels_from_raw_rotation_or_temporal_ground_slabs": true,
+  "temporal_pixels_raw_camera_backprojected_on_conservative_ground": true,
+  "temporal_operator_selected_fraction": 0.0,
+  "abstain_pixels_kept_as_hard_select_for_visualization": true,
+  "generated_mask": 0,
+  "warp_vector_map": "absent",
+  "operator_map": "0=raw_source_selection, 1=source_derived_temporal_ground_candidate, abstain marked separately",
+  "sensor_truth_claim": "temporal raw-source candidate pending vision; not Bosch/source-faithful repair unless sidecars and vision pass"
+}

@@ -1,0 +1,65 @@
+{
+  "created_utc": "2026-06-05T13:48:26.913815+00:00",
+  "status": "db64_phase5a_local_visible_result_package",
+  "local_only": true,
+  "phase5a_remote_executed": false,
+  "uses_existing_artifacts_only": true,
+  "source_artifacts": {
+    "candidate": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_best.jpg",
+    "control": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_hard_select.jpg",
+    "phase2_crop_review": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_zbuffer_crop_review.jpg",
+    "phase3_sidecar_review": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_sidecar_review_768.jpg",
+    "phase4b_z_review": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/fetch/02a00399_a000_bmw/02a00399_a000_bmw_z_visibility_review_768.jpg",
+    "phase4b_z_cause": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/fetch/02a00399_a000_bmw/02a00399_a000_bmw_z_cause_primary_viz.png",
+    "phase4b_z_repairability": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/fetch/02a00399_a000_bmw/02a00399_a000_bmw_z_repairability_viz.png"
+  },
+  "outputs": {
+    "visible_candidate": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_local_best_visible_candidate_rejected.png",
+    "board": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_local_visible_result_board.jpg",
+    "manifest": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_local_visible_result_manifest.json",
+    "board_bytes": 341848,
+    "visible_candidate_bytes": 207399
+  },
+  "claim_classification": "diagnostic/evidence-only visible seam result; rejected as source-faithful repair",
+  "vision_verdict": [
+    "This package gives a concrete seam image to inspect, but it is not a Phase5a fused-surface result.",
+    "The visible RGB candidate is Phase2 lidar_best and remains rejected as repair because previous vision found sparse/blocky wall/object patches.",
+    "Phase4b sidecars remain the active explanation: BMW lacks continuous target-surface/raw-zbuffer support."
+  ],
+  "safety": {
+    "remote_status_exec": false,
+    "runtime_secret_access": false,
+    "a100": false,
+    "vggt_hf_model": false,
+    "generation": false,
+    "source_replacement": false,
+    "red_promotion": false
+  },
+  "phase4b_bmw_metrics": {
+    "seam_source_valid_frac": 1.0,
+    "seam_lidar_support_frac": 0.42741668404332306,
+    "seam_visible_ge2_frac": 0.09115998380904486,
+    "seam_single_visible_frac": 0.08416843499699486,
+    "seam_no_surface_frac": 0.5725833159566769,
+    "seam_no_camera_geom_valid_frac": 0.0197848565505906,
+    "seam_no_raw_zbuffer_support_frac": 0.19571430323696445,
+    "seam_z_mismatch_conflict_frac": 0.036589105449728314,
+    "seam_mixed_no_visible_frac": 0.0,
+    "seam_source_boundary_proxy_frac": 0.12240116771131036,
+    "supported_no_visible_no_zbuf_frac": 0.8238168132678717,
+    "supported_no_visible_z_conflict_frac": 0.12619072169036874,
+    "supported_no_visible_no_geom_frac": 0.04999246504175953
+  },
+  "phase4b_mean_metrics": {
+    "seam_no_surface_frac": 0.5393941693603328,
+    "seam_no_camera_geom_valid_frac": 0.019310110754367116,
+    "seam_no_raw_zbuffer_support_frac": 0.21085710266366753,
+    "seam_z_mismatch_conflict_frac": 0.03725230471977285,
+    "seam_single_visible_frac": 0.08550101879090455,
+    "seam_visible_ge2_frac": 0.10768529371095509
+  },
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}

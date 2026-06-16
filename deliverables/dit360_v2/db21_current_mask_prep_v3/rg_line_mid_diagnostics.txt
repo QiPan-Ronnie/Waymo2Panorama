@@ -1,0 +1,1 @@
+{'name': 'rg_line_mid', 'core_fraction': 0.014587879180908203, 'core_pixels': 30593, 'content_threshold': 20, 'polygons': [[(1695, 578), (2047, 552), (2047, 662), (1695, 694)]]}

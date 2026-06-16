@@ -1,0 +1,10 @@
+{
+  "case": "0bae3b5e_a030_clean_far",
+  "source_owned_rgb": true,
+  "selected_pixels_copied_from_raw_slabs": true,
+  "abstain_pixels_kept_as_hard_select_for_visualization": true,
+  "generated_mask": 0,
+  "warp_vector_map": "absent",
+  "operator_map": "source_selection_or_abstain_only",
+  "sensor_truth_claim": "source-owned candidate pending vision; not Bosch/source-faithful repair unless sidecars and vision pass"
+}

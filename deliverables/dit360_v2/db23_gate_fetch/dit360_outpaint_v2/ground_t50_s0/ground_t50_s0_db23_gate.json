@@ -1,0 +1,11 @@
+{
+  "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_bmw_bevfinal_1024x2048.png",
+  "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_outpaint_v2/ground_t50_s0/ground_t50_s0_corecompose.png",
+  "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/dit360_outpaint_v2/masks/opmask_ground.png",
+  "conf": 0.5,
+  "src_salient": 2,
+  "gen_salient": 3,
+  "netnew_count": 0,
+  "PASS": true,
+  "netnew": []
+}

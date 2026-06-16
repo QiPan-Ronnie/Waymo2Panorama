@@ -1,0 +1,12 @@
+{
+  "id": "db78-flow-viewinterp-generalization",
+  "cmd": [
+    "bash",
+    "-c",
+    "set -e; cd /content/Waymo2Panorama && git pull --rebase || true; DATA=/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val; OUT=/content/drive/MyDrive/koi_waymo2pano_colab/results/db78_flow_viewinterp_generalization; mkdir -p \"$OUT\"; pip install -q pyransac3d 2>&1 | tail -1 || true; run() { UUID=$1; ANCH=$2; TAGN=$3; echo \"=== [$TAGN] $UUID a$ANCH (mode=view prealign=none = pure Surround360 flow view-interp) ===\"; python scripts/phase3/run_a1_streetview_pipeline.py --av2-root \"$DATA\" --uuid \"$UUID\" --anchor \"$ANCH\" --mode view --prealign none --out-dir \"$OUT/$TAGN\" 2>&1 | tail -25 || echo \"[$TAGN] FAILED\"; }; run 02a00399-3857-444e-8db3-a8f58489c394 0 bmw_curb; run 0bae3b5e-417d-3b03-abaa-806b433233b8 30 clean_far; run 2c652f9e-8db8-3572-aa49-fae1344a875b 160 highway_barrel; run fbee355f-8878-31fa-8ac8-b9a45a3f130a 0 downtown_ped; run 9f871fb4-3b8e-34b3-9161-ed961e71a6da 265 crowd_crossing; echo '=== ALL CASES DONE ==='; ls -R \"$OUT\" | tail -40; touch /tmp/db78-flow-viewinterp-generalization.done"
+  ],
+  "done_marker": "/tmp/db78-flow-viewinterp-generalization.done",
+  "timeout_s": 1800,
+  "created_at": "2026-06-06T00:00:00+00:00",
+  "_note": "DB-78 multi-scene generalization. CPU-only (cv2 DIS flow + numpy). Runs the EXISTING run_a1_streetview_pipeline.py --mode view --prealign none (pure Surround360 flow view-interp, the DB-78 PARTIAL-WIN subject) over all 5 AV2 logs staged on Drive, at one representative anchor each, covering: curb-near-field / clean-far-downtown / highway-construction-barrel / downtown-pedestrian-under-overpass / very-high-pedestrian-crossing. Each run writes A1_view_none_{L1_vs_result,seam_crops,editmask}.jpg + A1_view_none_diag.json (edited_frac, far_field_relative_warp_vs_L1, obj_frac=abstain proxy). DO NOT auto-push until a Colab worker is live (heartbeat at jobs submit time was 13 days stale)."
+}

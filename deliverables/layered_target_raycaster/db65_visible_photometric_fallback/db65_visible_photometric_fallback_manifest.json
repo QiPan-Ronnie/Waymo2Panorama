@@ -1,0 +1,68 @@
+{
+  "created_utc": "2026-06-05T21:30:25.025110+00:00",
+  "status": "db65_visible_photometric_fallback_complete",
+  "claim_classification": "presentation/diagnostic photometric polish; not source-faithful repair",
+  "scope": {
+    "cpu_local_only": true,
+    "existing_db64_artifacts_only": true,
+    "remote_status_exec": false,
+    "a100": false,
+    "vggt_hf_model": false,
+    "generation": false,
+    "source_replacement": false,
+    "geometry_warp": false,
+    "db32_edit": false,
+    "red_promotion": false
+  },
+  "inputs": {
+    "hard_select": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_hard_select.jpg",
+    "db64_visible": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_current_best_visible_candidate_rejected.png",
+    "transition_map": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/fetch/02a00399_a000_bmw/02a00399_a000_bmw_before_after_transition_map.png",
+    "veto_proxy": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/fetch/02a00399_a000_bmw/02a00399_a000_bmw_protected_veto_proxy_map.png",
+    "current_z_cause": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/fetch/02a00399_a000_bmw/02a00399_a000_bmw_current_z_cause_primary_map.png",
+    "fused_z_cause": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/fetch/02a00399_a000_bmw/02a00399_a000_bmw_fused_z_cause_primary_map.png"
+  },
+  "outputs": {
+    "best_candidate": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_best_visible_photometric_candidate.png",
+    "best_edit_mask": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_best_edit_mask.png",
+    "best_diff_x6": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_best_diff_x6.png",
+    "board": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_visible_photometric_fallback_board.jpg",
+    "top_variant_roi_sheet": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_top_variant_roi_sheet.jpg",
+    "metrics": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_visible_photometric_fallback_metrics.json",
+    "manifest": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_visible_photometric_fallback_manifest.json"
+  },
+  "best": {
+    "name": "hard_select_rgb_blur_r3_s0.38_d10",
+    "file": "hard_select_rgb_blur_r3_s0.38_d10.png",
+    "base": "hard_select",
+    "mode": "rgb_blur",
+    "radius": 3,
+    "strength": 0.38,
+    "max_delta": 10.0,
+    "score": 50.86415537444234,
+    "seam_energy_before": 12.61235523223877,
+    "seam_energy_after": 5.880976676940918,
+    "roi_energy_before": 12.269270896911621,
+    "roi_energy_after": 6.746364116668701,
+    "seam_reduction_pct": 53.3713048145964,
+    "roi_reduction_pct": 45.014140014082884,
+    "changed_fraction": 0.02142810821533203,
+    "p95_abs_delta": 0.0,
+    "max_abs_delta": 10.0
+  },
+  "decision": {
+    "phase5b_allowed": false,
+    "source_faithful_repair_allowed": false,
+    "accepted_as_visible_result_if_vision_ok": true,
+    "reason": "This is a bounded photometric fallback after DB64 Phase5a evidence failure. It does not fix target-surface ownership."
+  },
+  "mask_stats": {
+    "seed_fraction": 0.01290750503540039,
+    "veto_fraction": 0.005079746246337891,
+    "best_edit_fraction": 0.022739887237548828
+  },
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}

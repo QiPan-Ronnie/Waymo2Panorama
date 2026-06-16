@@ -1,0 +1,620 @@
+{
+  "a1g_assets": {
+    "A1_abstain_overlay": {
+      "bytes": 148201,
+      "exists": true,
+      "path": "deliverables/a1_streetview_pipeline/ABSTAIN_overlay.jpg",
+      "size": [
+        1700,
+        850
+      ]
+    },
+    "A1_view_none_L1_vs_result": {
+      "bytes": 185225,
+      "exists": true,
+      "path": "deliverables/a1_streetview_pipeline/A1_view_none_L1_vs_result.jpg",
+      "size": [
+        1300,
+        1360
+      ]
+    },
+    "A1_view_none_actual_pano": {
+      "bytes": 973019,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db40_v14_mask_alignment/A1_view_none_bmw_1024x2048.png",
+      "size": [
+        2048,
+        1024
+      ]
+    },
+    "A1_view_none_editmask": {
+      "bytes": 97385,
+      "exists": true,
+      "path": "deliverables/a1_streetview_pipeline/A1_view_none_editmask.jpg",
+      "size": [
+        1300,
+        650
+      ]
+    },
+    "A1_view_none_seam_crops": {
+      "bytes": 209206,
+      "exists": true,
+      "path": "deliverables/a1_streetview_pipeline/A1_view_none_seam_crops.jpg",
+      "size": [
+        920,
+        980
+      ]
+    },
+    "DB24_longline_source_diag_montage": {
+      "bytes": 254396,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db24_google_meta_line_diag/db24_longline_source_diag_montage.jpg",
+      "size": [
+        1800,
+        452
+      ]
+    },
+    "G_SR_compare": {
+      "bytes": 554607,
+      "exists": true,
+      "path": "deliverables/ghostkill/SR_bmw_compare.jpg",
+      "size": [
+        1900,
+        2940
+      ]
+    },
+    "G_bmw_pano": {
+      "bytes": 278458,
+      "exists": true,
+      "path": "deliverables/ghostkill/G_bmw_pano.jpg",
+      "size": [
+        2048,
+        1024
+      ]
+    }
+  },
+  "blocked_gate_ids": [
+    "source_id_map_and_protected_masks"
+  ],
+  "claim_boundaries": {
+    "a1_view_none": "Google/Meta-style diagnostic reference only",
+    "abstain": true,
+    "db25_db41": "context/negative controls only under DB59",
+    "db32_s40": "caveated source-sidestep/generated-sky handoff candidate only",
+    "diagnostic": true,
+    "g_bmw_pano": "classic BMW failure diagnostic reference only",
+    "generated": false,
+    "presentation_only": false,
+    "rejected_repair": true,
+    "source_faithful": false
+  },
+  "created_utc": "2026-06-05T07:50:51.364432+00:00",
+  "db": "DB-59",
+  "existing_evidence_assets": {
+    "DB25_current": {
+      "bytes": 70280,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/roi_current.jpg",
+      "size": [
+        800,
+        300
+      ]
+    },
+    "DB25_evidence_montage": {
+      "bytes": 274519,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/db25_longline_evidence_montage.jpg",
+      "size": [
+        1860,
+        1056
+      ]
+    },
+    "DB25_flow": {
+      "bytes": 73145,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/roi_flow_reliable.jpg",
+      "size": [
+        800,
+        300
+      ]
+    },
+    "DB25_lidar": {
+      "bytes": 93896,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db25_longline_evidence_fetch/roi_lidar_support.jpg",
+      "size": [
+        800,
+        300
+      ]
+    },
+    "DB41_board": {
+      "bytes": 481406,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db41_rightline_evidence_gate/db41_rightline_evidence_board.jpg",
+      "size": [
+        1700,
+        1960
+      ]
+    },
+    "DB45f_vggt_target_uv_board": {
+      "bytes": 384530,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45f_vggt_target_uv_sampling_gate_board.jpg",
+      "size": [
+        1900,
+        1900
+      ]
+    },
+    "DB45k_pose_reflection_board": {
+      "bytes": 317784,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45k_vggt_pose_reflection_audit_board.jpg",
+      "size": [
+        1800,
+        1200
+      ]
+    },
+    "DB49c_source_id_map_board": {
+      "bytes": 542605,
+      "exists": true,
+      "path": "deliverables/dit360_v2/db49_bosch_data_contract/db49c_source_id_map_feasibility_board.jpg",
+      "size": [
+        2200,
+        1700
+      ]
+    },
+    "raw_7cam_grid": {
+      "bytes": 201091,
+      "exists": true,
+      "path": "deliverables/raw_av2_anchor0/7cam_grid.jpg",
+      "size": [
+        1200,
+        906
+      ]
+    }
+  },
+  "existing_vggt_prior": {
+    "db45f": {
+      "accepted_db45_geometry_evidence": false,
+      "accepted_evidence_type": "vggt-target-uv-sampling-diagnostic-only",
+      "claim_boundary": "Target-ROI owner-UV VGGT sampling is model-diagnostic evidence, not metric ego truth or seam repair permission without DB45b target-surface support. Confidence-only RED promotion is killed.",
+      "model_input": "raw 7-camera BMW anchor 0 only",
+      "path": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45f_vggt_target_uv_sampling_gate_manifest.json"
+    },
+    "db45k": {
+      "accepted_db45_geometry_evidence": false,
+      "claim_boundary": "coordinate/reflection evidence remains diagnostic-only; no repair or RED promotion permission",
+      "official_center_mean_residual_m": 0.21799,
+      "official_center_reflection_preferred": true,
+      "path": "deliverables/dit360_v2/db45_geometry_evidence_audit/db45k_vggt_pose_reflection_audit_manifest.json",
+      "translation_column_diagnostic_only": true
+    }
+  },
+  "failed_gate_ids": [
+    "vggt_pose_coordinate_admissibility",
+    "target_surface_lidar_flow_support"
+  ],
+  "frozen_diagnostic_roi_set": [
+    {
+      "promotion_allowed_under_db59": false,
+      "roi_key": "db25_longline",
+      "roi_xyxy": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "role": "primary_a1g_diagnostic_target_no_repair",
+      "source": "DB25"
+    },
+    {
+      "promotion_allowed_under_db59": false,
+      "roi_key": "db41_right_roi",
+      "roi_xyxy": [
+        1440,
+        360,
+        2048,
+        720
+      ],
+      "role": "negative_control_context_only",
+      "source": "DB41"
+    },
+    {
+      "promotion_allowed_under_db59": false,
+      "roi_key": "db41_lower_right_roi",
+      "roi_xyxy": [
+        1580,
+        560,
+        2048,
+        790
+      ],
+      "role": "negative_control_context_only_zero_lidar",
+      "source": "DB41"
+    }
+  ],
+  "gates": [
+    {
+      "evidence": "DB59 brief exists with CPU preflight, ROI freeze, and adversarial audit requirements.",
+      "id": "db59_brief_open_and_audit_logged",
+      "state": "pass"
+    },
+    {
+      "evidence": "3 fixed ROIs: DB25 primary diagnostic plus DB41 right/lower-right negative controls.",
+      "id": "a1g_roi_list_frozen_before_model_action",
+      "state": "pass"
+    },
+    {
+      "evidence": "A1/G are diagnostic display references only. VGGT input remains raw 7-camera BMW anchor 0.",
+      "id": "a1g_not_source_truth",
+      "state": "pass"
+    },
+    {
+      "evidence": "raw_camera_file_count=7; raw_grid_exists=True; exact raw-source crops are not fabricated.",
+      "id": "raw_7_camera_source_inventory",
+      "state": "pass"
+    },
+    {
+      "evidence": "DB45f already ran official VGGT on raw 7-camera BMW anchor 0 and sampled DB25/DB41 owner-UV rows.",
+      "id": "existing_vggt_raw_anchor_evidence_available",
+      "state": "pass"
+    },
+    {
+      "evidence": "DB45k accepted_db45_geometry_evidence=false; official_center_reflection_preferred=True; official_center_mean_residual_m=0.21799; translation-column behavior remains diagnostic-only.",
+      "id": "vggt_pose_coordinate_admissibility",
+      "kill_for_repair_or_promotion": true,
+      "state": "fail"
+    },
+    {
+      "evidence": "DB25 lidar=0.09380416666666666; DB25 best_flow=0.6823972206137812; DB41 right/lower-right both fail lidar threshold and remain negative controls.",
+      "id": "target_surface_lidar_flow_support",
+      "kill_for_repair_or_promotion": true,
+      "state": "fail"
+    },
+    {
+      "evidence": "DB49c complete_source_id_map_found=False; DB49d_sidecar_instrumentation_only=False; DB49e_status=preflight_paused",
+      "id": "source_id_map_and_protected_masks",
+      "state": "blocked_not_fabricated"
+    },
+    {
+      "evidence": "env_pair_present=False; approved_non_repo_or_env_source=True; values_read=false",
+      "id": "secure_runtime_secret_source",
+      "state": "pass"
+    },
+    {
+      "evidence": "CPU-local preflight only; no /status, /exec, A100, VGGT inference, repair, generation, source replacement, source_id_map creation, or RED promotion.",
+      "id": "no_remote_model_repair_generation_or_source_replacement",
+      "state": "pass"
+    }
+  ],
+  "goal": "Test whether VGGT can supplement A1/G diagnostic geometry evidence without treating VGGT, A1, or G as renderer/source truth.",
+  "hard_checks_passed": true,
+  "outputs": {
+    "board": "deliverables/dit360_v2/db59_vggt_a1g_diagnostic/db59_vggt_a1g_diagnostic_preflight_board.jpg",
+    "manifest": "deliverables/dit360_v2/db59_vggt_a1g_diagnostic/db59_vggt_a1g_diagnostic_preflight_manifest.json",
+    "output_dir": "deliverables/dit360_v2/db59_vggt_a1g_diagnostic"
+  },
+  "raw_source_assets": {
+    "exact_raw_crop_policy": "do not fabricate raw crops without owner-UV projection; DB45f board is cited as prior owner-UV diagnostic evidence.",
+    "raw_7cam_grid": {
+      "bytes": 201091,
+      "exists": true,
+      "path": "deliverables/raw_av2_anchor0/7cam_grid.jpg",
+      "size": [
+        1200,
+        906
+      ]
+    },
+    "raw_camera_file_count": 7,
+    "raw_camera_file_names": [
+      "ring_front_center_315966070549927210_full.jpg",
+      "ring_front_left_315966070537425446_full.jpg",
+      "ring_front_right_315966070562451239_full.jpg",
+      "ring_rear_left_315966070557428279_full.jpg",
+      "ring_rear_right_315966070542441195_full.jpg",
+      "ring_side_left_315966070572412939_full.jpg",
+      "ring_side_right_315966070527482489_full.jpg"
+    ],
+    "raw_dir": "deliverables/raw_av2_anchor0"
+  },
+  "remote_decision": {
+    "may_run_remote_or_model_next": false,
+    "new_a100_inference_needed_for_current_frozen_rois": false,
+    "reason": "No A100 under DB59 now: existing official VGGT raw-anchor evidence already covers the frozen DB25/DB41 ROI set; DB45k coordinate/reflection remains non-admissible; target-surface/source-id/protected-mask gates are not passed; and secure runtime source must come from env/non-repo file rather than chat-pasted JSON."
+  },
+  "repair_decision": {
+    "follow_up_required_for_any_repair": "fresh decision brief with raw-camera-backed local warp/composite gates and same-ROI before/after vision",
+    "repair_allowed_under_db59": false,
+    "result_claim": "diagnostic/no-promotion/no-repair"
+  },
+  "roi_evidence": [
+    {
+      "db25_existing": {
+        "best_flow_pair": "0-1",
+        "best_flow_reliable_frac": 0.6823972206137812,
+        "lidar_support_frac": 0.09380416666666666,
+        "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence"
+      },
+      "db45f_target_uv": {
+        "claim": "diagnostic-only VGGT raw-owner UV sampling; not source truth or repair permission",
+        "existing_best_flow_pair": "0-1",
+        "existing_best_flow_reliable_frac": 0.6823972206137812,
+        "existing_lidar_support_frac": 0.09380416666666666,
+        "owner_preprocess_valid_frac_of_roi": 0.802392,
+        "owner_uv_valid_frac_of_roi": 0.840092,
+        "permission_promotion_allowed_by_vggt_alone": false,
+        "roi_key": "db25_longline",
+        "roi_xyxy": [
+          850,
+          420,
+          1650,
+          720
+        ],
+        "still_model_diagnostic_only": true,
+        "target_uv_mapping_available": true
+      },
+      "db45k_boundary": {
+        "coverage_valid_frac": 0.840092,
+        "known_lidar_support_frac": 0.094,
+        "nearest_lidar_3d_residual_med_m": 13.319297,
+        "nearest_lidar_match_frac": 0.251721,
+        "owner_vggt_valid_frac_of_roi": 0.802392,
+        "permission_promotion_allowed": false,
+        "raw_reprojection_med_px": 2309.346191,
+        "raw_reprojection_p90_px": 3700.071533,
+        "roi": "db25_longline"
+      },
+      "promotion_allowed_under_db59": false,
+      "roi_key": "db25_longline",
+      "roi_xyxy": [
+        850,
+        420,
+        1650,
+        720
+      ],
+      "role": "primary_a1g_diagnostic_target_no_repair",
+      "source": "DB25"
+    },
+    {
+      "db41_existing": {
+        "anchor": 0,
+        "best_flow_pair": "3-4",
+        "best_flow_reliable_frac": 0.8625666771258237,
+        "camera_label_counts": {
+          "3": 200,
+          "4": 83586,
+          "5": 82251
+        },
+        "flow_pair_stats": {
+          "3-4": {
+            "fb_reliable_frac": 0.8625666771258237,
+            "fb_reliable_px": 5498,
+            "mean_rgb_residual": 13.853414535522461,
+            "overlap_px": 6374
+          },
+          "5-4": {
+            "fb_reliable_frac": 0.6853627492575307,
+            "fb_reliable_px": 8077,
+            "mean_rgb_residual": 16.828792572021484,
+            "overlap_px": 11785
+          },
+          "6-5": {
+            "fb_reliable_frac": 0.050496688741721855,
+            "fb_reliable_px": 244,
+            "mean_rgb_residual": 11.92170238494873,
+            "overlap_px": 4832
+          }
+        },
+        "lidar_support_frac": 0.08416027046783625,
+        "near_ground_frac": 0.5194444444444445,
+        "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence",
+        "roi": [
+          1440,
+          360,
+          2048,
+          720
+        ],
+        "roi_valid_frac": 0.7585754751461988,
+        "top_camera_labels": [
+          4,
+          5,
+          3
+        ],
+        "uuid": "02a00399-3857-444e-8db3-a8f58489c394"
+      },
+      "db41_threshold_result": {
+        "passes_db41_gate": false,
+        "passes_flow_threshold": true,
+        "passes_lidar_threshold": false
+      },
+      "db45f_target_uv": {
+        "claim": "diagnostic-only VGGT raw-owner UV sampling; not source truth or repair permission",
+        "existing_best_flow_pair": "3-4",
+        "existing_best_flow_reliable_frac": 0.8625666771258237,
+        "existing_lidar_support_frac": 0.08416027046783625,
+        "owner_preprocess_valid_frac_of_roi": 0.758553,
+        "owner_uv_valid_frac_of_roi": 0.758575,
+        "permission_promotion_allowed_by_vggt_alone": false,
+        "roi_key": "db41_right_roi",
+        "roi_xyxy": [
+          1440,
+          360,
+          2048,
+          720
+        ],
+        "still_model_diagnostic_only": true,
+        "target_uv_mapping_available": true
+      },
+      "db45k_boundary": {
+        "coverage_valid_frac": 0.758575,
+        "known_lidar_support_frac": 0.084,
+        "nearest_lidar_3d_residual_med_m": 3.850346,
+        "nearest_lidar_match_frac": 0.217445,
+        "owner_vggt_valid_frac_of_roi": 0.758553,
+        "permission_promotion_allowed": false,
+        "raw_reprojection_med_px": 2401.202148,
+        "raw_reprojection_p90_px": 10756.242188,
+        "roi": "db41_right_roi"
+      },
+      "promotion_allowed_under_db59": false,
+      "roi_key": "db41_right_roi",
+      "roi_xyxy": [
+        1440,
+        360,
+        2048,
+        720
+      ],
+      "role": "negative_control_context_only",
+      "source": "DB41"
+    },
+    {
+      "db41_existing": {
+        "anchor": 0,
+        "best_flow_pair": "3-4",
+        "best_flow_reliable_frac": 0.7306889352818372,
+        "camera_label_counts": {
+          "4": 27017,
+          "5": 18332
+        },
+        "flow_pair_stats": {
+          "3-4": {
+            "fb_reliable_frac": 0.7306889352818372,
+            "fb_reliable_px": 1400,
+            "mean_rgb_residual": 14.622825622558594,
+            "overlap_px": 1916
+          },
+          "5-4": {
+            "fb_reliable_frac": 0.5047528517110266,
+            "fb_reliable_px": 2124,
+            "mean_rgb_residual": 22.172847747802734,
+            "overlap_px": 4208
+          }
+        },
+        "lidar_support_frac": 0.0,
+        "near_ground_frac": 1.0,
+        "recommendation": "abstain_unless_followup_finds_stronger_raw_evidence",
+        "roi": [
+          1580,
+          560,
+          2048,
+          790
+        ],
+        "roi_valid_frac": 0.42130248978075063,
+        "top_camera_labels": [
+          4,
+          5
+        ],
+        "uuid": "02a00399-3857-444e-8db3-a8f58489c394"
+      },
+      "db41_threshold_result": {
+        "passes_db41_gate": false,
+        "passes_flow_threshold": true,
+        "passes_lidar_threshold": false
+      },
+      "db45f_target_uv": {
+        "claim": "diagnostic-only VGGT raw-owner UV sampling; not source truth or repair permission",
+        "existing_best_flow_pair": "3-4",
+        "existing_best_flow_reliable_frac": 0.7306889352818372,
+        "existing_lidar_support_frac": 0.0,
+        "owner_preprocess_valid_frac_of_roi": 0.421256,
+        "owner_uv_valid_frac_of_roi": 0.421302,
+        "permission_promotion_allowed_by_vggt_alone": false,
+        "roi_key": "db41_lower_right_roi",
+        "roi_xyxy": [
+          1580,
+          560,
+          2048,
+          790
+        ],
+        "still_model_diagnostic_only": true,
+        "target_uv_mapping_available": true
+      },
+      "db45k_boundary": {
+        "coverage_valid_frac": 0.421302,
+        "known_lidar_support_frac": 0.0,
+        "nearest_lidar_3d_residual_med_m": 1.390691,
+        "nearest_lidar_match_frac": 0.153252,
+        "owner_vggt_valid_frac_of_roi": 0.421256,
+        "permission_promotion_allowed": false,
+        "raw_reprojection_med_px": 1547.436279,
+        "raw_reprojection_p90_px": 10519.979492,
+        "roi": "db41_lower_right_roi"
+      },
+      "promotion_allowed_under_db59": false,
+      "roi_key": "db41_lower_right_roi",
+      "roi_xyxy": [
+        1580,
+        560,
+        2048,
+        790
+      ],
+      "role": "negative_control_context_only_zero_lidar",
+      "source": "DB41"
+    }
+  ],
+  "runtime_source_availability": {
+    "accepted_sources": [
+      "COLAB_URL and COLAB_TOKEN process environment variables",
+      "W2P_RUNTIME_SECRET_FILE pointing to a non-repo runtime secret file",
+      "documented default non-repo runtime secret file locations, existence only"
+    ],
+    "approved_runtime_secret_source_present": true,
+    "env_runtime_pair_present": false,
+    "env_values_read": false,
+    "rejected_sources": [
+      "chat-pasted endpoint/token JSON",
+      "repo-local runtime/active_url.json",
+      "any URL/token value written into repo outputs"
+    ],
+    "runtime_secret_file_candidates": [
+      {
+        "approved_as_secret_source": true,
+        "exists": true,
+        "inside_repo": false,
+        "notes": "file existence only; content not read",
+        "path": "<non-repo path omitted>",
+        "source": "default_user_home",
+        "value_read": false
+      },
+      {
+        "approved_as_secret_source": false,
+        "exists": false,
+        "inside_repo": false,
+        "notes": "file existence only; content not read",
+        "path": "<non-repo path omitted>",
+        "source": "default_localappdata",
+        "value_read": false
+      },
+      {
+        "approved_as_secret_source": false,
+        "exists": false,
+        "inside_repo": true,
+        "notes": "repo-local runtime secrets are rejected",
+        "path": "runtime/active_url.json",
+        "source": "repo_runtime_rejected",
+        "value_read": false
+      }
+    ]
+  },
+  "scope": {
+    "a100_used": false,
+    "a1g_diagnostic_references_only": true,
+    "cpu_local_only": true,
+    "fixed_anchor": 0,
+    "fixed_uuid": "02a00399-3857-444e-8db3-a8f58489c394",
+    "generation_or_refiner": false,
+    "network_used": false,
+    "new_vggt_inference": false,
+    "permission_change": false,
+    "raw_7_camera_source_truth_only": true,
+    "raw_camera_warp_or_composite": false,
+    "red_promotion": false,
+    "remote_status_or_exec": false,
+    "renderer": false,
+    "repair_candidate_created": false,
+    "source_id_map_created": false,
+    "source_replacement": false,
+    "vggt_on_pano_pixels": false
+  },
+  "status": "cpu_local_preflight_no_remote_no_repair",
+  "token_scan_hits": []
+}

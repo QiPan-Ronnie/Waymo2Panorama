@@ -1,0 +1,12 @@
+{
+  "case": "0bae3b5e_a030_clean_far",
+  "raw_camera_sourced_rgb": true,
+  "selected_pixels_from_raw_rotation_or_ground_plane_slabs": true,
+  "geometry_pixels_raw_camera_backprojected_on_conservative_ground_plane": true,
+  "geometry_operator_selected_fraction": 0.0,
+  "abstain_pixels_kept_as_hard_select_for_visualization": true,
+  "generated_mask": 0,
+  "warp_vector_map": "absent",
+  "operator_map": "0=raw_source_selection, 1=source_derived_ground_plane_candidate, abstain marked separately",
+  "sensor_truth_claim": "source-derived geometry candidate pending vision; not Bosch/source-faithful repair unless sidecars and vision pass"
+}

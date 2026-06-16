@@ -1,0 +1,11 @@
+{
+  "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db14_inputs/G_bmw_pano.jpg",
+  "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db19_combo/G_bmw_pano_sky_t50_s0/G_bmw_pano_sky_t50_s0/G_bmw_pano_sky_t50_s0_corecompose.png",
+  "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db19_combo/G_bmw_pano_masks/opmask_sky.png",
+  "conf": 0.5,
+  "src_salient": 10,
+  "gen_salient": 9,
+  "netnew_count": 0,
+  "PASS": true,
+  "netnew": []
+}

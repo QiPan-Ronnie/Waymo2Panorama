@@ -1,0 +1,289 @@
+{
+  "case": "02a00399_a000_bmw",
+  "status": "phase1_dense_maps_complete",
+  "case_spec": "02a00399:0:bmw",
+  "anchor_idx": 0,
+  "anchor_ts_ns": 315966070549927210,
+  "lidar_sweep_ts_ns": 315966070559696000,
+  "lidar_delta_ms": 9.76879,
+  "vggt": {
+    "duration_s": 5.64,
+    "input_tensor_shape": [
+      7,
+      3,
+      518,
+      518
+    ],
+    "field_shapes": {
+      "depth": [
+        7,
+        518,
+        518
+      ],
+      "depth_conf": [
+        7,
+        518,
+        518
+      ],
+      "world_points_conf": [
+        7,
+        518,
+        518
+      ]
+    },
+    "owner_preprocess_valid_frac": 0.9673973350865201,
+    "dense_confidence_stats_seam": {
+      "valid": 1.0,
+      "n": 81527,
+      "mean": 0.249954,
+      "med": 0.15079,
+      "p10": 0.0,
+      "p90": 0.596976,
+      "p95": 0.728473,
+      "std": 0.26048
+    },
+    "owner_depth_raw_stats_seam": {
+      "valid": 0.985919,
+      "n": 80379,
+      "mean": 0.664735,
+      "med": 0.415912,
+      "p10": 0.185025,
+      "p90": 1.65795,
+      "p95": 2.259284,
+      "std": 0.663914
+    },
+    "metric_scale": 22.571292877197266,
+    "metric_scale_source": "seam_lidar_overlap",
+    "metric_fit_pairs": 34834
+  },
+  "current": {
+    "seam_source_valid_frac": 1.0,
+    "seam_support_frac": 0.42741668404332306,
+    "seam_visible_any_frac": 0.17532841880603972,
+    "seam_visible_ge2_frac": 0.09115998380904486,
+    "seam_single_visible_frac": 0.08416843499699486,
+    "seam_no_surface_frac": 0.5725833159566769,
+    "seam_no_camera_geom_valid_frac": 0.0197848565505906,
+    "seam_no_raw_zbuffer_support_frac": 0.19571430323696445,
+    "seam_z_mismatch_conflict_frac": 0.036589105449728314,
+    "seam_mixed_no_visible_frac": 0.0,
+    "seam_source_boundary_proxy_frac": 0.12240116771131036,
+    "supported_no_visible_no_zbuf_frac": 0.8238168132678717,
+    "supported_no_visible_z_conflict_frac": 0.12619072169036874,
+    "supported_no_visible_no_geom_frac": 0.04999246504175953
+  },
+  "dense": {
+    "seam_source_valid_frac": 1.0,
+    "seam_support_frac": 0.232021293559189,
+    "seam_visible_any_frac": 0.0020361352680707003,
+    "seam_visible_ge2_frac": 0.00012265875108859642,
+    "seam_single_visible_frac": 0.0019134765169821042,
+    "seam_no_surface_frac": 0.767978706440811,
+    "seam_no_camera_geom_valid_frac": 0.10843033596231923,
+    "seam_no_raw_zbuffer_support_frac": 0.11134961423822783,
+    "seam_z_mismatch_conflict_frac": 0.010205208090571221,
+    "seam_mixed_no_visible_frac": 0.0,
+    "seam_source_boundary_proxy_frac": 0.12240116771131036,
+    "supported_no_visible_no_zbuf_frac": 0.5945254516830347,
+    "supported_no_visible_z_conflict_frac": 0.0655690081715271,
+    "supported_no_visible_no_geom_frac": 0.33990554014543817
+  },
+  "dense_extra": {
+    "seam_dense_candidate_frac": 0.232021293559189,
+    "seam_dense_only_no_lidar_frac": 0.2190930611944509,
+    "seam_lidar_agreed_dense_frac": 0.012928232364738062,
+    "seam_lidar_disagree_frac": 0.31858157420241145,
+    "lidar_residual_m_seam": {
+      "valid": 1.0,
+      "n": 34834,
+      "mean": 9.406485,
+      "med": 5.697145,
+      "p10": 0.339888,
+      "p90": 25.638081,
+      "p95": 34.930153,
+      "std": 10.765431
+    },
+    "longest_visible_component": {
+      "frac": 0.06426735218508997,
+      "px": 25,
+      "area": 47,
+      "seam_length_px": 389
+    },
+    "longest_support_component": {
+      "frac": 0.15424164524421594,
+      "px": 60,
+      "area": 2607,
+      "seam_length_px": 389
+    }
+  },
+  "improvements": {
+    "delta_no_surface_frac": -0.19539539048413412,
+    "gain_visible_any_frac": -0.17329228353796902,
+    "gain_visible_ge2_frac": -0.09103732505795627,
+    "delta_no_raw_zbuffer_support_frac": 0.08436468899873663,
+    "delta_z_mismatch_conflict_frac": -0.026383897359157093,
+    "dense_longest_visible_component_frac": 0.06426735218508997,
+    "dense_longest_support_component_frac": 0.15424164524421594
+  },
+  "success_checks": {
+    "no_surface_drop_or_threshold": false,
+    "visible_any_gain": false,
+    "visible_ge2_gain_or_coherent_single": false,
+    "no_zbuffer_not_worse": true,
+    "no_zbuffer_drop_or_threshold": true,
+    "visible_component_continuity": false,
+    "support_component_continuity": false,
+    "z_conflict_not_up_gt_0p03": true
+  },
+  "current_counts": {
+    "z_cause_primary": {
+      "0": 12852,
+      "1": 94918,
+      "20": 340403,
+      "41": 6303,
+      "42": 103866,
+      "43": 15910,
+      "60": 701,
+      "255": 1522199
+    },
+    "z_repairability": {
+      "0": 2015625,
+      "1": 6731,
+      "2": 5937,
+      "3": 40985,
+      "5": 27874
+    }
+  },
+  "dense_counts": {
+    "z_cause_primary": {
+      "0": 58,
+      "1": 1475,
+      "20": 466708,
+      "41": 36272,
+      "42": 63443,
+      "43": 6997,
+      "255": 1522199
+    },
+    "z_repairability": {
+      "0": 2015625,
+      "1": 10,
+      "2": 131,
+      "3": 54497,
+      "5": 26889
+    }
+  },
+  "seam": {
+    "band_pixels": 81527,
+    "core_pixels": 8237,
+    "pair_diags": [
+      {
+        "pair": [
+          0,
+          1
+        ],
+        "band_pixels": 14361,
+        "core_pixels": 1259,
+        "overlap_pixels": 15031
+      },
+      {
+        "pair": [
+          1,
+          2
+        ],
+        "band_pixels": 11212,
+        "core_pixels": 1258,
+        "overlap_pixels": 11212
+      },
+      {
+        "pair": [
+          2,
+          3
+        ],
+        "band_pixels": 11637,
+        "core_pixels": 1219,
+        "overlap_pixels": 11637
+      },
+      {
+        "pair": [
+          0,
+          6
+        ],
+        "band_pixels": 13594,
+        "core_pixels": 1171,
+        "overlap_pixels": 13863
+      },
+      {
+        "pair": [
+          6,
+          5
+        ],
+        "band_pixels": 12596,
+        "core_pixels": 1265,
+        "overlap_pixels": 12596
+      },
+      {
+        "pair": [
+          5,
+          4
+        ],
+        "band_pixels": 11785,
+        "core_pixels": 1207,
+        "overlap_pixels": 11785
+      },
+      {
+        "pair": [
+          3,
+          4
+        ],
+        "band_pixels": 6342,
+        "core_pixels": 858,
+        "overlap_pixels": 12164
+      }
+    ]
+  },
+  "depth_summary": {
+    "n_input_pts": 98981,
+    "n_after_range_filter": 95669,
+    "n_hit_pixels": 71344,
+    "n_densified_pixels": 181448,
+    "n_far_fill_pixels": 1844360,
+    "hit_pct": 3.402,
+    "densified_pct": 8.652,
+    "far_fill_pct": 87.946,
+    "erp_hw": [
+      1024,
+      2048
+    ],
+    "min_range_m": 0.5,
+    "max_range_m": 80.0,
+    "densify_radius_px": 8,
+    "fill_far_m": 1000.0
+  },
+  "claim_boundary": [
+    "VGGT dense maps are target-surface evidence hypotheses only",
+    "current LiDAR zbuffer remains the raw visibility gate",
+    "no RGB repair, source replacement, or renderer output was created",
+    "confidence/support without raw-zbuffer visibility is diagnostic, not source-faithful permission"
+  ],
+  "outputs": {
+    "review": "02a00399_a000_bmw_phase1_vggt_dense_review_768.jpg",
+    "current_z_cause_primary_map": "02a00399_a000_bmw_current_z_cause_primary_map.png",
+    "dense_z_cause_primary_map": "02a00399_a000_bmw_dense_z_cause_primary_map.png",
+    "dense_z_repairability_map": "02a00399_a000_bmw_dense_z_repairability_map.png",
+    "dense_confidence_map": "02a00399_a000_bmw_dense_confidence_map.png",
+    "dense_support_map": "02a00399_a000_bmw_dense_support_map.png",
+    "lidar_agreement_map": "02a00399_a000_bmw_lidar_agreement_map.png",
+    "dense_depth_metric_cm_u16": "02a00399_a000_bmw_dense_depth_metric_cm_u16.png",
+    "raw_projection_valid_count_map": "02a00399_a000_bmw_raw_projection_valid_count_map.png",
+    "zbuffer_hit_count_map": "02a00399_a000_bmw_zbuffer_hit_count_map.png",
+    "zbuffer_visible_count_map": "02a00399_a000_bmw_zbuffer_visible_count_map.png",
+    "before_after_transition_map": "02a00399_a000_bmw_before_after_transition_map.png",
+    "source_boundary_risk_proxy_map": "02a00399_a000_bmw_source_boundary_risk_proxy_map.png",
+    "dense_z_cause_viz": "02a00399_a000_bmw_dense_z_cause_viz.png",
+    "current_z_cause_viz": "02a00399_a000_bmw_current_z_cause_viz.png",
+    "transition_viz": "02a00399_a000_bmw_before_after_transition_viz.png",
+    "support_overlay": "02a00399_a000_bmw_phase1_support_overlay.png",
+    "lidar_agreement_viz": "02a00399_a000_bmw_lidar_agreement_viz.png"
+  },
+  "runtime_s": 12.55
+}

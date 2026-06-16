@@ -1,0 +1,40 @@
+{
+  "case": "02a00399_a000_bmw",
+  "method": "DB73 Phase1b full-ERP source-derived geometry candidate stack",
+  "verdict_date": "2026-06-05",
+  "claim_classification": "diagnostic/source-derived candidate; rejected as seam repair",
+  "source_faithful_repair_claim_allowed": false,
+  "best_variant_id": "geometry_probe_t8",
+  "key_metrics": {
+    "roi_mean_seam_energy_before": 10.531932830810547,
+    "roi_mean_seam_energy_after": 10.093998551368713,
+    "roi_mean_gain_fraction": 0.041581567835362813,
+    "global_changed_fraction": 0.001911163330078125,
+    "global_abstain_fraction": 0.00026607513427734375,
+    "global_seam_energy_before": 10.48851490020752,
+    "global_seam_energy_after": 9.43592357635498,
+    "left_road_patch_energy_before": 14.56632137298584,
+    "left_road_patch_energy_after": 14.69545841217041,
+    "lower_center_road_patch_energy_before": 9.258546829223633,
+    "lower_center_road_patch_energy_after": 9.183759689331055,
+    "center_lane_marking_energy_before": 11.97686767578125,
+    "center_lane_marking_energy_after": 9.909276008605957,
+    "right_curb_wall_base_energy_before": 6.325995445251465,
+    "right_curb_wall_base_energy_after": 6.587500095367432
+  },
+  "geometry_sidecar_verdict": {
+    "geometry_candidate_eligible_fraction": 0.0016741752624511719,
+    "geometry_operator_selected_fraction": 0.0,
+    "ground_plane_candidate_status": "ground_plane_candidates_complete",
+    "ground_plane_residual_m": 0.03516287005398957,
+    "reason_geometry_not_accepted": "The best variant did not select any ground-plane geometry labels; improvements came from finer source-label routing, not from source-derived geometry backprojection."
+  },
+  "vision_summary": [
+    "The full ERP still shows visible camera-block seams and the user-marked road/curb/wall-base geometry is not aligned.",
+    "The left road patch is worse by both vision and seam energy.",
+    "Lower-center and center metrics improve modestly, but sidecars show no geometry operator was selected.",
+    "Right curb/wall-base remains visibly discontinuous and its seam energy worsens.",
+    "This is the current best DB73 general-route diagnostic candidate, not a repair."
+  ],
+  "next_route": "The next general algorithm should add real additional raw-source candidates, most likely a temporal/multiframe source-candidate stack with dynamic/protected vetoes, rather than more plane-label or seam-weight tuning."
+}

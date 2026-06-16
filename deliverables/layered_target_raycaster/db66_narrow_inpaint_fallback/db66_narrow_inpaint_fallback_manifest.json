@@ -1,0 +1,62 @@
+{
+  "created_utc": "2026-06-05T21:34:27.295568+00:00",
+  "status": "db66_narrow_inpaint_fallback_complete",
+  "claim_classification": "presentation-only local interpolation candidate; rejected as source-faithful repair",
+  "scope": {
+    "cpu_local_only": true,
+    "existing_db65_mask_and_db64_db65_images_only": true,
+    "remote_status_exec": false,
+    "a100": false,
+    "vggt_hf_model": false,
+    "dit_flux_3dgs_prompt_generation": false,
+    "source_replacement": false,
+    "geometry_warp": false,
+    "red_promotion": false
+  },
+  "inputs": {
+    "db64_visible": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_current_best_visible_candidate_rejected.png",
+    "db65_best": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_best_visible_photometric_candidate.png",
+    "db65_mask": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_best_edit_mask.png"
+  },
+  "outputs": {
+    "best_candidate": "deliverables/layered_target_raycaster/db66_narrow_inpaint_fallback/db66_best_visible_inpaint_candidate.png",
+    "best_mask": "deliverables/layered_target_raycaster/db66_narrow_inpaint_fallback/db66_best_inpaint_mask.png",
+    "best_diff_x6": "deliverables/layered_target_raycaster/db66_narrow_inpaint_fallback/db66_best_diff_x6.png",
+    "board": "deliverables/layered_target_raycaster/db66_narrow_inpaint_fallback/db66_narrow_inpaint_fallback_board.jpg",
+    "top_variant_roi_sheet": "deliverables/layered_target_raycaster/db66_narrow_inpaint_fallback/db66_top_variant_roi_sheet.jpg",
+    "metrics": "deliverables/layered_target_raycaster/db66_narrow_inpaint_fallback/db66_narrow_inpaint_fallback_metrics.json",
+    "manifest": "deliverables/layered_target_raycaster/db66_narrow_inpaint_fallback/db66_narrow_inpaint_fallback_manifest.json"
+  },
+  "best": {
+    "name": "db65_best_soft_dilate_ns_r5p0",
+    "file": "db65_best_soft_dilate_ns_r5p0.png",
+    "base": "db65_best",
+    "mask_name": "soft_dilate",
+    "method": "ns",
+    "radius": 5.0,
+    "score": 38.373959399963795,
+    "seam_energy_before": 6.381485939025879,
+    "seam_energy_after": 2.1663973331451416,
+    "roi_energy_before": 6.790896415710449,
+    "roi_energy_after": 1.6996128559112549,
+    "seam_reduction_pct": 66.05183567205606,
+    "roi_reduction_pct": 74.97218700053688,
+    "changed_fraction": 0.02555227279663086,
+    "p95_abs_delta": 0.0,
+    "max_abs_delta": 245.3333282470703
+  },
+  "decision": {
+    "accepted_if_vision_ok": false,
+    "source_faithful_repair_allowed": false,
+    "reason": "Classic inpaint interpolates local image content inside unsupported seam columns, so it can only be presentation-only even if it looks better."
+  },
+  "mask_stats": {
+    "db65_mask": 0.02254009246826172,
+    "core_erode": 0.01716136932373047,
+    "soft_dilate": 0.026784896850585938
+  },
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}

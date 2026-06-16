@@ -1,0 +1,49 @@
+{
+  "db": "DB-75",
+  "verdict": "accepted_as_current_best_viewable_presentation_candidate",
+  "classification": "presentation_only_source_mixed_not_repair",
+  "source_faithful_repair_claim_allowed": false,
+  "bosch_training_ready": false,
+  "generated_mask": 0,
+  "selected_variant": "soft_r64_a080_g1",
+  "key_outputs": {
+    "candidate": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_source_mixed_candidate.png",
+    "full_board": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_full_review_board.jpg",
+    "roi_sheet": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_same_roi_comparison_sheet.jpg",
+    "manifest": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_manifest.json",
+    "summary": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/DB75_batch_summary.json",
+    "alpha_map": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_alpha_map.png",
+    "source_mix_mask": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_source_mix_mask.png",
+    "diff_x6": "deliverables/layered_target_raycaster/db75_full_erp_source_mixed_fallback/fetch/02a00399_a000_bmw_diff_x6.png"
+  },
+  "evidence": {
+    "run_ok": true,
+    "complete_outputs": true,
+    "strict_secret_scan_hits": 0,
+    "clean_control_degraded": false,
+    "roi_mean_seam_energy_before": 95.935866355896,
+    "roi_mean_seam_energy_after": 56.20374393463135,
+    "roi_gain_vs_base": 0.4141529537437987,
+    "global_seam_energy_before": 83.81035614013672,
+    "global_seam_energy_after": 56.674198150634766,
+    "global_changed_fraction": 0.0343632698059082,
+    "source_mix_fraction": 0.1170644760131836,
+    "p95_abs_delta": 6.0,
+    "max_abs_delta": 81
+  },
+  "vision_observations": [
+    "Full ERP is visibly smoother than hard_select/DB74 around the large camera-block boundaries, especially the road band and right-side wall/vehicle region.",
+    "Same-ROI sheet shows hard block seams are softened across all four marked ROIs; the result is more viewable than DB74 and the conservative DB75 variants r16/r32/r48.",
+    "The method does not geometrically align target surfaces. It source-mixes in the seam band and slightly softens lane/curb/road/wall-base details.",
+    "No inpaint/generation/model output, black hole, or DB66-style blob is visible, but mixed pixels mean it is not single-source truth."
+  ],
+  "accepted_claim": "current best viewable seam result version; presentation-only/source-mixed; not source-faithful repair",
+  "rejected_claims": [
+    "source-faithful repair",
+    "single-source raw-camera truth",
+    "Bosch training-ready panorama",
+    "geometric target-surface alignment",
+    "RED/no-evidence promotion"
+  ],
+  "next_route_audit": "DB75 gives a viewable fallback but not a general source-faithful solution. The next technical route, if continuing, should be a separately briefed source-backed local alignment/operator-eligibility route with per-pixel warp vectors and residuals, or a segment-level abstain/eligibility map; do not tune DB75 blending as if it solves geometry."
+}

@@ -1,0 +1,1 @@
+{'name': 'rg_line_narrow', 'core_fraction': 0.01183319091796875, 'core_pixels': 24816, 'content_threshold': 20, 'polygons': [[(1780, 564), (2047, 548), (2047, 638), (1780, 668)]]}

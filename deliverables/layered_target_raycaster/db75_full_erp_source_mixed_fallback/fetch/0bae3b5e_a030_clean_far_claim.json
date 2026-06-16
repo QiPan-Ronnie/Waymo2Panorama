@@ -1,0 +1,15 @@
+{
+  "case": "0bae3b5e_a030_clean_far",
+  "classification": "presentation_only_source_mixed_candidate_pending_vision",
+  "source_faithful_repair": false,
+  "bosch_training_ready": false,
+  "raw_camera_sourced_inputs": true,
+  "single_source_truth": false,
+  "source_mixed_pixels": true,
+  "source_mix_fraction": 0.1143503189086914,
+  "generated_mask": 0,
+  "model_inference": false,
+  "inpaint_generation": false,
+  "flow_apap_homography": false,
+  "operator_map": "source_mixed_blend in alpha/mix mask; hard_select elsewhere"
+}

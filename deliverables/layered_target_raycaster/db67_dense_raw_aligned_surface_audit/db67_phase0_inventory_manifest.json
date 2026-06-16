@@ -1,0 +1,295 @@
+{
+  "backend_inventory": {
+    "pi3_or_pi3x": {
+      "checkpoint_files_found_locally": 0,
+      "file_counts": {
+        "counts": {
+          "*.json": 9,
+          "*.pt": 0,
+          "*.pth": 0,
+          "*.py": 49,
+          "*.safetensors": 0
+        },
+        "exists": true,
+        "path": "01-pi3"
+      },
+      "rank": 2,
+      "repo": {
+        "bytes": 11121,
+        "exists": true,
+        "path": "01-pi3/code/official/Pi3/README.md"
+      },
+      "sample_outputs": {
+        "counts": {
+          "*.jpg": 0,
+          "*.json": 1,
+          "*.md": 1,
+          "*.ply": 0,
+          "*.png": 0
+        },
+        "exists": true,
+        "path": "01-pi3/outputs"
+      },
+      "selected_for_phase1": false,
+      "why_deferred": [
+        "local Pi3 repo exists, but there is no Waymo2Panorama raw-camera/ERP/zbuffer integration artifact yet",
+        "no local model checkpoint file was found in the Pi3 checkpoints folder during Phase0",
+        "Pi3X is promising for smoother points and conditioning, but would be a separate integration route and should not be mixed with the first DB67 A100 run"
+      ],
+      "workspace": {
+        "bytes": 1994,
+        "exists": true,
+        "path": "01-pi3/README.md"
+      }
+    },
+    "vggt": {
+      "known_risks": [
+        "DB61/DB62 direct A1/G operators failed visually, so VGGT confidence cannot be treated as repair permission",
+        "VGGT coordinate/reflection issues from DB45 mean dense points require LiDAR and raw-zbuffer agreement before promotion",
+        "Phase1 needs A100 and approved non-repo runtime/auth sources"
+      ],
+      "local_prior_outputs_exist": true,
+      "rank": 1,
+      "selected_for_phase1": true,
+      "why": [
+        "existing DB61/DB62 wrappers already run official VGGT on the raw seven-camera BMW anchor",
+        "available evidence fields include dense depth, dense world points, depth confidence, and world-point confidence",
+        "DB67 can reuse the DB64 raw projection and z-buffer checks as post-model evidence gates"
+      ]
+    }
+  },
+  "baselines": {
+    "db61_vggt_prior": {
+      "board": {
+        "bytes": 399954,
+        "exists": true,
+        "path": "deliverables/dit360_v2/db61_fresh_vggt_a1g_quicklook/db61_fresh_vggt_a1g_quicklook_board.jpg",
+        "size": [
+          2400,
+          1700
+        ]
+      },
+      "coverage_valid_frac": 0.840092,
+      "manifest": {
+        "bytes": 29480,
+        "exists": true,
+        "path": "deliverables/dit360_v2/db61_fresh_vggt_a1g_quicklook/db61_fresh_vggt_a1g_quicklook_manifest.json"
+      },
+      "owner_preprocess_valid_frac_of_roi": 0.802392,
+      "prediction_fields_evidence": [
+        "depth",
+        "depth_conf",
+        "world_points",
+        "world_points_conf"
+      ]
+    },
+    "db62_vggt_raw_source_probe": {
+      "board": {
+        "bytes": 437149,
+        "exists": true,
+        "path": "deliverables/dit360_v2/db62_vggt_raw_source_composite/db62_vggt_raw_source_composite_board.jpg",
+        "size": [
+          2400,
+          1750
+        ]
+      },
+      "manifest": {
+        "bytes": 28341,
+        "exists": true,
+        "path": "deliverables/dit360_v2/db62_vggt_raw_source_composite/db62_vggt_raw_source_composite_manifest.json"
+      },
+      "operator_stats": {
+        "alpha_changed_frac_gt_0_05": 0.057775,
+        "alpha_max": 0.85,
+        "alpha_mean": 0.01785,
+        "best_differs_and_alpha_gt_0_05_frac": 0.041625,
+        "best_differs_from_owner_frac": 0.056767,
+        "mean_margin": 4725.007812,
+        "overlap_frac": 0.153225,
+        "p95_margin": 0.030972
+      }
+    },
+    "db64_phase4b": {
+      "bmw": {
+        "no_raw_zbuffer": 0.19571430323696445,
+        "no_surface": 0.5725833159566769,
+        "source_boundary_proxy": 0.12240116771131036,
+        "visible_any": 0.17532841880603972,
+        "visible_ge2": 0.09115998380904486,
+        "z_conflict": 0.036589105449728314
+      },
+      "board": {
+        "bytes": 179241,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/db64_phase4b_z_visibility_board.jpg",
+        "size": [
+          1900,
+          1400
+        ]
+      },
+      "clean_control": {
+        "no_raw_zbuffer": 0.22599990209037057,
+        "no_surface": 0.5062050227639888,
+        "visible_any": 0.21104420619767955,
+        "visible_ge2": 0.12421060361286533,
+        "z_conflict": 0.0379155039898174
+      },
+      "summary": {
+        "bytes": 2505,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/db64_phase4b_batch_summary.json"
+      }
+    },
+    "db64_phase5a": {
+      "aggregate_success": false,
+      "bmw_fused": {
+        "longest_supported_component_frac": 0.14652956298200515,
+        "longest_supported_component_px": 57,
+        "seam_length_px": 389,
+        "seam_lidar_support_frac": 0.48257632440786485,
+        "seam_mixed_no_visible_frac": 0.0,
+        "seam_no_camera_geom_valid_frac": 0.0444024678940719,
+        "seam_no_raw_zbuffer_support_frac": 0.23740601273197837,
+        "seam_no_surface_frac": 0.5174236755921351,
+        "seam_single_visible_frac": 0.07592576692384118,
+        "seam_source_boundary_proxy_frac": 0.12240116771131036,
+        "seam_visible_any_frac": 0.1602904559225778,
+        "seam_visible_ge2_frac": 0.08436468899873661,
+        "seam_z_mismatch_conflict_frac": 0.04047738785923682,
+        "z_residual_min_m_seam": {
+          "mean": 2.6769254207611084,
+          "n": 16368,
+          "p50": 0.02115345001220703,
+          "p90": 12.440671920776367,
+          "p95": 17.90330696105957
+        }
+      },
+      "bmw_improvements": {
+        "delta_no_raw_zbuffer_support_frac": -0.04169170949501391,
+        "delta_no_surface_frac": 0.055159640364541795,
+        "delta_z_mismatch_conflict_frac": 0.0038882824095085033,
+        "fused_longest_supported_component_frac": 0.14652956298200515,
+        "gain_visible_any_frac": -0.01503796288346193,
+        "gain_visible_ge2_frac": -0.0067952948103082444
+      },
+      "board": {
+        "bytes": 190076,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_continuous_surface_board.jpg",
+        "size": [
+          1900,
+          1500
+        ]
+      },
+      "phase5b_allowed": false,
+      "summary": {
+        "bytes": 6407,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_batch_summary.json"
+      }
+    },
+    "db65_current_visible_reference": {
+      "board": {
+        "bytes": 447228,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_visible_photometric_fallback_board.jpg",
+        "size": [
+          2100,
+          1780
+        ]
+      },
+      "claim": "current best visible presentation-diagnostic reference only",
+      "manifest": {
+        "bytes": 3678,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db65_visible_photometric_fallback/db65_visible_photometric_fallback_manifest.json"
+      }
+    }
+  },
+  "created_utc": "2026-06-05T22:13:06.272993+00:00",
+  "db": "DB-67",
+  "fixed_cases": {
+    "bmw": "02a00399:0:bmw",
+    "clean_control": "0bae3b5e:30:clean_far"
+  },
+  "outputs": {
+    "board": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/db67_phase0_backend_selection_board.jpg",
+    "manifest": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/db67_phase0_inventory_manifest.json",
+    "output_dir": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit"
+  },
+  "phase": "phase0_inventory_and_backend_selection",
+  "phase0_verdict": {
+    "a100_needed_now_for_next_step": true,
+    "claim_classification": "paused_before_model_evidence; diagnostic inventory only",
+    "selected_next_step": "request A100 for VGGT dense raw-aligned evidence audit Phase1",
+    "why_not_continue_cpu_only": [
+      "DB64 Phase5a already exhausted the LiDAR-only/local-surface CPU route",
+      "DB67's question requires dense geometry inference not present in current local artifacts",
+      "Phase0 can choose and constrain the route, but cannot answer whether dense surfaces improve raw-visible target support"
+    ]
+  },
+  "phase1_contract": {
+    "a100_needed_after_phase0": true,
+    "evidence_thresholds": {
+      "bmw_no_raw_zbuffer_baseline": 0.19571430323696445,
+      "bmw_no_raw_zbuffer_target": "do not worsen; ideally drop >= 0.07",
+      "bmw_no_surface_baseline": 0.5725833159566769,
+      "bmw_no_surface_target": "drop >= 0.15 or reach <= 0.40",
+      "bmw_visible_any_target": "gain >= 0.10",
+      "bmw_visible_ge2_target": "gain >= 0.05 or justify coherent single-source support",
+      "clean_control_rule": "no material degradation",
+      "longest_component_target": ">= 0.25 of seam-band length",
+      "protected_overlap_target": "<= 0.02 strict, <= 0.05 warning"
+    },
+    "fixed_cases": {
+      "bmw": "02a00399:0:bmw",
+      "clean_control": "0bae3b5e:30:clean_far"
+    },
+    "forbidden_in_phase1": [
+      "RGB renderer",
+      "source replacement",
+      "prompt generation",
+      "DiT or FLUX",
+      "3DGS",
+      "DB32 edit",
+      "dataset scan beyond fixed cases",
+      "RED promotion"
+    ],
+    "phase1_runtime_policy": [
+      "use only process env or a non-repo runtime secret source",
+      "do not echo or write endpoint, bearer, HF, or runtime JSON values",
+      "run at most one external status plus one external exec unless a fresh brief extension is written"
+    ],
+    "required_outputs": [
+      "dense_depth_or_point_maps",
+      "dense_confidence_maps",
+      "raw_camera_alignment_residual_maps",
+      "lidar_agreement_maps",
+      "raw_projection_valid_count_maps",
+      "zbuffer_visible_count_maps",
+      "before_after_z_cause_maps",
+      "continuous_support_component_stats",
+      "protected_source_boundary_overlap_maps",
+      "per_case_breakdowns",
+      "batch_summary",
+      "review_board"
+    ],
+    "selected_backend": "VGGT"
+  },
+  "secret_scan": {
+    "hits": [],
+    "strict_secret_like_hit_count": 0
+  },
+  "status": "phase0_complete_a100_needed_for_phase1",
+  "what_ran": {
+    "a100_used": false,
+    "cpu_local_only": true,
+    "dense_model_inference": false,
+    "generation": false,
+    "permission_change": false,
+    "remote_status_or_exec": false,
+    "rgb_repair": false,
+    "runtime_secret_accessed": false,
+    "source_replacement": false
+  }
+}

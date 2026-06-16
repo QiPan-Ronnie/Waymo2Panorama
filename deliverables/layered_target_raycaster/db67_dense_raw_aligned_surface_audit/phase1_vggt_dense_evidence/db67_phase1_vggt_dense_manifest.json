@@ -1,0 +1,631 @@
+{
+  "claim_boundary": [
+    "VGGT dense geometry is evidence only.",
+    "Dense confidence is not source truth or repair permission.",
+    "No RGB repair/source replacement/generation occurred.",
+    "A later renderer would require a fresh decision brief and only if evidence thresholds pass."
+  ],
+  "created_utc": "2026-06-05T22:34:28.790839+00:00",
+  "db": "DB-67",
+  "fetched": {
+    "02a00399_a000_bmw": {
+      "before_after_transition_map": {
+        "bytes": 29775,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_before_after_transition_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "breakdown": {
+        "bytes": 8301,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_phase1_vggt_dense_breakdown.json",
+        "remote_path": "<remote path omitted>"
+      },
+      "current_z_cause_primary_map": {
+        "bytes": 35106,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_current_z_cause_primary_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "current_z_cause_viz": {
+        "bytes": 49303,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_current_z_cause_viz.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_confidence_map": {
+        "bytes": 156655,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_dense_confidence_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_depth_metric_cm_u16": {
+        "bytes": 321617,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_dense_depth_metric_cm_u16.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_support_map": {
+        "bytes": 9987,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_dense_support_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_z_cause_primary_map": {
+        "bytes": 16054,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_dense_z_cause_primary_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_z_cause_viz": {
+        "bytes": 23234,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_dense_z_cause_viz.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_z_repairability_map": {
+        "bytes": 5486,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_dense_z_repairability_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "lidar_agreement_map": {
+        "bytes": 21514,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_agreement_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "lidar_agreement_viz": {
+        "bytes": 31246,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_agreement_viz.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "raw_projection_valid_count_map": {
+        "bytes": 8133,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_raw_projection_valid_count_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "review": {
+        "bytes": 282013,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_phase1_vggt_dense_review_768.jpg",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          768,
+          3798
+        ]
+      },
+      "source_boundary_risk_proxy_map": {
+        "bytes": 3391,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_source_boundary_risk_proxy_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "support_overlay": {
+        "bytes": 912628,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_phase1_support_overlay.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "transition_viz": {
+        "bytes": 40639,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_before_after_transition_viz.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "zbuffer_hit_count_map": {
+        "bytes": 5593,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_zbuffer_hit_count_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "zbuffer_visible_count_map": {
+        "bytes": 3198,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/02a00399_a000_bmw/02a00399_a000_bmw_zbuffer_visible_count_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      }
+    },
+    "0bae3b5e_a030_clean_far": {
+      "before_after_transition_map": {
+        "bytes": 32149,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_before_after_transition_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "breakdown": {
+        "bytes": 8449,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_phase1_vggt_dense_breakdown.json",
+        "remote_path": "<remote path omitted>"
+      },
+      "current_z_cause_primary_map": {
+        "bytes": 43058,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_current_z_cause_primary_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "current_z_cause_viz": {
+        "bytes": 60852,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_current_z_cause_viz.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_confidence_map": {
+        "bytes": 165162,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_dense_confidence_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_depth_metric_cm_u16": {
+        "bytes": 345862,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_dense_depth_metric_cm_u16.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_support_map": {
+        "bytes": 9584,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_dense_support_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_z_cause_primary_map": {
+        "bytes": 18094,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_dense_z_cause_primary_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_z_cause_viz": {
+        "bytes": 25837,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_dense_z_cause_viz.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "dense_z_repairability_map": {
+        "bytes": 5715,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_dense_z_repairability_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "lidar_agreement_map": {
+        "bytes": 21927,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_agreement_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "lidar_agreement_viz": {
+        "bytes": 32068,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_lidar_agreement_viz.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "raw_projection_valid_count_map": {
+        "bytes": 9703,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_raw_projection_valid_count_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "review": {
+        "bytes": 294195,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_phase1_vggt_dense_review_768.jpg",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          768,
+          3798
+        ]
+      },
+      "source_boundary_risk_proxy_map": {
+        "bytes": 3414,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_source_boundary_risk_proxy_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "support_overlay": {
+        "bytes": 1027134,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_phase1_support_overlay.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "transition_viz": {
+        "bytes": 43578,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_before_after_transition_viz.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "zbuffer_hit_count_map": {
+        "bytes": 7715,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_zbuffer_hit_count_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      },
+      "zbuffer_visible_count_map": {
+        "bytes": 5606,
+        "exists": true,
+        "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_zbuffer_visible_count_map.png",
+        "remote_path": "<remote path omitted>",
+        "size": [
+          2048,
+          1024
+        ]
+      }
+    },
+    "remote_result": {
+      "bytes": 12060,
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/db67_phase1_vggt_dense_remote_result.json",
+      "remote_path": "<remote path omitted>"
+    },
+    "summary": {
+      "bytes": 7383,
+      "exists": true,
+      "path": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/db67_phase1_vggt_dense_batch_summary.json",
+      "remote_path": "<remote path omitted>"
+    }
+  },
+  "hard_checks": {
+    "accepted_as_repair": false,
+    "remote_completed": false,
+    "renderer_allowed": false,
+    "required_maps_fetched": true,
+    "source_faithful_permission_changed": false
+  },
+  "job": {
+    "duration_s": 60.518271684646606,
+    "exit_code": 0,
+    "job_id": "bd5f13dc90c94dc292c9bec4a42b9574",
+    "state": "done"
+  },
+  "outputs": {
+    "board": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/db67_phase1_vggt_dense_board.jpg",
+    "manifest": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/db67_phase1_vggt_dense_manifest.json",
+    "output_dir": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence",
+    "remote_result": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/db67_phase1_vggt_dense_remote_result.json",
+    "summary": "deliverables/layered_target_raycaster/db67_dense_raw_aligned_surface_audit/phase1_vggt_dense_evidence/db67_phase1_vggt_dense_batch_summary.json"
+  },
+  "phase": "phase1_vggt_dense_evidence",
+  "remote_status": "missing_remote_json_marker",
+  "runtime": {
+    "hf_secret_source_kind": "non_repo_file",
+    "secret_source_kind": "approved_env_or_non_repo_file",
+    "status": {
+      "active_jobs": 0,
+      "gpu_name": "NVIDIA A100-SXM4-40GB",
+      "runtime_type": "colab-gpu",
+      "version": "0.1.0a1"
+    }
+  },
+  "scope": {
+    "a100_used": true,
+    "backend": "VGGT",
+    "db32_edited": false,
+    "fixed_cases_only": [
+      "02a00399:0:bmw",
+      "0bae3b5e:30:clean_far"
+    ],
+    "generation_used": false,
+    "red_promotion": false,
+    "remote_exec_count": 1,
+    "remote_status_used": true,
+    "rgb_repair_created": false,
+    "source_replacement_used": false
+  },
+  "secret_scan": {
+    "hits": [],
+    "strict_secret_like_hit_count": 0
+  },
+  "summary": {
+    "aggregate_success": false,
+    "by_case": {
+      "02a00399_a000_bmw": {
+        "current": {
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_no_camera_geom_valid_frac": 0.0197848565505906,
+          "seam_no_raw_zbuffer_support_frac": 0.19571430323696445,
+          "seam_no_surface_frac": 0.5725833159566769,
+          "seam_single_visible_frac": 0.08416843499699486,
+          "seam_source_boundary_proxy_frac": 0.12240116771131036,
+          "seam_source_valid_frac": 1.0,
+          "seam_support_frac": 0.42741668404332306,
+          "seam_visible_any_frac": 0.17532841880603972,
+          "seam_visible_ge2_frac": 0.09115998380904486,
+          "seam_z_mismatch_conflict_frac": 0.036589105449728314,
+          "supported_no_visible_no_geom_frac": 0.04999246504175953,
+          "supported_no_visible_no_zbuf_frac": 0.8238168132678717,
+          "supported_no_visible_z_conflict_frac": 0.12619072169036874
+        },
+        "dense": {
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_no_camera_geom_valid_frac": 0.10843033596231923,
+          "seam_no_raw_zbuffer_support_frac": 0.11134961423822783,
+          "seam_no_surface_frac": 0.767978706440811,
+          "seam_single_visible_frac": 0.0019134765169821042,
+          "seam_source_boundary_proxy_frac": 0.12240116771131036,
+          "seam_source_valid_frac": 1.0,
+          "seam_support_frac": 0.232021293559189,
+          "seam_visible_any_frac": 0.0020361352680707003,
+          "seam_visible_ge2_frac": 0.00012265875108859642,
+          "seam_z_mismatch_conflict_frac": 0.010205208090571221,
+          "supported_no_visible_no_geom_frac": 0.33990554014543817,
+          "supported_no_visible_no_zbuf_frac": 0.5945254516830347,
+          "supported_no_visible_z_conflict_frac": 0.0655690081715271
+        },
+        "dense_extra": {
+          "lidar_residual_m_seam": {
+            "mean": 9.406485,
+            "med": 5.697145,
+            "n": 34834,
+            "p10": 0.339888,
+            "p90": 25.638081,
+            "p95": 34.930153,
+            "std": 10.765431,
+            "valid": 1.0
+          },
+          "longest_support_component": {
+            "area": 2607,
+            "frac": 0.15424164524421594,
+            "px": 60,
+            "seam_length_px": 389
+          },
+          "longest_visible_component": {
+            "area": 47,
+            "frac": 0.06426735218508997,
+            "px": 25,
+            "seam_length_px": 389
+          },
+          "seam_dense_candidate_frac": 0.232021293559189,
+          "seam_dense_only_no_lidar_frac": 0.2190930611944509,
+          "seam_lidar_agreed_dense_frac": 0.012928232364738062,
+          "seam_lidar_disagree_frac": 0.31858157420241145
+        },
+        "improvements": {
+          "delta_no_raw_zbuffer_support_frac": 0.08436468899873663,
+          "delta_no_surface_frac": -0.19539539048413412,
+          "delta_z_mismatch_conflict_frac": -0.026383897359157093,
+          "dense_longest_support_component_frac": 0.15424164524421594,
+          "dense_longest_visible_component_frac": 0.06426735218508997,
+          "gain_visible_any_frac": -0.17329228353796902,
+          "gain_visible_ge2_frac": -0.09103732505795627
+        },
+        "success_checks": {
+          "no_surface_drop_or_threshold": false,
+          "no_zbuffer_drop_or_threshold": true,
+          "no_zbuffer_not_worse": true,
+          "support_component_continuity": false,
+          "visible_any_gain": false,
+          "visible_component_continuity": false,
+          "visible_ge2_gain_or_coherent_single": false,
+          "z_conflict_not_up_gt_0p03": true
+        }
+      },
+      "0bae3b5e_a030_clean_far": {
+        "current": {
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_no_camera_geom_valid_frac": 0.018835364958143634,
+          "seam_no_raw_zbuffer_support_frac": 0.22599990209037057,
+          "seam_no_surface_frac": 0.5062050227639888,
+          "seam_single_visible_frac": 0.08683360258481422,
+          "seam_source_boundary_proxy_frac": 0.12708669897684438,
+          "seam_source_valid_frac": 1.0,
+          "seam_support_frac": 0.4937949772360112,
+          "seam_visible_any_frac": 0.21104420619767955,
+          "seam_visible_ge2_frac": 0.12421060361286533,
+          "seam_z_mismatch_conflict_frac": 0.0379155039898174,
+          "supported_no_visible_no_geom_frac": 0.03031257587987846,
+          "supported_no_visible_no_zbuf_frac": 0.8197061274847584,
+          "supported_no_visible_z_conflict_frac": 0.14998129663536314
+        },
+        "dense": {
+          "seam_mixed_no_visible_frac": 0.0,
+          "seam_no_camera_geom_valid_frac": 0.19752043863513977,
+          "seam_no_raw_zbuffer_support_frac": 0.20882900083223185,
+          "seam_no_surface_frac": 0.5544377539531012,
+          "seam_single_visible_frac": 0.009436040534586576,
+          "seam_source_boundary_proxy_frac": 0.12708669897684438,
+          "seam_source_valid_frac": 1.0,
+          "seam_support_frac": 0.4455622460468987,
+          "seam_visible_any_frac": 0.016546727370636904,
+          "seam_visible_ge2_frac": 0.007110686836050326,
+          "seam_z_mismatch_conflict_frac": 0.022666079208890196,
+          "supported_no_visible_no_geom_frac": 0.4293024818337866,
+          "supported_no_visible_no_zbuf_frac": 0.5209918131238523,
+          "supported_no_visible_z_conflict_frac": 0.049705705042360986
+        },
+        "dense_extra": {
+          "lidar_residual_m_seam": {
+            "mean": 12.576282,
+            "med": 9.573597,
+            "n": 40347,
+            "p10": 0.500087,
+            "p90": 26.119448,
+            "p95": 36.617298,
+            "std": 14.290195,
+            "valid": 1.0
+          },
+          "longest_support_component": {
+            "area": 6270,
+            "frac": 0.16939890710382513,
+            "px": 62,
+            "seam_length_px": 366
+          },
+          "longest_visible_component": {
+            "area": 83,
+            "frac": 0.12568306010928962,
+            "px": 46,
+            "seam_length_px": 366
+          },
+          "seam_dense_candidate_frac": 0.4455622460468987,
+          "seam_dense_only_no_lidar_frac": 0.3892519704312919,
+          "seam_lidar_agreed_dense_frac": 0.056310275615606795,
+          "seam_lidar_disagree_frac": 0.37928966563861555
+        },
+        "improvements": {
+          "delta_no_raw_zbuffer_support_frac": 0.01717090125813872,
+          "delta_no_surface_frac": -0.04823273118911242,
+          "delta_z_mismatch_conflict_frac": -0.015249424780927202,
+          "dense_longest_support_component_frac": 0.16939890710382513,
+          "dense_longest_visible_component_frac": 0.12568306010928962,
+          "gain_visible_any_frac": -0.19449747882704266,
+          "gain_visible_ge2_frac": -0.117099916776815
+        },
+        "success_checks": {
+          "no_surface_drop_or_threshold": false,
+          "no_zbuffer_drop_or_threshold": false,
+          "no_zbuffer_not_worse": true,
+          "support_component_continuity": false,
+          "visible_any_gain": false,
+          "visible_component_continuity": false,
+          "visible_ge2_gain_or_coherent_single": false,
+          "z_conflict_not_up_gt_0p03": true
+        }
+      }
+    },
+    "clean_control_degraded": true,
+    "errors": [],
+    "mean_improvements": {
+      "delta_no_raw_zbuffer_support_frac": 0.050767795128437675,
+      "delta_no_surface_frac": -0.12181406083662327,
+      "delta_z_mismatch_conflict_frac": -0.020816661070042146,
+      "gain_visible_any_frac": -0.18389488118250585,
+      "gain_visible_ge2_frac": -0.10406862091738564
+    },
+    "n_cases": 2,
+    "phase2_renderer_allowed": false,
+    "route_verdict": "phase1_evidence_failed_or_diagnostic_only",
+    "status": "phase1_vggt_dense_maps_complete"
+  }
+}

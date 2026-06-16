@@ -1,0 +1,512 @@
+{
+  "case": "02a00399_a000_bmw",
+  "best_variant_id": "soft_r64_a080_g1",
+  "best_variant_params": {
+    "id": "soft_r64_a080_g1",
+    "radius": 64,
+    "alpha": 0.8,
+    "gamma": 1.0
+  },
+  "baseline_metrics": {
+    "global_seam_energy": 83.81035614013672,
+    "global_changed_fraction": 0.0,
+    "p95_abs_delta": 0.0,
+    "max_abs_delta": 0,
+    "marked_rois": [
+      {
+        "roi": "left_road_patch",
+        "seam_energy": 92.1676025390625,
+        "changed_fraction": 0.0,
+        "p95_abs_delta": 0.0
+      },
+      {
+        "roi": "lower_center_road_patch",
+        "seam_energy": 113.67552947998047,
+        "changed_fraction": 0.0,
+        "p95_abs_delta": 0.0
+      },
+      {
+        "roi": "center_lane_marking",
+        "seam_energy": 127.42171478271484,
+        "changed_fraction": 0.0,
+        "p95_abs_delta": 0.0
+      },
+      {
+        "roi": "right_curb_sidewalk_wall_base",
+        "seam_energy": 50.47861862182617,
+        "changed_fraction": 0.0,
+        "p95_abs_delta": 0.0
+      }
+    ],
+    "roi_mean_seam_energy": 95.935866355896
+  },
+  "best_metrics": {
+    "global_seam_energy": 56.674198150634766,
+    "global_changed_fraction": 0.0343632698059082,
+    "p95_abs_delta": 6.0,
+    "max_abs_delta": 81,
+    "marked_rois": [
+      {
+        "roi": "left_road_patch",
+        "seam_energy": 56.85990905761719,
+        "changed_fraction": 0.14147619047619048,
+        "p95_abs_delta": 10.0
+      },
+      {
+        "roi": "lower_center_road_patch",
+        "seam_energy": 76.95948791503906,
+        "changed_fraction": 0.0784632768361582,
+        "p95_abs_delta": 7.0
+      },
+      {
+        "roi": "center_lane_marking",
+        "seam_energy": 74.44136047363281,
+        "changed_fraction": 0.08021571648690293,
+        "p95_abs_delta": 4.0
+      },
+      {
+        "roi": "right_curb_sidewalk_wall_base",
+        "seam_energy": 16.554218292236328,
+        "changed_fraction": 0.08102097902097902,
+        "p95_abs_delta": 4.0
+      }
+    ],
+    "roi_mean_seam_energy": 56.20374393463135
+  },
+  "best_roi_gain_vs_base": 0.4141529537437987,
+  "best_changed_fraction": 0.0343632698059082,
+  "source_mix_fraction": 0.1170644760131836,
+  "variants": [
+    {
+      "variant": "soft_r16_a035_g2",
+      "params": {
+        "id": "soft_r16_a035_g2",
+        "radius": 16,
+        "alpha": 0.35,
+        "gamma": 2.0
+      },
+      "metrics": {
+        "global_seam_energy": 71.01177215576172,
+        "global_changed_fraction": 0.009874343872070312,
+        "p95_abs_delta": 1.0,
+        "max_abs_delta": 34,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 74.5871810913086,
+            "changed_fraction": 0.06138095238095238,
+            "p95_abs_delta": 3.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 97.262939453125,
+            "changed_fraction": 0.022734463276836158,
+            "p95_abs_delta": 1.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 101.3511962890625,
+            "changed_fraction": 0.02157164869029276,
+            "p95_abs_delta": 1.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 35.72953414916992,
+            "changed_fraction": 0.01695104895104895,
+            "p95_abs_delta": 1.0
+          }
+        ],
+        "roi_mean_seam_energy": 77.2327127456665
+      },
+      "score": 77.36620487213135
+    },
+    {
+      "variant": "soft_r24_a045_g2",
+      "params": {
+        "id": "soft_r24_a045_g2",
+        "radius": 24,
+        "alpha": 0.45,
+        "gamma": 2.0
+      },
+      "metrics": {
+        "global_seam_energy": 67.36690521240234,
+        "global_changed_fraction": 0.016876220703125,
+        "p95_abs_delta": 2.0,
+        "max_abs_delta": 44,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 69.6651611328125,
+            "changed_fraction": 0.09804761904761905,
+            "p95_abs_delta": 4.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 92.6122055053711,
+            "changed_fraction": 0.03853107344632768,
+            "p95_abs_delta": 2.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 94.33369445800781,
+            "changed_fraction": 0.031587057010785825,
+            "p95_abs_delta": 1.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 31.50143051147461,
+            "changed_fraction": 0.030377622377622378,
+            "p95_abs_delta": 1.0
+          }
+        ],
+        "roi_mean_seam_energy": 72.0281229019165
+      },
+      "score": 72.260637550354
+    },
+    {
+      "variant": "soft_r32_a055_g2",
+      "params": {
+        "id": "soft_r32_a055_g2",
+        "radius": 32,
+        "alpha": 0.55,
+        "gamma": 2.0
+      },
+      "metrics": {
+        "global_seam_energy": 63.91069793701172,
+        "global_changed_fraction": 0.02346944808959961,
+        "p95_abs_delta": 3.0,
+        "max_abs_delta": 54,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 65.26708221435547,
+            "changed_fraction": 0.12573809523809523,
+            "p95_abs_delta": 6.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 88.1739730834961,
+            "changed_fraction": 0.05136723163841808,
+            "p95_abs_delta": 3.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 87.66673278808594,
+            "changed_fraction": 0.04337442218798151,
+            "p95_abs_delta": 2.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 26.058034896850586,
+            "changed_fraction": 0.0460979020979021,
+            "p95_abs_delta": 2.0
+          }
+        ],
+        "roi_mean_seam_energy": 66.79145574569702
+      },
+      "score": 67.11808912277222
+    },
+    {
+      "variant": "soft_r48_a060_g2",
+      "params": {
+        "id": "soft_r48_a060_g2",
+        "radius": 48,
+        "alpha": 0.6,
+        "gamma": 2.0
+      },
+      "metrics": {
+        "global_seam_energy": 62.3889045715332,
+        "global_changed_fraction": 0.028727054595947266,
+        "p95_abs_delta": 4.0,
+        "max_abs_delta": 60,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 63.26782989501953,
+            "changed_fraction": 0.1372857142857143,
+            "p95_abs_delta": 7.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 85.92054748535156,
+            "changed_fraction": 0.06750282485875707,
+            "p95_abs_delta": 4.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 84.66777801513672,
+            "changed_fraction": 0.058628659476117104,
+            "p95_abs_delta": 3.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 24.68049430847168,
+            "changed_fraction": 0.05893706293706294,
+            "p95_abs_delta": 3.0
+          }
+        ],
+        "roi_mean_seam_energy": 64.63416242599487
+      },
+      "score": 65.03888708114624
+    },
+    {
+      "variant": "soft_r48_a075_g2",
+      "params": {
+        "id": "soft_r48_a075_g2",
+        "radius": 48,
+        "alpha": 0.75,
+        "gamma": 2.0
+      },
+      "metrics": {
+        "global_seam_energy": 58.05368423461914,
+        "global_changed_fraction": 0.031058311462402344,
+        "p95_abs_delta": 5.0,
+        "max_abs_delta": 75,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 58.21887969970703,
+            "changed_fraction": 0.13976190476190475,
+            "p95_abs_delta": 9.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 79.71815490722656,
+            "changed_fraction": 0.07068926553672317,
+            "p95_abs_delta": 5.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 77.09584045410156,
+            "changed_fraction": 0.0663482280431433,
+            "p95_abs_delta": 3.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 18.65007972717285,
+            "changed_fraction": 0.07060139860139861,
+            "p95_abs_delta": 3.0
+          }
+        ],
+        "roi_mean_seam_energy": 58.420738697052
+      },
+      "score": 58.86843843460083
+    },
+    {
+      "variant": "soft_r64_a065_g1",
+      "params": {
+        "id": "soft_r64_a065_g1",
+        "radius": 64,
+        "alpha": 0.65,
+        "gamma": 1.0
+      },
+      "metrics": {
+        "global_seam_energy": 60.835628509521484,
+        "global_changed_fraction": 0.03216886520385742,
+        "p95_abs_delta": 5.0,
+        "max_abs_delta": 66,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 61.311805725097656,
+            "changed_fraction": 0.13985714285714285,
+            "p95_abs_delta": 8.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 83.26783752441406,
+            "changed_fraction": 0.07633898305084746,
+            "p95_abs_delta": 5.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 81.6183090209961,
+            "changed_fraction": 0.07075500770416025,
+            "p95_abs_delta": 4.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 22.871606826782227,
+            "changed_fraction": 0.06709090909090909,
+            "p95_abs_delta": 3.0
+          }
+        ],
+        "roi_mean_seam_energy": 62.26738977432251
+      },
+      "score": 62.7284161567688
+    },
+    {
+      "variant": "soft_r64_a080_g1",
+      "params": {
+        "id": "soft_r64_a080_g1",
+        "radius": 64,
+        "alpha": 0.8,
+        "gamma": 1.0
+      },
+      "metrics": {
+        "global_seam_energy": 56.674198150634766,
+        "global_changed_fraction": 0.0343632698059082,
+        "p95_abs_delta": 6.0,
+        "max_abs_delta": 81,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 56.85990905761719,
+            "changed_fraction": 0.14147619047619048,
+            "p95_abs_delta": 10.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 76.95948791503906,
+            "changed_fraction": 0.0784632768361582,
+            "p95_abs_delta": 7.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 74.44136047363281,
+            "changed_fraction": 0.08021571648690293,
+            "p95_abs_delta": 4.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 16.554218292236328,
+            "changed_fraction": 0.08102097902097902,
+            "p95_abs_delta": 4.0
+          }
+        ],
+        "roi_mean_seam_energy": 56.20374393463135
+      },
+      "score": 56.70610317230225
+    },
+    {
+      "variant": "soft_r80_a070_g1",
+      "params": {
+        "id": "soft_r80_a070_g1",
+        "radius": 80,
+        "alpha": 0.7,
+        "gamma": 1.0
+      },
+      "metrics": {
+        "global_seam_energy": 59.24127197265625,
+        "global_changed_fraction": 0.03412151336669922,
+        "p95_abs_delta": 5.0,
+        "max_abs_delta": 72,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 59.65968322753906,
+            "changed_fraction": 0.14095238095238094,
+            "p95_abs_delta": 9.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 81.05745697021484,
+            "changed_fraction": 0.07889265536723164,
+            "p95_abs_delta": 6.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 78.7830581665039,
+            "changed_fraction": 0.07930662557781201,
+            "p95_abs_delta": 4.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 19.984397888183594,
+            "changed_fraction": 0.07503496503496504,
+            "p95_abs_delta": 3.0
+          }
+        ],
+        "roi_mean_seam_energy": 59.87114906311035
+      },
+      "score": 60.355607223510745
+    },
+    {
+      "variant": "soft_r32_a050_g4",
+      "params": {
+        "id": "soft_r32_a050_g4",
+        "radius": 32,
+        "alpha": 0.5,
+        "gamma": 4.0
+      },
+      "metrics": {
+        "global_seam_energy": 65.94390869140625,
+        "global_changed_fraction": 0.02099132537841797,
+        "p95_abs_delta": 2.0,
+        "max_abs_delta": 49,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 67.68279266357422,
+            "changed_fraction": 0.11771428571428572,
+            "p95_abs_delta": 5.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 91.02863311767578,
+            "changed_fraction": 0.04779661016949153,
+            "p95_abs_delta": 3.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 91.60945892333984,
+            "changed_fraction": 0.03850539291217257,
+            "p95_abs_delta": 2.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 29.452695846557617,
+            "changed_fraction": 0.03923076923076923,
+            "p95_abs_delta": 2.0
+          }
+        ],
+        "roi_mean_seam_energy": 69.94339513778687
+      },
+      "score": 70.22529104232788
+    },
+    {
+      "variant": "soft_r48_a060_g4",
+      "params": {
+        "id": "soft_r48_a060_g4",
+        "radius": 48,
+        "alpha": 0.6,
+        "gamma": 4.0
+      },
+      "metrics": {
+        "global_seam_energy": 62.51931381225586,
+        "global_changed_fraction": 0.02748584747314453,
+        "p95_abs_delta": 3.0,
+        "max_abs_delta": 59,
+        "marked_rois": [
+          {
+            "roi": "left_road_patch",
+            "seam_energy": 63.410804748535156,
+            "changed_fraction": 0.13507142857142856,
+            "p95_abs_delta": 7.0
+          },
+          {
+            "roi": "lower_center_road_patch",
+            "seam_energy": 86.76446533203125,
+            "changed_fraction": 0.06440677966101695,
+            "p95_abs_delta": 4.0
+          },
+          {
+            "roi": "center_lane_marking",
+            "seam_energy": 85.32205200195312,
+            "changed_fraction": 0.05530046224961479,
+            "p95_abs_delta": 3.0
+          },
+          {
+            "roi": "right_curb_sidewalk_wall_base",
+            "seam_energy": 24.703378677368164,
+            "changed_fraction": 0.056363636363636366,
+            "p95_abs_delta": 2.0
+          }
+        ],
+        "roi_mean_seam_energy": 65.05017518997192
+      },
+      "score": 65.42500535964966
+    }
+  ],
+  "runtime_s": 14.57
+}

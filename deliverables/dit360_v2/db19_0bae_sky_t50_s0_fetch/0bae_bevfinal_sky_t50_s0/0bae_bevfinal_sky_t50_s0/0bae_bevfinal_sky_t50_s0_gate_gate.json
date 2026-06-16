@@ -1,0 +1,11 @@
+{
+  "source": "/content/drive/MyDrive/koi_waymo2pano_colab/results/seamroute/SR_0bae_bevfinal_1024x2048.png",
+  "gen": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db19_combo/0bae_bevfinal_sky_t50_s0/0bae_bevfinal_sky_t50_s0/0bae_bevfinal_sky_t50_s0_corecompose.png",
+  "mask": "/content/drive/MyDrive/koi_waymo2pano_colab/results/db19_combo/0bae_bevfinal_masks/opmask_sky.png",
+  "conf": 0.5,
+  "src_salient": 19,
+  "gen_salient": 22,
+  "netnew_count": 0,
+  "PASS": true,
+  "netnew": []
+}

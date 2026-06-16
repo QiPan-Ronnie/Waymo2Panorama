@@ -1,0 +1,332 @@
+{
+  "status": "db69_phase0_user_marked_geometry_audit_complete",
+  "claim_classification": "source-boundary audit / diagnostic evidence only; no RGB repair",
+  "phase1_reroute_allowed": false,
+  "phase1_blockers": [
+    "no per-camera ERP slab/source-candidate stack found locally for source-label-only reroute"
+  ],
+  "source_pair_slabs_available": false,
+  "source_ownership_source": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_hard_select_source_id_map.png",
+  "source_candidate_stack_inventory": [],
+  "input_sidecar_status": {
+    "source_id_map": true,
+    "source_id_viz": true,
+    "hard_select_source_id_map": true,
+    "boundary_sidecar": true,
+    "seam_band": true,
+    "risk_map": true,
+    "unknown_mask": true,
+    "lidar_support": true,
+    "visibility_count": true,
+    "z_cause": true,
+    "z_repairability": true
+  },
+  "boundary_stats": {
+    "rgb_valid_fraction": 0.27497196197509766,
+    "sparse_source_valid_fraction": 0.05321550369262695,
+    "hard_select_source_valid_fraction": 0.27415895462036133,
+    "source_boundary_fraction": 0.005150318145751953,
+    "seam_band_fraction": 0.03887510299682617,
+    "corridor_fraction": 0.05854940414428711,
+    "low_risk_corridor_fraction": 0.017521381378173828
+  },
+  "marked_roi_feasibility": [
+    {
+      "roi": "left_road_patch",
+      "bbox": [
+        250,
+        515,
+        460,
+        715
+      ],
+      "verdict": "RED",
+      "reason": "current boundary crosses structure and no clear low-risk corridor appears locally",
+      "source_ids_present": [
+        2,
+        3
+      ],
+      "boundary_fraction": 0.021238095238095236,
+      "corridor_fraction": 0.22592857142857142,
+      "low_risk_corridor_fraction": 0.019333333333333334,
+      "lane_marking_proxy_fraction": 0.6634523809523809,
+      "wall_curb_base_proxy_fraction": 0.0495,
+      "edge_mean": 0.10749635854341737,
+      "mean_cost_on_boundary": 0.7038301825523376
+    },
+    {
+      "roi": "lower_center_road_patch",
+      "bbox": [
+        740,
+        595,
+        1035,
+        745
+      ],
+      "verdict": "RED",
+      "reason": "current boundary crosses structure and no clear low-risk corridor appears locally",
+      "source_ids_present": [
+        0,
+        1
+      ],
+      "boundary_fraction": 0.01087005649717514,
+      "corridor_fraction": 0.12097175141242938,
+      "low_risk_corridor_fraction": 0.011163841807909605,
+      "lane_marking_proxy_fraction": 0.423909604519774,
+      "wall_curb_base_proxy_fraction": 0.026689265536723163,
+      "edge_mean": 0.050876082862523535,
+      "mean_cost_on_boundary": 0.7361316084861755
+    },
+    {
+      "roi": "center_lane_marking",
+      "bbox": [
+        1030,
+        515,
+        1325,
+        735
+      ],
+      "verdict": "GREEN",
+      "reason": "low-risk alternate corridor exists near current boundary",
+      "source_ids_present": [
+        0,
+        6
+      ],
+      "boundary_fraction": 0.015439137134052388,
+      "corridor_fraction": 0.1664406779661017,
+      "low_risk_corridor_fraction": 0.09969183359013868,
+      "lane_marking_proxy_fraction": 0.08471494607087827,
+      "wall_curb_base_proxy_fraction": 0.02674884437596302,
+      "edge_mean": 0.07230423879875525,
+      "mean_cost_on_boundary": 0.4995853006839752
+    },
+    {
+      "roi": "right_curb_sidewalk_wall_base",
+      "bbox": [
+        1300,
+        500,
+        1575,
+        760
+      ],
+      "verdict": "GREEN",
+      "reason": "low-risk alternate corridor exists near current boundary",
+      "source_ids_present": [
+        5,
+        6
+      ],
+      "boundary_fraction": 0.013398601398601398,
+      "corridor_fraction": 0.14923076923076922,
+      "low_risk_corridor_fraction": 0.10186013986013986,
+      "lane_marking_proxy_fraction": 0.159006993006993,
+      "wall_curb_base_proxy_fraction": 0.02379020979020979,
+      "edge_mean": 0.06671531605649253,
+      "mean_cost_on_boundary": 0.4424065053462982
+    }
+  ],
+  "top_segments": [
+    {
+      "segment_id": 2,
+      "area_px": 1730,
+      "bbox": [
+        886,
+        392,
+        908,
+        660
+      ],
+      "height_px": 268,
+      "width_px": 22,
+      "source_ids_near_segment": [
+        0,
+        1
+      ],
+      "mean_route_cost": 0.6689666509628296,
+      "max_route_cost": 1.0,
+      "lane_cross_fraction": 0.7855491329479769,
+      "wall_curb_base_cross_fraction": 0.07919075144508671,
+      "mean_edge_risk": 0.18665306585061772,
+      "lidar_support_fraction": 0.30115606936416184,
+      "visible_any_fraction": 0.17976878612716762,
+      "unknown_fraction": 0.8179190751445087,
+      "touches_marked_roi": [
+        "lower_center_road_patch"
+      ]
+    },
+    {
+      "segment_id": 3,
+      "area_px": 1725,
+      "bbox": [
+        276,
+        393,
+        332,
+        644
+      ],
+      "height_px": 251,
+      "width_px": 56,
+      "source_ids_near_segment": [
+        2,
+        3
+      ],
+      "mean_route_cost": 0.6613296866416931,
+      "max_route_cost": 1.0,
+      "lane_cross_fraction": 0.7889855072463768,
+      "wall_curb_base_cross_fraction": 0.059130434782608696,
+      "mean_edge_risk": 0.15553509519749928,
+      "lidar_support_fraction": 0.6255072463768115,
+      "visible_any_fraction": 0.22260869565217392,
+      "unknown_fraction": 0.7750724637681159,
+      "touches_marked_roi": [
+        "left_road_patch"
+      ]
+    },
+    {
+      "segment_id": 5,
+      "area_px": 1673,
+      "bbox": [
+        1138,
+        397,
+        1161,
+        664
+      ],
+      "height_px": 267,
+      "width_px": 23,
+      "source_ids_near_segment": [
+        0,
+        6
+      ],
+      "mean_route_cost": 0.5162265300750732,
+      "max_route_cost": 1.0,
+      "lane_cross_fraction": 0.24447101016138673,
+      "wall_curb_base_cross_fraction": 0.056186491332934844,
+      "mean_edge_risk": 0.17566892865932984,
+      "lidar_support_fraction": 0.4710101613867304,
+      "visible_any_fraction": 0.12492528392109982,
+      "unknown_fraction": 0.8738792588164973,
+      "touches_marked_roi": [
+        "center_lane_marking"
+      ]
+    },
+    {
+      "segment_id": 7,
+      "area_px": 1534,
+      "bbox": [
+        1431,
+        403,
+        1438,
+        659
+      ],
+      "height_px": 256,
+      "width_px": 7,
+      "source_ids_near_segment": [
+        5,
+        6
+      ],
+      "mean_route_cost": 0.43914639949798584,
+      "max_route_cost": 0.7594118118286133,
+      "lane_cross_fraction": 0.0,
+      "wall_curb_base_cross_fraction": 0.003911342894393742,
+      "mean_edge_risk": 0.06140552700871744,
+      "lidar_support_fraction": 0.2242503259452412,
+      "visible_any_fraction": 0.007822685788787484,
+      "unknown_fraction": 0.9915254237288136,
+      "touches_marked_roi": [
+        "right_curb_sidewalk_wall_base"
+      ]
+    },
+    {
+      "segment_id": 6,
+      "area_px": 1719,
+      "bbox": [
+        1713,
+        399,
+        1771,
+        647
+      ],
+      "height_px": 248,
+      "width_px": 58,
+      "source_ids_near_segment": [
+        4,
+        5
+      ],
+      "mean_route_cost": 0.6252749562263489,
+      "max_route_cost": 1.0,
+      "lane_cross_fraction": 0.6265270506108203,
+      "wall_curb_base_cross_fraction": 0.062245491564863295,
+      "mean_edge_risk": 0.157827738425213,
+      "lidar_support_fraction": 0.47294938917975565,
+      "visible_any_fraction": 0.16753926701570682,
+      "unknown_fraction": 0.8301337987201861,
+      "touches_marked_roi": []
+    },
+    {
+      "segment_id": 4,
+      "area_px": 1546,
+      "bbox": [
+        610,
+        397,
+        620,
+        653
+      ],
+      "height_px": 256,
+      "width_px": 10,
+      "source_ids_near_segment": [
+        1,
+        2
+      ],
+      "mean_route_cost": 0.5837439298629761,
+      "max_route_cost": 1.0,
+      "lane_cross_fraction": 0.49159120310478654,
+      "wall_curb_base_cross_fraction": 0.07891332470892626,
+      "mean_edge_risk": 0.16518276133221724,
+      "lidar_support_fraction": 0.44954721862871927,
+      "visible_any_fraction": 0.21733505821474774,
+      "unknown_fraction": 0.777490297542044,
+      "touches_marked_roi": []
+    },
+    {
+      "segment_id": 1,
+      "area_px": 776,
+      "bbox": [
+        2043,
+        385,
+        2048,
+        639
+      ],
+      "height_px": 254,
+      "width_px": 5,
+      "source_ids_near_segment": [
+        3,
+        4
+      ],
+      "mean_route_cost": 0.6062650680541992,
+      "max_route_cost": 1.0,
+      "lane_cross_fraction": 0.5798969072164949,
+      "wall_curb_base_cross_fraction": 0.06314432989690721,
+      "mean_edge_risk": 0.15201637355973316,
+      "lidar_support_fraction": 0.34149484536082475,
+      "visible_any_fraction": 0.13144329896907217,
+      "unknown_fraction": 0.8685567010309279,
+      "touches_marked_roi": []
+    },
+    {
+      "segment_id": 9,
+      "area_px": 97,
+      "bbox": [
+        0,
+        542,
+        1,
+        639
+      ],
+      "height_px": 97,
+      "width_px": 1,
+      "source_ids_near_segment": [
+        3
+      ],
+      "mean_route_cost": 0.6995428204536438,
+      "max_route_cost": 1.0,
+      "lane_cross_fraction": 0.9381443298969072,
+      "wall_curb_base_cross_fraction": 0.05154639175257732,
+      "mean_edge_risk": 0.0848190822720841,
+      "lidar_support_fraction": 0.020618556701030927,
+      "visible_any_fraction": 0.0,
+      "unknown_fraction": 1.0,
+      "touches_marked_roi": []
+    }
+  ]
+}

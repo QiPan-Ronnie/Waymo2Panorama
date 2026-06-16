@@ -1,0 +1,11 @@
+[
+  {
+    "name": "db21_rgline_tau5_lineprompt",
+    "core_mae": 71.0824966430664,
+    "halo_mae": 0.0,
+    "far_mae": 0.0,
+    "case_runtime_s": 137.29,
+    "gate_fail": null,
+    "netnew": []
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "name": "G_bmw_pano_sky_t50_s0",
+    "core_mae": 138.22862243652344,
+    "halo_mae": 0.0,
+    "far_mae": 0.0,
+    "case_runtime_s": 136.035,
+    "gate_fail": null,
+    "netnew": []
+  }
+]

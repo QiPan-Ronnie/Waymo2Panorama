@@ -1,0 +1,43 @@
+{
+  "db": "DB-74",
+  "verdict": "completed_but_rejected_as_seam_repair",
+  "classification": "diagnostic_temporal_candidate_generation_only",
+  "source_faithful_repair_claim_allowed": false,
+  "presentation_candidate_claim_allowed": false,
+  "key_outputs": {
+    "candidate": "deliverables/layered_target_raycaster/db74_temporal_candidate_stack/fetch/02a00399_a000_bmw_optimized_source_owned_rgb.png",
+    "full_board": "deliverables/layered_target_raycaster/db74_temporal_candidate_stack/DB74_full_review_board.jpg",
+    "roi_sheet": "deliverables/layered_target_raycaster/db74_temporal_candidate_stack/DB74_same_roi_comparison_sheet.jpg",
+    "manifest": "deliverables/layered_target_raycaster/db74_temporal_candidate_stack/DB74_manifest.json",
+    "summary": "deliverables/layered_target_raycaster/db74_temporal_candidate_stack/DB74_batch_summary.json",
+    "temporal_operator_map": "deliverables/layered_target_raycaster/db74_temporal_candidate_stack/fetch/02a00399_a000_bmw_temporal_operator_id_map.png",
+    "temporal_eligible_mask": "deliverables/layered_target_raycaster/db74_temporal_candidate_stack/fetch/02a00399_a000_bmw_temporal_eligible_mask.png"
+  },
+  "evidence": {
+    "run_ok": true,
+    "complete_outputs": true,
+    "strict_secret_scan_hits": 0,
+    "best_variant": "temporal_probe_t8",
+    "bmw_roi_mean_seam_energy_before": 10.531932830810547,
+    "bmw_roi_mean_seam_energy_after": 10.093998551368713,
+    "bmw_roi_gain_vs_base": 0.041581567835362813,
+    "temporal_any_valid_fraction": 0.0011472702026367188,
+    "temporal_eligible_fraction": 0.0017247200012207031,
+    "temporal_selected_fraction": 0.0,
+    "temporal_allowed_tiles_for_best_variant": 119,
+    "clean_control_degraded": false
+  },
+  "vision_observations": [
+    "Full ERP still shows the same large camera block boundaries; the visible seam is not geometrically aligned.",
+    "Same-ROI sheet shows left road patch and right curb/sidewalk/wall-base remain visibly discontinuous and their seam-energy metrics worsen.",
+    "Lower-center road and center-lane ROIs improve in scalar seam energy but still show a hard source boundary rather than a repaired alignment.",
+    "Temporal operator map is all black, confirming the final candidate did not select temporal labels; improvements came from source-label reroute/abstain behavior rather than temporal source candidates."
+  ],
+  "kill_criteria_hit": [
+    "temporal_operator_selected_fraction_is_zero",
+    "marked_roi_geometry_still_visible",
+    "left_road_patch_worsens",
+    "right_curb_sidewalk_wall_base_worsens"
+  ],
+  "next_route_audit": "DB72/DB73/DB74 show that source-label optimization plus sparse same-frame or temporal candidate labels cannot fix this seam. Continuing by label-weight tuning is a local optimum. Any next route must either produce honest abstain/operator-eligibility evidence or switch to a clearly labeled presentation/source-mixed fallback with full-ERP scope and sidecars."
+}

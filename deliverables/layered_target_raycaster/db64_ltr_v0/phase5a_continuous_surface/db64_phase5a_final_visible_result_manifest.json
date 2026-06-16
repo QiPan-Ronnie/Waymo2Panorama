@@ -1,0 +1,159 @@
+{
+  "created_utc": "2026-06-05T21:11:41.300908+00:00",
+  "status": "db64_phase5a_final_visible_result_package",
+  "packaging_local_only": true,
+  "phase5a_remote_executed": true,
+  "uses_existing_artifacts_only": true,
+  "source_artifacts": {
+    "candidate": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_best.jpg",
+    "control": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_hard_select.jpg",
+    "phase2_crop_review": "deliverables/layered_target_raycaster/db64_ltr_v0/phase2_lidar_zbuffer_fetch/02a00399_a000_bmw/02a00399_a000_bmw_lidar_zbuffer_crop_review.jpg",
+    "phase3_sidecar_review": "deliverables/layered_target_raycaster/db64_ltr_v0/phase3_sidecar_instrumentation/fetch/02a00399_a000_bmw/02a00399_a000_bmw_sidecar_review_768.jpg",
+    "phase4b_z_review": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/fetch/02a00399_a000_bmw/02a00399_a000_bmw_z_visibility_review_768.jpg",
+    "phase4b_z_cause": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/fetch/02a00399_a000_bmw/02a00399_a000_bmw_z_cause_primary_viz.png",
+    "phase4b_z_repairability": "deliverables/layered_target_raycaster/db64_ltr_v0/phase4b_z_visibility_cause/fetch/02a00399_a000_bmw/02a00399_a000_bmw_z_repairability_viz.png",
+    "phase5a_summary": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_batch_summary.json",
+    "phase5a_board": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_continuous_surface_board.jpg",
+    "phase5a_bmw_review": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/fetch/02a00399_a000_bmw/02a00399_a000_bmw_phase5a_crop_review.jpg",
+    "phase5a_control_review": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/fetch/0bae3b5e_a030_clean_far/0bae3b5e_a030_clean_far_phase5a_crop_review.jpg"
+  },
+  "outputs": {
+    "visible_candidate": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_current_best_visible_candidate_rejected.png",
+    "board": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_final_visible_result_board.jpg",
+    "manifest": "deliverables/layered_target_raycaster/db64_ltr_v0/phase5a_continuous_surface/db64_phase5a_final_visible_result_manifest.json",
+    "board_bytes": 395198,
+    "visible_candidate_bytes": 207399
+  },
+  "claim_classification": "rejected diagnostic/evidence-only visible seam result; not source-faithful repair",
+  "phase5a_decision": {
+    "aggregate_success": false,
+    "phase5b_allowed": false,
+    "phase5c_renderer_allowed": false,
+    "reason": "BMW thresholds failed: target-surface support gain is too small, raw-visible support decreases, no-zbuffer gap increases, and supported components remain short.",
+    "bmw_improvements": {
+      "delta_no_surface_frac": 0.055159640364541795,
+      "gain_visible_any_frac": -0.01503796288346193,
+      "gain_visible_ge2_frac": -0.0067952948103082444,
+      "delta_no_raw_zbuffer_support_frac": -0.04169170949501391,
+      "delta_z_mismatch_conflict_frac": 0.0038882824095085033,
+      "fused_longest_supported_component_frac": 0.14652956298200515
+    },
+    "bmw_success_checks": {
+      "bmw_no_surface_drop": false,
+      "bmw_visible_gain": false,
+      "bmw_no_zbuf_drop": false,
+      "bmw_component_continuity": false,
+      "z_conflict_not_up_gt_0p03": true
+    }
+  },
+  "vision_verdict": [
+    "The RGB candidate is the best current visible seam image to inspect, but it remains a rejected Phase2 lidar_best diagnostic.",
+    "Phase5a BMW review shows added support blocks without continuous raw-visible support; visible overlay is sparse and transition maps do not form a safe GREEN repair band.",
+    "Clean control shows the same pattern: fused support increases slightly but raw-visible support degrades and no-zbuffer bands widen."
+  ],
+  "safety": {
+    "remote_status_exec": "completed earlier through approved non-repo secret path; no secret stored in this package",
+    "runtime_secret_access": false,
+    "a100": false,
+    "vggt_hf_model": false,
+    "generation": false,
+    "source_replacement": false,
+    "red_promotion": false
+  },
+  "phase4b_bmw_metrics": {
+    "seam_source_valid_frac": 1.0,
+    "seam_lidar_support_frac": 0.42741668404332306,
+    "seam_visible_ge2_frac": 0.09115998380904486,
+    "seam_single_visible_frac": 0.08416843499699486,
+    "seam_no_surface_frac": 0.5725833159566769,
+    "seam_no_camera_geom_valid_frac": 0.0197848565505906,
+    "seam_no_raw_zbuffer_support_frac": 0.19571430323696445,
+    "seam_z_mismatch_conflict_frac": 0.036589105449728314,
+    "seam_mixed_no_visible_frac": 0.0,
+    "seam_source_boundary_proxy_frac": 0.12240116771131036,
+    "supported_no_visible_no_zbuf_frac": 0.8238168132678717,
+    "supported_no_visible_z_conflict_frac": 0.12619072169036874,
+    "supported_no_visible_no_geom_frac": 0.04999246504175953
+  },
+  "phase4b_mean_metrics": {
+    "seam_no_surface_frac": 0.5393941693603328,
+    "seam_no_camera_geom_valid_frac": 0.019310110754367116,
+    "seam_no_raw_zbuffer_support_frac": 0.21085710266366753,
+    "seam_z_mismatch_conflict_frac": 0.03725230471977285,
+    "seam_single_visible_frac": 0.08550101879090455,
+    "seam_visible_ge2_frac": 0.10768529371095509
+  },
+  "phase5a_bmw_metrics": {
+    "current": {
+      "seam_lidar_support_frac": 0.42741668404332306,
+      "seam_visible_any_frac": 0.17532841880603972,
+      "seam_visible_ge2_frac": 0.09115998380904486,
+      "seam_single_visible_frac": 0.08416843499699486,
+      "seam_no_surface_frac": 0.5725833159566769,
+      "seam_no_camera_geom_valid_frac": 0.0197848565505906,
+      "seam_no_raw_zbuffer_support_frac": 0.19571430323696445,
+      "seam_z_mismatch_conflict_frac": 0.036589105449728314,
+      "seam_mixed_no_visible_frac": 0.0,
+      "seam_source_boundary_proxy_frac": 0.12240116771131036,
+      "longest_supported_component_frac": 0.14652956298200515,
+      "longest_supported_component_px": 57,
+      "seam_length_px": 389,
+      "z_residual_min_m_seam": {
+        "n": 17277,
+        "mean": 2.5656402111053467,
+        "p50": 0.01116180419921875,
+        "p90": 12.56171989440918,
+        "p95": 16.918893814086914
+      }
+    },
+    "fused": {
+      "seam_lidar_support_frac": 0.48257632440786485,
+      "seam_visible_any_frac": 0.1602904559225778,
+      "seam_visible_ge2_frac": 0.08436468899873661,
+      "seam_single_visible_frac": 0.07592576692384118,
+      "seam_no_surface_frac": 0.5174236755921351,
+      "seam_no_camera_geom_valid_frac": 0.0444024678940719,
+      "seam_no_raw_zbuffer_support_frac": 0.23740601273197837,
+      "seam_z_mismatch_conflict_frac": 0.04047738785923682,
+      "seam_mixed_no_visible_frac": 0.0,
+      "seam_source_boundary_proxy_frac": 0.12240116771131036,
+      "longest_supported_component_frac": 0.14652956298200515,
+      "longest_supported_component_px": 57,
+      "seam_length_px": 389,
+      "z_residual_min_m_seam": {
+        "n": 16368,
+        "mean": 2.6769254207611084,
+        "p50": 0.02115345001220703,
+        "p90": 12.440671920776367,
+        "p95": 17.90330696105957
+      }
+    },
+    "improvements": {
+      "delta_no_surface_frac": 0.055159640364541795,
+      "gain_visible_any_frac": -0.01503796288346193,
+      "gain_visible_ge2_frac": -0.0067952948103082444,
+      "delta_no_raw_zbuffer_support_frac": -0.04169170949501391,
+      "delta_z_mismatch_conflict_frac": 0.0038882824095085033,
+      "fused_longest_supported_component_frac": 0.14652956298200515
+    },
+    "success_checks": {
+      "bmw_no_surface_drop": false,
+      "bmw_visible_gain": false,
+      "bmw_no_zbuf_drop": false,
+      "bmw_component_continuity": false,
+      "z_conflict_not_up_gt_0p03": true
+    }
+  },
+  "phase5a_mean_improvements": {
+    "delta_no_surface_frac": 0.04222954848304927,
+    "gain_visible_any_frac": -0.022327812890303944,
+    "gain_visible_ge2_frac": -0.01103459849929423,
+    "delta_no_raw_zbuffer_support_frac": -0.04201881210786336,
+    "delta_z_mismatch_conflict_frac": 0.003553530738214867,
+    "fused_longest_supported_component_frac": 0.1524997541685982
+  },
+  "strict_secret_scan": {
+    "hit_count": 0,
+    "hits": []
+  }
+}
