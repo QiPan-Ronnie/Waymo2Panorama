@@ -1044,6 +1044,24 @@ def run_case(case_spec, run_name):
     keepn = (t_g > 0) & (t_g < 30.0)
     flat_g = flat_g[keepn]; dirs_g = dirs_g[keepn]; t_g = t_g[keepn]
     Xg = C[None, :] + t_g[:, None] * dirs_g
+    # GROUND HEIGHT FROM LiDAR, not a flat plane (DB-98): the flat-plane assumption is
+    # wrong at curbs/slopes, and at grazing angles a small height error becomes a
+    # metre-scale horizontal sampling error -> every source samples a DIFFERENT real
+    # surface -> they disagree -> the per-pixel pick jumps -> radial black streaks.
+    # March each cap ray onto the measured LiDAR ground surface so every source samples
+    # the SAME real-world point -> agreement -> real texture. General (any scene, uses
+    # the LiDAR we already have, zero scene params); falls back to the plane where no
+    # LiDAR is nearby. (The residual softness at the near-nadir-behind pole is the
+    # genuine evidence limit — extreme grazing + ERP pole undersampling — left honest.)
+    from scipy.spatial import cKDTree as _CKD
+    _gpts = lidar[(lidar[:, 2] > -0.33 - 0.5) & (lidar[:, 2] < -0.33 + 2.5)]   # ground + curb band
+    if len(_gpts) > 200:
+        _tr = _CKD(_gpts[:, :2])
+        for _it in range(3):
+            _dd, _ii = _tr.query(Xg[:, :2], k=1)
+            _gz = np.where(_dd < 1.2, _gpts[_ii, 2], -0.33)
+            _t = np.clip((_gz - C[2]) / dirs_g[:, 2], 0.1, 40.0)
+            Xg = C[None, :] + _t[:, None] * dirs_g
     Xg_city = (Ra @ Xg.T).T + ta
     NSLOT = 6
     chosen_g = np.full((NSLOT, len(flat_g)), -1, np.int64)
