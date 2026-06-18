@@ -40,6 +40,27 @@ Required vision check: scrub each mp4 — ground band stable (no per-frame lane-
 
 ---
 
+# DB-98: Ground-fill quality — frosted speckle + jagged black streaks (exposed by the DB-97 video)
+Status: ACTIVE (2026-06-18) — root-caused from code; fix + confirm pending. (DB-97's 3 other scenes keep rendering meanwhile; this gates DB-97 video QUALITY, not its completion.)
+Trigger: playing the bmw ground-fill video, two artifacts that single-anchor stills under-showed: (A) a FROSTED SPECKLE over the whole filled ground, and (B) JAGGED BLACK streaks/wedges in the near-ground corners that worsen at later (open-intersection) anchors. Plus the known lavender cast.
+
+Root causes (code-grounded in `db89_ghost_recovery.py` STAGE 4):
+- **(A) speckle = per-pixel independent source selection.** `pick = np.argmin(dist_s, axis=0)` chooses the rendering source PER PIXEL. Adjacent ERP nadir pixels therefore draw from DIFFERENT (frame,camera) sources, which at 4–6° grazing are stretched differently and carry different auto-exposure → a salt-and-pepper mosaic. The resolution-matched low-pass only partially masks it. → ALGORITHMIC, not physical.
+- **(B) black streaks = no source-pixel-validity check.** `bilinear()` (L157) only clips coords; the FOV gate (L1086) only tests the rectangular border `px∈[2,ww-2]` + occlusion. AV2 ring images have BLACK/vignette borders; at grazing angles nadir rays land near a source image's edge and bilinear-sample those black pixels → nonzero-DARK values (so NOT caught as holes by `resid_m` sum<12 → never Telea-filled) → the ERP warp smears them radially into jagged black wedges. Worse at open-intersection anchors where more nadir points only have grazing edge-of-image sources. (Secondary: genuine coverage holes where no clean source exists.)
+- **lavender = grazing Fresnel sky reflection** (physical; global cast-gain partly handles it; stronger in bright open scenes).
+
+Deeper principle: the innermost nadir annulus (under/just-behind the car) is UNDER-DETERMINED at most anchors — only grazing, edge-of-image, exposure-mismatched sources. Forcing full-res fill there yields grain+black+lavender that flickers. Evidence-gated doctrine → where evidence is insufficient, ABSTAIN cleanly (smooth/neutral) rather than render garbage.
+
+Fix directions (to A/B test, eye-verified, zero scene params):
+1. **Source-validity mask** (fixes B): reject a sample whose sampled source pixel (small neighborhood) is near-black/invalid (AV2 border/vignette) or below a luminance floor; rejected → no-sample → falls to smooth residual inpaint instead of dark streak. Also widen the FOV margin beyond 2 px.
+2. **Spatially-coherent source assignment** (fixes A): pick ONE source per nadir sector/region (or graph-cut labeling like the scene-band content seam), not per-pixel; or median-blend within a source-consistent region. Cuts the mosaic.
+3. **Evidence-quality abstain for the inner annulus**: where only grazing/invalid sources exist, render a smooth low-pass/neutral disk (honest) rather than speckle.
+Confirm first (isolate the variable): re-render bmw a092 (worst frame) with per-source provenance dump + a validity-mask toggle, to prove black=border-leak and speckle=per-pixel-source-patchwork before committing the fix.
+Kill criteria: any fix must stay evidence-principled + scene-agnostic; if speckle is irreducible without over-smoothing, prefer the abstain route over fake detail.
+Required vision check: scrub the re-rendered bmw video — no speckle, no black streaks, ground stable frame-to-frame, lane lines continuous.
+
+---
+
 # DB-96: Contact-shadow evidence modelling (icebox)
 Status: icebox - known principled gap, low priority.
 Question: can the cast shadow be treated as evidence-bound object appendage (dark region adjacent to the object mask, luminance-ratio detected) and moved/kept with the body during compositing?
