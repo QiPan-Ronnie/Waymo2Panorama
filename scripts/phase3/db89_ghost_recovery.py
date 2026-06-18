@@ -1146,6 +1146,16 @@ def run_case(case_spec, run_name):
     anyg = haveg.any(0)
     medg = np.nanmedian(colg, axis=0)
     dist_s = np.abs(colg - medg[None]).sum(2)
+    # SOURCE-AGREEMENT GATE (DB-98): the near-nadir-behind corners are seen only by
+    # far, grazing sources that DISAGREE wildly (each grazing ray skims different
+    # content); the per-pixel pick then jumps between them -> radial black streaks.
+    # spread = mean abs deviation of the valid sources from their median; high spread
+    # = views don't agree = unreliable. We render real pixels only where they AGREE
+    # (spread small) and abstain elsewhere -> smooth fill. (Isolation-verified: the
+    # spread map co-locates exactly with the streak wedges; nvalid/t_g gates did not.)
+    _ns_count = np.maximum(haveg.sum(0), 1)
+    spread = np.where(haveg, dist_s, 0.0).sum(0) / _ns_count
+    spread[~anyg] = 1e9
     dist_s[~haveg] = np.inf
     pick = np.argmin(dist_s, axis=0)
     sel_px = colg[pick, np.arange(len(flat_g))]
@@ -1168,12 +1178,17 @@ def run_case(case_spec, run_name):
         gn_glob = np.clip(ref_med / np.maximum(fill_med, 1.0), 0.7, 1.5)
         sel_px[anyg] = sel_px[anyg] * gn_glob[None, :]
     cflat = comp.reshape(-1, 3).copy()
-    cflat[flat_g[anyg]] = np.clip(sel_px[anyg], 0, 255).astype(np.uint8)
+    SPREAD_MAX = 30.0   # abstain where the sources disagree more than this (units: sum-abs-channel dev)
+    _gm = anyg & (spread <= SPREAD_MAX)
+    cflat[flat_g[_gm]] = np.clip(sel_px[_gm], 0, 255).astype(np.uint8)
     comp = cflat.reshape(H, W, 3)
+    # abstained (disagreeing) + genuinely-empty cap points -> smooth Navier-Stokes
+    # inpaint from the agreeing neighbourhood (NS, not Telea: Telea radial-streaks on
+    # the large near-nadir holes — exactly the artefact we are removing).
     resid_m = ((comp.astype(np.int32).sum(2) < 12) | (egoproj.reshape(H, W) & ~capg))
     resid_m[:H // 2] = False
     if resid_m.any():
-        comp = _cv.inpaint(comp, resid_m.astype(np.uint8) * 255, 5, _cv.INPAINT_TELEA)
+        comp = _cv.inpaint(comp, resid_m.astype(np.uint8) * 255, 8, _cv.INPAINT_NS)
     # RESOLUTION-MATCHED RENDERING: the inner cap's only evidence is 4-6 deg grazing
     # views whose ground sampling distance is decimeters-to-meters per ERP pixel;
     # rendering that at full ERP frequency shows resampling swirl, not real texture.
