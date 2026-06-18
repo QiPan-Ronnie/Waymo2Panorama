@@ -66,8 +66,11 @@ def batch_py(log_uuid: str, tag: str, anchors: list[int]) -> str:
     return py
 
 
-def submit_scene(client: ColabClient, log_uuid: str, tag: str, start: int, timeout_s: int = 18000) -> str:
+def submit_scene(client: ColabClient, log_uuid: str, tag: str, start: int, timeout_s: int = 18000,
+                 reverse: bool = False) -> str:
     anchors = list(range(start, start + NWIN))
+    if reverse:            # 2nd runtime chews from the top down; skip-if-exists dedups the middle overlap
+        anchors = anchors[::-1]
     b = base64.b64encode(batch_py(log_uuid, tag, anchors).encode()).decode()
     bash = ("set +x\npython - <<'PY'\nimport base64\n"
             "exec(compile(base64.b64decode('" + b + "').decode(), '<vidgen>', 'exec'))\nPY")
@@ -173,10 +176,11 @@ if __name__ == "__main__":
         assemble(client)
     elif "--submit" in sys.argv:
         only = [a.split("=", 1)[1] for a in sys.argv if a.startswith("--only=")]
+        rev = "--reverse" in sys.argv
         for u, tag, start in WINDOWS:
             if only and tag not in only:
                 continue
-            jid = submit_scene(client, u, tag, start)
-            print(json.dumps({"tag": tag, "start": start, "anchors": [start, start + NWIN - 1], "job_id": jid}))
+            jid = submit_scene(client, u, tag, start, reverse=rev)
+            print(json.dumps({"tag": tag, "start": start, "rev": rev, "job_id": jid}))
     else:
         print("use --diag | --submit [--only=tag] | --poll | --assemble")
