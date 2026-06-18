@@ -29,6 +29,17 @@ Required vision check: moving vehicles single-and-intact; seams clean; graceful 
 
 ---
 
+# DB-97: Ground-fill temporal-consistency videos (4 scenes × 93 consecutive frames)
+Status: ACTIVE (2026-06-12) - launched on A100 (80GB).
+Question: does the scene-band + ground-fill pipeline (NO sky) hold up frame-to-frame when run over a continuous 93-frame window, and does it make a coherent moving video?
+Why: every result so far is a SINGLE anchor. A continuous clip (a) is a far stronger demo for Bosch / the world-model consumer than stills, and (b) stress-tests temporal stability of the ground reprojection across consecutive anchors (no per-frame flicker / no coverage collapse mid-window).
+Scope: 4 of the 5 logs (pick the ones with sustained ego motion across the window — ground fill needs ego displacement; a stationary stretch starves it). For each: one window of 93 CONSECUTIVE anchors (start frame chosen by motion profile). Per anchor: full `run_case` (scene band + STAGE-4 ground) — sky LEFT BLACK (do NOT run sky_fill_flux). Assemble each scene's 93 panoramas (ordered by anchor) into one mp4 → 4 clips. Output: `datasets/av2_ground_video_v1/<tag>/frame_NNN.png` + `<tag>.mp4` on Drive.
+Method: adapt the proven `dataset_gen_av2.py` template (CASES = consecutive anchors, dataset-mode lean saves, per-anchor try/except isolation, resume-safe skip-if-exists). 372 renders total (~3 min each) → multi-hour batch; checkpoint by per-frame PNG so a disconnect resumes.
+Kill criteria: if a chosen window shows persistent `low_coverage_warning` (stationary ego), RE-PICK the window — never tune the algorithm per scene. If consecutive frames flicker/jitter in the ground band, record as a temporal-stability finding (candidate-selection determinism), do not paper over with smoothing.
+Required vision check: scrub each mp4 — ground band stable (no per-frame lane-line jumping), moving cars single-and-intact, no new artifact class vs the single-anchor v8 result.
+
+---
+
 # DB-96: Contact-shadow evidence modelling (icebox)
 Status: icebox - known principled gap, low priority.
 Question: can the cast shadow be treated as evidence-bound object appendage (dark region adjacent to the object mask, luminance-ratio detected) and moved/kept with the body during compositing?
