@@ -142,12 +142,16 @@ for tag, start, n in WINS:
     frames = [f for f in frames if f.exists()]
     if len(frames) < 2: rep[tag] = f"only {len(frames)} frames"; continue
     h, w = np.array(Image.open(frames[0])).shape[:2]
-    mp4 = D / f"{tag}.mp4"
-    vw = cv2.VideoWriter(str(mp4), cv2.VideoWriter_fourcc(*"mp4v"), FPS, (w, h))
+    raw = D / f"{tag}_raw.mp4"; mp4 = D / f"{tag}.mp4"
+    vw = cv2.VideoWriter(str(raw), cv2.VideoWriter_fourcc(*"mp4v"), FPS, (w, h))
     for f in frames:
         im = np.array(Image.open(f).convert("RGB"))[:, :, ::-1]
         vw.write(im)
     vw.release()
+    # re-encode to H.264/yuv420p so it plays in any player/browser (cv2 mp4v won't)
+    subprocess.run(["ffmpeg", "-y", "-i", str(raw), "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                    "-movflags", "+faststart", str(mp4)], capture_output=True, timeout=600)
+    raw.unlink(missing_ok=True)
     rep[tag] = {"frames": len(frames), "mp4": str(mp4), "size_mb": round(mp4.stat().st_size/1e6, 2)}
     print("assembled", tag, rep[tag])
 (D / "_video_manifest.json").write_text(json.dumps(rep, indent=1))
