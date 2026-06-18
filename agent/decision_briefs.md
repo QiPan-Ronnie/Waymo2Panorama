@@ -30,7 +30,7 @@ Required vision check: moving vehicles single-and-intact; seams clean; graceful 
 ---
 
 # DB-97: Ground-fill temporal-consistency videos (4 scenes × 93 consecutive frames)
-Status: ACTIVE (2026-06-12) - launched on A100 (80GB).
+Status: v1 DONE (2026-06-18) - all 4 scenes 93/93 assembled + downloaded to `deliverables/ground_video_v1/`; vision-scrubbed (scene band + mid-ground clean across all 4; residual = bottom-nadir softness, no black wedges). v2 re-render GATED on the DB-98 (b)/(c) decision. See progress.md 2026-06-18 entry.
 Question: does the scene-band + ground-fill pipeline (NO sky) hold up frame-to-frame when run over a continuous 93-frame window, and does it make a coherent moving video?
 Why: every result so far is a SINGLE anchor. A continuous clip (a) is a far stronger demo for Bosch / the world-model consumer than stills, and (b) stress-tests temporal stability of the ground reprojection across consecutive anchors (no per-frame flicker / no coverage collapse mid-window).
 Scope: 4 of the 5 logs (pick the ones with sustained ego motion across the window — ground fill needs ego displacement; a stationary stretch starves it). For each: one window of 93 CONSECUTIVE anchors (start frame chosen by motion profile). Per anchor: full `run_case` (scene band + STAGE-4 ground) — sky LEFT BLACK (do NOT run sky_fill_flux). Assemble each scene's 93 panoramas (ordered by anchor) into one mp4 → 4 clips. Output: `datasets/av2_ground_video_v1/<tag>/frame_NNN.png` + `<tag>.mp4` on Drive.
