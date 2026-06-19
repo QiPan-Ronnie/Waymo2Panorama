@@ -49,7 +49,6 @@ import json, math, pathlib, subprocess, sys, time, traceback
 import numpy as np
 
 REMOTE_OUT = pathlib.Path("__REMOTE_OUT__"); REMOTE_RESULT = pathlib.Path("__RESULT__")
-GROUND_MODE = "fill"   # "fill"=STAGE-4 nadir reconstruction; "off"=middle-only base stitch (skip ground outpaint entirely -> BLACK nadir, like the Fable-5 board). ("mask" gray branch is deprecated/dead.)
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
@@ -1037,7 +1036,6 @@ def run_case(case_spec, run_name):
     blackg = (comp.astype(np.int32).sum(2) < 12) | egoproj.reshape(H, W)
     capg = blackg.copy()
     capg[:H // 2] = False
-    _capfull = capg.copy()   # DB-101: full unseen nadir cap (before the target-gate prunes capg) — for middle-only mask mode
     flat_g = np.nonzero(capg.reshape(-1))[0]
     dirs_g = df3[flat_g]
     okd = dirs_g[:, 2] < -0.08
@@ -1065,26 +1063,6 @@ def run_case(case_spec, run_name):
             _t = np.clip((_gz - C[2]) / dirs_g[:, 2], 0.1, 40.0)
             Xg = C[None, :] + _t[:, None] * dirs_g
     Xg_city = (Ra @ Xg.T).T + ta
-    # ---- DB-101 TARGET-side visibility gate (object FOOTPRINT) ----
-    # A cap ground cell directly UNDER an annotated object (any tracked box footprint:
-    # parked OR moving vehicle, etc.) is not clear road -> render an honest contact-shadow
-    # there instead of fake road climbing over the car ("car eaten by the road"). Use the
-    # object FOOTPRINT, NOT the ray-occlusion shadow from C (that abstains the whole ground
-    # BEHIND the car -> giant dark blob), and NOT a LiDAR-tall test (it fires on building
-    # walls -> false road-shadow near buildings). Buildings/walls are NOT annotated, so a
-    # box-footprint gate leaves road next to them as road. General, zero scene params.
-    occ_t = np.zeros(len(Xg), bool)
-    _allu = set(ann["track_uuid"].unique()) if (ann is not None and "track_uuid" in ann.columns) else set()
-    for _c, _sz, _R in boxes_at(ann, ts, _allu):
-        _loc = (Xg - _c) @ _R; _hf = _sz / 2.0
-        occ_t |= (np.abs(_loc[:, 0]) < _hf[0] + 0.3) & (np.abs(_loc[:, 1]) < _hf[1] + 0.3)
-    fg_occ = np.zeros(H * W, bool)
-    if occ_t.any():
-        _drop = flat_g[occ_t]; fg_occ[_drop] = True
-        capg.reshape(-1)[_drop] = False
-        _kv = ~occ_t
-        flat_g, dirs_g, t_g, Xg, Xg_city = flat_g[_kv], dirs_g[_kv], t_g[_kv], Xg[_kv], Xg_city[_kv]
-    fg_occ = fg_occ.reshape(H, W)
     NSLOT = 6
     chosen_g = np.full((NSLOT, len(flat_g)), -1, np.int64)
     score_g = np.full((NSLOT, len(flat_g)), np.inf)
@@ -1108,7 +1086,6 @@ def run_case(case_spec, run_name):
         inb_ = np.where(elig_g & (disp_g >= b0_) & (disp_g < b0_ + 5.0))[0]
         cand_fis.extend(int(x_) for x_ in inb_[np.argsort(np.abs(inb_ - ai_g))][:3])
     cand_fis = sorted(set(cand_fis))
-    if GROUND_MODE == "off": cand_fis = []   # middle-only base stitch: NO ground outpaint -> nadir stays black
     # EMC FOR GROUND SOURCES: each ring camera fires up to +-22.5 ms off the sync
     # timestamp; at source-frame speeds (highway: >10 m/s) the SYNC pose is ~0.3 m
     # wrong along travel, so 6 slots land the same stripe at 6 offsets and the
@@ -1116,75 +1093,6 @@ def run_case(case_spec, run_name):
     # each camera's OWN capture-time pose (same principle as the scene-band EMC).
     cam_ts_arr = {ci2: np.array([int(p_.stem) for p_ in loader._image_paths[cam]], np.int64)
                   for ci2, cam in enumerate(ring_cams)}
-    if GROUND_MODE == "bevaudit":
-        # ---- DB-102 NO-RENDER metric-domain audit ----
-        # Build a LOCAL BEV ground grid around the ego, project each cell into the SAME
-        # bucketed candidates+cams with the SAME gates (FOV, egod 5-28, moving-box, two-box
-        # ego self-occ), and dump per-cell radial stats {nvalid, best_grazing, az_spread,
-        # lum_std}. Answers "is the determinable 3-7 m annulus recoverable in BEV?" before
-        # building the renderer — measure before build ([[feedback-isolate-input-variable]]).
-        HALF, CELL = 9.0, 0.08
-        _gx = np.arange(-HALF, HALF, CELL)
-        _GX, _GY = np.meshgrid(_gx, _gx)
-        cell_xy = np.stack([_GX.ravel(), _GY.ravel()], 1).astype(np.float64)
-        rr = np.linalg.norm(cell_xy, axis=1)
-        _kc = (rr >= 1.0) & (rr <= 8.0)
-        cell_xy = cell_xy[_kc]; rr = rr[_kc]; NC = len(cell_xy)
-        cz = np.full(NC, -0.33)
-        if len(_gpts) > 200:
-            from scipy.spatial import cKDTree as _CKD2
-            _tr2 = _CKD2(_gpts[:, :2])
-            _dd2, _ii2 = _tr2.query(cell_xy, k=1)
-            cz = np.where(_dd2 < 1.2, _gpts[_ii2, 2], -0.33)
-        Xcell = np.concatenate([cell_xy, cz[:, None]], 1)
-        Xcell_city = (Ra @ Xcell.T).T + ta
-        ncount = np.zeros(NC, np.int32)
-        graze_max = np.full(NC, -1.0, np.float64)
-        ssin = np.zeros(NC); scos = np.zeros(NC); sl = np.zeros(NC); sl2 = np.zeros(NC)
-        _gc = {}
-        for fi in cand_fis:
-            tsf = int(all_ts[fi])
-            fboxes = [(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, tsf, moving)]
-            for ci2, cam in enumerate(ring_cams):
-                cts_ = cam_ts_arr[ci2]
-                Rf, tf = cte(int(cts_[np.argmin(np.abs(cts_ - tsf))]))
-                egod = np.linalg.norm(Xcell_city - tf[None, :], axis=1)
-                Xq = (Xcell_city - tf[None, :]) @ Rf
-                K2, (hh2, ww2) = cals[ci2]
-                T2 = np.asarray(frame.calibrations[cam].T_ego_cam, float); Tci2 = np.linalg.inv(T2)
-                Xc2 = (Tci2[:3, :3] @ Xq.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
-                px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
-                py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
-                okq = (z2 > 0.5) & (px2 >= 2) & (px2 < ww2 - 2) & (py2 >= 2) & (py2 < hh2 - 2) & (egod > 5.0) & (egod < 28.0)
-                if not okq.any(): continue
-                blocked = np.zeros(NC, bool)
-                if fboxes: blocked[okq] = gseg_blocked(T2[:3, 3], Xq[okq], fboxes)
-                body_lo = np.array([-2.2, -1.6, -C[2] - 0.33]); body_hi = np.array([4.6, 1.6, -C[2] + 0.67])
-                cab_lo = np.array([-1.7, -1.6, -C[2] - 0.33]); cab_hi = np.array([1.0, 1.6, -0.35])
-                ego_boxes = [(C + (bn_ + bx_) / 2.0, bx_ - bn_, np.eye(3)) for bn_, bx_ in ((body_lo, body_hi), (cab_lo, cab_hi))]
-                selfocc = np.zeros(NC, bool); selfocc[okq] = gseg_blocked(T2[:3, 3], Xq[okq], ego_boxes)
-                visq = okq & ~blocked & ~selfocc
-                if not visq.any(): continue
-                if tsf not in _gc: _gc[tsf] = loader.load_synced_frame(tsf)
-                img2 = _gc[tsf].images[cam]
-                col = bilinear(img2, px2, py2) * np.exp(gains[ci2])[None, :]
-                lum = 0.299 * col[:, 0] + 0.587 * col[:, 1] + 0.114 * col[:, 2]
-                horiz = np.linalg.norm((Xcell_city - tf[None, :])[:, :2], axis=1)
-                graze = np.degrees(np.arctan2(np.maximum(tf[2] - Xcell_city[:, 2], 0.0), np.maximum(horiz, 1e-3)))
-                az = np.arctan2(tf[1] - Xcell_city[:, 1], tf[0] - Xcell_city[:, 0])
-                v = visq
-                ncount += v
-                graze_max = np.where(v & (graze > graze_max), graze, graze_max)
-                ssin += np.where(v, np.sin(az), 0.0); scos += np.where(v, np.cos(az), 0.0)
-                sl += np.where(v, lum, 0.0); sl2 += np.where(v, lum * lum, 0.0)
-        n = np.maximum(ncount, 1)
-        lum_std = np.sqrt(np.maximum(sl2 / n - (sl / n) ** 2, 0.0))
-        az_R = np.sqrt(ssin ** 2 + scos ** 2) / n
-        out = np.stack([cell_xy[:, 0], cell_xy[:, 1], rr, ncount.astype(np.float64),
-                        graze_max, 1.0 - az_R, lum_std], 1).astype(np.float32)
-        np.save(str(REMOTE_OUT / (run_name + "_bevaudit.npy")), out)
-        print("BEVAUDIT", run_name, "NC", NC, "cols=x,y,rr,ncount,graze_max,az_spread,lum_std")
-        cand_fis = []   # skip the normal per-pixel render loop
     for fi in cand_fis:
         tsf = int(all_ts[fi])
         fboxes = [(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, tsf, moving)]
@@ -1266,11 +1174,6 @@ def run_case(case_spec, run_name):
     _ns_count = np.maximum(haveg.sum(0), 1)
     spread = np.where(haveg, dist_s, 0.0).sum(0) / _ns_count
     spread[~anyg] = 1e9
-    if GROUND_MODE == "diag":   # DATA EVIDENCE of the blind spot: per cap pixel -> #valid sources + nearest-source distance
-        _nv = np.full(H * W, np.nan, np.float32); _nv[flat_g] = haveg.sum(0).astype(np.float32)
-        _eg = np.full(H * W, np.nan, np.float32); _eg[flat_g] = np.where(np.isfinite(score_g[0]), score_g[0], np.nan).astype(np.float32)
-        np.save(str(REMOTE_OUT / (run_name + "_diag_nvalid.npy")), _nv.reshape(H, W))
-        np.save(str(REMOTE_OUT / (run_name + "_diag_nearestegod.npy")), _eg.reshape(H, W))
     dist_s[~haveg] = np.inf
     pick = np.argmin(dist_s, axis=0)
     sel_px = colg[pick, np.arange(len(flat_g))]
@@ -1297,48 +1200,27 @@ def run_case(case_spec, run_name):
     _gm = anyg & (spread <= SPREAD_MAX)
     cflat[flat_g[_gm]] = np.clip(sel_px[_gm], 0, 255).astype(np.uint8)
     comp = cflat.reshape(H, W, 3)
-    # DB-99 nadir floor (replaces the NS-inpaint + heavy wv low-pass that produced the
-    # 白团 swirl): the abstain/empty cap cells get a STRUCTURELESS per-anchor truth-ring
-    # DC plate (reuse ref_med, the road tone just above the cap) — no invented low-freq
-    # structure => no swirl, no radial NS streak. The agreeing REAL cap pixels keep the
-    # SAME resolution-matched low-pass as before (kills grazing speckle). Honest:
-    # real where evidence agrees, flat-honest where it does not. No NS, no grain, no
-    # cross-anchor fusion. (Round-2 workflow DB-99; see agent/decision_briefs.md.)
+    # abstained (disagreeing) + genuinely-empty cap points -> smooth Navier-Stokes
+    # inpaint from the agreeing neighbourhood (NS, not Telea: Telea radial-streaks on
+    # the large near-nadir holes — exactly the artefact we are removing).
     resid_m = ((comp.astype(np.int32).sum(2) < 12) | (egoproj.reshape(H, W) & ~capg))
     resid_m[:H // 2] = False
-    resid_m &= ~fg_occ   # foreground-occluded handled separately (shadow), not as normal ground abstain
+    if resid_m.any():
+        comp = _cv.inpaint(comp, resid_m.astype(np.uint8) * 255, 8, _cv.INPAINT_NS)
+    # RESOLUTION-MATCHED RENDERING: the inner cap's only evidence is 4-6 deg grazing
+    # views whose ground sampling distance is decimeters-to-meters per ERP pixel;
+    # rendering that at full ERP frequency shows resampling swirl, not real texture.
+    # Low-pass the fill toward the nadir to the evidence's true optical resolution
+    # (row-weighted Gaussian pyramid blend, fill rows only) — invents nothing.
     fillzone = capg | resid_m
-    # truth-ring asphalt tone (per-anchor, view-dependent -> Fresnel-safe)
-    plate_rgb = locals().get('ref_med', None)
-    if plate_rgb is None:
-        _low = comp[H // 2:].reshape(-1, 3).astype(np.float32); _low = _low[_low.sum(1) >= 12]
-        plate_rgb = np.median(_low, axis=0) if len(_low) else np.float32([60, 60, 60])
-    plate_rgb = np.asarray(plate_rgb, np.float32)
-    _rows = np.arange(H, dtype=np.float32); _r0 = H * 0.55
-    _dark = 1.0 - 0.10 * np.clip((_rows - _r0) / max(H - _r0, 1.0), 0.0, 1.0)
-    if resid_m.any() and GROUND_MODE != "off":   # evidence-insufficient ground -> honest flat plate, gently pole-darkened
-        _rr = np.nonzero(resid_m)[0]
-        comp[resid_m] = np.clip(plate_rgb[None, :] * _dark[_rr][:, None], 0, 255).astype(np.uint8)
-    if fg_occ.any() and GROUND_MODE != "off":    # ground occluded by a near object -> honest SHADOW (not black hole, not fake road)
-        comp[fg_occ] = np.clip(plate_rgb * 0.55, 0, 255).astype(np.uint8)
-    real_cap = capg & ~resid_m
-    if real_cap.any():
+    if fillzone.any():
         comp_f = comp.astype(np.float32)
         b1_ = _cv.GaussianBlur(comp_f, (0, 0), 3)
         b2_ = _cv.GaussianBlur(comp_f, (0, 0), 9)
         wv_ = np.clip((np.arange(H, dtype=np.float32) - H * 0.55) / (H * 0.45), 0, 1) ** 1.5
         low_ = b1_ * (1 - wv_[:, None, None]) + b2_ * wv_[:, None, None]
         sm_ = comp_f * (1 - wv_[:, None, None]) + low_ * wv_[:, None, None]
-        comp[real_cap] = np.clip(sm_[real_cap], 0, 255).astype(np.uint8)
-    vismask = comp.copy()
-    vismask[fg_occ] = np.array([255, 0, 0], np.uint8)   # DB-101 debug: target-gated foreground (red)
-    # DB-101 MIDDLE-ONLY mode: do NOT outpaint the under-determined nadir cap; mask it honestly.
-    # The determinable scene band (incl. directly-seen near-ground) is untouched; only the unseen
-    # cap becomes a clean neutral abstain (standalone) + an explicit alpha mask (for Cosmos outpaint).
-    nadir_alpha = (_capfull.astype(np.uint8) * 255)
-    if GROUND_MODE == "mask":
-        comp[_capfull] = np.array([48, 48, 48], np.uint8)
-        vismask = comp.copy()
+        comp[fillzone] = np.clip(sm_[fillzone], 0, 255).astype(np.uint8)
     ground_stats = {"cap_px": int(capg.sum()), "filled_px": int(anyg.sum()),
                     "coverage_pct": round(float(anyg.mean() * 100), 1) if len(flat_g) else 0.0,
                     "residual_inpaint_px": int(resid_m.sum()),
@@ -1357,8 +1239,6 @@ def run_case(case_spec, run_name):
     emc = embase.reshape(H, W, 3)
     save_rgb(REMOTE_OUT / f"{run_name}_emc.png", emc)
     save_rgb(REMOTE_OUT / f"{run_name}_segcomposite.png", comp)
-    save_rgb(REMOTE_OUT / f"{run_name}_vismask.png", vismask)
-    save_rgb(REMOTE_OUT / f"{run_name}_nadirmask.png", np.dstack([nadir_alpha] * 3))
     from PIL import Image as I
     try: f = ImageFont.truetype("DejaVuSans.ttf", 16)
     except Exception: f = ImageFont.load_default()

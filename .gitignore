@@ -80,6 +80,8 @@ agent/plans/5.26 review 进程后的plan.md
 
 # Secrets — NEVER commit (defensive; see agent/README.md)
 secrets/
+# Route-2 watcher hardcodes an ephemeral per-session Colab tunnel token — never commit
+scripts/phase3/_route2_watch.py
 
 # Third-party reference source / papers (cached for research; NOT redistributable in this repo)
 NovelView.cpp

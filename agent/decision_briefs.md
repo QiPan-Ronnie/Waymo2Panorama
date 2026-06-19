@@ -10,6 +10,31 @@ DB-80..DB-93 + V2.1/V2.2 all completed and recorded in progress.md (milestone ta
 
 ---
 
+# DB-102: Metric-domain (BEV) ground reconstruction for the determinable annulus + honest mask on the blind core
+Status: ACTIVE (2026-06-19) — first-principles re-attack of ground outpainting post-Bosch (user "Musk-mode" goal). AUDIT-GATED.
+Question: does reconstructing the determinable near-ground (3-7 m, nvalid≈6) in the METRIC ground plane (a LOCAL BEV raster: best-view-per-cell, source-occlusion z-buffered, tone-normed) then resampling into the ERP cap BEAT the current PER-PIXEL ERP fill (speckle / flicker / pole-singularity) — while the truly-blind core (0-3 m near-pole-behind, nvalid 1-3 @ <4°) is honestly MASKED?
+First-principles why (question the DOMAIN):
+- The ground is a 2-D plane; ERP parametrizes the sphere of DIRECTIONS and is SINGULAR at nadir → one ERP cap pixel ↔ a hugely-stretched source sliver → bilinear amplifies asphalt/JPEG noise → speckle; and per-pixel argmin source pick (db89 L1206) makes neighbours draw DIFFERENT (frame,cam) sources → spatial incoherence + cross-anchor flicker. BOTH defects are artifacts of reconstructing in the WRONG domain.
+- The natural domain for a planar surface is a metric BEV raster: UNIFORM ground resolution (no pole singularity), ONE coherent fusion (no per-pixel jump), occlusion + tone handled ONCE, THEN a clean geometric warp to ERP at output only.
+- Evidence REOPENS it (vs the shelved DB-99a): this session's data correction showed the cap core/ring is nvalid≈6 @ ~9 m / 11° (NOT the 1-3 universal blind spot that shelved DB-99a) — only the near-pole-behind wedge is 1-3. So the determinable annulus is genuinely recoverable and BEV is the right tool for exactly it.
+Mechanism (reuse db89 STAGE-4 machinery — cte/cals/gseg_blocked/boxes_at/bilinear/LiDAR-height/displacement-bucket candidates; ZERO scene params):
+  1. Build a LOCAL BEV ground raster in city coords around the ego (~18 m × 18 m, 4 cm/px), cell centres lifted onto the LiDAR ground-height field (same cKDTree as L1058).
+  2. Per cell, over the same bucketed candidates × ring cams: project, apply the SAME gates (FOV, egod 5-28 m, moving-box occlusion, two-box ego self-occlusion) + a SOURCE-side LiDAR z-buffer (cell must be the first surface along the source ray → kills hood/object/mover leak = DB-101 defects 2,3). Keep the BEST view per cell (min egod / least grazing), tone-normed per source.
+  3. Resample: each ERP cap ray → its LiDAR-height ground point Xg_city → bilinear-sample the BEV raster → coherent, sharp-as-grazing-allows, NO per-pixel jump.
+  4. Evidence gate per cell: nvalid≥K & grazing≥θ & post-tone colour-MAD≤m → REAL; else ABSTAIN → blind core masked (DB-99 plate / alpha) for the downstream consumer.
+  5. Global truth-ring gain (unchanged, view-dependent → Fresnel-safe).
+Plan (AUDIT-GATED — measure before building, per [[feedback-isolate-input-variable]]):
+  - STEP 0 (NO-render audit, L4): GROUND_MODE='bevaudit' dumps per BEV cell {nvalid_after_occlusion, best_grazing_deg, azimuth_spread, tonenorm_colour_MAD, ring_radius_m} for 3 anchors (highway a260, bmw a047, crowd a045). Analyse the RADIAL profile. GATE: 3-7 m annulus nvalid≥4 & grazing≥~8° & low MAD → GO build the render; if the annulus is itself starved → determinable region smaller than believed → record + fall back to middle-only.
+  - STEP 1 (if GO): implement the BEV render branch; render the 3 anchors; A/B vs current db89 (speckle/coherence) and vs middle-only (coverage). Eyeball every image.
+Pro/con (adversarial, both sides):
+  + kills pole-singularity + per-pixel speckle + flicker BY CONSTRUCTION; gives Cosmos/standalone REAL near-ground instead of masking ~44%; the source z-buffer also kills smear/ghost/car-eaten (DB-101) for free; unifies BEV+visibility+abstain.
+  − misregistration on the 8.4% non-planar cap → double-image (mitigate: LiDAR-height cells + best-SINGLE-view not a mean + planarity/agreement gate); BEV adds compute (mitigate: LOCAL tile not whole-log); the 3-4 m ring may still be soft at grazing — honest physical resolution, acceptable IF coherent & non-flickering. If audit says annulus starved → BEV dead, honest fall back to mask (still a finding).
+Kill criteria: ZERO per-scene params (any scene-specific constant = fail). nvalid<4 across the annulus → BEV dead-on-arrival, ship middle-only mask + record. Double-image/ghost on curbs → cap confidence / best-single-view / abstain, never tune per scene.
+Required vision check (eyes>metrics, multi-scene): determinable annulus COHERENT (no speckle/jump/flicker), curbs+lane-lines SINGLE (no double-image), occlusion-correct (no car-eaten / hood-ghost / smear); blind core honestly masked, not fabricated.
+Output: code in scripts/phase3/db89_ghost_recovery.py (bevaudit + bev branches, LOCAL/uncommitted until validated); audit npy/json + panos in datasets/db102_bev/ on Drive; analysis + ledger in progress.md.
+
+---
+
 # DB-94: Xinhan centre-contract confirmation
 Status: queued - needs a meeting/message with Xinhan.
 Question: confirm the downstream Cosmos-style consumer uses point-cloud first frames whose centre = our ring-camera centroid at camera height (the DB-80 virtual centre), so panorama and point cloud are concentric.
@@ -81,6 +106,52 @@ Required vision check: scrub the re-rendered bmw video — no speckle, no black 
   - **No-spread-gate test** (LiDAR-height + SPREAD_MAX=1e9, raw real pixels) — the BLACK STREAKY WEDGES **RETURN**. ⇒ the spread-gate is STILL necessary even after LiDAR-height; ⇒ LiDAR-height is NOT the streak fix (it corrects geometry, but grazing sources still disagree at the ERP pole). Streaks = fundamental grazing+pole undersampling, INDEPENDENT of geometry correctness.
 - **CORRECTED FINAL UNDERSTANDING (2026-06-18):** the near-pole-behind nadir annulus (ground directly under/just-behind the car) is the rig's **PHYSICAL BLIND SPOT** — only ever seen at <4° grazing; steeper views are self-occluded by the ego body (verified by the backfire). At the ERP pole, tiny pose/calib error → huge sampling divergence → sources disagree → streaks. NOT a geometry bug (LiDAR-correct geometry still streaks), NOT fixable into sharp real texture (the information isn't captured at that resolution). Three renderings of that region, NONE is "sharp real": **(a)** no-gate = real pixels but black radial streaks (ERP-pole warp of low-res grazing data); **(b)** spread-gate = clean but soft/abstain-blob (CURRENT committed); **(c)** honest resolution-matched low-pass = real data shown at its true (low) resolution, soft-but-real, no blob/no streaks — **NOT YET implemented**. Committed db89 = LiDAR-height (geometry, helps curbs) + spread-gate (the actual streak remover); residual near-pole softness = the HONEST physical evidence limit, NOT makeup.
 - **OPEN DECISION (user, pending):** accept (b) current, or implement (c) honest resolution-matched render, BEFORE re-rendering all 4 scenes → `av2_ground_video_v2/`. User pushed back on softness twice; both softness-reduction directions (steeper-view, no-gate) are now exhausted-confirmed dead → softness is fundamental. DB-97's 3 other scenes are still finishing v1 on PRE-fix code (throwaway / old-artifact reference).
+- **→ SUPERSEDED by DB-99 (2026-06-18, 2-round 33-agent first-principles workflow):** the (b)/(c) binary is a FALSE dilemma. The 白团 is the `NS-inpaint (L1209) → wv^1.5 row-weighted low-pass (L1216-1223)` chain rendering invented low-freq structure — delete it and write a structureless truth-ring DC plate into the existing abstain mask; the residual VIDEO flicker is a scalar `gn_glob` tone-pulse fixed by a temporal median. ~60 lines CPU, no BEV map. See DB-99.
+
+---
+
+# DB-101: Visibility-consistent ground render — the ROOT fix (absorbs DB-99 plate + the z-buffer-gate idea)
+Status: ACTIVE — awaiting user's 3-way call (2026-06-19); full state in progress.md. TARGET-side footprint gate validated (box1 + crowd smear gone, zero params) but it is the "make the fabrication less bad" branch. MIDDLE-ONLY tested (GROUND_MODE="mask", db89 STAGE-4): skip ground outpaint, keep determinable scene band, neutral-grey + alpha mask the unseen cap → CLEAN + defect-free across 4 scenes (highway/crowd/bmw/clean, `agent/_db101_mask/`). KEY FINDING: STAGE-4 outpaints the WHOLE near-field (~bottom 44%, ground within ~7m), not just the blind cap → middle-only is clean but masks most of the near-ground. 3-WAY DECISION (gated on DB-94 mask-vs-fill): (A) ship middle-only [Cosmos-ideal], (B) keep STAGE-4 fill [defected], (C) visibility-consistent: fill determinable 3-7m + mask only blind 0-3m. db89 edits LOCAL (remote_py), NOT committed.
+Root-cause reframe after user-annotated highway/crowd video defects (near car eaten by the road; a duplicated bright "car-front"/ego-hood ghost on the road; crowd colored smear) + the nadir 白团. User directive: solve at the ALGORITHM root, scene-agnostic — NOT per-scene patches.
+Root cause: STAGE-4 ground fill has NO consistent multi-view visibility model. It samples candidate images along ground-plane/LiDAR-height rays with only PARTIAL occlusion gates (ego two-box + tracked-mover box). Every defect is one symptom of that:
+  (1) car-eaten-by-road = TARGET-ray visibility ignored (a nearer object sits on the ERP ray, but ground is painted anyway);
+  (2) duplicated car-front / bright ego-hood ghost = SOURCE-ray visibility ignored (the source ray first hits the ego hood / an occluder, but its pixel is sampled as ground);
+  (3) crowd colored smear = source-visibility + static/dynamic leak (a sign / parked car / untracked object sampled as ground);
+  (4) 白团 swirl = fabricating (NS-inpaint + heavy low-pass) where it should ABSTAIN.
+Principle (ONE rule, ZERO per-scene params): each ERP ray's color = the FIRST visible STATIC surface it hits, colored from sources that UN-OCCLUDEDLY observed that exact surface point; ABSTAIN (honest flat plate / mask) where no un-occluded source saw it.
+Mechanism (reuse db64 phase2 LiDAR z-buffer + object boxes + LiDAR ground height):
+  1. SOURCE-side visibility: accept a candidate sample only if the ground point X is the first LiDAR hit along that source ray (depth(X) ~= source LiDAR z-buffer at its projection). Kills hood/object/mover leak (defects 2,3).
+  2. TARGET-side visibility: if the ERP nadir ray hits nearer LiDAR geometry before the ground -> it is NOT ground -> do not paint cap, abstain. Keeps the scene-band object (defect 1).
+  3. STATIC/DYNAMIC separation: dynamic-object points (boxes) excluded from the static ground evidence (no ghost); dynamics live in their own layer.
+  4. EVIDENCE gate + ABSTAIN: no un-occluded source -> abstain -> honest flat plate (this is where the DB-99 plate lives); the spread/agreement gate stays as a secondary check.
+  5. NO-LiDAR degradation: occupancy from multi-frame/plane; uncertain -> abstain (degrade by abstaining, NEVER fabricate).
+Plan: implement source+target z-buffer visibility in db89 STAGE-4; emit a visibility/abstain mask sidecar for verification; render a few anchors across MULTIPLE scenes (highway w/ the car+ghost, crowd w/ smear, bmw, clean) on the L4; eyeball.
+Kill criteria: ZERO per-scene params (any scene-specific constant = fail). Defects 1-4 must vanish by the visibility RULE, not by tuning. If the LiDAR z-buffer is too sparse to occlusion-test (gaps) -> record the limit and abstain there (do not fabricate). If visibility-gating collapses coverage (huge abstain) -> that is an honest finding (region genuinely unobserved), report it, do not relax the gate to fake coverage.
+Required vision check (eyes>metrics, MULTI-scene, same logic no knobs): highway — white sedan no longer eaten + no duplicated car-front; crowd — circled smear gone; bmw/clean — nadir honest, no new artifact.
+Output: code in scripts/phase3/db89_ghost_recovery.py; masks + panos in datasets/db101_visibility/ on Drive.
+
+---
+
+# DB-99: Nadir "白团" — fix as a rendering bug + scalar temporal-median, NOT a BEV map (supersedes DB-98 (b)/(c))
+Status: ABSORBED into DB-101 (2026-06-18) — the structureless truth-ring plate is now DB-101's ABSTAIN renderer (step 4); the root cause turned out deeper (multi-view visibility), surfaced by user-annotated car-eaten/ghost defects. The db89 plate edit (L1203-1223) is already in place and stays as the abstain look. Original context below. (From a 2-round, 33-agent first-principles workflow: 5-lens converge → 15 adversarial verify; then 3 sub-problem solves + a strategic NO-GO on the heavy BEV map.)
+Question: is the DB-97 video's residual bottom-nadir 白团 swirl + per-frame flicker fixable cheaply (CPU, ~60 lines) WITHOUT any whole-log BEV map?
+Hypothesis (code-grounded): the swirl is NOT a physics wall and NOT the DB-98 (b)/(c) choice — it is the `NS-inpaint (L1209) → wv^1.5 row-weighted low-pass (L1216-1223)` chain painting invented low-freq structure. Replace that chain with a STRUCTURELESS per-anchor truth-ring DC plate (reuse `ref_med` @L1194, view-dependent → Fresnel-safe) written into the existing abstain mask (UNION: tier-2 spread>30 ∪ tier-3 ~anyg) → swirl gone by construction. The residual VIDEO flicker is a scalar `gn_glob` (@L1196) tone-pulse + per-pixel pick noise → fix with a 5-anchor 1D temporal MEDIAN on the scalar gain (+ OPTIONAL world-coord-seeded static asphalt grain: high-pass + line/curb-masked → physically cannot draw a lane line). The near-pole-behind blind spot stays physically unrecoverable — we make it HONEST (flat + grain + alpha/conf), not fake-sharp.
+Why now: DB-97 v1 exposed it; user reports some frames' ground painting is bad; the (b)/(c) binary is a false dilemma; the fix is ~60 lines CPU, falsifiable LOCALLY with zero GPU before any re-render.
+Plan:
+- STEP 0 (local CPU, no Colab): appearance prototype on exported `highway_085 / clean_069 / highway_041` — approximate fillzone + truth-ring from the final frame, composite DC-plate (and +grain), eyeball vs current; answer "does the bare plate already beat the 白团?".
+- STEP 1 (CPU edit, db89 STAGE-4): replace L1203-1223 with the nadir-grain-floor post-pass (DC plate on the UNION mask, pole-darken, feather the annulus boundary); MANDATORY 5-anchor temporal median on the scalar `gn_glob`; ALWAYS emit `alpha=0` nadir mask + float32 conf sidecar + 3-float pose JSON `{erp_centre_city, erp_yaw_ref, ground_z}`; OPTIONAL world-seeded static grain.
+- STEP 2 (Colab L4, same as DB-97): re-render bmw + highway (worst) ground videos → `deliverables/ground_video_v2/`; vision-scrub.
+- Parallel, non-blocking: send Xinhan the one DB-94 question (centre==C? soft-conf or binary mask?). If centre==C + soft conf → the nadir problem dissolves (ship plate+mask, let Cosmos outpaint).
+Expected evidence: swirl gone (plate REPLACES, not darkens); zero salient line/curb; same-scene different-anchor near-identical at the pole; `gn_glob` tone does not pulse across the window.
+Kill criteria: (a) bare DC plate does NOT beat the 白团 by eye → swirl wasn't the low-pass, re-diagnose; (b) plate reads as an obvious smooth disc even with grain+feather → the boundary (not the swirl) is the defect, reconsider; (c) any fabricated lane/curb appears → drop the grain, ship plate+mask only; (d) `gn_glob` median lags/ghosts on turns → shorten window. NO re-walk of K1–K5 (NS-as-fill / DiT / per-region gains / steeper-view / gate-removal); zero scene-params.
+Max scope: ~60 lines in ONE function; 2 worst scenes for the re-render; do NOT build the BEV map; do NOT tune per scene.
+Required vision check (eyes > metrics): bottom ~200 ERP rows on 085/mid/041 — swirl/白团/speckle/wedge gone, line-free, pole-stable; then scrub the re-rendered video.
+Output: prototype PNGs `agent/_vision_frames/_proto/`; code `scripts/phase3/db89_ghost_recovery.py`; video `deliverables/ground_video_v2/`.
+
+---
+
+# DB-99a: whole-log city-frame BEV ground-texture fusion (SHELVED)
+Status: icebox / shelved (2026-06-18). The round-1 convergent idea + round-2 P2 design (geometry-only BEV ledger, three-tier planarity gate, phase-correlation sub-cell align, Fresnel kept OUT of the buffer, +40-line no-render audit). Technically sound for TEMPORAL STABILITY + √N speckle denoise on the DETERMINABLE 20-28 m annulus — but the strategic challenge showed it does NOT touch the complained blind-spot pixels (physically unrecoverable), carries a systematic-curb double-image risk (dz→dx 11-19× at grazing on the 8.4% non-planar cap), and the Cosmos consumer regenerates the region. Revisit ONLY if DB-99 STEP 2 shows the determinable annulus itself visibly flickers after the cheap fix.
 
 ---
 
