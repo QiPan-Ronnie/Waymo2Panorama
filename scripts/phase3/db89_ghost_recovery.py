@@ -1185,6 +1185,92 @@ def run_case(case_spec, run_name):
         np.save(str(REMOTE_OUT / (run_name + "_bevaudit.npy")), out)
         print("BEVAUDIT", run_name, "NC", NC, "cols=x,y,rr,ncount,graze_max,az_spread,lum_std")
         cand_fis = []   # skip the normal per-pixel render loop
+    bev_sel_px = bev_spread = bev_anyg = None
+    if GROUND_MODE == "bev":
+        # ---- DB-102 metric-domain (BEV) ground reconstruction ----
+        # Fuse the determinable annulus on a UNIFORM metric raster (no ERP pole
+        # singularity, no per-pixel source jump) with the SAME gates, gate per-cell by
+        # source agreement, then RESAMPLE into the cap. Audit (STEP 0) found coverage is
+        # plentiful (nvalid 7-17) and the discriminator is AGREEMENT (lum_std: highway 2-3
+        # =recoverable, bmw near-nadir 50 =genuine blind). Coherent raster => speckle gone
+        # by construction; resampling makes the pole a smooth magnification, not noise.
+        HALF, CELL = 12.0, 0.06   # ~24 m tile covers the whole cap ground (cap ~0-10 m); 160k cells < 900k cap px
+        _bgx = np.arange(-HALF, HALF, CELL); BW = len(_bgx)
+        _BGX, _BGY = np.meshgrid(_bgx, _bgx)               # xy indexing: [row=y, col=x]
+        bev_xy = np.stack([_BGX.ravel(), _BGY.ravel()], 1).astype(np.float64)
+        bev_z = np.full(len(bev_xy), -0.33)
+        if len(_gpts) > 200:
+            from scipy.spatial import cKDTree as _CKD3
+            _tr3 = _CKD3(_gpts[:, :2]); _dd3, _ii3 = _tr3.query(bev_xy, k=1)
+            bev_z = np.where(_dd3 < 1.2, _gpts[_ii3, 2], -0.33)
+        Xb_city = (Ra @ np.concatenate([bev_xy, bev_z[:, None]], 1).T).T + ta
+        NB = len(bev_xy); NS2 = 6
+        bchosen = np.full((NS2, NB), -1, np.int64); bscore = np.full((NS2, NB), np.inf)
+        for fi in cand_fis:
+            tsf = int(all_ts[fi])
+            fboxes = [(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, tsf, moving)]
+            for ci2, cam in enumerate(ring_cams):
+                cts_ = cam_ts_arr[ci2]; Rf, tf = cte(int(cts_[np.argmin(np.abs(cts_ - tsf))]))
+                egod = np.linalg.norm(Xb_city - tf[None, :], axis=1)
+                Xq = (Xb_city - tf[None, :]) @ Rf
+                K2, (hh2, ww2) = cals[ci2]; T2 = np.asarray(frame.calibrations[cam].T_ego_cam, float); Tci2 = np.linalg.inv(T2)
+                Xc2 = (Tci2[:3, :3] @ Xq.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
+                px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
+                py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
+                okq = (z2 > 0.5) & (px2 >= 2) & (px2 < ww2 - 2) & (py2 >= 2) & (py2 < hh2 - 2) & (egod > 5.0) & (egod < 28.0)
+                if not okq.any(): continue
+                blocked = np.zeros(NB, bool)
+                if fboxes: blocked[okq] = gseg_blocked(T2[:3, 3], Xq[okq], fboxes)
+                body_lo = np.array([-2.2, -1.6, -C[2] - 0.33]); body_hi = np.array([4.6, 1.6, -C[2] + 0.67])
+                cab_lo = np.array([-1.7, -1.6, -C[2] - 0.33]); cab_hi = np.array([1.0, 1.6, -0.35])
+                ego_boxes = [(C + (bn_ + bx_) / 2.0, bx_ - bn_, np.eye(3)) for bn_, bx_ in ((body_lo, body_hi), (cab_lo, cab_hi))]
+                selfocc = np.zeros(NB, bool); selfocc[okq] = gseg_blocked(T2[:3, 3], Xq[okq], ego_boxes)
+                visq = okq & ~blocked & ~selfocc
+                if not visq.any(): continue
+                code_b = fi * 10 + ci2; sc = egod.copy(); rem = visq.copy()
+                for s_ in range(NS2):
+                    better = rem & (sc < bscore[s_])
+                    if not better.any(): continue
+                    for t_ in range(NS2 - 1, s_, -1):
+                        bchosen[t_][better] = bchosen[t_ - 1][better]; bscore[t_][better] = bscore[t_ - 1][better]
+                    bchosen[s_][better] = code_b; bscore[s_][better] = sc[better]; rem = rem & ~better
+        bcol = np.full((NS2, NB, 3), np.nan, np.float32); _bc = {}
+        for slot in range(NS2):
+            for code in np.unique(bchosen[slot][bchosen[slot] >= 0]):
+                fi, ci2 = int(code) // 10, int(code) % 10; sel = bchosen[slot] == code; tsf = int(all_ts[fi])
+                if tsf not in _bc: _bc[tsf] = loader.load_synced_frame(tsf)
+                fr2 = _bc[tsf]; Rf, tf = cte(int(fr2.timestamps_ns[ring_cams[ci2]]))
+                Xq = (Xb_city[sel] - tf[None, :]) @ Rf
+                K2, _s2 = cals[ci2]; T2 = np.asarray(frame.calibrations[ring_cams[ci2]].T_ego_cam, float); Tci2 = np.linalg.inv(T2)
+                Xc2 = (Tci2[:3, :3] @ Xq.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
+                px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
+                py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
+                bcol[slot][sel] = np.clip(bilinear(fr2.images[ring_cams[ci2]], px2, py2) * np.exp(gains[ci2])[None, :], 0, 255).astype(np.float32)
+        bhave = ~np.isnan(bcol[:, :, 0]); bany = bhave.any(0)
+        bmed = np.nanmedian(bcol, axis=0); bd = np.abs(bcol - bmed[None]).sum(2)
+        _bn = np.maximum(bhave.sum(0), 1); bspread_c = np.where(bhave, bd, 0.0).sum(0) / _bn; bspread_c[~bany] = 1e9
+        bd[~bhave] = np.inf; bpick = np.argmin(bd, axis=0); bev_rgb = bcol[bpick, np.arange(NB)]
+        bev_rgb = np.where(np.isnan(bev_rgb), 0.0, bev_rgb).astype(np.float32)
+        # RESAMPLE the BEV raster into the cap (flat_g) — bilinear colour on the ego grid,
+        # nearest agreement/coverage (1e9 must not bleed). col=x, row=y (xy meshgrid).
+        col_f = (Xg[:, 0] + HALF) / CELL; row_f = (Xg[:, 1] + HALF) / CELL
+        i0 = np.clip(np.floor(col_f).astype(int), 0, BW - 2); j0 = np.clip(np.floor(row_f).astype(int), 0, BW - 2)
+        fa = np.clip(col_f - i0, 0, 1)[:, None]; fb = np.clip(row_f - j0, 0, 1)[:, None]
+        R3 = bev_rgb.reshape(BW, BW, 3)
+        bev_sel_px = (R3[j0, i0] * (1 - fa) * (1 - fb) + R3[j0, i0 + 1] * fa * (1 - fb)
+                      + R3[j0 + 1, i0] * (1 - fa) * fb + R3[j0 + 1, i0 + 1] * fa * fb)
+        ic = np.clip(np.round(col_f).astype(int), 0, BW - 1); jr = np.clip(np.round(row_f).astype(int), 0, BW - 1)
+        bev_spread = bspread_c.reshape(BW, BW)[jr, ic]
+        bev_anyg = bany.reshape(BW, BW)[jr, ic] & (np.linalg.norm(Xg[:, :2], axis=1) <= HALF - CELL)
+        _rad = np.linalg.norm(Xg[:, :2], axis=1)   # DB-102 diag: coverage/agreement by cap-pixel radius
+        for _lo, _hi in [(0, 1), (1, 3), (3, 5), (5, 7), (7, 9), (9, 12), (12, 99)]:
+            _mm = (_rad >= _lo) & (_rad < _hi)
+            if _mm.any():
+                print("BEVDIAG r%d-%d npx=%d anyg=%.2f spread_ok=%.2f rendered=%.2f" % (
+                    _lo, _hi, int(_mm.sum()), float(bev_anyg[_mm].mean()),
+                    float((bev_spread[_mm] <= 30).mean()),
+                    float((bev_anyg[_mm] & (bev_spread[_mm] <= 30)).mean())), flush=True)
+        cand_fis = []   # the per-pixel loop no-ops; bev_* override the pick below
     for fi in cand_fis:
         tsf = int(all_ts[fi])
         fboxes = [(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, tsf, moving)]
@@ -1274,6 +1360,8 @@ def run_case(case_spec, run_name):
     dist_s[~haveg] = np.inf
     pick = np.argmin(dist_s, axis=0)
     sel_px = colg[pick, np.arange(len(flat_g))]
+    if GROUND_MODE == "bev" and bev_sel_px is not None:   # DB-102: metric-fused cap overrides the per-pixel pick
+        anyg = bev_anyg; spread = bev_spread; sel_px = bev_sel_px.astype(np.float32)
     # GLOBAL cast correction to the anchor truth ring: the inner cap is only ever
     # visible at 4-6 deg grazing (front-pod rig blocks all steeper views), where
     # asphalt specularly reflects the SKY — sunny scene -> blue-lavender cast that
