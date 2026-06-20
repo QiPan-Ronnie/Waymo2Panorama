@@ -1,5 +1,9 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-19 ■ SESSION CLOSE — handoff to a new thinking-leader agent
+> This session (DB-99→104) is recorded in the entries below. Net: **DB-102 BEV ground reconstruction** (validated, opt-in `GROUND_MODE='bev'`, removes the ground defects by metric-domain reprojection) + **DB-103 scene-band seam fix** (SHIPPED, `SEAM_FLOWMORPH` default ON, dense-flow on near-object seams) + **DB-104 robustness** (the close-car residual is exhaustively isolated to the perspective PHYSICAL limit; flow escalation is the robust handling). Original Fable-5 core BACKED UP at `scripts/phase3/_baseline_fable5/` (pristine). `decision_briefs.md` cleaned to a short live queue (DB-94 Xinhan contract / DB-95 Waymo generality / DB-96 icebox; everything done archived as one-liners). **Deliverables RULE (user): results go in `deliverables/`, NOT `agent/` (agent/ = working/evidence scratch).** The seam-fix deliverable = `deliverables/route2_middle_v1/highway_seamfixed.mp4` (+ `deliverables/db103_seamfix/` result boards).
+> ---
+
 > ### 2026-06-19 ◆ DB-104 ROBUST STITCHING — user "make the stitcher robust, Fable-5 left gaps" + "would SAM help?"; exhaustively isolated the close-car residual
 > **User looked at `highway_seamfixed.mp4`, circled the silver car's FRONT (still a slight distortion), asked: is it the YOLO mask? would SAM be better?** Investigated end-to-end.
 > **Raw-frame proof (`agent/_db103/rawframes/`):** at this position the two seam cameras see DIFFERENT parts of the close car — `ring_front_left` = the car's FRONT, `ring_side_left` = the car's REAR; the overlap (car middle) is seen from front-quarter vs rear-quarter = huge perspective disparity. So the original frames are GENUINELY un-stitchable to perfection here — physics, not a bug.
