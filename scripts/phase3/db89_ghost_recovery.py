@@ -51,6 +51,7 @@ import numpy as np
 REMOTE_OUT = pathlib.Path("__REMOTE_OUT__"); REMOTE_RESULT = pathlib.Path("__RESULT__")
 GROUND_MODE = "fill"   # "fill"=STAGE-4 nadir reconstruction; "off"=middle-only base stitch (skip ground outpaint entirely -> BLACK nadir, like the Fable-5 board). ("mask" gray branch is deprecated/dead.)
 SEAM_OBJDEPTH = False   # DB-103 isolation test (default OFF, never ships): force close-object ERP regions to their box depth before scene-band reproject, to isolate the near-car seam-shear cause (depth-field smoothing vs occlusion). Does NOT touch the Fable-5 core when False.
+SEAM_FLOWMORPH = False  # DB-103 candidate fix (default OFF): when the view-morph ECC-AFFINE residual is large (close-object depth-varying parallax), replace the affine displacement with dense optical flow INSIDE the object body. Gated on max_reg_px so it never touches the well-registered seams. Off = pure Fable-5 core.
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
@@ -947,6 +948,18 @@ def run_case(case_spec, run_name):
                              np.arange(body_p.shape[1], dtype=np.float32), indexing="ij")
         dx = M[0, 0] * xx + M[0, 1] * yy + M[0, 2] - xx
         dy = M[1, 0] * xx + M[1, 1] * yy + M[1, 2] - yy
+        if SEAM_FLOWMORPH and (mask_ecc > 0).any() and float(np.hypot(dx, dy)[mask_ecc > 0].max()) > 8.0:
+            # DB-103: a CLOSE straddling object's parallax is depth-varying (non-affine);
+            # the single ECC-affine shears it. Inside the OBJECT body (where both cameras
+            # see the SAME surface in the overlap), use dense optical flow (A->B) instead
+            # of the affine displacement. Gated on the affine residual so well-registered
+            # seams are untouched; flow only overrides where it is sane (magnitude-clamped).
+            _gA8 = (np.clip(gA, 0, 1) * 255).astype(np.uint8)
+            _gB8 = (np.clip(gB, 0, 1) * 255).astype(np.uint8)
+            _fl = _cv.calcOpticalFlowFarneback(_gA8, _gB8, None, 0.5, 4, 25, 5, 7, 1.5, 0)
+            _use = (body_p & A_val & B_val) & (np.hypot(_fl[:, :, 0], _fl[:, :, 1]) < 80.0)
+            dx = np.where(_use, _fl[:, :, 0], dx).astype(np.float32)
+            dy = np.where(_use, _fl[:, :, 1], dy).astype(np.float32)
         al = np.broadcast_to(alpha_col[None, :], body_p.shape).astype(np.float32)
         A_w = _cv.remap(A_patch, xx + al * dx, yy + al * dy, _cv.INTER_LINEAR, borderMode=_cv.BORDER_REPLICATE)
         B_w = _cv.remap(B_patch, xx - (1 - al) * dx, yy - (1 - al) * dy, _cv.INTER_LINEAR, borderMode=_cv.BORDER_REPLICATE)
