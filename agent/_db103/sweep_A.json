@@ -1,0 +1,50 @@
+[
+ {
+  "scene": "highway",
+  "a": 240,
+  "worst_max_reg_px": 0.88,
+  "seam": "side_left/front_left",
+  "n_bad_seams": 0,
+  "state": "done"
+ },
+ {
+  "scene": "highway",
+  "a": 280,
+  "worst_max_reg_px": 0.0,
+  "seam": "",
+  "n_bad_seams": 0,
+  "state": "done"
+ },
+ {
+  "scene": "highway",
+  "a": 316,
+  "worst_max_reg_px": 0.0,
+  "seam": "",
+  "n_bad_seams": 0,
+  "state": "done"
+ },
+ {
+  "scene": "bmw",
+  "a": 15,
+  "worst_max_reg_px": 0.0,
+  "seam": "",
+  "n_bad_seams": 0,
+  "state": "done"
+ },
+ {
+  "scene": "bmw",
+  "a": 50,
+  "worst_max_reg_px": 0.0,
+  "seam": "",
+  "n_bad_seams": 0,
+  "state": "done"
+ },
+ {
+  "scene": "bmw",
+  "a": 85,
+  "worst_max_reg_px": 0.95,
+  "seam": "front_center/front_right",
+  "n_bad_seams": 0,
+  "state": "done"
+ }
+]
