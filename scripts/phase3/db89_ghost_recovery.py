@@ -50,6 +50,7 @@ import numpy as np
 
 REMOTE_OUT = pathlib.Path("__REMOTE_OUT__"); REMOTE_RESULT = pathlib.Path("__RESULT__")
 GROUND_MODE = "fill"   # "fill"=STAGE-4 nadir reconstruction; "off"=middle-only base stitch (skip ground outpaint entirely -> BLACK nadir, like the Fable-5 board). ("mask" gray branch is deprecated/dead.)
+SEAM_OBJDEPTH = False   # DB-103 isolation test (default OFF, never ships): force close-object ERP regions to their box depth before scene-band reproject, to isolate the near-car seam-shear cause (depth-field smoothing vs occlusion). Does NOT touch the Fable-5 core when False.
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
@@ -344,6 +345,18 @@ def run_case(case_spec, run_name):
     else:
         gains = solve_gains_for(frame, ring_cams, lidar, C)
         Zd, Zsupport = depth_field(lidar, C)
+    if SEAM_OBJDEPTH and ann is not None and "track_uuid" in ann.columns:
+        # DB-103 isolation test: force CLOSE-object ERP regions to the object's OWN box
+        # depth (not the smoothed depth field) BEFORE the scene-band reprojection, to test
+        # whether the near-car seam shear (front_left/side_left max_reg_px=32) comes from
+        # depth_field smoothing the car's depth at the car/background discontinuity.
+        _au = set(ann["track_uuid"].unique()); _nov = 0
+        for _bc, _bsz, _bR in boxes_at(ann, ts, _au):
+            if np.linalg.norm(_bc - C) > 12.0: continue
+            _reg, _dent = ray_obb_region(_bc, _bsz, _bR, C, pad=1.0)
+            if len(_reg):
+                Zd.reshape(-1)[_reg] = _dent.astype(np.float32); _nov += len(_reg)
+        print("SEAM_OBJDEPTH overrode", _nov, "ERP px with object-box depth", flush=True)
     poses_emc = []
     for cam in ring_cams:
         T = np.asarray(frame.calibrations[cam].T_ego_cam, float)
