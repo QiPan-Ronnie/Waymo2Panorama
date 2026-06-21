@@ -1,0 +1,107 @@
+{
+ "step": "db105_diag_a309_highway",
+ "n_anchors": 319,
+ "anchor_idx": 309,
+ "C_ego": [
+  1.362,
+  0.001,
+  1.384
+ ],
+ "ring_cams": [
+  "ring_front_center",
+  "ring_front_left",
+  "ring_side_left",
+  "ring_rear_left",
+  "ring_rear_right",
+  "ring_side_right",
+  "ring_front_right"
+ ],
+ "nearest_moving": [
+  {
+   "dist": 4.18,
+   "az": 104.2,
+   "cat": "REGULAR_VEHICLE"
+  },
+  {
+   "dist": 12.65,
+   "az": 158.7,
+   "cat": "REGULAR_VEHICLE"
+  },
+  {
+   "dist": 15.51,
+   "az": -82.1,
+   "cat": "REGULAR_VEHICLE"
+  },
+  {
+   "dist": 17.22,
+   "az": -62.6,
+   "cat": "REGULAR_VEHICLE"
+  },
+  {
+   "dist": 18.06,
+   "az": 52.1,
+   "cat": "REGULAR_VEHICLE"
+  },
+  {
+   "dist": 18.7,
+   "az": -99.8,
+   "cat": "REGULAR_VEHICLE"
+  },
+  {
+   "dist": 19.93,
+   "az": -7.5,
+   "cat": "VEHICULAR_TRAILER"
+  },
+  {
+   "dist": 20.19,
+   "az": -49.8,
+   "cat": "REGULAR_VEHICLE"
+  },
+  {
+   "dist": 21.99,
+   "az": -102.8,
+   "cat": "REGULAR_VEHICLE"
+  },
+  {
+   "dist": 22.69,
+   "az": 120.8,
+   "cat": "CONSTRUCTION_BARREL"
+  }
+ ],
+ "picked": {
+  "dist": 4.18,
+  "az": 104.2,
+  "cat": "REGULAR_VEHICLE",
+  "size_lwh": [
+   4.53,
+   1.74,
+   1.44
+  ]
+ },
+ "n_sweep_pts": 81517,
+ "n_car_pts": 1742,
+ "car_pts_visible_per_cam": {
+  "ring_front_center": 0,
+  "ring_front_left": 149,
+  "ring_side_left": 1610,
+  "ring_rear_left": 111,
+  "ring_rear_right": 0,
+  "ring_side_right": 0,
+  "ring_front_right": 0
+ },
+ "seam_pair_top2": [
+  [
+   "ring_side_left",
+   1610
+  ],
+  [
+   "ring_front_left",
+   149
+  ]
+ ],
+ "carpts_az_range_deg": [
+  64.4,
+  133.8
+ ],
+ "ok": true
+}

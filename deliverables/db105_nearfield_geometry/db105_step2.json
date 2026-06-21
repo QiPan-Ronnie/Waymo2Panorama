@@ -1,0 +1,11 @@
+{
+ "step": "db105_step2_erp_singlesource",
+ "n_car_pts": 1742,
+ "patch_wh": [
+  423,
+  138
+ ],
+ "ring_side_left_splat_n": 1610,
+ "ring_front_left_splat_n": 149,
+ "ok": true
+}
