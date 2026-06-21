@@ -1,0 +1,10 @@
+{
+ "step": "db105_step3_dense_singlesource",
+ "n_vpts": 1610,
+ "patch_wh": [
+  353,
+  126
+ ],
+ "filled_frac": 0.254,
+ "ok": true
+}
