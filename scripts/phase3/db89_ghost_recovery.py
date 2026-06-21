@@ -53,6 +53,7 @@ GROUND_MODE = "fill"   # "fill"=STAGE-4 nadir reconstruction; "off"=middle-only 
 SEAM_OBJDEPTH = False   # DB-103 isolation test (default OFF, never ships): force close-object ERP regions to their box depth before scene-band reproject, to isolate the near-car seam-shear cause (depth-field smoothing vs occlusion). Does NOT touch the Fable-5 core when False.
 SEAM_MASK_FILL = False  # DB-104 robust mask (default OFF, gated): fill ENCLOSED holes (windows) in each YOLO object mask via binary_fill_holes (NOT dilation -> cannot inflate the boundary or merge instances, so it does NOT reintroduce the v7 giant-instance bug). A complete object body also gives the flow-morph more registration signal. Off = pure Fable-5 mask.
 SEAM_FLOWMORPH = True   # DB-103 fix (SHIPPED 2026-06-19, validated: a309 shear gone 32->8.6px, crowd a50 helped, clean seams byte-identical, 6-frame temporal stable): when the view-morph ECC-AFFINE residual is large (close-object depth-varying parallax), replace the affine displacement with dense Farneback optical flow INSIDE the object body. GATED on max_reg_px>8 -> fires ONLY on the rare near-object-break seams, never touches the well-registered ones (clean frames byte-identical). Pristine core in _baseline_fable5/. Set False to revert to pure affine.
+SEAM_SINGLE_SOURCE = False  # DB-105 (diagnostic-validated on a309): when c_own sees the object COMPLETE and a secondary contributes only a small grazing sliver (mask << c_own area), DROP the secondary body-fill + SKIP the view-morph -> pure single-source. The near-car seam's CAUSE is the morph FUSING a complete car (side_left 1610 LiDAR pts) with a 149-pt grazing sliver (front_left). Gated, default OFF; pristine core in _baseline_fable5/.
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
@@ -481,15 +482,21 @@ def run_case(case_spec, run_name):
             cvec = tc - C
             along = float(dvec @ cvec)
             neg_bperp = -math.sqrt(max(float(cvec @ cvec) - along * along, 0.0))
-            key = (1 if complete else 0, neg_bperp)
-            if best is None or key > best[0]:
-                best = (key, ci, m, dist)
+            # DB-105: completeness ("mask not touching the image border") MISFIRES on a very
+            # close object — a grazing SLIVER sits fully inside the frame (=complete) while the
+            # camera that sees the WHOLE car has it touching the border (=incomplete). So under
+            # SEAM_SINGLE_SOURCE, rank by VISIBLE MASK AREA first (the camera that sees the object
+            # MOST), completeness as tiebreak. Default path unchanged.
+            rank = (int(m.sum()), 1 if complete else 0, neg_bperp) if SEAM_SINGLE_SOURCE else (1 if complete else 0, neg_bperp)
+            if best is None or rank > best[0]:
+                best = (rank, ci, m, dist, complete, int(m.sum()))
         if best is None:
             n_unmatched += 1
             continue
         n_handled += 1
         objects.append({"ci": best[1], "mask": best[2], "dist": best[3],
-                        "per_cam_mask": dict(per_cam_mask)})
+                        "per_cam_mask": dict(per_cam_mask),
+                        "complete": bool(best[4]), "own_area": int(best[5])})
     # ---- composite ----
     # base EMC render with per-pixel chosen-cam + projections retained
     X = C[None, None, :] + Zd[:, :, None].astype(np.float64) * DIRS
@@ -716,7 +723,11 @@ def run_case(case_spec, run_name):
         # true dark background INSIDE the car) — interior holes fall back to RULE 2/EMC.
         ghost_zone &= ~close_region(obj_body)
         if best_sec is not None and best_sec[0] >= 50:
-            morph_jobs.append((ci, best_sec[1], ob["dist"], best_sec[2], best_sec[3], obj_body))
+            sec_area = int(ob["per_cam_mask"].get(best_sec[1], (np.zeros((1, 1), bool),))[0].sum())
+            if SEAM_SINGLE_SOURCE and sec_area < 0.4 * max(ob.get("own_area", 1), 1):
+                pass   # DB-105: secondary is a grazing sliver -> KEEP its disocclusion fill (the leading edge c_own genuinely can't see) but SKIP the morph. Fusing a complete c_own body with a sliver IS the shear; no fusion -> no shear, and the sliver still patches the few px c_own lacks.
+            else:
+                morph_jobs.append((ci, best_sec[1], ob["dist"], best_sec[2], best_sec[3], obj_body))
     # assemble image
     out = np.zeros((len(Xf), 3), np.uint8)
     for ci, cam in enumerate(ring_cams):
