@@ -463,7 +463,8 @@ def run_case(case_spec, run_name):
     objects = []
     for oidx, meta in enumerate(obj_meta):
         per_cam_mask = {}   # IMAGE evidence per camera (label-position-independent)
-        best = None   # ((complete, neg_bperp), ci, mask, dist)
+        best = None   # (key, ci, mask, dist, complete, area)
+        cands_ci = []   # (ci, m, dist, complete, area) — for the DB-105 dominant-coverage flip
         for ci in sorted(meta["per_cam_pose"]):
             k = assign.get((oidx, ci))
             if k is None: continue
@@ -482,14 +483,20 @@ def run_case(case_spec, run_name):
             cvec = tc - C
             along = float(dvec @ cvec)
             neg_bperp = -math.sqrt(max(float(cvec @ cvec) - along * along, 0.0))
-            # DB-105: completeness ("mask not touching the image border") MISFIRES on a very
-            # close object — a grazing SLIVER sits fully inside the frame (=complete) while the
-            # camera that sees the WHOLE car has it touching the border (=incomplete). So under
-            # SEAM_SINGLE_SOURCE, rank by VISIBLE MASK AREA first (the camera that sees the object
-            # MOST), completeness as tiebreak. Default path unchanged.
-            rank = (int(m.sum()), 1 if complete else 0, neg_bperp) if SEAM_SINGLE_SOURCE else (1 if complete else 0, neg_bperp)
-            if best is None or rank > best[0]:
-                best = (rank, ci, m, dist, complete, int(m.sum()))
+            area_ci = int(m.sum())
+            cands_ci.append((ci, m, dist, complete, area_ci))
+            key = (1 if complete else 0, neg_bperp)
+            if best is None or key > best[0]:
+                best = (key, ci, m, dist, complete, area_ci)
+        # DB-105: dominant-coverage flip — completeness mis-ranks a VERY close object (the grazing
+        # SLIVER is "complete"; the whole-object camera is "incomplete"). If ONE camera sees the
+        # object MUCH more than the completeness-winner (>2.5x mask area), it is the true single-
+        # source owner -> flip c_own to it. Fires ONLY on a real dominant (a309 side_left ~10.8x);
+        # a genuinely cross-camera object (crowd RAM, comparable areas) is UNCHANGED -> still morphs.
+        if SEAM_SINGLE_SOURCE and best is not None and cands_ci:
+            dom = max(cands_ci, key=lambda t: t[4])
+            if dom[0] != best[1] and dom[4] > 2.5 * max(best[5], 1):
+                best = ((1 if dom[3] else 0, 0.0), dom[0], dom[1], dom[2], dom[3], dom[4])
         if best is None:
             n_unmatched += 1
             continue
