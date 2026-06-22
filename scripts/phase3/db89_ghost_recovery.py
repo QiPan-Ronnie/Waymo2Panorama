@@ -1240,8 +1240,8 @@ def run_case(case_spec, run_name):
         print("BEVAUDIT", run_name, "NC", NC, "cols=x,y,rr,ncount,graze_max,az_spread,lum_std")
         cand_fis = []   # skip the normal per-pixel render loop
     bev_sel_px = bev_spread = bev_anyg = None
-    if GROUND_MODE == "bev":
-        # ---- DB-102 metric-domain (BEV) ground reconstruction ----
+    if GROUND_MODE in ("bev", "bevdirect"):
+        # ---- DB-102 metric-domain (BEV) ground reconstruction (bevdirect = DB-107: same metric selection, DIRECT ERP sampling) ----
         # Fuse the determinable annulus on a UNIFORM metric raster (no ERP pole
         # singularity, no per-pixel source jump) with the SAME gates, gate per-cell by
         # source agreement, then RESAMPLE into the cap. Audit (STEP 0) found coverage is
@@ -1316,6 +1316,27 @@ def run_case(case_spec, run_name):
         ic = np.clip(np.round(col_f).astype(int), 0, BW - 1); jr = np.clip(np.round(row_f).astype(int), 0, BW - 1)
         bev_spread = bspread_c.reshape(BW, BW)[jr, ic]
         bev_anyg = bany.reshape(BW, BW)[jr, ic] & (np.linalg.norm(Xg[:, :2], axis=1) <= HALF - CELL)
+        if GROUND_MODE == "bevdirect":
+            # DB-107: keep bev's METRIC-CONSISTENT source choice (bchosen) but render by DIRECT ERP
+            # sampling of that source per cap pixel — no raster round-trip. Kills fill's per-pixel
+            # radial (neighbour cap pixels share a metric cell -> same source) AND bev's softness
+            # (no source->raster->ERP double resample). Agreement gate reused from the raster.
+            _icd = np.clip(np.round((Xg[:, 0] + HALF) / CELL).astype(int), 0, BW - 1)
+            _jrd = np.clip(np.round((Xg[:, 1] + HALF) / CELL).astype(int), 0, BW - 1)
+            cap_code = bchosen[0].reshape(BW, BW)[_jrd, _icd]
+            cap_col = np.full((len(flat_g), 3), np.nan, np.float32); _bdc = {}
+            for code in np.unique(cap_code[cap_code >= 0]):
+                fi_, ci2_ = int(code) // 10, int(code) % 10; sel_ = cap_code == code; tsf_ = int(all_ts[fi_])
+                if tsf_ not in _bdc: _bdc[tsf_] = loader.load_synced_frame(tsf_)
+                fr2_ = _bdc[tsf_]; Rf_, tf_ = cte(int(fr2_.timestamps_ns[ring_cams[ci2_]]))
+                Xq_ = (Xg_city[sel_] - tf_[None, :]) @ Rf_
+                K2_, _s_ = cals[ci2_]; T2_ = np.asarray(frame.calibrations[ring_cams[ci2_]].T_ego_cam, float); Tci2_ = np.linalg.inv(T2_)
+                Xc2_ = (Tci2_[:3, :3] @ Xq_.T).T + Tci2_[:3, 3]; z2_ = Xc2_[:, 2]
+                px2_ = K2_[0, 0] * Xc2_[:, 0] / np.maximum(z2_, 1e-6) + K2_[0, 2]; py2_ = K2_[1, 1] * Xc2_[:, 1] / np.maximum(z2_, 1e-6) + K2_[1, 2]
+                cap_col[sel_] = np.clip(bilinear(fr2_.images[ring_cams[ci2_]], px2_, py2_) * np.exp(gains[ci2_])[None, :], 0, 255).astype(np.float32)
+            bev_sel_px = np.where(np.isnan(cap_col), 0.0, cap_col).astype(np.float32)
+            bev_anyg = (cap_code >= 0) & (np.linalg.norm(Xg[:, :2], axis=1) <= HALF - CELL)
+            bev_spread = bspread_c.reshape(BW, BW)[_jrd, _icd]
         _rad = np.linalg.norm(Xg[:, :2], axis=1)   # DB-102 diag: coverage/agreement by cap-pixel radius
         for _lo, _hi in [(0, 1), (1, 3), (3, 5), (5, 7), (7, 9), (9, 12), (12, 99)]:
             _mm = (_rad >= _lo) & (_rad < _hi)
@@ -1414,7 +1435,7 @@ def run_case(case_spec, run_name):
     dist_s[~haveg] = np.inf
     pick = np.argmin(dist_s, axis=0)
     sel_px = colg[pick, np.arange(len(flat_g))]
-    if GROUND_MODE == "bev" and bev_sel_px is not None:   # DB-102: metric-fused cap overrides the per-pixel pick
+    if GROUND_MODE in ("bev", "bevdirect") and bev_sel_px is not None:   # DB-102/107: metric-fused cap overrides the per-pixel pick
         anyg = bev_anyg; spread = bev_spread; sel_px = bev_sel_px.astype(np.float32)
     # GLOBAL cast correction to the anchor truth ring: the inner cap is only ever
     # visible at 4-6 deg grazing (front-pod rig blocks all steeper views), where
