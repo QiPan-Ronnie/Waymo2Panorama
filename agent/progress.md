@@ -1,5 +1,10 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-21 ◆ DB-105 single-source REGRESSION — clean a30 BYTE-IDENTICAL (SS is surgical + zero side-effect)
+> **clean a30 (no dominant near-object) SS=False vs SS=True: PIXEL DIFF mean=0.0000, max=0, n_diff_px=0 / 2,097,152 — BYTE-IDENTICAL** (morph reports also identical: front_center/front_left 0.88 @ ecc 0.944 both). ⇒ the dominant-coverage flip does NOT misfire when there is no single-cam-dominant near-object; the single-source path is ZERO side-effect off-target. Combined with a309 (FIXED 8.64 -> gone) + crowd a50 (NO degradation, ecc restored 0.913): **SEAM_SINGLE_SOURCE is SURGICAL + SAFE** — fixes single-cam-dominant near-objects, leaves everything else byte-identical. Strong enough to consider DEFAULT-ON (pending bmw/downtown visual confirm + user OK, since it flips a Fable-5 core default).
+> **NEXT:** bmw/downtown SS=True visual confirm (in flight); then the default-ON decision (user's call); then disocclusion-edge polish + the ground blind-spot (generation, gated on the DB-94 Cosmos contract).
+> ---
+
 > ### 2026-06-21 ◆ DB-105 step-3b REFINED to a dominant-coverage FLIP — crowd generality/regression PASS (L4)
 > **Crowd a50 exposed that the FIRST-CUT global area-rank c_own DEGRADED a genuinely cross-camera near-object** (black RAM pickup straddling 3 cams): ecc_cc dropped 0.913 -> 0.377 and the morph pairing scrambled. Root: ranking c_own by AREA GLOBALLY changed EVERY object's c_own, not just the dominant-sliver case.
 > **Refined to a DOMINANT-COVERAGE FLIP (3 edits):** c_own keeps its default completeness ranking; under SEAM_SINGLE_SOURCE it flips to a camera ONLY when that camera sees the object > 2.5x the completeness-winner's mask area (a genuinely single-cam-dominant object). True cross-camera objects (comparable areas) are untouched.
