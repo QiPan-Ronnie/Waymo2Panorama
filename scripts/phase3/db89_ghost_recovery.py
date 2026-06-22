@@ -1082,7 +1082,13 @@ def run_case(case_spec, run_name):
     tmin_e = np.nanmax(np.minimum(ta_e, tb_e), axis=1)
     tmax_e = np.nanmin(np.maximum(ta_e, tb_e), axis=1)
     egoproj = (tmax_e >= np.maximum(tmin_e, 0.0)) & (tmax_e > 0) & (dzf < -0.02)
-    blackg = (comp.astype(np.int32).sum(2) < 12) | egoproj.reshape(H, W)
+    # DB-106 (user-found ground/scene-band boundary bug): ground must fill ONLY where the
+    # scene band rendered NOTHING (comp black). Do NOT union egoproj: a NEAR car's lower body
+    # has rays that pass through the ego box (egoproj=True) yet comp there is the REAL car —
+    # unioning egoproj let ground (footprint-shadow + bev/plate) OVERWRITE the real car's lower
+    # body ("ground eats the car"). egoproj's genuine blind region (under-hood/under-ego) is
+    # comp-black and already included by the sum<12 term, so nothing real is lost.
+    blackg = (comp.astype(np.int32).sum(2) < 12)
     capg = blackg.copy()
     capg[:H // 2] = False
     _capfull = capg.copy()   # DB-101: full unseen nadir cap (before the target-gate prunes capg) — for middle-only mask mode
@@ -1440,7 +1446,7 @@ def run_case(case_spec, run_name):
     # SAME resolution-matched low-pass as before (kills grazing speckle). Honest:
     # real where evidence agrees, flat-honest where it does not. No NS, no grain, no
     # cross-anchor fusion. (Round-2 workflow DB-99; see agent/decision_briefs.md.)
-    resid_m = ((comp.astype(np.int32).sum(2) < 12) | (egoproj.reshape(H, W) & ~capg))
+    resid_m = (comp.astype(np.int32).sum(2) < 12)   # DB-106: residual fill = ONLY scene-band-black px (dropped the egoproj term — it painted plate-dark over the real near-car lower body)
     resid_m[:H // 2] = False
     resid_m &= ~fg_occ   # foreground-occluded handled separately (shadow), not as normal ground abstain
     fillzone = capg | resid_m
