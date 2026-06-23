@@ -54,6 +54,7 @@ SEAM_OBJDEPTH = False   # DB-103 isolation test (default OFF, never ships): forc
 SEAM_MASK_FILL = False  # DB-104 robust mask (default OFF, gated): fill ENCLOSED holes (windows) in each YOLO object mask via binary_fill_holes (NOT dilation -> cannot inflate the boundary or merge instances, so it does NOT reintroduce the v7 giant-instance bug). A complete object body also gives the flow-morph more registration signal. Off = pure Fable-5 mask.
 SEAM_FLOWMORPH = True   # DB-103 fix (SHIPPED 2026-06-19, validated: a309 shear gone 32->8.6px, crowd a50 helped, clean seams byte-identical, 6-frame temporal stable): when the view-morph ECC-AFFINE residual is large (close-object depth-varying parallax), replace the affine displacement with dense Farneback optical flow INSIDE the object body. GATED on max_reg_px>8 -> fires ONLY on the rare near-object-break seams, never touches the well-registered ones (clean frames byte-identical). Pristine core in _baseline_fable5/. Set False to revert to pure affine.
 SEAM_SINGLE_SOURCE = False  # DB-105 (diagnostic-validated on a309): when c_own sees the object COMPLETE and a secondary contributes only a small grazing sliver (mask << c_own area), DROP the secondary body-fill + SKIP the view-morph -> pure single-source. The near-car seam's CAUSE is the morph FUSING a complete car (side_left 1610 LiDAR pts) with a 149-pt grazing sliver (front_left). Gated, default OFF; pristine core in _baseline_fable5/.
+GROUND_RESID = "plate"  # DB-108 (AUDIT 2026-06-22): how the evidence-INSUFFICIENT nadir (spread>30 or no source) is filled. "plate"=DB-99 gray DC plate (DEFAULT, honest-but-gray). "inpaint"=video-era NS-inpaint (cv2.INPAINT_NS extends real edges into the blind cap) -> ground-FEEL (the ground_video_v1 look; blurry/白团 on bare asphalt). COMBO (audit-verified, recovers ground-feel + keeps near car) = "inpaint" + the DB-106 boundary. Gated, default unchanged (gray).
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
@@ -1432,6 +1433,7 @@ def run_case(case_spec, run_name):
         _eg = np.full(H * W, np.nan, np.float32); _eg[flat_g] = np.where(np.isfinite(score_g[0]), score_g[0], np.nan).astype(np.float32)
         np.save(str(REMOTE_OUT / (run_name + "_diag_nvalid.npy")), _nv.reshape(H, W))
         np.save(str(REMOTE_OUT / (run_name + "_diag_nearestegod.npy")), _eg.reshape(H, W))
+        _spd = np.full(H * W, np.nan, np.float32); _spd[flat_g] = np.asarray(spread, np.float32); np.save(str(REMOTE_OUT / (run_name + "_diag_spread.npy")), _spd.reshape(H, W))   # DB-108 AUDIT: per-cap spread map -> real-write(spread<=30) vs sources-disagree(>30) for the real-vs-inpaint overlay
     dist_s[~haveg] = np.inf
     pick = np.argmin(dist_s, axis=0)
     sel_px = colg[pick, np.arange(len(flat_g))]
@@ -1479,9 +1481,12 @@ def run_case(case_spec, run_name):
     plate_rgb = np.asarray(plate_rgb, np.float32)
     _rows = np.arange(H, dtype=np.float32); _r0 = H * 0.55
     _dark = 1.0 - 0.10 * np.clip((_rows - _r0) / max(H - _r0, 1.0), 0.0, 1.0)
-    if resid_m.any() and GROUND_MODE != "off":   # evidence-insufficient ground -> honest flat plate, gently pole-darkened
-        _rr = np.nonzero(resid_m)[0]
-        comp[resid_m] = np.clip(plate_rgb[None, :] * _dark[_rr][:, None], 0, 255).astype(np.uint8)
+    if resid_m.any() and GROUND_MODE != "off":   # evidence-insufficient ground (DB-108): "plate"=honest gray (default) / "inpaint"=NS-inpaint ground-feel (combo, video-era look)
+        if GROUND_RESID == "inpaint":
+            comp = _cv.inpaint(comp, resid_m.astype(np.uint8) * 255, 8, _cv.INPAINT_NS)
+        else:
+            _rr = np.nonzero(resid_m)[0]
+            comp[resid_m] = np.clip(plate_rgb[None, :] * _dark[_rr][:, None], 0, 255).astype(np.uint8)
     if fg_occ.any() and GROUND_MODE != "off":    # ground occluded by a near object -> honest SHADOW (not black hole, not fake road)
         comp[fg_occ] = np.clip(plate_rgb * 0.55, 0, 255).astype(np.uint8)
     real_cap = capg & ~resid_m

@@ -1,0 +1,377 @@
+[
+  {
+    "number": 1,
+    "title": "",
+    "content": [
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "I"
+      },
+      {
+        "type": "text",
+        "content": "BOSCH RESEARCH"
+      },
+      {
+        "type": "text",
+        "content": "Perspective Images \u2192 360\u00b0 Panorama\nProgress Update"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "From 7 ring-camera images to a complete-sphere ERP panorama (1024\u00d72048)"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "QI PAN"
+      }
+    ],
+    "images": [],
+    "notes": ""
+  },
+  {
+    "number": 2,
+    "title": "",
+    "content": [
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "II"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "DATASET"
+      },
+      {
+        "type": "text",
+        "content": "Dataset: Argoverse 2 Sensor"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "7"
+      },
+      {
+        "type": "text",
+        "content": "RING CAMERAS \u00b7 FULL 360\u00b0"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "20 Hz"
+      },
+      {
+        "type": "text",
+        "content": "CAPTURE RATE"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "~300"
+      },
+      {
+        "type": "text",
+        "content": "FRAMES PER LOG"
+      },
+      {
+        "type": "text",
+        "content": "\u25b8  7 ring cameras give full 360\u00b0 horizontal coverage \u00b7 20 Hz \u00b7 ~300 frames per log.\n\u25b8  3D box annotations + LiDAR + per-camera capture timestamps for every frame.\nWaymo offers two sets, each missing half: Perception = 5 cameras ~250\u00b0 forward (rear gap) with LiDAR + 3D boxes; End-to-End = 8 cameras full ring, but 10 Hz, 972-px, 1\u20132\u00b0 overlap, rolling shutter, camera-only release. Only AV2 combines full ring + LiDAR + boxes + per-camera timestamps; Waymo migration stays queued as our generalization gate."
+      }
+    ],
+    "images": [],
+    "notes": ""
+  },
+  {
+    "number": 3,
+    "title": "",
+    "content": [
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "IV"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "METHOD"
+      },
+      {
+        "type": "text",
+        "content": "Method: remove the cause \u2014 three fixes"
+      },
+      {
+        "type": "text",
+        "content": "\u2460  Virtual centre  \u2014  project from the cameras' own centroid instead of the ego origin, using standard multi-view geometry (intrinsics/extrinsics ray casting) with per-pixel depth from accumulated LiDAR sweeps \u2192 projection residuals drop 18\u201396\u00d7 and the seams come into alignment."
+      },
+      {
+        "type": "text",
+        "content": "\u2461  EMC per-camera shutter poses  \u2014per-camera shutter poses \u2014 the seven cameras fire up to \u00b122.5 ms apart, so each image is projected with the ego pose of its own exposure instant, obtained by SE(3) pose interpolation (quaternion SLERP + linear translation) \u2192 the static world aligns exactly."
+      },
+      {
+        "type": "text",
+        "content": "\u2462  One body \u00b7 one camera \u00b7 one time (+OMC)  \u2014 every moving object is rendered whole from a single camera at a single instant: YOLOv8 instance masks give the outline, the 3D boxes carry its identity across cameras (IoU association), the residual shutter shift is measured by ECC registration and compensated, and the patch is blended back through view morphing plus a minimum-error DP seam \u2192 ghosted / seam-cut cars impossible by construction."
+      }
+    ],
+    "images": [
+      {
+        "path": "assets/slide3_img1.jpg",
+        "width": 10607040,
+        "height": 3500322
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "number": 4,
+    "title": "",
+    "content": [
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "V"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "COMPLETING THE SPHERE"
+      },
+      {
+        "type": "text",
+        "content": "Outpainting the missing sphere: ground + sky"
+      },
+      {
+        "type": "text",
+        "content": "GROUND  \u2014 real pixels, no generation"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "INPUT  scene-band panorama + the log's other frames (ego moved).\nMethod  temporal reprojection \u2014 the road under the car now was photographed seconds earlier / later; reproject those real pixels (occlusion-checked).\nOUTPUT  nadir filled with 94.5\u2013100% real pixels, lane lines continuous, ego hood removed."
+      },
+      {
+        "type": "text",
+        "content": "SKY  \u2014 the only generated layer"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "INPUT  panorama + sky mask (the only evidence-free region).\nMethod  FLUX.1-Fill diffusion inpainting + DiT360 panorama LoRA, auto-prompt from the visible sky band (5/5 scenes correct).\nOUTPUT  complete sphere \u2014 every pixel outside the mask byte-identical to input."
+      }
+    ],
+    "images": [
+      {
+        "path": "assets/slide4_img1.png",
+        "width": 11789946,
+        "height": 2047727
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "number": 5,
+    "title": "",
+    "content": [
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      }
+    ],
+    "images": [
+      {
+        "path": "assets/slide5_img1.png",
+        "width": 4293918,
+        "height": 6858000
+      }
+    ],
+    "notes": ""
+  },
+  {
+    "number": 6,
+    "title": "",
+    "content": [
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "VI"
+      },
+      {
+        "type": "text",
+        "content": ""
+      },
+      {
+        "type": "text",
+        "content": "RESULTS"
+      },
+      {
+        "type": "text",
+        "content": "Current results: complete spheres"
+      }
+    ],
+    "images": [
+      {
+        "path": "assets/slide6_img1.png",
+        "width": 4974336,
+        "height": 2487168
+      },
+      {
+        "path": "assets/slide6_img2.png",
+        "width": 4974336,
+        "height": 2487168
+      },
+      {
+        "path": "assets/slide6_img3.png",
+        "width": 4974336,
+        "height": 2487168
+      },
+      {
+        "path": "assets/slide6_img4.png",
+        "width": 4974336,
+        "height": 2487168
+      }
+    ],
+    "notes": ""
+  }
+]

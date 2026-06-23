@@ -1,5 +1,15 @@
 # Waymo2Panorama — Agent Handoff
 
+> ## ⭐⭐⭐⭐⭐⭐⭐⭐ 2026-06-22 — GROUND AUDIT + AGENT HANDOFF (read `agent/2026-06-22-handoff.md` FIRST)
+> **A new agent is taking over. Read `agent/2026-06-22-handoff.md` (the full first-principles handoff prompt), then `progress.md` 2026-06-22 AUDIT (Findings 1–5), then `decision_briefs.md` DB-108 — before acting.**
+> Since the 2026-06-09 Fable-5 banners below, the stack was completed (v8) + stress-tested on video, exposing the GROUND as the live frontier. The user-led audit (2026-06-22) established, all eye+code+data verified (evidence `deliverables/db105_nearfield_geometry/`):
+> 1. Current DEFAULT nadir = **GRAY plate (DB-99)** = a REGRESSION for the koi/plausible need; the video-era "real ground" (`ground_video_v1`) was **NS-inpaint over a small real-reproj skeleton**, not a lost algorithm.
+> 2. **ROOT CAUSE** of recoverable-vs-not ground = **ego TRAJECTORY geometry**: a blind nadir point sits on the ego's own path → only a LATERAL/turning trajectory lets a side camera see it; straight highway = ~94% never seen; LiDAR can't help (position, not appearance).
+> 3. Real-reproj share is **SCENE-DEPENDENT**: city (clean) ~91%, straight-highway (a309) ~5.6% — same algorithm, trajectory/texture decides.
+> 4. New gated flag **`GROUND_RESID`** in db89 (`"plate"`=gray default / `"inpaint"`=COMBO = video-era ground-feel + DB-106 keep-car).
+> **SOLVED since 06-09:** scene band, near-object seam (DB-103/104/105 single-source), ground-eats-car (DB-106), fill radial (DB-107 bevdirect). **OPEN = the nadir ground fill policy** (DB-108: 固化 combo / generative / chase the 5.6%-vs-16.9% real-skeleton loss — user's call). DB-94 Cosmos centre-contract still gates the fill-vs-mask deliverable; DB-95 Waymo generality blocked (E2ED is camera-only).
+>
+
 > ## ⭐⭐⭐⭐⭐⭐⭐ 2026-06-09 NIGHT — ASYNCHRONOUS-SHUTTER DISCOVERY + DB-84/85
 > **Read `agent/progress.md` 2026-06-09 entries (DB-84/85) FIRST.** Autonomous evening session diagnosed moving-sedan doubling as MOTION × ASYNCHRONOUS SHUTTER: AV2 ring cameras have staggered exposure times (0 ms, ±12.5 ms, ±7.5 ms, ±22.5 ms); BMW sedan ~17.7 m/s × 35 ms offset = 0.62 m = 16 ERP px, matching exactly. Fourth first-principles error source confirmed. **DB-84 step-1 POS:** temporal disocclusion zones recoverable (100 % / 78 % visibility). **DB-85 partial POS:** per-camera exposure boxes + single-camera locking fixes 6/14/15 moving objects across scenes; trailing-edge ghosts pending because penumbra fill too small. **Next focused item:** DB-85 penumbra-zone fix as specified in decision_briefs.md.
 >

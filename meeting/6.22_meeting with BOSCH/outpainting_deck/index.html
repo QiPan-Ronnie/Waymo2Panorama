@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ground Outpainting — Waymo2Pano · BOSCH</title>
+
+<!-- Fonts chosen to echo the old BOSCH deck's humanist look (Archivo for the bold
+     maroon titles, Source Sans 3 for clean body) — never raw Arial/system fonts. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
+
+<style>
+/* ===========================================
+   THEME — cloned from the old BOSCH/USC deck:
+   deep maroon + gold accent on a cream content ground.
+   Change these to restyle everything.
+   =========================================== */
+:root{
+  --maroon:#6B0000;        /* primary — titles, emphasis, bars */
+  --maroon-deep:#530000;
+  --gold:#F4B400;          /* accent — chapter rule, bars, page numerals */
+  --gold-ink:#9A6A00;      /* gold dark enough to read as text on cream */
+  --cream:#F7F3E9;         /* content-slide ground */
+  --paper:#FFFFFF;         /* cards */
+  --ink:#322D27;           /* body text */
+  --ink-dim:#6E665B;       /* secondary text */
+  --line:rgba(107,0,0,.16);
+  /* small-area semantic colors for the issues slide */
+  --fix:#2E7D52;           /* engineering-fixable (green) */
+  --semi:#C98A00;          /* semi-physical (amber) */
+  --phys:#6B0000;          /* physical limit (maroon = primary) */
+  --arch:#2C5282;          /* architecture note (blue) */
+
+  --font-disp:"Archivo",sans-serif;
+  --font-body:"Source Sans 3",sans-serif;
+
+  --ease:cubic-bezier(.16,1,.3,1);
+  --dur:.55s;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* --- viewport-base.css (MANDATORY — full contents) --- */
+html, body { height:100%; overflow-x:hidden; }
+html { scroll-snap-type:y mandatory; scroll-behavior:smooth; }
+.slide {
+  width:100vw; height:100vh; height:100dvh;
+  overflow:hidden; scroll-snap-align:start;
+  display:flex; flex-direction:column; position:relative;
+}
+.slide-content { flex:1; display:flex; flex-direction:column; justify-content:center; max-height:100%; overflow:hidden; padding:var(--slide-padding); }
+:root{
+  --title-size:clamp(1.5rem,5vw,4rem);
+  --h2-size:clamp(1.25rem,3.5vw,2.5rem);
+  --h3-size:clamp(1rem,2.5vw,1.75rem);
+  --body-size:clamp(0.75rem,1.5vw,1.125rem);
+  --small-size:clamp(0.65rem,1vw,0.875rem);
+  --slide-padding:clamp(1rem,4vw,4rem);
+  --content-gap:clamp(0.5rem,2vw,2rem);
+  --element-gap:clamp(0.25rem,1vw,1rem);
+}
+.card,.container,.content-box{max-width:min(90vw,1000px);max-height:min(80vh,700px);}
+.feature-list,.bullet-list{gap:clamp(.4rem,1vh,1rem);}
+.feature-list li,.bullet-list li{font-size:var(--body-size);line-height:1.4;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:clamp(.5rem,1.5vw,1rem);}
+img,.image-container{max-width:100%;max-height:min(50vh,400px);object-fit:contain;}
+@media (max-height:700px){:root{--slide-padding:clamp(.75rem,3vw,2rem);--content-gap:clamp(.4rem,1.5vw,1rem);--title-size:clamp(1.25rem,4.5vw,2.5rem);--h2-size:clamp(1rem,3vw,1.75rem);}}
+@media (max-height:600px){:root{--slide-padding:clamp(.5rem,2.5vw,1.5rem);--content-gap:clamp(.3rem,1vw,.75rem);--title-size:clamp(1.1rem,4vw,2rem);--body-size:clamp(.7rem,1.2vw,.95rem);}.nav-dots,.keyboard-hint,.decorative{display:none;}}
+@media (max-height:500px){:root{--slide-padding:clamp(.4rem,2vw,1rem);--title-size:clamp(1rem,3.5vw,1.5rem);--h2-size:clamp(.9rem,2.5vw,1.25rem);--body-size:clamp(.65rem,1vw,.85rem);}}
+@media (max-width:600px){:root{--title-size:clamp(1.25rem,7vw,2.5rem);}.grid{grid-template-columns:1fr;}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}html{scroll-behavior:auto;}}
+
+/* ===========================================
+   GLOBAL — cream ground, faint gold glow corners
+   =========================================== */
+body{font-family:var(--font-body);color:var(--ink);background:var(--cream);-webkit-font-smoothing:antialiased;}
+.slide{background:
+  radial-gradient(ellipse at 100% 0%, rgba(244,180,0,.07), transparent 42%),
+  radial-gradient(ellipse at 0% 100%, rgba(107,0,0,.05), transparent 40%),
+  var(--cream);}
+.slide-content{position:relative;z-index:1;gap:clamp(.5rem,1.5vh,1.15rem);}
+
+/* deck chrome — the red/gold bars + chapter label + roman numeral, cloned from the template */
+.topbar,.botbar{position:absolute;left:0;right:0;height:clamp(6px,1.1vh,11px);z-index:3;}
+.topbar{top:0;background:linear-gradient(90deg,var(--maroon) 0 58%, var(--gold) 58% 100%);}
+.botbar{bottom:0;background:linear-gradient(90deg,var(--gold) 0 42%, var(--maroon) 42% 100%);}
+.chapter{display:flex;align-items:center;gap:.65em;font-family:var(--font-body);font-weight:700;
+  font-size:clamp(.58rem,1vw,.8rem);letter-spacing:.2em;color:var(--maroon);text-transform:uppercase;}
+.chapter::before{content:"";width:clamp(1.4rem,3vw,2.4rem);height:3px;background:var(--gold);flex:0 0 auto;}
+.pageno{position:absolute;right:clamp(1rem,3vw,2.4rem);bottom:clamp(.6rem,1.8vh,1.4rem);
+  font-family:var(--font-disp);font-weight:800;font-size:clamp(.72rem,1.1vw,1rem);color:var(--maroon);opacity:.6;z-index:3;letter-spacing:.05em;}
+
+h2.title{font-family:var(--font-disp);font-weight:800;color:var(--maroon);
+  font-size:clamp(1.35rem,3.3vw,2.5rem);line-height:1.04;letter-spacing:-.01em;}
+h2.title em{font-style:italic;color:var(--gold-ink);}
+.subtitle{font-size:var(--small-size);color:var(--ink-dim);font-weight:600;max-width:74ch;line-height:1.45;}
+
+/* reveal animation */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity var(--dur) var(--ease),transform var(--dur) var(--ease);transition-delay:var(--d,0s);}
+.slide.visible .reveal{opacity:1;transform:none;}
+
+/* ============ SLIDE 1 — flow diagram ============ */
+.detective{display:flex;gap:clamp(.5rem,1.4vw,1rem);flex-wrap:wrap;}
+.dchip{flex:1 1 240px;display:flex;gap:.6rem;align-items:center;padding:clamp(.4rem,.95vw,.65rem) clamp(.55rem,1.2vw,.95rem);
+  border-radius:9px;background:var(--paper);border:1px solid var(--line);font-size:clamp(.66rem,1vw,.9rem);}
+.dchip .mk{font-family:var(--font-disp);font-weight:800;font-size:1.15em;line-height:1;}
+.dchip.no{border-left:4px solid #B9A99A;} .dchip.no .mk{color:#9b9b9b;}
+.dchip.yes{border-left:4px solid var(--gold);} .dchip.yes .mk{color:var(--gold-ink);}
+.dchip b{color:var(--maroon);font-weight:700;} .dchip span{color:var(--ink-dim);}
+
+.flow{display:flex;align-items:stretch;gap:clamp(.2rem,.6vw,.5rem);}
+.stage{flex:1;background:var(--paper);border:1px solid var(--line);border-radius:12px;
+  padding:clamp(.5rem,1.05vw,.95rem);display:flex;flex-direction:column;gap:.32rem;position:relative;min-width:0;}
+.stage .no{font-family:var(--font-body);font-weight:700;font-size:clamp(.55rem,.82vw,.74rem);
+  color:var(--maroon);letter-spacing:.1em;}
+.stage h3{font-family:var(--font-disp);font-size:clamp(.76rem,1.12vw,1.04rem);font-weight:700;line-height:1.08;color:var(--maroon);}
+.stage p{font-size:clamp(.6rem,.82vw,.78rem);color:var(--ink-dim);line-height:1.32;}
+.stage.key{border-color:var(--gold);background:linear-gradient(180deg,rgba(244,180,0,.13),var(--paper));
+  box-shadow:0 0 0 1px rgba(244,180,0,.4),0 12px 30px rgba(107,0,0,.07);}
+.arrow{align-self:center;color:var(--gold-ink);font-family:var(--font-disp);font-weight:800;font-size:clamp(.8rem,1.4vw,1.3rem);flex:0 0 auto;}
+
+.pickbar{display:flex;align-items:center;gap:clamp(.7rem,1.8vw,1.4rem);
+  background:linear-gradient(90deg,rgba(244,180,0,.16),rgba(244,180,0,.03));
+  border:1px solid var(--gold);border-radius:12px;padding:clamp(.5rem,1.1vw,.9rem) clamp(.75rem,1.6vw,1.3rem);}
+.pickbar .plabel{font-family:var(--font-disp);font-size:clamp(.62rem,.95vw,.85rem);letter-spacing:.06em;
+  color:var(--maroon);font-weight:800;line-height:1.05;white-space:nowrap;}
+.picklines{display:flex;flex-direction:column;gap:.22rem;font-size:clamp(.62rem,.9vw,.84rem);line-height:1.32;}
+.picklines .x{color:var(--ink-dim);} .picklines .x b{color:var(--maroon);}
+.picklines .ok{color:var(--ink);} .picklines .ok b{color:var(--gold-ink);}
+.footline{font-size:clamp(.64rem,.95vw,.88rem);color:var(--ink-dim);text-align:center;}
+.footline b{color:var(--maroon);}
+
+/* ============ SLIDE 2 & 4 — video / placeholder grid ============ */
+.vgrid{display:grid;grid-template-columns:repeat(2,auto);grid-auto-rows:1fr;
+  gap:clamp(.5rem,1.3vw,.95rem);justify-content:center;align-content:center;height:clamp(0px,60vh,620px);}
+@media (max-height:700px){.vgrid{height:56vh;}}
+.vcard{height:100%;aspect-ratio:2/1;position:relative;border:1px solid var(--line);
+  border-radius:10px;overflow:hidden;background:#0c0c0c;box-shadow:0 8px 22px rgba(107,0,0,.12);}
+.vcard video{width:100%;height:100%;object-fit:cover;display:block;}
+.vcard .tag{position:absolute;top:.45rem;left:.45rem;font-family:var(--font-disp);font-weight:700;
+  font-size:clamp(.56rem,.9vw,.76rem);color:var(--maroon);background:rgba(244,180,0,.92);
+  padding:.1rem .5rem;border-radius:5px;letter-spacing:.04em;}
+.statline{display:flex;gap:clamp(.6rem,1.6vw,1.3rem);justify-content:center;flex-wrap:wrap;
+  font-size:clamp(.62rem,.92vw,.84rem);color:var(--ink-dim);font-weight:600;}
+.statline b{color:var(--maroon);font-weight:800;}
+.statline .sep{color:var(--gold);}
+
+.ph{height:100%;aspect-ratio:2/1;border:1.5px dashed rgba(107,0,0,.35);border-radius:10px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem;position:relative;overflow:hidden;background:#efe9db;}
+.ph .scene{font-family:var(--font-disp);font-weight:800;font-size:clamp(.72rem,1.1vw,1rem);color:var(--maroon);letter-spacing:.05em;}
+.ph .meta{font-family:var(--font-body);font-weight:600;font-size:clamp(.56rem,.82vw,.72rem);color:var(--ink-dim);}
+.ph::after{content:"";position:absolute;top:0;left:-45%;width:45%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(244,180,0,.28),transparent);animation:scan 2.4s var(--ease) infinite;}
+@keyframes scan{to{left:120%;}}
+.r2why{display:flex;gap:clamp(.5rem,1.4vw,1rem);flex-wrap:wrap;}
+.r2why .w{flex:1 1 220px;background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--arch);
+  border-radius:9px;padding:clamp(.45rem,1vw,.75rem) clamp(.55rem,1.2vw,.95rem);font-size:clamp(.64rem,.92vw,.85rem);
+  color:var(--ink-dim);line-height:1.38;} .r2why .w b{color:var(--maroon);}
+
+/* ============ SLIDE 3 — issues + hypotheses ============ */
+.honest{border-left:4px solid var(--gold);background:rgba(244,180,0,.10);border-radius:0 9px 9px 0;
+  padding:clamp(.45rem,1vw,.8rem) clamp(.65rem,1.4vw,1.1rem);font-size:clamp(.66rem,.98vw,.92rem);line-height:1.42;color:var(--ink);}
+.honest b{color:var(--maroon);} .honest .lead{font-weight:700;color:var(--maroon);}
+.issues{display:grid;grid-template-columns:1.02fr 1fr;gap:clamp(.6rem,1.6vw,1.25rem);align-items:start;min-height:0;}
+.evi{display:flex;flex-direction:column;gap:clamp(.3rem,.8vh,.55rem);min-width:0;}
+.evi figure{margin:0;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--paper);}
+.evi img{width:100%;display:block;max-height:25vh;object-fit:cover;}
+.evi figcaption{font-family:var(--font-body);font-size:clamp(.54rem,.8vw,.72rem);color:var(--ink-dim);
+  padding:.3rem .55rem;background:var(--paper);line-height:1.3;font-weight:600;}
+.evi figcaption b.g{color:var(--fix);} .evi figcaption b.r{color:var(--phys);}
+.hyps{display:flex;flex-direction:column;gap:clamp(.28rem,.75vh,.5rem);min-width:0;}
+.hyp{display:flex;gap:.5rem;align-items:flex-start;padding:clamp(.32rem,.8vw,.58rem) clamp(.42rem,1vw,.68rem);
+  border-radius:8px;background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--c,var(--line));}
+.hyp .id{font-family:var(--font-disp);font-weight:800;color:var(--c);font-size:clamp(.72rem,1vw,.92rem);line-height:1.25;}
+.hyp .tx{font-size:clamp(.6rem,.86vw,.8rem);color:var(--ink-dim);line-height:1.3;}
+.hyp .tx b{color:var(--maroon);}
+.hyp .conf{font-family:var(--font-body);font-weight:700;font-size:clamp(.48rem,.7vw,.62rem);letter-spacing:.04em;
+  color:var(--c);border:1px solid var(--c);border-radius:5px;padding:.04rem .32rem;white-space:nowrap;margin-left:auto;align-self:center;}
+.verdict{display:flex;gap:clamp(.35rem,1.1vw,.9rem);flex-wrap:wrap;align-items:center;font-size:clamp(.58rem,.85vw,.78rem);font-weight:700;}
+.verdict .vk{color:var(--maroon);letter-spacing:.08em;font-family:var(--font-disp);font-weight:800;}
+.verdict .vchip{padding:.12rem .5rem;border-radius:6px;border:1px solid;}
+.verdict .fix{color:var(--fix);border-color:rgba(46,125,82,.5);background:rgba(46,125,82,.08);}
+.verdict .semi{color:var(--semi);border-color:rgba(201,138,0,.5);background:rgba(201,138,0,.08);}
+.verdict .phys{color:var(--phys);border-color:rgba(107,0,0,.4);background:rgba(107,0,0,.06);}
+
+/* ===========================================
+   NAV CHROME + EDIT UI
+   =========================================== */
+.progress-bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--maroon);z-index:60;transition:width .4s var(--ease);}
+.nav-dots{position:fixed;right:clamp(.5rem,1.2vw,1rem);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:.55rem;z-index:60;}
+.nav-dots .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--maroon);background:transparent;cursor:pointer;padding:0;transition:all .3s var(--ease);opacity:.5;}
+.nav-dots .dot.active{background:var(--maroon);opacity:1;transform:scale(1.25);}
+.keyboard-hint{position:fixed;left:clamp(.8rem,2.5vw,2.2rem);bottom:clamp(.6rem,1.8vh,1.4rem);font-family:var(--font-body);font-weight:600;font-size:clamp(.54rem,.78vw,.7rem);color:var(--ink-dim);letter-spacing:.06em;z-index:60;opacity:.6;}
+
+/* inline editing (opt-in: the user asked for an editable deck) */
+.edit-hotzone{position:fixed;top:0;left:0;width:80px;height:80px;z-index:10000;cursor:pointer;}
+.edit-toggle{position:fixed;top:14px;left:14px;width:42px;height:42px;border-radius:50%;border:none;
+  background:var(--maroon);color:#fff;font-size:18px;cursor:pointer;z-index:10001;opacity:0;pointer-events:none;
+  transition:opacity .3s ease;box-shadow:0 4px 14px rgba(0,0,0,.3);}
+.edit-toggle.show,.edit-toggle.active{opacity:1;pointer-events:auto;}
+.edit-toggle.active{background:var(--gold);color:var(--maroon);}
+.edit-banner{position:fixed;top:14px;left:66px;background:var(--gold);color:var(--maroon);font-family:var(--font-body);font-weight:700;
+  font-size:12px;padding:.4rem .7rem;border-radius:7px;z-index:10001;opacity:0;pointer-events:none;transition:opacity .3s ease;white-space:nowrap;}
+.edit-banner.active{opacity:1;}
+body.edit-active .ed{outline:1px dashed rgba(107,0,0,.5);outline-offset:3px;border-radius:2px;cursor:text;}
+body.edit-active .ed:hover{background:rgba(244,180,0,.12);}
+</style>
+</head>
+<body>
+
+<div class="progress-bar"></div>
+<nav class="nav-dots" aria-label="slide navigation"></nav>
+<div class="keyboard-hint">↑ ↓ · SPACE · SCROLL &nbsp;|&nbsp; press E to edit</div>
+
+<!-- inline editing controls -->
+<div class="edit-hotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✏️</button>
+<div class="edit-banner" id="editBanner">Edit mode — click any text · Ctrl+S to export</div>
+
+<!-- ============================================================
+     SLIDE 1 — METHOD: one-page flow diagram (focus = how frames are picked)
+     ============================================================ -->
+<section class="slide" id="s1">
+  <div class="topbar"></div><div class="botbar"></div>
+  <div class="slide-content">
+    <div class="chapter ed reveal" style="--d:.05s">Ground Outpainting · Method</div>
+    <h2 class="title ed reveal" style="--d:.1s">Borrowing real ground from <em>time</em></h2>
+
+    <!-- mental-model anchor: detective, not painter -->
+    <div class="detective reveal" style="--d:.18s">
+      <div class="dchip no"><span class="mk">✕</span><div class="ed"><b>Not a painter.</b> <span>It does not imagine a plausible ground.</span></div></div>
+      <div class="dchip yes"><span class="mk">✓</span><div class="ed"><b>A detective.</b> <span>Which other frame actually photographed this ground?</span></div></div>
+    </div>
+
+    <!-- 5-stage pipeline -->
+    <div class="flow reveal" style="--d:.26s">
+      <div class="stage">
+        <span class="no ed">01 · LOCATE</span><h3 class="ed">The hole</h3>
+        <p class="ed">ERP nadir is black or blocked by the ego body. Each hole pixel → a ray → meets the LiDAR ground → a real 3D point <b>X</b>.</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="stage key">
+        <span class="no ed">02 · FIND FRAMES</span><h3 class="ed">Who saw X?</h3>
+        <p class="ed">Search the <b>whole log</b> for frames that observed X — selected by <b>ego distance, not time</b>.</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="stage">
+        <span class="no ed">03 · FILTER</span><h3 class="ed">Reject liars</h3>
+        <p class="ed">Three gates: source hood / trunk (two-box), dynamic objects (cars, people), shutter-time mismatch (EMC).</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="stage">
+        <span class="no ed">04 · VOTE</span><h3 class="ed">One real pixel</h3>
+        <p class="ed">6 sources → median to check agreement → keep the <b>nearest-to-median real pixel</b>. Never average — averaging smears lane lines.</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="stage">
+        <span class="no ed">05 · BE HONEST</span><h3 class="ed">Abstain</h3>
+        <p class="ed">Sources disagree, or only grazing views exist → low-pass / flat fill. <b>Never invent</b> a lane line.</p>
+      </div>
+    </div>
+
+    <!-- the part missing last time: HOW frames are picked -->
+    <div class="pickbar reveal" style="--d:.4s">
+      <span class="plabel ed">HOW WE<br>PICK FRAMES</span>
+      <div class="picklines">
+        <div class="x ed"><b>✕ By time fails.</b> A ±time window finds 0 usable frames when the ego idles 9.5 s at a red light.</div>
+        <div class="ok ed"><b>✓ By distance.</b> Keep frames 5–58 m away · bucket every 5 m · 3 time-nearest per bucket → every viewing angle, freshest exposure.</div>
+      </div>
+    </div>
+
+    <p class="footline ed reveal" style="--d:.5s">Every filled pixel is a <b>real pixel some frame actually captured</b> — where none did, we abstain.</p>
+  </div>
+  <div class="pageno">I</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 2 — RESULT: 4 scenes × 93 frames, ground-filled videos
+     ============================================================ -->
+<section class="slide" id="s2">
+  <div class="topbar"></div><div class="botbar"></div>
+  <div class="slide-content">
+    <div class="chapter ed reveal" style="--d:.05s">Ground Outpainting · Result</div>
+    <h2 class="title ed reveal" style="--d:.1s">4 scenes &middot; 93 frames each &middot; <em>ground-filled</em></h2>
+    <p class="subtitle ed reveal" style="--d:.16s">Temporal reprojection — real pixels, no generation. Sky intentionally left black (this is the ground layer only).</p>
+
+    <div class="vgrid reveal" style="--d:.24s">
+      <div class="vcard"><span class="tag ed">bmw</span><video src="assets/bmw_h264.mp4" loop muted playsinline preload="metadata"></video></div>
+      <div class="vcard"><span class="tag ed">clean</span><video src="assets/clean_h264.mp4" loop muted playsinline preload="metadata"></video></div>
+      <div class="vcard"><span class="tag ed">crowd</span><video src="assets/crowd_h264.mp4" loop muted playsinline preload="metadata"></video></div>
+      <div class="vcard"><span class="tag ed">highway</span><video src="assets/highway_h264.mp4" loop muted playsinline preload="metadata"></video></div>
+    </div>
+
+    <div class="statline ed reveal" style="--d:.34s">
+      <span><b>94.5–100%</b> real-pixel ground</span><span class="sep">·</span>
+      <span><b>lane lines</b> continuous</span><span class="sep">·</span>
+      <span><b>ego hood</b> removed</span><span class="sep">·</span>
+      <span><b>moving cars</b> single &amp; intact</span>
+    </div>
+  </div>
+  <div class="pageno">II</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 3 — OPEN ISSUES + hypotheses (evidence left, ranked guesses right)
+     ============================================================ -->
+<section class="slide" id="s3">
+  <div class="topbar"></div><div class="botbar"></div>
+  <div class="slide-content">
+    <div class="chapter ed reveal" style="--d:.05s">Ground Outpainting · Open Issues</div>
+    <h2 class="title ed reveal" style="--d:.1s">What's wrong — and our <em>hypotheses</em></h2>
+
+    <div class="honest ed reveal" style="--d:.16s">
+      <span class="lead">These are hypotheses — and the data already refuted one of mine.</span>
+      I claimed the near-nadir is a <i>universal</i> physical blind spot. But the coverage maps show most frames have
+      <b>6-source, ~11° coverage</b> near the ground. The blind spot is <b>local, not universal</b> — so each guess below carries a confidence tag.
+    </div>
+
+    <div class="issues reveal" style="--d:.24s">
+      <div class="evi">
+        <figure>
+          <img src="assets/coverage_highway.png" alt="source coverage heatmap" />
+          <figcaption class="ed">SOURCE COVERAGE · <b class="g">green = 6 sources</b> · <b class="r">red = few</b> → the ground is mostly well-seen; only a thin near-car band is starved.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/white_blob_highway.png" alt="white-blob defect" />
+          <figcaption class="ed">highway f85 — "melted nadir / white-blob" + corner melt (annotated).</figcaption>
+        </figure>
+      </div>
+      <div class="hyps">
+        <div class="hyp" style="--c:var(--fix)"><span class="id">①</span><span class="tx ed"><b>White-blob / soft</b> ≈ processing self-inflicted, not missing data. Over-low-pass on well-covered ground.</span><span class="conf">FIX · MED-HI</span></div>
+        <div class="hyp" style="--c:var(--fix)"><span class="id">②</span><span class="tx ed"><b>Smear / car-front ghost / color bleed</b> = occlusion not verified (source &amp; target). Add LiDAR z-buffer + box gate.</span><span class="conf">FIX · MED</span></div>
+        <div class="hyp" style="--c:var(--semi)"><span class="id">③</span><span class="tx ed"><b>Lavender cast (bmw)</b> = real grazing Fresnel sky reflection. Half-physical; only tone-harmonize.</span><span class="conf">SEMI · MED-HI</span></div>
+        <div class="hyp" style="--c:var(--phys)"><span class="id">④</span><span class="tx ed"><b>Blind patches on some frames</b> truly unseen (open / low-motion). Physically unrecoverable — but <b>local</b>.</span><span class="conf">PHYS · MED</span></div>
+        <div class="hyp" style="--c:var(--arch)"><span class="id">⑤</span><span class="tx ed"><b>Middle band is independent &amp; basically solved</b> (off ≡ fill, pixel-identical) → Route-2 sidesteps ①②④.</span><span class="conf">ARCH · HIGH</span></div>
+      </div>
+    </div>
+
+    <div class="verdict ed reveal" style="--d:.4s">
+      <span class="vk">VERDICT »</span>
+      <span class="vchip fix">white-blob → fixable</span>
+      <span class="vchip fix">smear / ghost → fixable</span>
+      <span class="vchip semi">lavender → semi-physical</span>
+      <span class="vchip phys">blind patches → physical (local)</span>
+    </div>
+  </div>
+  <div class="pageno">III</div>
+</section>
+
+<!-- ============================================================
+     SLIDE 4 — ROUTE-2 (in progress): middle-band only, hand the rest to the world-model
+     ============================================================ -->
+<section class="slide" id="s4">
+  <div class="topbar"></div><div class="botbar"></div>
+  <div class="slide-content">
+    <div class="chapter ed reveal" style="--d:.05s">Route-2 · In Progress</div>
+    <h2 class="title ed reveal" style="--d:.1s">Middle-band only — <em>hand ground &amp; sky to the world-model</em></h2>
+    <p class="subtitle ed reveal" style="--d:.16s">Same 4 scenes × 93 frames, but stitch only what the cameras directly see; nadir &amp; sky left black for the downstream generator (Cosmos) to outpaint under a perfect first frame.</p>
+
+    <div class="vgrid reveal" style="--d:.24s">
+      <div class="ph"><span class="scene ed">bmw</span><span class="meta ed">rendering · 93 frames</span></div>
+      <div class="ph"><span class="scene ed">clean</span><span class="meta ed">rendering · 93 frames</span></div>
+      <div class="ph"><span class="scene ed">crowd</span><span class="meta ed">rendering · 93 frames</span></div>
+      <div class="ph"><span class="scene ed">highway</span><span class="meta ed">rendering · 93 frames</span></div>
+    </div>
+
+    <div class="r2why reveal" style="--d:.34s">
+      <div class="w ed"><b>No propagated defects.</b> Skips every ground-fill artifact (white-blob / smear / ghost) by construction.</div>
+      <div class="w ed"><b>What Cosmos wants.</b> Clean conditioning + an honest mask = the masked-360 training distribution.</div>
+      <div class="w ed"><b>First frame perfect.</b> Frames 2–93 middle-only → the model learns ground continuity, nothing fabricated under hard-lock.</div>
+    </div>
+
+    <div class="statline ed reveal" style="--d:.42s">
+      <span>STATUS »&nbsp; rendering on <b>2× L4</b> · assembling to mp4 — clips drop into these slots</span>
+    </div>
+  </div>
+  <div class="pageno">IV</div>
+</section>
+
+<script>
+/* ===========================================
+   SLIDE CONTROLLER — keyboard / touch / dots / progress + on-screen video play
+   =========================================== */
+class Deck{
+  constructor(){
+    this.slides=[...document.querySelectorAll('.slide')];
+    this.i=0;
+    this.dots=document.querySelector('.nav-dots');
+    this.bar=document.querySelector('.progress-bar');
+    this.buildDots(); this.observe(); this.keys(); this.touch(); this.videoObserve();
+  }
+  observe(){
+    const o=new IntersectionObserver((es)=>{es.forEach(e=>{
+      if(e.isIntersecting){e.target.classList.add('visible');this.i=this.slides.indexOf(e.target);this.sync();}
+    });},{threshold:.55});
+    this.slides.forEach(s=>o.observe(s));
+  }
+  sync(){this.bar.style.width=((this.i+1)/this.slides.length*100)+'%';
+    [...this.dots.children].forEach((d,k)=>d.classList.toggle('active',k===this.i));}
+  go(n){this.i=Math.max(0,Math.min(this.slides.length-1,n));this.slides[this.i].scrollIntoView({behavior:'smooth'});}
+  buildDots(){this.dots.innerHTML='';this.slides.forEach((s,k)=>{const b=document.createElement('button');
+    b.className='dot';b.setAttribute('aria-label','Slide '+(k+1));b.addEventListener('click',()=>this.go(k));this.dots.appendChild(b);});}
+  keys(){addEventListener('keydown',e=>{
+    if(e.target.getAttribute && e.target.getAttribute('contenteditable')==='true')return; /* don't navigate while typing */
+    if(['ArrowDown','ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();this.go(this.i+1);}
+    else if(['ArrowUp','ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();this.go(this.i-1);}
+    else if(e.key==='Home'){e.preventDefault();this.go(0);}
+    else if(e.key==='End'){e.preventDefault();this.go(this.slides.length-1);}
+  });}
+  touch(){let y=0;addEventListener('touchstart',e=>{y=e.touches[0].clientY;},{passive:true});
+    addEventListener('touchend',e=>{const dy=y-e.changedTouches[0].clientY;if(Math.abs(dy)>50)this.go(this.i+(dy>0?1:-1));},{passive:true});}
+  videoObserve(){const vo=new IntersectionObserver((es)=>{es.forEach(e=>{const v=e.target;
+    if(e.isIntersecting){const p=v.play();if(p&&p.catch)p.catch(()=>{});}else{v.pause();}});},{threshold:.4});
+    document.querySelectorAll('video').forEach(v=>vo.observe(v));}
+}
+
+/* ===========================================
+   INLINE EDITOR — click any .ed text to edit, autosave to localStorage, Ctrl+S exports a clean file
+   =========================================== */
+class Editor{
+  constructor(){
+    this.eds=[...document.querySelectorAll('.ed')];
+    this.active=false;
+    this.KEY='outpaint_deck_v2';
+    this.toggleBtn=document.getElementById('editToggle');
+    this.banner=document.getElementById('editBanner');
+    this.restore(); this.bindAutosave();
+  }
+  toggle(){
+    this.active=!this.active;
+    document.body.classList.toggle('edit-active',this.active);
+    this.toggleBtn.classList.toggle('active',this.active);
+    this.banner.classList.toggle('active',this.active);
+    this.eds.forEach(e=>this.active?e.setAttribute('contenteditable','true'):e.removeAttribute('contenteditable'));
+    if(this.active)this.toggleBtn.textContent='✓';else this.toggleBtn.textContent='✏️';
+  }
+  bindAutosave(){this.eds.forEach(e=>e.addEventListener('input',()=>this.save()));}
+  save(){try{localStorage.setItem(this.KEY,JSON.stringify(this.eds.map(e=>e.innerHTML)));}catch(_){}}
+  restore(){try{const d=JSON.parse(localStorage.getItem(this.KEY)||'null');
+    if(d&&d.length===this.eds.length)this.eds.forEach((e,i)=>e.innerHTML=d[i]);}catch(_){}}
+  export(){
+    /* strip edit state so the saved file opens clean */
+    this.eds.forEach(e=>e.removeAttribute('contenteditable'));
+    document.body.classList.remove('edit-active');
+    this.toggleBtn.classList.remove('active','show');this.banner.classList.remove('active');
+    const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+    /* restore so the user can keep editing */
+    if(this.active){document.body.classList.add('edit-active');this.eds.forEach(e=>e.setAttribute('contenteditable','true'));
+      this.toggleBtn.classList.add('active');this.banner.classList.add('active');}
+    const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='ground_outpainting_deck.html';a.click();URL.revokeObjectURL(a.href);
+  }
+}
+
+const deck=new Deck();
+const editor=new Editor();
+
+/* edit toggle: button click, hotzone hover (400ms grace), hotzone click, E key */
+const hotzone=document.querySelector('.edit-hotzone');
+const editToggle=document.getElementById('editToggle');
+let hideTimeout=null;
+editToggle.addEventListener('click',()=>editor.toggle());
+hotzone.addEventListener('mouseenter',()=>{clearTimeout(hideTimeout);editToggle.classList.add('show');});
+hotzone.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!editor.active)editToggle.classList.remove('show');},400);});
+editToggle.addEventListener('mouseenter',()=>clearTimeout(hideTimeout));
+editToggle.addEventListener('mouseleave',()=>{hideTimeout=setTimeout(()=>{if(!editor.active)editToggle.classList.remove('show');},400);});
+hotzone.addEventListener('click',()=>editor.toggle());
+document.addEventListener('keydown',e=>{
+  if((e.key==='e'||e.key==='E')&&!e.target.getAttribute('contenteditable'))editor.toggle();
+  if((e.ctrlKey||e.metaKey)&&(e.key==='s'||e.key==='S')){e.preventDefault();editor.export();}
+});
+</script>
+</body>
+</html>

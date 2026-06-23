@@ -5,6 +5,32 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-108: Near-field GROUND — restore plausible ground-feel (un-do the DB-99 gray regression) + pick inpaint vs generative
+Status: **ACTIVE / top priority — user audit 2026-06-22 decided the current gray nadir is a REGRESSION; direction pending the user's pick.** Full root-cause = `progress.md` 2026-06-22 AUDIT entry. THIS IS THE HANDOFF BRIEF.
+
+**Context (for a fresh agent, no prior session memory):** The faithful mosaic + the determinable scene band are DONE (see DB-105 below). The one open problem the user cares about NOW is the **NADIR GROUND**. Current `db89_ghost_recovery.py` default (`GROUND_MODE="fill"`) fills the camera-blind nadir cap with a flat GRAY plate (DB-99). The user wants the ground to "look real / plausible" — downstream **Cosmos will DiT-regenerate appearance, so plausible-not-faithful is explicitly OK** (user's own framing). North-star reminder: the method must stay GENERAL (multi-scene, graceful degradation); `02a00399` BMW is only a stress case, never the target.
+
+**What the audit established (all eye+code+data verified, evidence in `deliverables/db105_nearfield_geometry/`):**
+- `ground_video_v1` (the video the user calls "real ground") = db89 `fill` + **NS-inpaint**, NOT a lost better algorithm. Its ground = small real-reproj skeleton + NS-inpaint extending real edges (plausible-looking; highway = smear/白团).
+- **DB-99 swapped NS-inpaint → gray plate** (db89 STAGE-4 ~L1482-1484) = the regression. Its only justification (video swirl-flicker) is moot under Cosmos per-frame regen.
+- Real-reproj share is **texture-gated**: clean (city) high; a309 (bare asphalt+grazing) only **5.6%** → ~94% inpaint.
+- **COMBO = DB-106 boundary (keep car) + plate→NS-inpaint** recovers the ground-feel AND keeps the near car. Verified on a309; runs via injection (`tmp/_combo_a309.py`), NOT yet固化.
+
+Question: which ground filler ships?
+- **(A)固化 COMBO** — DB-106 boundary + NS-inpaint. The verified 1-line restore; brings back the video's ground-feel + keeps the car. Fastest. Cost: inpaint smear/白团 on bare-asphalt frames.
+- **(B) upgrade inpaint → GENERATIVE** (FLUX-inpaint / DiT into the `{lower-half ∧ comp-black}` mask) — makes the un-real part look CLEAN-plausible (no smear). Best appearance; needs GPU + model choice; see [[waymo2pano-dit360-findings]].
+- **(C) first chase the real-skeleton loss** — 5.6% (current) vs 16.9% (baseline_fable5) on the same frame: roll back DB-98 (LiDAR-ground marching) and/or DB-106 (egoproj-drop) ONE AT A TIME to recover REAL ground before any filler. Maximizes truth (real > inpaint > generated = the ownership law).
+
+Why / recommended order: the user's #1 complaint is "all gray, no real ground". Likely **C → A → B**: first recover as much REAL ground as possible (C), then restore the inpaint feel for what's left (A), then optionally upgrade the fabricated part to generative (B). But the user decides — bring it as a co-decision (do not autonomously commit a filler default).
+Plan: all edits are in db89 STAGE-4. A = make the `tmp/_combo_a309.py` plate→inpaint swap permanent + gate it. C = isolate DB-98 / DB-106 effect on `coverage_pct` via one-variable rollback runs. B = a new generative pass on the nadir mask (gated on DB-94).
+Kill criteria: A — if inpaint白团 is unacceptable as the standalone deliverable → go B. C — if rollback does NOT raise coverage → the loss is physical (grazing/blind-spot), accept A/B.
+Gating: the ground deliverable (real-fill vs generative vs middle-only mask) is ALSO gated on **DB-94** (Cosmos contract: does it ingest masks / regenerate appearance). If Cosmos regenerates appearance, even middle-only+mask suffices.
+Required vision check: eyeball nadir on clean (city/high-real) + a309 (bare/low-real) + bmw + crowd; verify near car intact (DB-106) and ground-feel present; compare against `gv1_a309_original.png` + `a309_GV1_vs_NOW_vs_COMBO.png`.
+Output: `deliverables/db105_nearfield_geometry/` (audit evidence already there).
+**HANDOFF essentials (disciplines):** GPU = Colab L4 via `~/.waymo2panorama/runtime/active_url.json` (NON-repo; the repo pushes to PUBLIC GitHub → NEVER write url/token into any committed file/log/board); drivers live in `tmp/` (non-repo) and inject db89's `code = r'''...'''` remote_py by string-replace then base64→`/exec`; ALWAYS read the remote result file back to verify (the repo has a history of fabricated tool output — VERIFY don't trust); vision-check EVERY image (eyes beat metrics); results → `deliverables/` not `agent/`; reply to the user in Chinese (code/paths/metrics in English); do the hard thinking yourself, only dispatch SIMPLE subagents for clerical work (no big multi-agent workflows unless the user asks). Pristine pre-edit core kept in `scripts/phase3/_baseline_fable5/`.
+
+---
+
 # DB-105: Route-2 middle-only current-core video set for Xinhan fallback
 Status: active - user requested start now on current L4.
 Question: with the current Fable-5 core plus shipped `SEAM_FLOWMORPH=True`, are the 4 scenes × 93 exact Route-2 frames clean enough in the middle scene band when sky and ground are black (`GROUND_MODE='off'`) to serve Xinhan's fallback setting: first frame can carry full/ground context, frames 2-93 carry only clean middle-band perspective-to-pano content with no sky/ground loss?

@@ -4,6 +4,16 @@
 
 ---
 
+> **LATEST (2026-06-22) — ground audit + agent handoff.** A user-led audit re-opened the ground problem (eye+code+data verified; evidence in `deliverables/db105_nearfield_geometry/`):
+> 1. The current DEFAULT nadir = a **GRAY plate (DB-99)** — a REGRESSION for the koi/plausible need. The video-era "real ground" (`ground_video_v1`) was **NS-inpaint extending a small real-reproj skeleton**, not a lost better algorithm.
+> 2. **ROOT CAUSE** of why some blind ground is recoverable and some isn't = **ego TRAJECTORY geometry**: a blind nadir point lies on the ego's own path, so only a LATERAL/turning trajectory lets a side camera see it unoccluded; straight highway = ~94% never seen (LiDAR can't help — it gives position, not appearance).
+> 3. Real-reproj share is **SCENE-DEPENDENT**: city (clean) ~91% real, straight-highway (a309) ~5.6%. Same algorithm — texture/trajectory decides the ratio.
+> 4. New gated flag **`GROUND_RESID`** in db89: `"plate"`=gray (default, unchanged) / `"inpaint"`=COMBO = video-era ground-feel + DB-106 keep-car.
+>
+> Full audit → `progress.md` 2026-06-22 (Findings 1–5); open direction → `decision_briefs.md` **DB-108** (固化 combo / generative / chase real-skeleton); full agent handoff prompt → `agent/2026-06-22-handoff.md`.
+
+---
+
 ## ✅ ENDORSED CORE ALGORITHM (as of 2026-06-12) — THE accepted method
 
 > This is the current accepted full-stack algorithm. Everything below this block (DB43–DB75 status lines) is the historical exploration that led here; do not treat those as the live method.
