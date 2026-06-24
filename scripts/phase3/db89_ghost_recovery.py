@@ -61,6 +61,8 @@ WORLDBEV_WIN = (0, 92)  # DB-109 B1 (GROUND_MODE="worldbev"): FIXED anchor windo
 COHERENT = False  # DB-109 B-coherence (fill variant, gated, default off): keep the per-pixel cap reprojection (the 81.9% MOVING_GATE=False path) but make the SOURCE PICK a deterministic function of the WORLD ground point (FIXED window + egod-closest-to-sweet) so neighbouring anchors agree on the same world point -> temporal coherence WITHOUT the world-grid's discretisation/accumulation loss. Use with MOVING_GATE=False; nvalid>=2 guard against single-source car-body.
 COHERENT_WIN = (0, 92)  # fixed candidate window for COHERENT (driver sets per scene)
 COHERENT_SWEET = 22.0   # egod sweet-spot (m): the source whose ground-distance is closest to this is picked, deterministically per world point (20-28 m is the inner-cap grazing window)
+COHERENT_PICK = "sweet"  # DB-109 Evidence-A: per-world-point source PICK among the egod-sweet slots. "sweet"=slot-0 egod-closest single source (= the spread-19.8 "格子"/quilt, current default); "agree"=argmin distance-to-median (BEST-AGREEING source — also deterministic per world point in a FIXED window, so it kills the quilt by selecting AGREEING colours while staying temporally coherent). Evidence-A: sweet=spread~19.8 mediocre; the pristine old patches were spread~1.6 (argmin-to-median). EYE-test vs sweet before shipping (prior loop-r1 "argmin=blurred" was over egod-NEAR not egod-SWEET slots).
+FAITH_MASK = False  # DB-109 A (faithful-base + generative fill): also export {run}_faithfill_mask.png = 255 where the nadir is NOT faithful-real (cap abstained-to-plate OR foreground-occluded) = the region the downstream temporally-coherent generative fill (Cosmos/DiT, DB-14) must paint. Gated; default off (shipped output unchanged).
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
@@ -1321,6 +1323,10 @@ def run_case(case_spec, run_name):
         i0 = np.clip(np.floor(col_f).astype(int), 0, BW - 2); j0 = np.clip(np.floor(row_f).astype(int), 0, BW - 2)
         fa = np.clip(col_f - i0, 0, 1)[:, None]; fb = np.clip(row_f - j0, 0, 1)[:, None]
         R3 = bev_rgb.reshape(BW, BW, 3)
+        if FAITH_MASK:   # DB-109 A: save the UNDISTORTED top-down BEV ground raster + hole mask for BEV-domain generative inpaint (the ERP-pole distortion broke vanilla ERP inpaint; BEV is flat → SDXL-friendly, then reproject)
+            _bf = (bany & (bspread_c <= 14.0)).reshape(BW, BW)
+            save_rgb(REMOTE_OUT / f"{run_name}_bevraster.png", np.where(_bf[:, :, None], np.clip(R3, 0, 255).astype(np.uint8), 0))
+            save_rgb(REMOTE_OUT / f"{run_name}_bevmask.png", np.dstack([((~_bf).astype(np.uint8) * 255)] * 3))
         bev_sel_px = (R3[j0, i0] * (1 - fa) * (1 - fb) + R3[j0, i0 + 1] * fa * (1 - fb)
                       + R3[j0 + 1, i0] * (1 - fa) * fb + R3[j0 + 1, i0 + 1] * fa * fb)
         ic = np.clip(np.round(col_f).astype(int), 0, BW - 1); jr = np.clip(np.round(row_f).astype(int), 0, BW - 1)
@@ -1562,8 +1568,12 @@ def run_case(case_spec, run_name):
         np.save(str(REMOTE_OUT / (run_name + "_diag_nearestegod.npy")), _eg.reshape(H, W))
         _spd = np.full(H * W, np.nan, np.float32); _spd[flat_g] = np.asarray(spread, np.float32); np.save(str(REMOTE_OUT / (run_name + "_diag_spread.npy")), _spd.reshape(H, W))   # DB-108 AUDIT: per-cap spread map -> real-write(spread<=30) vs sources-disagree(>30) for the real-vs-inpaint overlay
     dist_s[~haveg] = np.inf
-    pick = (np.zeros(len(flat_g), np.int64) if COHERENT else np.argmin(dist_s, axis=0))   # DB-109 B-coherence: slot 0 = the egod-sweet DETERMINISTIC source -> same world point -> same source -> temporal coherence (not the per-anchor argmin-spread)
+    pick = (np.zeros(len(flat_g), np.int64) if (COHERENT and COHERENT_PICK == "sweet") else np.argmin(dist_s, axis=0))   # DB-109 B-coherence: COHERENT "sweet"=slot 0 egod-sweet DETERMINISTIC single source (spread-19.8 quilt); "agree"=argmin-to-median (BEST-AGREEING, still world-deterministic in a fixed window -> kills 格子 + keeps coherence). non-COHERENT keeps the legacy per-anchor argmin.
     sel_px = colg[pick, np.arange(len(flat_g))]
+    if GROUND_MODE == "diag":   # DB-109 A-evidence: per-pixel WINNING source-frame fi (decoded from the chosen slot) — proves whether the 格子/tiling is source-label fragmentation (-1 = no source)
+        _wc = chosen_g[pick, np.arange(len(flat_g))]
+        _lb = np.full(H * W, -1, np.int32); _lb[flat_g] = np.where(_wc >= 0, (_wc // 10).astype(np.int32), -1)
+        np.save(str(REMOTE_OUT / (run_name + "_diag_label.npy")), _lb.reshape(H, W))
     if GROUND_MODE in ("bev", "bevdirect", "worldbev") and bev_sel_px is not None:   # DB-102/107 + DB-109 B1: metric-fused cap overrides the per-pixel pick
         anyg = bev_anyg; spread = bev_spread; sel_px = bev_sel_px.astype(np.float32)
     # GLOBAL cast correction to the anchor truth ring: the inner cap is only ever
@@ -1655,6 +1665,9 @@ def run_case(case_spec, run_name):
     save_rgb(REMOTE_OUT / f"{run_name}_segcomposite.png", comp)
     save_rgb(REMOTE_OUT / f"{run_name}_vismask.png", vismask)
     save_rgb(REMOTE_OUT / f"{run_name}_nadirmask.png", np.dstack([nadir_alpha] * 3))
+    if FAITH_MASK:   # DB-109 A: the generative-fill region = abstained/plated cap (resid_m) + foreground-occluded ground (fg_occ); lower half only
+        _ff = (resid_m | fg_occ); _ff[:H // 2] = False
+        save_rgb(REMOTE_OUT / f"{run_name}_faithfill_mask.png", np.dstack([(_ff.astype(np.uint8) * 255)] * 3))
     from PIL import Image as I
     try: f = ImageFont.truetype("DejaVuSans.ttf", 16)
     except Exception: f = ImageFont.load_default()
