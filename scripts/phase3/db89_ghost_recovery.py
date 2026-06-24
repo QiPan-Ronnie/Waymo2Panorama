@@ -57,6 +57,7 @@ SEAM_SINGLE_SOURCE = False  # DB-105 (diagnostic-validated on a309): when c_own 
 GROUND_RESID = "plate"  # DB-108 (AUDIT 2026-06-22): how the evidence-INSUFFICIENT nadir (spread>30 or no source) is filled. "plate"=DB-99 gray DC plate (DEFAULT, honest-but-gray). "inpaint"=video-era NS-inpaint (cv2.INPAINT_NS extends real edges into the blind cap) -> ground-FEEL (the ground_video_v1 look; blurry/白团 on bare asphalt). COMBO (audit-verified, recovers ground-feel + keeps near car) = "inpaint" + the DB-106 boundary. Gated, default unchanged (gray).
 MOVING_GATE = True  # DB-109 Stage-1b (diagnostic, default True = shipped behavior): STAGE-4 ground-source moving-object occlusion gate. Set False to isolate whether a309's 94% gate3 is OVER-AGGRESSIVE box-occlusion (real recovers when off) vs GENUINE car blocking (newly-admitted sources read as car-body -> spread>30, real stays low).
 MOVING_SCALE = 1.3  # DB-109 Stage-1c: moving-box inflation factor (default 1.3 = shipped). 1.0 = precise box. The 1.3x inflation + whole-grazing-ray test over-blocks ~76% of good ground sources on traffic frames (a309 5.6%->81.9% when off); shrinking toward 1.0 recovers them, the spread gate backstops genuine car-body.
+WORLDBEV_WIN = (0, 92)  # DB-109 B1 (GROUND_MODE="worldbev"): FIXED anchor window [lo,hi] the world ground map is built over. Fixed (NOT anchor-relative) so neighbouring target anchors sample the SAME map -> temporal-coherence test. Driver sets it per scene.
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
@@ -1349,6 +1350,78 @@ def run_case(case_spec, run_name):
                     float((bev_spread[_mm] <= 30).mean()),
                     float((bev_anyg[_mm] & (bev_spread[_mm] <= 30)).mean())), flush=True)
         cand_fis = []   # the per-pixel loop no-ops; bev_* override the pick below
+    if GROUND_MODE == "worldbev":
+        # ---- DB-109 B1: ONE world-fixed BEV ground map over a FIXED anchor window ----
+        # Accumulate ALL window frames (spread-dominant, NO moving box-gate -> Stage-1c folds in;
+        # nvalid>=2 guard backstops single-source car-body). Built over a FIXED window so every
+        # target anchor samples the SAME deterministic map -> temporal coherence by construction.
+        _wlo, _whi = WORLDBEV_WIN
+        _wfis = list(range(max(0, _wlo), min(len(all_ts) - 1, _whi) + 1))
+        _egos = np.array([cte(int(all_ts[_t]))[1] for _t in _wfis])
+        _LAT, _CW = 18.0, 0.06
+        _xmin, _ymin = _egos[:, 0].min() - _LAT, _egos[:, 1].min() - _LAT
+        _xmax, _ymax = _egos[:, 0].max() + _LAT, _egos[:, 1].max() + _LAT
+        _gx = np.arange(_xmin, _xmax, _CW); _gy = np.arange(_ymin, _ymax, _CW)
+        _GW, _GH = len(_gx), len(_gy)
+        _GXX, _GYY = np.meshgrid(_gx, _gy)
+        _gzw = float(ta[2] - C[2] - 0.33)   # anchor ground world-Z (AV2 ~flat ±0.1m/60m); first cut
+        _wxyz = np.stack([_GXX.ravel(), _GYY.ravel(), np.full(_GW * _GH, _gzw)], 1)
+        _NWC = len(_wxyz); _NSW = 8
+        _wchosen = np.full((_NSW, _NWC), -1, np.int64); _wscore = np.full((_NSW, _NWC), np.inf)
+        for _fi in _wfis:
+            _tsf = int(all_ts[_fi])
+            for _ci, _cam in enumerate(ring_cams):
+                _cts = cam_ts_arr[_ci]; _Rf, _tf = cte(int(_cts[np.argmin(np.abs(_cts - _tsf))]))
+                _egod = np.linalg.norm(_wxyz - _tf[None, :], axis=1)
+                _Xq = (_wxyz - _tf[None, :]) @ _Rf
+                _K, (_hh, _ww) = cals[_ci]; _T = np.asarray(frame.calibrations[_cam].T_ego_cam, float); _Tc = np.linalg.inv(_T)
+                _Xc = (_Tc[:3, :3] @ _Xq.T).T + _Tc[:3, 3]; _z = _Xc[:, 2]
+                _px = _K[0, 0] * _Xc[:, 0] / np.maximum(_z, 1e-6) + _K[0, 2]
+                _py = _K[1, 1] * _Xc[:, 1] / np.maximum(_z, 1e-6) + _K[1, 2]
+                _ok = (_z > 0.5) & (_px >= 2) & (_px < _ww - 2) & (_py >= 2) & (_py < _hh - 2) & (_egod > 5.0) & (_egod < 28.0)
+                if not _ok.any(): continue
+                _code = _fi * 10 + _ci; _sc = _egod.copy(); _rem = _ok.copy()
+                for _s in range(_NSW):
+                    _b = _rem & (_sc < _wscore[_s])
+                    if not _b.any(): continue
+                    for _tt in range(_NSW - 1, _s, -1):
+                        _wchosen[_tt][_b] = _wchosen[_tt - 1][_b]; _wscore[_tt][_b] = _wscore[_tt - 1][_b]
+                    _wchosen[_s][_b] = _code; _wscore[_s][_b] = _sc[_b]; _rem = _rem & ~_b
+        _wcol = np.full((_NSW, _NWC, 3), np.nan, np.float32); _wcache = {}
+        for _s in range(_NSW):
+            for _code in np.unique(_wchosen[_s][_wchosen[_s] >= 0]):
+                _fi, _ci = int(_code) // 10, int(_code) % 10; _sel = _wchosen[_s] == _code; _tsf = int(all_ts[_fi])
+                if _tsf not in _wcache: _wcache[_tsf] = loader.load_synced_frame(_tsf)
+                _fr = _wcache[_tsf]; _Rf, _tf = cte(int(_fr.timestamps_ns[ring_cams[_ci]]))
+                _Xq = (_wxyz[_sel] - _tf[None, :]) @ _Rf
+                _K, _ = cals[_ci]; _T = np.asarray(frame.calibrations[ring_cams[_ci]].T_ego_cam, float); _Tc = np.linalg.inv(_T)
+                _Xc = (_Tc[:3, :3] @ _Xq.T).T + _Tc[:3, 3]; _z = _Xc[:, 2]
+                _px = _K[0, 0] * _Xc[:, 0] / np.maximum(_z, 1e-6) + _K[0, 2]
+                _py = _K[1, 1] * _Xc[:, 1] / np.maximum(_z, 1e-6) + _K[1, 2]
+                _wcol[_s][_sel] = np.clip(bilinear(_fr.images[ring_cams[_ci]], _px, _py) * np.exp(gains[_ci])[None, :], 0, 255).astype(np.float32)
+        _wh = ~np.isnan(_wcol[:, :, 0]); _wnv = _wh.sum(0); _wany = _wnv >= 2   # nvalid>=2 guard (single-source car-body backstop)
+        _wmed = np.nanmedian(_wcol, axis=0); _wdd = np.abs(_wcol - _wmed[None]).sum(2)
+        _wn = np.maximum(_wh.sum(0), 1); _wspr = np.where(_wh, _wdd, 0.0).sum(0) / _wn; _wspr[~_wany] = 1e9
+        _wdd2 = _wdd.copy(); _wdd2[~_wh] = np.inf; _wpick = np.argmin(_wdd2, axis=0)
+        _wmap = _wcol[_wpick, np.arange(_NWC)]; _wmap = np.where(np.isnan(_wmap), 0.0, _wmap).astype(np.float32)
+        _wok = _wany & (_wspr <= 30.0)
+        np.save(str(REMOTE_OUT / (run_name + "_worldmap.npy")), np.where(_wok[:, None], _wmap, 0).reshape(_GH, _GW, 3).astype(np.uint8))
+        np.save(str(REMOTE_OUT / (run_name + "_worldcov.npy")), (_wok.reshape(_GH, _GW) * 255).astype(np.uint8))
+        print("WORLDBEV", run_name, "grid", _GW, "x", _GH, "win", _wlo, _whi, "ok_pct", round(100.0 * float(_wok.mean()), 1), flush=True)
+        # sample the shared world map at each cap ground point (Xg_city world XY)
+        _cf = (Xg_city[:, 0] - _xmin) / _CW; _rf = (Xg_city[:, 1] - _ymin) / _CW
+        _i0 = np.clip(np.floor(_cf).astype(int), 0, _GW - 2); _j0 = np.clip(np.floor(_rf).astype(int), 0, _GH - 2)
+        _fa = np.clip(_cf - _i0, 0, 1)[:, None]; _fb = np.clip(_rf - _j0, 0, 1)[:, None]
+        _Wm = _wmap.reshape(_GH, _GW, 3); _Wok = _wok.reshape(_GH, _GW)
+        _cap = (_Wm[_j0, _i0] * (1 - _fa) * (1 - _fb) + _Wm[_j0, _i0 + 1] * _fa * (1 - _fb)
+                + _Wm[_j0 + 1, _i0] * (1 - _fa) * _fb + _Wm[_j0 + 1, _i0 + 1] * _fa * _fb)
+        _ic = np.clip(np.round(_cf).astype(int), 0, _GW - 1); _jr = np.clip(np.round(_rf).astype(int), 0, _GH - 1)
+        bev_sel_px = _cap.astype(np.float32); bev_anyg = _Wok[_jr, _ic]; bev_spread = np.where(_Wok[_jr, _ic], 0.0, 1e9)
+        _inb = (_cf >= 0) & (_cf < _GW) & (_rf >= 0) & (_rf < _GH)
+        print("WBEVCAP %s capX[%.1f,%.1f] capY[%.1f,%.1f] | gridX[%.1f,%.1f] gridY[%.1f,%.1f] | ingrid%%=%.1f onok%%=%.1f | ncap=%d" % (
+            run_name, float(Xg_city[:, 0].min()), float(Xg_city[:, 0].max()), float(Xg_city[:, 1].min()), float(Xg_city[:, 1].max()),
+            _xmin, _xmax, _ymin, _ymax, 100.0 * float(_inb.mean()), 100.0 * float(bev_anyg.mean()), len(Xg_city)), flush=True)
+        cand_fis = []
     for fi in cand_fis:
         tsf = int(all_ts[fi])
         fboxes = ([(c2_, sz2_ * MOVING_SCALE, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, tsf, moving)] if MOVING_GATE else [])   # DB-109 Stage-1b/1c: MOVING_GATE off = isolation; MOVING_SCALE shrinks the box toward a precise gate (1.3=shipped, 1.0=precise)
@@ -1485,7 +1558,7 @@ def run_case(case_spec, run_name):
     dist_s[~haveg] = np.inf
     pick = np.argmin(dist_s, axis=0)
     sel_px = colg[pick, np.arange(len(flat_g))]
-    if GROUND_MODE in ("bev", "bevdirect") and bev_sel_px is not None:   # DB-102/107: metric-fused cap overrides the per-pixel pick
+    if GROUND_MODE in ("bev", "bevdirect", "worldbev") and bev_sel_px is not None:   # DB-102/107 + DB-109 B1: metric-fused cap overrides the per-pixel pick
         anyg = bev_anyg; spread = bev_spread; sel_px = bev_sel_px.astype(np.float32)
     # GLOBAL cast correction to the anchor truth ring: the inner cap is only ever
     # visible at 4-6 deg grazing (front-pod rig blocks all steeper views), where
