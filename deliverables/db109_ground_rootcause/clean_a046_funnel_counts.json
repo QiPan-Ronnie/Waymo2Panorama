@@ -1,0 +1,105 @@
+{
+ "run": "clean_a046",
+ "n_blind": 759780,
+ "counts_by_gate": {
+  "0": 0,
+  "1": 0,
+  "2": 0,
+  "3": 0,
+  "4": 65897,
+  "5": 693883
+ },
+ "pct": {
+  "0": 0.0,
+  "1": 0.0,
+  "2": 0.0,
+  "3": 0.0,
+  "4": 8.7,
+  "5": 91.3
+ },
+ "gate_legend": {
+  "0": "geometry-blind: no cam EVER saw it (N1=0, TRUE wall, generation-only)",
+  "1": "FOV-hit but fully ego-self-occluded (killed at self-occ)",
+  "2": "passed self-occ but egod out of [5,28] (RULE-REJECTED by the 28m cut)",
+  "3": "passed egod but moving-box occluded",
+  "4": "had source(s) but they disagree (spread>30)",
+  "5": "REAL (written)"
+ },
+ "candidates": [
+  {
+   "fi": 9,
+   "disp_m": 10.1,
+   "dt_frames": -37
+  },
+  {
+   "fi": 28,
+   "disp_m": 5.1,
+   "dt_frames": -18
+  },
+  {
+   "fi": 63,
+   "disp_m": 5.0,
+   "dt_frames": 17
+  },
+  {
+   "fi": 64,
+   "disp_m": 5.3,
+   "dt_frames": 18
+  },
+  {
+   "fi": 82,
+   "disp_m": 10.1,
+   "dt_frames": 36
+  },
+  {
+   "fi": 83,
+   "disp_m": 10.3,
+   "dt_frames": 37
+  },
+  {
+   "fi": 107,
+   "disp_m": 15.0,
+   "dt_frames": 61
+  },
+  {
+   "fi": 108,
+   "disp_m": 15.2,
+   "dt_frames": 62
+  },
+  {
+   "fi": 109,
+   "disp_m": 15.3,
+   "dt_frames": 63
+  },
+  {
+   "fi": 153,
+   "disp_m": 20.0,
+   "dt_frames": 107
+  },
+  {
+   "fi": 154,
+   "disp_m": 20.1,
+   "dt_frames": 108
+  },
+  {
+   "fi": 155,
+   "disp_m": 20.2,
+   "dt_frames": 109
+  },
+  {
+   "fi": 266,
+   "disp_m": 25.1,
+   "dt_frames": 220
+  },
+  {
+   "fi": 267,
+   "disp_m": 25.2,
+   "dt_frames": 221
+  },
+  {
+   "fi": 268,
+   "disp_m": 25.2,
+   "dt_frames": 222
+  }
+ ]
+}

@@ -49,7 +49,7 @@ import json, math, pathlib, subprocess, sys, time, traceback
 import numpy as np
 
 REMOTE_OUT = pathlib.Path("__REMOTE_OUT__"); REMOTE_RESULT = pathlib.Path("__RESULT__")
-GROUND_MODE = "fill"   # "fill"=STAGE-4 nadir reconstruction; "off"=middle-only base stitch (skip ground outpaint entirely -> BLACK nadir, like the Fable-5 board). ("mask" gray branch is deprecated/dead.)
+GROUND_MODE = "fill"   # "fill"=STAGE-4 nadir reconstruction; "off"=middle-only base stitch (skip ground outpaint entirely -> BLACK nadir, like the Fable-5 board). ("mask" gray branch is deprecated/dead.) "funnel"=DB-109 Stage-1 diagnostic: runs fill + dumps a per-pixel gate-funnel npy (_funnel_cls.npy) + counts in OUT["funnel"]; no main-path change.
 SEAM_OBJDEPTH = False   # DB-103 isolation test (default OFF, never ships): force close-object ERP regions to their box depth before scene-band reproject, to isolate the near-car seam-shear cause (depth-field smoothing vs occlusion). Does NOT touch the Fable-5 core when False.
 SEAM_MASK_FILL = False  # DB-104 robust mask (default OFF, gated): fill ENCLOSED holes (windows) in each YOLO object mask via binary_fill_holes (NOT dilation -> cannot inflate the boundary or merge instances, so it does NOT reintroduce the v7 giant-instance bug). A complete object body also gives the flow-morph more registration signal. Off = pure Fable-5 mask.
 SEAM_FLOWMORPH = True   # DB-103 fix (SHIPPED 2026-06-19, validated: a309 shear gone 32->8.6px, crowd a50 helped, clean seams byte-identical, 6-frame temporal stable): when the view-morph ECC-AFFINE residual is large (close-object depth-varying parallax), replace the affine displacement with dense Farneback optical flow INSIDE the object body. GATED on max_reg_px>8 -> fires ONLY on the rare near-object-break seams, never touches the well-registered ones (clean frames byte-identical). Pristine core in _baseline_fable5/. Set False to revert to pure affine.
@@ -1428,6 +1428,52 @@ def run_case(case_spec, run_name):
     _ns_count = np.maximum(haveg.sum(0), 1)
     spread = np.where(haveg, dist_s, 0.0).sum(0) / _ns_count
     spread[~anyg] = 1e9
+    if GROUND_MODE == "funnel":   # DB-109 Stage-1: per-pixel GATE FUNNEL — split "no-source" into geometry-blind (N1=0, TRUE wall) vs rule-rejected (egod / self-occ / moving / spread). Diagnostic-only; runs ON TOP of the normal fill path, does NOT change fill/bev output.
+        NF = len(flat_g)
+        f_fov = np.zeros(NF, bool)        # N1: ray lands in SOME ring-cam FOV (egod ignored)
+        f_noselfocc = np.zeros(NF, bool)  # N2: + not ego-self-occluded
+        f_egod = np.zeros(NF, bool)       # N3: + egod in [5,28]
+        _ebx = [(C + (bn_ + bx_) / 2.0, bx_ - bn_, np.eye(3))
+                for bn_, bx_ in ((np.array([-2.2, -1.6, -C[2] - 0.33]), np.array([4.6, 1.6, -C[2] + 0.67])),
+                                 (np.array([-1.7, -1.6, -C[2] - 0.33]), np.array([1.0, 1.6, -0.35])))]
+        for fi in cand_fis:
+            tsf = int(all_ts[fi])
+            for ci2, cam in enumerate(ring_cams):
+                cts_ = cam_ts_arr[ci2]
+                Rf, tf = cte(int(cts_[np.argmin(np.abs(cts_ - tsf))]))
+                egod_f = np.linalg.norm(Xg_city - tf[None, :], axis=1)
+                Xq = (Xg_city - tf[None, :]) @ Rf
+                K2, (hh2, ww2) = cals[ci2]
+                T2 = np.asarray(frame.calibrations[cam].T_ego_cam, float)
+                Tci2 = np.linalg.inv(T2)
+                Xc2 = (Tci2[:3, :3] @ Xq.T).T + Tci2[:3, 3]; z2 = Xc2[:, 2]
+                px2 = K2[0, 0] * Xc2[:, 0] / np.maximum(z2, 1e-6) + K2[0, 2]
+                py2 = K2[1, 1] * Xc2[:, 1] / np.maximum(z2, 1e-6) + K2[1, 2]
+                infov = (z2 > 0.5) & (px2 >= 2) & (px2 < ww2 - 2) & (py2 >= 2) & (py2 < hh2 - 2)
+                if not infov.any(): continue
+                so = np.zeros(NF, bool); so[infov] = gseg_blocked(T2[:3, 3], Xq[infov], _ebx)
+                ok_egod = (egod_f > 5.0) & (egod_f < 28.0)
+                f_fov |= infov
+                f_noselfocc |= infov & ~so
+                f_egod |= infov & ~so & ok_egod
+        cls = np.zeros(NF, np.uint8)   # highest gate each blind pixel reaches (0=geom-blind ... 5=real)
+        cls[f_fov] = 1; cls[f_noselfocc] = 2; cls[f_egod] = 3
+        cls[anyg] = 4; cls[anyg & (spread <= 30.0)] = 5
+        _cm = np.full(H * W, 255, np.uint8); _cm[flat_g] = cls   # 255 = not-a-cap pixel; 0..5 = highest gate the blind cap pixel reaches (0=geom-blind ... 5=real)
+        np.save(str(REMOTE_OUT / (run_name + "_funnel_cls.npy")), _cm.reshape(H, W))
+        _counts = {int(k): int((cls == k).sum()) for k in range(6)}
+        _funnel = {
+            "run": run_name, "n_blind": int(NF), "counts_by_gate": _counts,
+            "pct": {int(k): round(100.0 * v / max(NF, 1), 1) for k, v in _counts.items()},
+            "gate_legend": {0: "geometry-blind: no cam EVER saw it (N1=0, TRUE wall, generation-only)",
+                            1: "FOV-hit but fully ego-self-occluded (killed at self-occ)",
+                            2: "passed self-occ but egod out of [5,28] (RULE-REJECTED by the 28m cut)",
+                            3: "passed egod but moving-box occluded",
+                            4: "had source(s) but they disagree (spread>30)",
+                            5: "REAL (written)"},
+            "candidates": [{"fi": int(_f), "disp_m": round(float(disp_g[_f]), 1), "dt_frames": int(_f - ai_g)} for _f in cand_fis]}
+        (REMOTE_OUT / (run_name + "_funnel_counts.json")).write_text(json.dumps(_funnel, indent=1), encoding="utf-8")
+        print("FUNNEL", run_name, _funnel["pct"], flush=True)
     if GROUND_MODE == "diag":   # DATA EVIDENCE of the blind spot: per cap pixel -> #valid sources + nearest-source distance
         _nv = np.full(H * W, np.nan, np.float32); _nv[flat_g] = haveg.sum(0).astype(np.float32)
         _eg = np.full(H * W, np.nan, np.float32); _eg[flat_g] = np.where(np.isfinite(score_g[0]), score_g[0], np.nan).astype(np.float32)

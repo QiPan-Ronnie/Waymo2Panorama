@@ -1,0 +1,180 @@
+{
+ "run": "highway_a260",
+ "n_blind": 762890,
+ "counts_by_gate": {
+  "0": 0,
+  "1": 0,
+  "2": 0,
+  "3": 0,
+  "4": 7457,
+  "5": 755433
+ },
+ "pct": {
+  "0": 0.0,
+  "1": 0.0,
+  "2": 0.0,
+  "3": 0.0,
+  "4": 1.0,
+  "5": 99.0
+ },
+ "gate_legend": {
+  "0": "geometry-blind: no cam EVER saw it (N1=0, TRUE wall, generation-only)",
+  "1": "FOV-hit but fully ego-self-occluded (killed at self-occ)",
+  "2": "passed self-occ but egod out of [5,28] (RULE-REJECTED by the 28m cut)",
+  "3": "passed egod but moving-box occluded",
+  "4": "had source(s) but they disagree (spread>30)",
+  "5": "REAL (written)"
+ },
+ "candidates": [
+  {
+   "fi": 80,
+   "disp_m": 50.3,
+   "dt_frames": -180
+  },
+  {
+   "fi": 81,
+   "disp_m": 50.2,
+   "dt_frames": -179
+  },
+  {
+   "fi": 82,
+   "disp_m": 50.1,
+   "dt_frames": -178
+  },
+  {
+   "fi": 111,
+   "disp_m": 45.5,
+   "dt_frames": -149
+  },
+  {
+   "fi": 112,
+   "disp_m": 45.3,
+   "dt_frames": -148
+  },
+  {
+   "fi": 113,
+   "disp_m": 45.1,
+   "dt_frames": -147
+  },
+  {
+   "fi": 130,
+   "disp_m": 40.7,
+   "dt_frames": -130
+  },
+  {
+   "fi": 131,
+   "disp_m": 40.4,
+   "dt_frames": -129
+  },
+  {
+   "fi": 132,
+   "disp_m": 40.1,
+   "dt_frames": -128
+  },
+  {
+   "fi": 145,
+   "disp_m": 35.9,
+   "dt_frames": -115
+  },
+  {
+   "fi": 146,
+   "disp_m": 35.6,
+   "dt_frames": -114
+  },
+  {
+   "fi": 147,
+   "disp_m": 35.2,
+   "dt_frames": -113
+  },
+  {
+   "fi": 158,
+   "disp_m": 31.2,
+   "dt_frames": -102
+  },
+  {
+   "fi": 159,
+   "disp_m": 30.8,
+   "dt_frames": -101
+  },
+  {
+   "fi": 160,
+   "disp_m": 30.4,
+   "dt_frames": -100
+  },
+  {
+   "fi": 172,
+   "disp_m": 25.8,
+   "dt_frames": -88
+  },
+  {
+   "fi": 173,
+   "disp_m": 25.4,
+   "dt_frames": -87
+  },
+  {
+   "fi": 174,
+   "disp_m": 25.1,
+   "dt_frames": -86
+  },
+  {
+   "fi": 274,
+   "disp_m": 5.2,
+   "dt_frames": 14
+  },
+  {
+   "fi": 275,
+   "disp_m": 5.5,
+   "dt_frames": 15
+  },
+  {
+   "fi": 276,
+   "disp_m": 5.9,
+   "dt_frames": 16
+  },
+  {
+   "fi": 287,
+   "disp_m": 10.4,
+   "dt_frames": 27
+  },
+  {
+   "fi": 288,
+   "disp_m": 10.8,
+   "dt_frames": 28
+  },
+  {
+   "fi": 289,
+   "disp_m": 11.2,
+   "dt_frames": 29
+  },
+  {
+   "fi": 298,
+   "disp_m": 15.1,
+   "dt_frames": 38
+  },
+  {
+   "fi": 299,
+   "disp_m": 15.5,
+   "dt_frames": 39
+  },
+  {
+   "fi": 300,
+   "disp_m": 16.0,
+   "dt_frames": 40
+  },
+  {
+   "fi": 310,
+   "disp_m": 20.3,
+   "dt_frames": 50
+  },
+  {
+   "fi": 311,
+   "disp_m": 20.7,
+   "dt_frames": 51
+  },
+  {
+   "fi": 312,
+   "disp_m": 21.1,
+   "dt_frames": 52
+  }
+ ]
+}

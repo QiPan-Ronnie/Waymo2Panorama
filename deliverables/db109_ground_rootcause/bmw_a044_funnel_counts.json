@@ -1,0 +1,195 @@
+{
+ "run": "bmw_a044",
+ "n_blind": 761815,
+ "counts_by_gate": {
+  "0": 0,
+  "1": 0,
+  "2": 0,
+  "3": 0,
+  "4": 446247,
+  "5": 315568
+ },
+ "pct": {
+  "0": 0.0,
+  "1": 0.0,
+  "2": 0.0,
+  "3": 0.0,
+  "4": 58.6,
+  "5": 41.4
+ },
+ "gate_legend": {
+  "0": "geometry-blind: no cam EVER saw it (N1=0, TRUE wall, generation-only)",
+  "1": "FOV-hit but fully ego-self-occluded (killed at self-occ)",
+  "2": "passed self-occ but egod out of [5,28] (RULE-REJECTED by the 28m cut)",
+  "3": "passed egod but moving-box occluded",
+  "4": "had source(s) but they disagree (spread>30)",
+  "5": "REAL (written)"
+ },
+ "candidates": [
+  {
+   "fi": 1,
+   "disp_m": 16.3,
+   "dt_frames": -43
+  },
+  {
+   "fi": 2,
+   "disp_m": 15.8,
+   "dt_frames": -42
+  },
+  {
+   "fi": 3,
+   "disp_m": 15.3,
+   "dt_frames": -41
+  },
+  {
+   "fi": 13,
+   "disp_m": 10.9,
+   "dt_frames": -31
+  },
+  {
+   "fi": 14,
+   "disp_m": 10.4,
+   "dt_frames": -30
+  },
+  {
+   "fi": 15,
+   "disp_m": 10.0,
+   "dt_frames": -29
+  },
+  {
+   "fi": 26,
+   "disp_m": 5.8,
+   "dt_frames": -18
+  },
+  {
+   "fi": 27,
+   "disp_m": 5.4,
+   "dt_frames": -17
+  },
+  {
+   "fi": 28,
+   "disp_m": 5.1,
+   "dt_frames": -16
+  },
+  {
+   "fi": 143,
+   "disp_m": 20.1,
+   "dt_frames": 99
+  },
+  {
+   "fi": 144,
+   "disp_m": 20.2,
+   "dt_frames": 100
+  },
+  {
+   "fi": 145,
+   "disp_m": 20.4,
+   "dt_frames": 101
+  },
+  {
+   "fi": 173,
+   "disp_m": 25.1,
+   "dt_frames": 129
+  },
+  {
+   "fi": 174,
+   "disp_m": 25.3,
+   "dt_frames": 130
+  },
+  {
+   "fi": 175,
+   "disp_m": 25.5,
+   "dt_frames": 131
+  },
+  {
+   "fi": 198,
+   "disp_m": 30.0,
+   "dt_frames": 154
+  },
+  {
+   "fi": 199,
+   "disp_m": 30.2,
+   "dt_frames": 155
+  },
+  {
+   "fi": 200,
+   "disp_m": 30.5,
+   "dt_frames": 156
+  },
+  {
+   "fi": 221,
+   "disp_m": 35.1,
+   "dt_frames": 177
+  },
+  {
+   "fi": 222,
+   "disp_m": 35.4,
+   "dt_frames": 178
+  },
+  {
+   "fi": 223,
+   "disp_m": 35.6,
+   "dt_frames": 179
+  },
+  {
+   "fi": 242,
+   "disp_m": 40.2,
+   "dt_frames": 198
+  },
+  {
+   "fi": 243,
+   "disp_m": 40.4,
+   "dt_frames": 199
+  },
+  {
+   "fi": 244,
+   "disp_m": 40.7,
+   "dt_frames": 200
+  },
+  {
+   "fi": 262,
+   "disp_m": 45.2,
+   "dt_frames": 218
+  },
+  {
+   "fi": 263,
+   "disp_m": 45.5,
+   "dt_frames": 219
+  },
+  {
+   "fi": 264,
+   "disp_m": 45.7,
+   "dt_frames": 220
+  },
+  {
+   "fi": 281,
+   "disp_m": 50.1,
+   "dt_frames": 237
+  },
+  {
+   "fi": 282,
+   "disp_m": 50.4,
+   "dt_frames": 238
+  },
+  {
+   "fi": 283,
+   "disp_m": 50.6,
+   "dt_frames": 239
+  },
+  {
+   "fi": 301,
+   "disp_m": 55.1,
+   "dt_frames": 257
+  },
+  {
+   "fi": 302,
+   "disp_m": 55.4,
+   "dt_frames": 258
+  },
+  {
+   "fi": 303,
+   "disp_m": 55.6,
+   "dt_frames": 259
+  }
+ ]
+}
