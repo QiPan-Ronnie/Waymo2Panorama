@@ -56,6 +56,7 @@ SEAM_FLOWMORPH = True   # DB-103 fix (SHIPPED 2026-06-19, validated: a309 shear 
 SEAM_SINGLE_SOURCE = False  # DB-105 (diagnostic-validated on a309): when c_own sees the object COMPLETE and a secondary contributes only a small grazing sliver (mask << c_own area), DROP the secondary body-fill + SKIP the view-morph -> pure single-source. The near-car seam's CAUSE is the morph FUSING a complete car (side_left 1610 LiDAR pts) with a 149-pt grazing sliver (front_left). Gated, default OFF; pristine core in _baseline_fable5/.
 GROUND_RESID = "plate"  # DB-108 (AUDIT 2026-06-22): how the evidence-INSUFFICIENT nadir (spread>30 or no source) is filled. "plate"=DB-99 gray DC plate (DEFAULT, honest-but-gray). "inpaint"=video-era NS-inpaint (cv2.INPAINT_NS extends real edges into the blind cap) -> ground-FEEL (the ground_video_v1 look; blurry/白团 on bare asphalt). COMBO (audit-verified, recovers ground-feel + keeps near car) = "inpaint" + the DB-106 boundary. Gated, default unchanged (gray).
 MOVING_GATE = True  # DB-109 Stage-1b (diagnostic, default True = shipped behavior): STAGE-4 ground-source moving-object occlusion gate. Set False to isolate whether a309's 94% gate3 is OVER-AGGRESSIVE box-occlusion (real recovers when off) vs GENUINE car blocking (newly-admitted sources read as car-body -> spread>30, real stays low).
+MOVING_SCALE = 1.3  # DB-109 Stage-1c: moving-box inflation factor (default 1.3 = shipped). 1.0 = precise box. The 1.3x inflation + whole-grazing-ray test over-blocks ~76% of good ground sources on traffic frames (a309 5.6%->81.9% when off); shrinking toward 1.0 recovers them, the spread gate backstops genuine car-body.
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
@@ -1350,7 +1351,7 @@ def run_case(case_spec, run_name):
         cand_fis = []   # the per-pixel loop no-ops; bev_* override the pick below
     for fi in cand_fis:
         tsf = int(all_ts[fi])
-        fboxes = ([(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, tsf, moving)] if MOVING_GATE else [])   # DB-109 Stage-1b: MOVING_GATE=False drops the moving-occlusion gate to isolate over-aggression vs genuine car blocking
+        fboxes = ([(c2_, sz2_ * MOVING_SCALE, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, tsf, moving)] if MOVING_GATE else [])   # DB-109 Stage-1b/1c: MOVING_GATE off = isolation; MOVING_SCALE shrinks the box toward a precise gate (1.3=shipped, 1.0=precise)
         for ci2, cam in enumerate(ring_cams):
             cts_ = cam_ts_arr[ci2]
             Rf, tf = cte(int(cts_[np.argmin(np.abs(cts_ - tsf))]))
