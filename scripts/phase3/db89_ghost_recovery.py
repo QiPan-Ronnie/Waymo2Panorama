@@ -58,6 +58,9 @@ GROUND_RESID = "plate"  # DB-108 (AUDIT 2026-06-22): how the evidence-INSUFFICIE
 MOVING_GATE = True  # DB-109 Stage-1b (diagnostic, default True = shipped behavior): STAGE-4 ground-source moving-object occlusion gate. Set False to isolate whether a309's 94% gate3 is OVER-AGGRESSIVE box-occlusion (real recovers when off) vs GENUINE car blocking (newly-admitted sources read as car-body -> spread>30, real stays low).
 MOVING_SCALE = 1.3  # DB-109 Stage-1c: moving-box inflation factor (default 1.3 = shipped). 1.0 = precise box. The 1.3x inflation + whole-grazing-ray test over-blocks ~76% of good ground sources on traffic frames (a309 5.6%->81.9% when off); shrinking toward 1.0 recovers them, the spread gate backstops genuine car-body.
 WORLDBEV_WIN = (0, 92)  # DB-109 B1 (GROUND_MODE="worldbev"): FIXED anchor window [lo,hi] the world ground map is built over. Fixed (NOT anchor-relative) so neighbouring target anchors sample the SAME map -> temporal-coherence test. Driver sets it per scene.
+COHERENT = False  # DB-109 B-coherence (fill variant, gated, default off): keep the per-pixel cap reprojection (the 81.9% MOVING_GATE=False path) but make the SOURCE PICK a deterministic function of the WORLD ground point (FIXED window + egod-closest-to-sweet) so neighbouring anchors agree on the same world point -> temporal coherence WITHOUT the world-grid's discretisation/accumulation loss. Use with MOVING_GATE=False; nvalid>=2 guard against single-source car-body.
+COHERENT_WIN = (0, 92)  # fixed candidate window for COHERENT (driver sets per scene)
+COHERENT_SWEET = 22.0   # egod sweet-spot (m): the source whose ground-distance is closest to this is picked, deterministically per world point (20-28 m is the inner-cap grazing window)
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
 CASES = [("02a00399:0:bmw", "02a00399_a000_bmw"),
@@ -1166,6 +1169,9 @@ def run_case(case_spec, run_name):
         inb_ = np.where(elig_g & (disp_g >= b0_) & (disp_g < b0_ + 5.0))[0]
         cand_fis.extend(int(x_) for x_ in inb_[np.argsort(np.abs(inb_ - ai_g))][:3])
     cand_fis = sorted(set(cand_fis))
+    if COHERENT:   # DB-109 B-coherence: FIXED window candidates (NOT anchor-relative) so neighbouring anchors share them
+        _clo, _chi = COHERENT_WIN
+        cand_fis = [int(t_) for t_ in range(max(0, _clo), min(len(all_ts) - 1, _chi) + 1) if abs(t_ - ai_g) >= 5]
     if GROUND_MODE == "off": cand_fis = []   # middle-only base stitch: NO ground outpaint -> nadir stays black
     # EMC FOR GROUND SOURCES: each ring camera fires up to +-22.5 ms off the sync
     # timestamp; at source-frame speeds (highway: >10 m/s) the SYNC pose is ~0.3 m
@@ -1459,7 +1465,7 @@ def run_case(case_spec, run_name):
             visq = okq & ~blocked & ~selfocc
             if not visq.any(): continue
             code_g = fi * 10 + ci2
-            sc = egod.copy()
+            sc = (np.abs(egod - COHERENT_SWEET) if COHERENT else egod.copy())   # DB-109 B-coherence: rank by closeness to the egod sweet-spot (a deterministic world-point function) instead of nearest
             rem = visq.copy()
             for s_ in range(NSLOT):
                 better = rem & (sc < score_g[s_])
@@ -1556,7 +1562,7 @@ def run_case(case_spec, run_name):
         np.save(str(REMOTE_OUT / (run_name + "_diag_nearestegod.npy")), _eg.reshape(H, W))
         _spd = np.full(H * W, np.nan, np.float32); _spd[flat_g] = np.asarray(spread, np.float32); np.save(str(REMOTE_OUT / (run_name + "_diag_spread.npy")), _spd.reshape(H, W))   # DB-108 AUDIT: per-cap spread map -> real-write(spread<=30) vs sources-disagree(>30) for the real-vs-inpaint overlay
     dist_s[~haveg] = np.inf
-    pick = np.argmin(dist_s, axis=0)
+    pick = (np.zeros(len(flat_g), np.int64) if COHERENT else np.argmin(dist_s, axis=0))   # DB-109 B-coherence: slot 0 = the egod-sweet DETERMINISTIC source -> same world point -> same source -> temporal coherence (not the per-anchor argmin-spread)
     sel_px = colg[pick, np.arange(len(flat_g))]
     if GROUND_MODE in ("bev", "bevdirect", "worldbev") and bev_sel_px is not None:   # DB-102/107 + DB-109 B1: metric-fused cap overrides the per-pixel pick
         anyg = bev_anyg; spread = bev_spread; sel_px = bev_sel_px.astype(np.float32)
@@ -1581,6 +1587,7 @@ def run_case(case_spec, run_name):
     cflat = comp.reshape(-1, 3).copy()
     SPREAD_MAX = 30.0   # abstain where the sources disagree more than this (units: sum-abs-channel dev)
     _gm = anyg & (spread <= SPREAD_MAX)
+    if COHERENT: _gm = _gm & (haveg.sum(0) >= 2)   # DB-109 B-coherence: nvalid>=2 guard (a single source could be car-body; need >=2 agreeing sources)
     cflat[flat_g[_gm]] = np.clip(sel_px[_gm], 0, 255).astype(np.uint8)
     comp = cflat.reshape(H, W, 3)
     # DB-99 nadir floor (replaces the NS-inpaint + heavy wv low-pass that produced the
