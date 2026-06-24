@@ -1,5 +1,10 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-24 ◆ DB-109 /loop r2 — 33-frame coherent (a285-317): all coverage 100%, montage CONSISTENT (smooth car motion, real road, no jumps); highway continuous-frame coherent HOLDS. 5-scene generality launched.
+> **loop2: 33 continuous coherent frames a285-317 (one job, 59 min, ALL coverage 100%, residual low ~39k, cand_frames 88).** Eye (`loop2_nadir_montage.png`, 33 nadirs in a grid): the car moves SMOOTHLY across all 33, road structure consistent frame-to-frame, real texture, no per-frame jumps/swirl. Dusk-dark + ERP-pole radial remain (scene/projection-inherent, not coherence defects). So highway continuous-frame coherent is solid over a long run. `loop2_nadir.mp4` + `loop2_full.mp4` for the user.
+> **Round 3 launched: multi-scene generality** — bmw/clean/crowd one coherent frame each (fixed window 0-92) → confirm no regression / no car-hallucination / coverage ok (north-star: GENERAL method). Then the full highway video as the deliverable.
+> ---
+
 > ### 2026-06-24 ◆ DB-109 /loop r1 baseline A/B + r2 launched — slit A/B shows coherent's FIDELITY beats baseline (argmin=blurred, coherent=real texture kept); slit-center is NOT a clean swirl metric (ego motion dominates) — swirl evidence = montage + mp4
 > **Baseline (per-anchor argmin, MOVING off) vs coherent on the SAME a303-314 center slit (`loopb_slit_center.png` vs `loop1_slit_center.png`):** baseline's nadir is smoother BUT that's argmin pulling to the multi-source median = BLURRED (texture lost); coherent KEEPS real lane-line/road texture. **HONEST: center-column slit is NOT a clean swirl test** — ego motion makes each frame's column sample a DIFFERENT world point, so the variation ≠ swirl. Real swirl evidence = the montage (consistent) + the mp4 (`loop1_nadir.mp4`).
 > **Net: coherent keeps 100% per-pixel coverage AND higher fidelity than baseline; temporal coherence plausible (montage consistent) but a CLEAN quantitative swirl metric is still wanted (world-anchored sampling — a TODO for a future round).**
