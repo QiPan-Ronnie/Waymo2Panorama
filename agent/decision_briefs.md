@@ -5,8 +5,37 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-109: Nadir ground ROOT-CAUSE fix — per-anchor independent rebuild (temporal incoherence) → world-frame BEV ground mosaic
+Status: **ACTIVE / top priority — user co-decided 2026-06-23 to take the ROOT-CAUSE route (not a per-frame filler choice). GPU = L4 live.** Two stages: (1) gate-funnel diagnostic splitting "no-source" into geometry-blind vs rule-rejected; (2) no-network world-frame BEV ground mosaic. Supersedes DB-108.
+
+**Root cause (eye+code verified this session — see `progress.md` 2026-06-23 entry):** the `ground_video_v1` nadir "boils"/swirls because STAGE-4 rebuilds the ground INDEPENDENTLY per output anchor — `run_case` runs per-anchor; the code self-admits `No cross-anchor fusion` (db89:1471) — on each frame's ERP south-pole disc: per-pixel `argmin` source pick (db89:1438) + per-frame global tone gain (db89:1459) + per-frame plate/inpaint (db89:1484). No cross-frame constraint + ERP-pole singularity → radial streaks + temporal jitter. Severity tracks real-share INVERSELY (clean 91% real = stable; bmw/highway fabrication-dominant = worst swirl). **Root = WRONG REPRESENTATION DOMAIN: the ground is a world-static surface but is solved as a per-anchor ERP disc.**
+
+**Two distances (NOT a contradiction — clarified this session):** `disp` 5–58 m (db89:1158, frame↔frame ego displacement; picks WHICH candidate frames) vs `egod` 5–28 m (db89:1356, ground-point↔source-car; picks whether a source is usable per pixel). inner-cap sweet spot egod≈20–28 m (hood/body self-occ floor + far-graze ceiling; 58 = 28 + 30 m reach, db89:1154). The code itself admits egod is "the wrong geometry (point distance, not ray clearance)" (db89:1372) → the 28 m cut may reject usable sources. ⇒ "94% no-source" CONFLATES geometry-blind vs rule-rejected; it must be SPLIT by diagnostic, not asserted as a physical wall.
+
+**Stage-1 — gate-funnel diagnostic (bmw frame A = a044 + a clean city control).** For each blind nadir pixel build a funnel: N0 candidates → N1 in-FOV (ray hits) → N2 not ego-self-occluded → N3 egod∈[5,28] → N4 not moving-box-occluded → N5 spread≤30. Splits "94% no-source" into **geometry-blind (N1=0 → TRUE wall, generation-only)** vs **rule-rejected (N1>0, N5=0 → recoverable)**. Deliver: (a) per-pixel "which gate killed it" colour map; (b) 3–4 representative blind points back-projected onto the candidate source images (eyeball: was it actually seen? how grazing?); (c) the list of selected candidate frames (disp / time).
+
+**Stage-2 (gated on Stage-1) — no-network world-frame BEV ground mosaic.** Accumulate ALL 93 frames × 7 cams' ground pixels (LiDAR ground-height reproject + EMC pose + photometric gain) into ONE world-coordinate BEV raster (~5 cm/px, ±15 m around the trajectory) + a coverage map (real vs hole). Each anchor SAMPLES the shared map → temporal coherence by construction; holes filled ONCE on the map (inpaint/generative later, not per-frame). Upgrades DB-102's per-anchor local BEV (db89:1244) to a cross-log accumulated WORLD map. Pure geometry, L4, no network / no A100.
+
+Hypotheses: (H1) much of "no-source" is rule-rejected not geometry-blind (esp. egod-28 + spread) → recoverable real ground > current 5.6%. (H2) world-map sampling removes swirl for BOTH real and fabricated regions. (H3) the straight-highway inner-trajectory band is genuinely geometry-blind (N1=0) regardless → honest hole, generation-only — to be QUANTIFIED, not assumed.
+
+Why now: user's #1 complaint is the boiling/swirl ground; this session eye+code root-caused it to per-anchor independence + wrong representation domain; the fix is FAITHFUL, contract-independent, L4-runnable, and GENERAL. North-star: general perspective→ERP + graceful degradation; bmw `02a00399` is only the stress lens, NOT the target — validate on clean + highway too.
+
+Expected evidence: Stage-1 — per-pixel gate-funnel counts on a044 + clean control; the "which gate killed it" map; back-projection overlays; geometry-blind% vs rule-rejected% (the honest decomposition of the "wall"). Stage-2 — a world BEV mosaic + coverage map for one log; a 2–3-frame sampled-nadir sequence showing swirl gone vs current; real-coverage% vs the 5.6% baseline.
+
+Kill criteria: Stage-1 — if N1=0 DOMINATES on BOTH a044 and clean (≈ no rule-rejection) → the wall is genuinely geometric; world-map won't add real coverage → still pursue it for COHERENCE (swirl) but DROP the "recover more real" claim and the generation question (DB-94) returns. Stage-2 — if the world-mosaic sampled nadir is NOT visibly more temporally coherent than the current per-anchor fill → the representation hypothesis is wrong; STOP and re-investigate (do NOT pile on fixes). If mosaic accumulation needs per-scene params → record as a generality failure.
+
+Max scope: Stage-1 = one diagnostic injection (enhanced diag funnel), bmw a044 + one clean anchor, DIAGNOSTIC ONLY (no shipped-pipeline change). Stage-2 = one world-BEV-mosaic prototype on ONE log window, render ≤3 sampled nadir frames; NO retrain, NO network, NO A100, do NOT touch the shipped fill default. One ACTIVE brief at a time.
+
+Required vision check: EVERY image eyeballed. Stage-1: the gate-funnel map + back-projection overlays (is the blind point actually visible in a source?). Stage-2: sampled-nadir temporal sequence (swirl gone?) on bmw AND clean; coverage-map sanity (holes where geometry-blind, real where seen).
+
+Output: `deliverables/db109_ground_rootcause/` (diagnostics + mosaic prototypes). Driver scripts in `tmp/` (non-repo). NEVER commit url/token; read the endpoint from `~/.waymo2panorama/runtime/active_url.json` (non-repo).
+
+**HANDOFF essentials (disciplines):** GPU = Colab L4 via `~/.waymo2panorama/runtime/active_url.json` (NON-repo; PUBLIC GitHub → NEVER write url/token into any committed file/log/board); inject db89's `code = r'''...'''` remote_py by string-replace → base64 → `/exec`, driver in `tmp/` (non-repo); ALWAYS read the remote result file to verify (this repo has a history of fabricated tool output); vision-check EVERY image; results → `deliverables/` not `agent/`; reply in Chinese; do the hard thinking yourself, only simple subagents for clerical work. Pristine pre-edit core in `scripts/phase3/_baseline_fable5/`.
+
+---
+
 # DB-108: Near-field GROUND — restore plausible ground-feel (un-do the DB-99 gray regression) + pick inpaint vs generative
-Status: **ACTIVE / top priority — user audit 2026-06-22 decided the current gray nadir is a REGRESSION; direction pending the user's pick.** Full root-cause = `progress.md` 2026-06-22 AUDIT entry. THIS IS THE HANDOFF BRIEF.
+Status: **SUPERSEDED by DB-109 (2026-06-23): user co-decided the root-cause route (per-anchor independence → world BEV mosaic) over the inpaint/generative/gray filler trichotomy; the filler choice is DEFERRED until the root-cause fix + Stage-1 diagnostic land.** (was: ACTIVE / top priority — user audit 2026-06-22 decided the current gray nadir is a REGRESSION.) Full root-cause = `progress.md` 2026-06-22 AUDIT entry.
 
 **Context (for a fresh agent, no prior session memory):** The faithful mosaic + the determinable scene band are DONE (see DB-105 below). The one open problem the user cares about NOW is the **NADIR GROUND**. Current `db89_ghost_recovery.py` default (`GROUND_MODE="fill"`) fills the camera-blind nadir cap with a flat GRAY plate (DB-99). The user wants the ground to "look real / plausible" — downstream **Cosmos will DiT-regenerate appearance, so plausible-not-faithful is explicitly OK** (user's own framing). North-star reminder: the method must stay GENERAL (multi-scene, graceful degradation); `02a00399` BMW is only a stress case, never the target.
 
