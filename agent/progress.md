@@ -1,5 +1,11 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-24/25 ◆ DB-109 ✅ CORE DONE: 3 clean good frames (bmw/crowd/clean) + highway honest hard-case; full docs+git+memory synced; CONSOLIDATING
+> **GOOD FRAMES delivered (committed): `GOODFRAME_{bmw,crowd,clean}_dit360.png` = clean COMPLETE 360 ground (faithful base + DiT360 fill, tau10 noise-init, hard composite); `GOODFRAMES_bmw_crowd_highway.png` = the 4-frame set. bmw/crowd/clean = wins; highway dusk = honest best-effort.**
+> **Highway hard-case due diligence (`evidenceM_hw_noise_vs_telea.png`): tried noise-init AND Telea-inpaint-init at tau=10 — telea slightly smoother but NO qualitative fix; the dusk deep-nadir (extreme ERP pole + 28% hole) stays splotchy. It is the genuine hardest case; DiT360 makes it more complete than the quilt but not clean. Left as honest best-effort. (Further options if the user wants: the `run_dit360_trimap_clamp.py` sophisticated outpaint runner; a brighter/daytime highway anchor; or accept faithful+mask for Cosmos.)**
+> **STATUS: the user's "a few good frames" ask is MET; architecture (faithful spread-gated base + DiT360 360-native offline fill) proven end-to-end and fully documented (memory `waymo2pano-ground-fill-physics`, `SUMMARY.md`, git `0db195d`+). Open/minor: highway-dusk polish, downtown-idle candidate-window fallback. Awaiting user direction.**
+> ---
+
 > ### 2026-06-24 ◆ DB-109 ★ FIRST GOOD FRAME ★ bmw faithful + DiT360 = clean COMPLETE 360 ground (architecture proven end-to-end); crowd good frame in flight
 > **`GOODFRAME_bmw_dit360.png` (committed `b37967d`): bmw a046 = 96.8% faithful base + DiT360 fills the 3% hole (generate 1.16%, preserve_psnr 30.1, noise-init + tau=10) → a near-perfect complete panorama: clean full asphalt + lane-lines + crosswalk continue into the nadir, NO quilt/swirl/blocks/holes. The faithful-base + 360-native-generative-fill architecture is PROVEN end-to-end (vs the original dusk-highway quilt — night and day).**
 > **2nd good frame in flight (`db109_crowd_goodframe.py`): crowd a046 (64% faithful) → L4 render base+mask → A100 DiT360 fill (tau10 noise-init) → `GOODFRAME_crowd_dit360.png`. Then assemble a GOODFRAMES set (bmw + crowd clean; highway = honest hard-case) + report.**
