@@ -62,6 +62,7 @@ COHERENT = False  # DB-109 B-coherence (fill variant, gated, default off): keep 
 COHERENT_WIN = (0, 92)  # fixed candidate window for COHERENT (driver sets per scene)
 COHERENT_SWEET = 22.0   # egod sweet-spot (m): the source whose ground-distance is closest to this is picked, deterministically per world point (20-28 m is the inner-cap grazing window)
 COHERENT_PICK = "sweet"  # DB-109 Evidence-A: per-world-point source PICK among the egod-sweet slots. "sweet"=slot-0 egod-closest single source (= the spread-19.8 "格子"/quilt, current default); "agree"=argmin distance-to-median (BEST-AGREEING source — also deterministic per world point in a FIXED window, so it kills the quilt by selecting AGREEING colours while staying temporally coherent). Evidence-A: sweet=spread~19.8 mediocre; the pristine old patches were spread~1.6 (argmin-to-median). EYE-test vs sweet before shipping (prior loop-r1 "argmin=blurred" was over egod-NEAR not egod-SWEET slots).
+SELFOCC = True  # DB-109 Lever-1 (user non-generative probe): apply the two-box ego SELF-OCCLUSION gate in the STAGE-4 fill source loop. Default True (shipped). False = let grazing-over-own-body views through -> test whether they recover REAL road (gate too conservative) or hood sky-reflection (gate correct).
 FAITH_MASK = False  # DB-109 A (faithful-base + generative fill): also export {run}_faithfill_mask.png = 255 where the nadir is NOT faithful-real (cap abstained-to-plate OR foreground-occluded) = the region the downstream temporally-coherent generative fill (Cosmos/DiT, DB-14) must paint. Gated; default off (shipped output unchanged).
 DATA_ROOT = pathlib.Path("/content/drive/MyDrive/koi_waymo2pano_colab/data/argoverse2/val")
 H, W = 1024, 2048; EPS = 1e-6
@@ -1182,6 +1183,56 @@ def run_case(case_spec, run_name):
     # each camera's OWN capture-time pose (same principle as the scene-band EMC).
     cam_ts_arr = {ci2: np.array([int(p_.stem) for p_ in loader._image_paths[cam]], np.int64)
                   for ci2, cam in enumerate(ring_cams)}
+    if GROUND_MODE == "probe":   # DB-109 breakthrough diag (user): for a few BAD ground points, back-project into EVERY candidate source cam and dump the crop each candidate actually captured + realness (grazing/egod/occlusion). Answers "are frames B,C,D,E,F's captures of this ground REAL?". Uses the SHIPPED bucketed cand_fis (the real pipeline).
+        _gze = -C[2] - 0.33
+        _tg = [("fwd_8m", 8.0, 0.0), ("rear_8m", -8.0, 0.0), ("rear_left", -6.0, 4.0),
+               ("left_5m", 0.0, 5.0), ("right_5m", 0.0, -5.0), ("fwd_left", 6.0, 4.0)]
+        _ebx = [(C + (a_ + b_) / 2.0, b_ - a_, np.eye(3)) for a_, b_ in
+                ((np.array([-2.2, -1.6, _gze]), np.array([4.6, 1.6, -C[2] + 0.67])),
+                 (np.array([-1.7, -1.6, _gze]), np.array([1.0, 1.6, -0.35])))]
+        _pc = {}; _pj = {"anchor": int(anchor_idx), "n_cand": len(cand_fis), "targets": []}
+        for _tn, _tx, _ty in _tg:
+            _Xc = (Ra @ np.array([_tx, _ty, _gze])) + ta
+            _cands = []
+            for _fi in cand_fis:
+                _tsf = int(all_ts[_fi])
+                _fb = [(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, _tsf, moving)]
+                if _tsf not in _pc:
+                    _pc[_tsf] = loader.load_synced_frame(_tsf)
+                _fr = _pc[_tsf]
+                for _ci, _cam in enumerate(ring_cams):
+                    _cts = cam_ts_arr[_ci]; _Rf, _tf = cte(int(_cts[np.argmin(np.abs(_cts - _tsf))]))
+                    _eg = float(np.linalg.norm(_Xc - _tf)); _Xq = (_Xc - _tf) @ _Rf
+                    _K, (_hh, _ww) = cals[_ci]
+                    _T = np.asarray(frame.calibrations[_cam].T_ego_cam, float); _Tc = np.linalg.inv(_T)
+                    _Xcc = _Tc[:3, :3] @ _Xq + _Tc[:3, 3]; _z = float(_Xcc[2])
+                    if _z <= 0.5: continue
+                    _px = _K[0, 0] * _Xcc[0] / _z + _K[0, 2]; _py = _K[1, 1] * _Xcc[1] / _z + _K[1, 2]
+                    if not (6 <= _px < _ww - 6 and 6 <= _py < _hh - 6): continue
+                    _hz = float(np.linalg.norm((_Xc - _tf)[:2])); _g2 = float(np.degrees(np.arctan2(max(_tf[2] - _Xc[2], 0.0), max(_hz, 1e-3))))
+                    _so = bool(gseg_blocked(_T[:3, 3], _Xq[None, :], _ebx)[0])
+                    _mv = bool(gseg_blocked(_T[:3, 3], _Xq[None, :], _fb)[0]) if _fb else False
+                    _ix, _iy = int(round(_px)), int(round(_py)); _R = 56
+                    _cr = _fr.images[_cam][max(0, _iy - _R):_iy + _R, max(0, _ix - _R):_ix + _R]
+                    _cb = np.ascontiguousarray(_cr[:, :, ::-1]) if _cr.size else _cr
+                    _cands.append((_g2, _eg, bool(_so or _mv), _cb, int(_fi), int(_fi - anchor_idx), bool(_so), bool(_mv)))
+            _cands.sort(key=lambda d: (-d[0], abs(d[5])))
+            _tiles = []
+            for (_g, _e, _occ, _cb, _f, _dt, _s, _m) in _cands[:8]:
+                if _cb is None or _cb.size == 0: continue
+                _t = _cv.resize(_cb, (120, 120)); _col = (0, 0, 255) if _occ else (0, 200, 0)
+                _cv.rectangle(_t, (0, 0), (120, 17), (0, 0, 0), -1)
+                _cv.putText(_t, "g%.0f e%.0f%s" % (_g, _e, "X" if _occ else ""), (2, 13), _cv.FONT_HERSHEY_SIMPLEX, 0.38, _col, 1)
+                _tiles.append(_t)
+            if _tiles:
+                _row = np.hstack(_tiles); _hd = np.zeros((18, _row.shape[1], 3), np.uint8)
+                _cv.putText(_hd, "%s ego(%.0f,%.0f)  in-view=%d  (g=grazing deg, e=egod m, X=occluded)" % (_tn, _tx, _ty, len(_cands)), (4, 13), _cv.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+                _cv.imwrite(str(REMOTE_OUT / (run_name + "_probeboard_" + _tn + ".png")), np.vstack([_hd, _row]))
+            _pj["targets"].append({"name": _tn, "xy_ego": [_tx, _ty], "n_inview": len(_cands),
+                                   "top": [{"fi": d[4], "dt": d[5], "graze": round(d[0], 1), "egod": round(d[1], 1), "selfocc": d[6], "moving_occ": d[7]} for d in _cands[:12]]})
+        (REMOTE_OUT / (run_name + "_probe.json")).write_text(json.dumps(_pj, indent=1), encoding="utf-8")
+        print("PROBE", run_name, {t["name"]: (t["n_inview"], sum(1 for x in t["top"] if not (x["selfocc"] or x["moving_occ"]))) for t in _pj["targets"]}, flush=True)
+        return {"case": run_name, "probe": True}
     if GROUND_MODE == "bevaudit":
         # ---- DB-102 NO-RENDER metric-domain audit ----
         # Build a LOCAL BEV ground grid around the ego, project each cell into the SAME
@@ -1467,7 +1518,8 @@ def run_case(case_spec, run_name):
             ego_boxes = [(C + (bn_ + bx_) / 2.0, bx_ - bn_, np.eye(3))
                          for bn_, bx_ in ((body_lo, body_hi), (cab_lo, cab_hi))]
             selfocc = np.zeros(len(flat_g), bool)
-            selfocc[okq] = gseg_blocked(T2[:3, 3], Xq[okq], ego_boxes)
+            if SELFOCC:   # DB-109 Lever-1: gate the self-occlusion test (default on=shipped)
+                selfocc[okq] = gseg_blocked(T2[:3, 3], Xq[okq], ego_boxes)
             visq = okq & ~blocked & ~selfocc
             if not visq.any(): continue
             code_g = fi * 10 + ci2
