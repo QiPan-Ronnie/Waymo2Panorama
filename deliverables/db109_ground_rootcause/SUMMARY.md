@@ -39,7 +39,16 @@ This resolves all three defects at once: ② abstain the mediocre fan (no quilt)
 - All `evidence{A..H}_*` boards (the proof chain above).
 - `{run}_faithfill_mask.png` per frame = the generative-fill region for Cosmos.
 
-## ★ UPDATE (2026-06-24/25) — RESOLVED: GOOD FRAMES achieved via faithful base + DiT360
+## ★★ FINAL HONEST STATE (2026-06-25, full-res eye-verified — supersedes the optimistic notes below; 4 over-claims were caught by the user this session)
+The ground splits into two PHYSICALLY-DISTINCT parts:
+- **Near-field road (directly seen, below the horizon) = GENUINE real + clean.** Bright/textured scenes (bmw/crowd/clean) are mostly this → their good frames (`GOODFRAME_{bmw,crowd,clean}_dit360.png`) are VALID genuine real road (lane-lines, crosswalks) + a tiny DiT360-filled hole.
+- **Deep nadir CENTRE (directly below/behind the ego) = ALWAYS self-occluded by the ego's own hood/trunk** (front-pod rig) → NO clean real-road view exists in ANY frame (self-occ ON → 0% there, eye-verified `evidenceAA`). Physically GENERATION-ONLY.
+- **Genuine non-generative real coverage ≈ 23% on the hard dusk highway** (the near-field; = the user's remembered "20%+" = what Fable-5/the good frames render with self-occ ON), much higher on bright/textured scenes. **The earlier Lever-1 (41%) / world-map (84%) ADDED hood sky-reflection smear on top — RETRACTED as fake. Coverage% is NOT a realness proxy.**
+- **Honest deliverable: `GOODFRAMES_honest_final.png`** = bmw/crowd/clean (genuine real, clean complete) + highway `GOODFRAME_hw_v5_honest.png` (~23% genuine real near-field + FLUX-img2img-refine the honest deep hole; honest = real where real, generated where physically blind).
+- **The deep-nadir-centre generation, for TEMPORAL VIDEO coherence, is the downstream COSMOS video model's job** (single-frame FLUX/DiT360 flicker). The one strategic decision left.
+- **LESSON: eyeball EVERY result at full native resolution before any "clean/solved" claim — brightened crops + coverage% fooled me 4×.**
+
+## ★ UPDATE (2026-06-24/25) — (optimistic, partly retracted above) GOOD FRAMES via faithful base + DiT360
 The generative stage is no longer a TODO — **DiT360 (360-native, FLUX.1-dev + Insta360 LoRA) runs OFFLINE on the A100** from the Drive cache (`external/DiT360` + `cache/huggingface`). Recipe: noise-fill the hole → DiT360 (`weight_name=adapter_model.safetensors`, tau=10, `--disable-vae-tiling`) → hard composite (faithful base exact). Because it is 360-native there is **no ERP-pole distortion** (which broke vanilla SDXL in both ERP and BEV).
 - **`GOODFRAME_bmw_dit360.png`** (bmw, 96.8% faithful + 3% DiT360) and **`GOODFRAME_crowd_dit360.png`** (crowd, 64% + DiT360) = **clean COMPLETE 360 ground** — asphalt + lane lines + crosswalk continue into the nadir, no quilt/swirl/blocks/holes. See the set in **`GOODFRAMES_bmw_crowd_highway.png`**.
 - **Coverage spectrum (`evidenceK`)**: bmw 96.8% > crowd 64% > clean 35% > highway 22% > downtown 0% — the faithful method is condition-dependent; good/medium scenes give clean complete frames; only the hardest (dusk highway, downtown-idle) need more (highway = honest best-effort; downtown-idle = a candidate-window edge case = known open item).
