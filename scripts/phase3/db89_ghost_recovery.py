@@ -1445,6 +1445,9 @@ def run_case(case_spec, run_name):
                 _ok = (_z > 0.5) & (_px >= 2) & (_px < _ww - 2) & (_py >= 2) & (_py < _hh - 2) & (_egod > 5.0) & (_egod < 28.0)
                 if _fb and _ok.any():
                     _bl = np.zeros(_NWC, bool); _bl[_ok] = gseg_blocked(_T[:3, 3], _Xq[_ok], _fb); _ok = _ok & ~_bl
+                if SELFOCC and _ok.any():   # DB-109: reject hood-skimming (self-occluded) views -> test if the world map's coverage is REAL road or HOOD sky-reflection smear (the user's suspicion)
+                    _eb = [(C + (a_ + b_) / 2.0, b_ - a_, np.eye(3)) for a_, b_ in ((np.array([-2.2, -1.6, -C[2] - 0.33]), np.array([4.6, 1.6, -C[2] + 0.67])), (np.array([-1.7, -1.6, -C[2] - 0.33]), np.array([1.0, 1.6, -0.35])))]
+                    _so = np.zeros(_NWC, bool); _so[_ok] = gseg_blocked(_T[:3, 3], _Xq[_ok], _eb); _ok = _ok & ~_so
                 if not _ok.any(): continue
                 _code = _fi * 10 + _ci; _sc = _egod.copy(); _rem = _ok.copy()
                 for _s in range(_NSW):
