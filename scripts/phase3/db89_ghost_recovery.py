@@ -1433,6 +1433,7 @@ def run_case(case_spec, run_name):
         _wchosen = np.full((_NSW, _NWC), -1, np.int64); _wscore = np.full((_NSW, _NWC), np.inf)
         for _fi in _wfis:
             _tsf = int(all_ts[_fi])
+            _fb = [(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, _tsf, moving)]   # DB-109 Track-A: moving-box gate — dodge transient traffic across the accumulation window
             for _ci, _cam in enumerate(ring_cams):
                 _cts = cam_ts_arr[_ci]; _Rf, _tf = cte(int(_cts[np.argmin(np.abs(_cts - _tsf))]))
                 _egod = np.linalg.norm(_wxyz - _tf[None, :], axis=1)
@@ -1442,6 +1443,8 @@ def run_case(case_spec, run_name):
                 _px = _K[0, 0] * _Xc[:, 0] / np.maximum(_z, 1e-6) + _K[0, 2]
                 _py = _K[1, 1] * _Xc[:, 1] / np.maximum(_z, 1e-6) + _K[1, 2]
                 _ok = (_z > 0.5) & (_px >= 2) & (_px < _ww - 2) & (_py >= 2) & (_py < _hh - 2) & (_egod > 5.0) & (_egod < 28.0)
+                if _fb and _ok.any():
+                    _bl = np.zeros(_NWC, bool); _bl[_ok] = gseg_blocked(_T[:3, 3], _Xq[_ok], _fb); _ok = _ok & ~_bl
                 if not _ok.any(): continue
                 _code = _fi * 10 + _ci; _sc = _egod.copy(); _rem = _ok.copy()
                 for _s in range(_NSW):
@@ -1463,11 +1466,19 @@ def run_case(case_spec, run_name):
                 _py = _K[1, 1] * _Xc[:, 1] / np.maximum(_z, 1e-6) + _K[1, 2]
                 _wcol[_s][_sel] = np.clip(bilinear(_fr.images[ring_cams[_ci]], _px, _py) * np.exp(gains[_ci])[None, :], 0, 255).astype(np.float32)
         _wh = ~np.isnan(_wcol[:, :, 0]); _wnv = _wh.sum(0); _wany = _wnv >= 2   # nvalid>=2 guard (single-source car-body backstop)
-        _wmed = np.nanmedian(_wcol, axis=0); _wdd = np.abs(_wcol - _wmed[None]).sum(2)
+        # DB-109 Track-A: PHOTOMETRIC-NORMALIZE each slot to the cell median luminance (kills the
+        # exposure/lighting DRIFT that broke naive accumulation — the Lever-2 negative) THEN ROBUST
+        # FUSE the tight agreeing cluster (mean of low-deviation samples = sqrt(N) denoise), not pick-one.
+        _wlum = 0.299 * _wcol[:, :, 0] + 0.587 * _wcol[:, :, 1] + 0.114 * _wcol[:, :, 2]   # (NSW, NWC)
+        _wlmed = np.nanmedian(_wlum, axis=0)                                                # per-cell consensus luminance
+        _wsc = np.where((_wlum > 1.0) & np.isfinite(_wlum), _wlmed[None, :] / np.maximum(_wlum, 1.0), 1.0)
+        _wcn = np.clip(_wcol * np.clip(_wsc, 0.5, 2.0)[:, :, None], 0, 255)                 # exposure-normalized samples
+        _wmed = np.nanmedian(_wcn, axis=0); _wdd = np.abs(_wcn - _wmed[None]).sum(2)
         _wn = np.maximum(_wh.sum(0), 1); _wspr = np.where(_wh, _wdd, 0.0).sum(0) / _wn; _wspr[~_wany] = 1e9
-        _wdd2 = _wdd.copy(); _wdd2[~_wh] = np.inf; _wpick = np.argmin(_wdd2, axis=0)
-        _wmap = _wcol[_wpick, np.arange(_NWC)]; _wmap = np.where(np.isnan(_wmap), 0.0, _wmap).astype(np.float32)
-        _wok = _wany & (_wspr <= 30.0)
+        _tight = _wh & (_wdd <= 18.0)                                                       # agreeing cluster (post-normalization)
+        _tn = np.maximum(_tight.sum(0), 1)
+        _wmap = (np.where(_tight[:, :, None], _wcn, 0.0).sum(0) / _tn[:, None]).astype(np.float32)   # robust mean of the agreeing cluster
+        _wok = _wany & (_wspr <= 30.0) & (_tight.sum(0) >= 2)
         np.save(str(REMOTE_OUT / (run_name + "_worldmap.npy")), np.where(_wok[:, None], _wmap, 0).reshape(_GH, _GW, 3).astype(np.uint8))
         np.save(str(REMOTE_OUT / (run_name + "_worldcov.npy")), (_wok.reshape(_GH, _GW) * 255).astype(np.uint8))
         print("WORLDBEV", run_name, "grid", _GW, "x", _GH, "win", _wlo, _whi, "ok_pct", round(100.0 * float(_wok.mean()), 1), flush=True)
