@@ -39,6 +39,12 @@ This resolves all three defects at once: ② abstain the mediocre fan (no quilt)
 - All `evidence{A..H}_*` boards (the proof chain above).
 - `{run}_faithfill_mask.png` per frame = the generative-fill region for Cosmos.
 
+## ★ UPDATE (2026-06-24/25) — RESOLVED: GOOD FRAMES achieved via faithful base + DiT360
+The generative stage is no longer a TODO — **DiT360 (360-native, FLUX.1-dev + Insta360 LoRA) runs OFFLINE on the A100** from the Drive cache (`external/DiT360` + `cache/huggingface`). Recipe: noise-fill the hole → DiT360 (`weight_name=adapter_model.safetensors`, tau=10, `--disable-vae-tiling`) → hard composite (faithful base exact). Because it is 360-native there is **no ERP-pole distortion** (which broke vanilla SDXL in both ERP and BEV).
+- **`GOODFRAME_bmw_dit360.png`** (bmw, 96.8% faithful + 3% DiT360) and **`GOODFRAME_crowd_dit360.png`** (crowd, 64% + DiT360) = **clean COMPLETE 360 ground** — asphalt + lane lines + crosswalk continue into the nadir, no quilt/swirl/blocks/holes. See the set in **`GOODFRAMES_bmw_crowd_highway.png`**.
+- **Coverage spectrum (`evidenceK`)**: bmw 96.8% > crowd 64% > clean 35% > highway 22% > downtown 0% — the faithful method is condition-dependent; good/medium scenes give clean complete frames; only the hardest (dusk highway, downtown-idle) need more (highway = honest best-effort; downtown-idle = a candidate-window edge case = known open item).
+- DiT360 tuning evidence: `evidenceL_dit360_tau_sweep.png` (tau=10 cleanest; higher tau → blocks/hallucinated lanes).
+
 ## 7. Recommendation / next co-decide (for you)
 The faithful half is **solved and clean**. The remaining piece is the generative fill, which needs **your call on the downstream model + GPU**:
 1. **Cosmos (your existing downstream plan)** — feed it the faithful-base + faithfill_mask; it regenerates appearance with video coherence. Needs the DB-94 Cosmos contract confirmed (does it ingest the mask?).
