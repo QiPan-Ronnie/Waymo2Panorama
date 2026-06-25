@@ -1,5 +1,10 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-24 ◆ DB-109 ★ FIRST GOOD FRAME ★ bmw faithful + DiT360 = clean COMPLETE 360 ground (architecture proven end-to-end); crowd good frame in flight
+> **`GOODFRAME_bmw_dit360.png` (committed `b37967d`): bmw a046 = 96.8% faithful base + DiT360 fills the 3% hole (generate 1.16%, preserve_psnr 30.1, noise-init + tau=10) → a near-perfect complete panorama: clean full asphalt + lane-lines + crosswalk continue into the nadir, NO quilt/swirl/blocks/holes. The faithful-base + 360-native-generative-fill architecture is PROVEN end-to-end (vs the original dusk-highway quilt — night and day).**
+> **2nd good frame in flight (`db109_crowd_goodframe.py`): crowd a046 (64% faithful) → L4 render base+mask → A100 DiT360 fill (tau10 noise-init) → `GOODFRAME_crowd_dit360.png`. Then assemble a GOODFRAMES set (bmw + crowd clean; highway = honest hard-case) + report.**
+> ---
+
 > ### 2026-06-24 ◆ DB-109 Track1: DiT360 tau-sweep — noise-init + tau=10 = cleanest (smooth asphalt, blocks gone); hard highway deep-nadir still splotchy → pivot DiT360 to GOOD scenes (small holes) for the "good frames"
 > **DiT360 tau-sweep on highway a300 (noise-filled hole + tau {10,30,50}, `evidenceL_dit360_tau_sweep.png` + `dit360_a300_t{10,30,50}_comp.png`): tau=10 = cleanest (smooth continuous asphalt, the VAE/latent blocks are GONE — noise-init gave a refinable canvas); tau=30/50 progressively re-introduce blocks + hallucinated lane-lines (over-anchored to the noise). BUT even tau=10 on the FULL-frame still has white splotches in the deep nadir — the dusk-highway 28.5% hole is the HARDEST case for any generator.**
 > **STRATEGY (for the user's "a few GOOD frames"): don't only fight the hardest frame — apply DiT360 to GOOD scenes where the hole is tiny. bmw a046 = 96.8% faithful → only ~3% hole → DiT360 fills it trivially → a near-perfect COMPLETE frame. Rendering bmw a046 + FAITH_MASK on L4 now, then DiT360 bmw (tau=10 noise-init) on A100. Deliverable = a small set of good frames: bmw (faithful+DiT360), crowd (faithful), + the highway hard-case (faithful+DiT360 tau10, honest best-effort).**
