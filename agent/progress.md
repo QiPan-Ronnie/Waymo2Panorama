@@ -1,5 +1,10 @@
 # Waymo2Panorama Progress
 
+> ### 2026-06-24/25 ◆ DB-109 ✅✅ HARD CASE SOLVED: trimap-clamp DiT360 cleans the dusk-highway nadir → ALL 4 frames good (original problem closed)
+> **`evidenceN_hw_trimap_vs_maskbatch.png` + `dit360_a300_trimap_comp.png`: the production `run_dit360_trimap_clamp.py` (core free / halo soft-clamp / FAR clamp-to-source + a "smooth seam repair, NO new objects" prompt) with Telea-init + tau=10 CLEANS the dusk-highway deep nadir — the white splotches from mask_batch are GONE, replaced by smooth plausible asphalt (faint ERP-pole texture only). The user's ORIGINAL hard case (dusk highway quilt) is now a clean frame.**
+> **⇒ RECIPE REFINEMENT: for BIG holes / hard scenes use `run_dit360_trimap_clamp.py` (far-clamp + no-object prompt) > `run_dit360_mask_batch.py`. For small holes (good scenes) mask_batch tau=10 is already clean. `GOODFRAMES_bmw_crowd_highway.png` now = ALL 4 frames good (bmw/crowd/clean + highway-trimap).**
+> ---
+
 > ### 2026-06-24/25 ◆ DB-109 ✅ CORE DONE: 3 clean good frames (bmw/crowd/clean) + highway honest hard-case; full docs+git+memory synced; CONSOLIDATING
 > **GOOD FRAMES delivered (committed): `GOODFRAME_{bmw,crowd,clean}_dit360.png` = clean COMPLETE 360 ground (faithful base + DiT360 fill, tau10 noise-init, hard composite); `GOODFRAMES_bmw_crowd_highway.png` = the 4-frame set. bmw/crowd/clean = wins; highway dusk = honest best-effort.**
 > **Highway hard-case due diligence (`evidenceM_hw_noise_vs_telea.png`): tried noise-init AND Telea-inpaint-init at tau=10 — telea slightly smoother but NO qualitative fix; the dusk deep-nadir (extreme ERP pole + 28% hole) stays splotchy. It is the genuine hardest case; DiT360 makes it more complete than the quilt but not clean. Left as honest best-effort. (Further options if the user wants: the `run_dit360_trimap_clamp.py` sophisticated outpaint runner; a brighter/daytime highway anchor; or accept faithful+mask for Cosmos.)**
