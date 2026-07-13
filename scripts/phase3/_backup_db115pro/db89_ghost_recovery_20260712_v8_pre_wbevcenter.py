@@ -63,10 +63,6 @@ MOVING_GATE = True  # DB-109 Stage-1b (diagnostic, default True = shipped behavi
 MOVING_SCALE = 1.3  # DB-109 Stage-1c: moving-box inflation factor (default 1.3 = shipped). 1.0 = precise box. The 1.3x inflation + whole-grazing-ray test over-blocks ~76% of good ground sources on traffic frames (a309 5.6%->81.9% when off); shrinking toward 1.0 recovers them, the spread gate backstops genuine car-body.
 WORLDBEV_WIN = (0, 92)  # DB-109 B1 (GROUND_MODE="worldbev"): FIXED anchor window [lo,hi] the world ground map is built over. Fixed (NOT anchor-relative) so neighbouring target anchors sample the SAME map -> temporal-coherence test. Driver sets it per scene.
 WORLDBEV_FILL = ""  # DB-109 coherence test: path to a FLUX-filled world-BEV png; if set, worldbev OVERRIDES the built map with it so every target frame samples the SAME generated map ("generate once + sample" = temporal coherence by construction). Empty = build normally.
-WORLDBEV_CENTER = ""  # DB-123 cascade: "x,y" city metres; pins the map grid origin so a WORLDBEV_FILL map built at one anchor stays registered when sampled from neighbouring anchors. Empty = anchor-centred (unchanged).
-CAP_ONLY = False  # DB-126: fill/wbev renders whose BAND pixels are unused by the cascade composite skip YOLO seg + OMC object matching (morph/view-morph collapse via empty morph_jobs); the cap pipeline (cast/low-pass/resid fallback) is untouched. Default False (all shipped paths unchanged).
-CAP_LIMIT_TMPL = ""  # DB-126: printf-style glob template (anchor as %03d) for an external mask ANDed into the nadir cap — band frames only need the egozone strip, skipping 75-85% of the candidate scan. Empty = full cap (unchanged).
-CAP_REF_TMPL = ""  # DB-126: printf-style glob template for an external band segcomposite used as the cast-correction truth ring when CAP_ONLY leaves comp black (self-reference would disable the cast fix). Empty = comp ring (unchanged).
 COHERENT = False  # DB-109 B-coherence (fill variant, gated, default off): keep the per-pixel cap reprojection (the 81.9% MOVING_GATE=False path) but make the SOURCE PICK a deterministic function of the WORLD ground point (FIXED window + egod-closest-to-sweet) so neighbouring anchors agree on the same world point -> temporal coherence WITHOUT the world-grid's discretisation/accumulation loss. Use with MOVING_GATE=False; nvalid>=2 guard against single-source car-body.
 COHERENT_WIN = (0, 92)  # fixed candidate window for COHERENT (driver sets per scene)
 COHERENT_SWEET = 22.0   # egod sweet-spot (m): the source whose ground-distance is closest to this is picked, deterministically per world point (20-28 m is the inner-cap grazing window)
@@ -429,15 +425,12 @@ def run_case(case_spec, run_name):
         poses_emc.append((Ra.T @ Ri @ T[:3, :3], Ra.T @ (Ri @ T[:3, 3] + ti_ - ta)))
     cals = [(np.asarray(frame.calibrations[c].K, float), frame.images[c].shape[:2]) for c in ring_cams]
     # ---- YOLO segmentation on all 7 native images ----
-    if not CAP_ONLY:   # DB-126: seg feeds OMC/body/poison — all band-content machinery
-        from ultralytics import YOLO
-        model = YOLO("yolov8x-seg.pt")
+    from ultralytics import YOLO
+    model = YOLO("yolov8x-seg.pt")
     seg_masks = []   # per camera: full-res bool mask of ALL seg instances (cls in SEG_CLASSES)
     seg_insts = []   # per camera: list of (bbox, mask_lowres, shape)
     for ci, cam in enumerate(ring_cams):
         img = frame.images[cam]
-        if CAP_ONLY:   # DB-126: empty per-camera seg -> OMC/poison/body all no-op downstream
-            seg_masks.append(np.zeros(img.shape[:2], bool)); seg_insts.append([]); continue
         res = model.predict(img, imgsz=1280, conf=0.25, verbose=False, device=0)[0]
         hh, ww = img.shape[:2]
         full = np.zeros((hh, ww), bool)
@@ -472,7 +465,7 @@ def run_case(case_spec, run_name):
     # pass 1: candidate (object, camera, instance) matches
     obj_meta = []   # per moving uid passing the time gate: {"uid", "per_cam_pose"}
     cand = []       # (iou, obj_idx, ci, mi)
-    for uid in (sorted(moving) if not CAP_ONLY else []):   # DB-126: OMC is band-content machinery
+    for uid in sorted(moving):
         g = ann[ann["track_uuid"] == uid]
         nt = g["timestamp_ns"].to_numpy(np.int64)
         if np.abs(nt - ts).min() > 150_000_000: continue
@@ -1242,12 +1235,6 @@ def run_case(case_spec, run_name):
     capg = blackg.copy()
     capg[:H // 2] = False
     _capfull = capg.copy()   # DB-101: full unseen nadir cap (before the target-gate prunes capg) — for middle-only mask mode
-    if CAP_LIMIT_TMPL:   # DB-126: cascade band frames only need the egozone strip of the cap
-        import glob as _gl
-        _clg = sorted(_gl.glob(CAP_LIMIT_TMPL % int(anchor_idx)))
-        if _clg:
-            capg &= (_cv.imread(_clg[0], 0) > 127)
-            print("CAP_LIMIT %s -> %d px" % (_clg[0].rsplit("/", 1)[-1], int(capg.sum())), flush=True)
     flat_g = np.nonzero(capg.reshape(-1))[0]
     dirs_g = df3[flat_g]
     okd = dirs_g[:, 2] < -0.08
@@ -1780,8 +1767,6 @@ def run_case(case_spec, run_name):
         # EMC capture-time poses per camera (same as the per-cap path).
         _MHALF, _CW = 46.0, 0.05
         _mcx, _mcy = float(ta[0]), float(ta[1])
-        if WORLDBEV_CENTER:
-            _mcx, _mcy = (float(_v) for _v in WORLDBEV_CENTER.split(","))
         _xmin, _ymin = _mcx - _MHALF, _mcy - _MHALF
         _GW = _GH = int(round(2.0 * _MHALF / _CW))
         _NWC = _GW * _GH
@@ -2246,17 +2231,6 @@ def run_case(case_spec, run_name):
         rs_ = np.nonzero(nonb_r[H // 2:, u_])[0]
         if len(rs_) >= 4:
             ring_px.append(comp[H // 2 + rs_[-10:], u_])
-    if CAP_ONLY and CAP_REF_TMPL:   # DB-126: comp is black under CAP_ONLY -> the truth ring must come from the external band render (self-reference would null the cast fix)
-        import glob as _gl2
-        _crg = sorted(_gl2.glob(CAP_REF_TMPL % int(anchor_idx)))
-        if _crg:
-            _crimg = _cv.imread(_crg[0])[:, :, ::-1].astype(np.float64)
-            _crnb = _crimg.sum(2) >= 12
-            ring_px = []
-            for u_ in range(0, W, 4):
-                rs_ = np.nonzero(_crnb[H // 2:, u_])[0]
-                if len(rs_) >= 4:
-                    ring_px.append(_crimg[H // 2 + rs_[-10:], u_])
     if ring_px and anyg.any():
         # DB-117 U6 per-azimuth ring gain TESTED NEG (bmw14d, 2026-07-02): piecewise-
         # constant bin application banded the low-texture road (v3e's lesson in 1D)
