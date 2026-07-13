@@ -41,7 +41,7 @@ def fan(tag, anchors, extra, root, uuid, k=K):
             continue
         od = "%s/m%d" % (root, j)
         os.makedirs(od, exist_ok=True)
-        lf = open("%s_w%d.log" % (root, j), "w")
+        lf = open("%s_%s_w%d.log" % (root, tag, j), "w")
         procs.append(subprocess.Popen(["python", "/content/db125_worker.py", "%s%d" % (tag, j),
                                        ",".join(str(x) for x in subs[j]), uuid, od, extra],
                                       stdout=lf, stderr=subprocess.STDOUT,
@@ -268,6 +268,14 @@ json.dump({"run": "run100_v14.1", "total": len(LOG100), "machine_shard": MACHINE
            "my_cands": cands, "log100": LOG100},
           open(_mdir + "/manifest_m%s.json" % MACHINE_SHARD.replace(",", "of"), "w"), indent=1)
 print("QUEUE %d candidates (machine shard %s)" % (len(cands), MACHINE_SHARD), flush=True)
+for _mf in glob.glob(_mdir + "/db135_run100_ledger_m%s.json" % MACHINE_SHARD.replace(",", "of")):
+    try:
+        LED["logs"].update(json.load(open(_mf)).get("logs", {}))
+    except Exception:
+        pass
+DONE_VERDICTS = {k for k, v in LED["logs"].items()
+                 if str(v.get("verdict", "")).startswith(("OK", "SKIP"))}
+print("RESUME %d already adjudicated" % len(DONE_VERDICTS), flush=True)
 
 import sys
 sys.path.insert(0, "/content")
@@ -385,6 +393,8 @@ while ci < len(cands):
     U = cands[ci]
     ci += 1
     U8 = U[:8]
+    if U8 in DONE_VERDICTS:
+        continue
     root = "/content/db131_" + U8
     t_log = time.time()
     try:
@@ -484,7 +494,8 @@ while ci < len(cands):
             continue
         # ---- band stage 2: FINE render of the window (skip already-probed anchors) ----
         t0 = time.time()
-        fine = [a for a in range(P, P + 93) if a % 3 != 0]
+        fine = [a for a in range(P, P + 93)
+                if not glob.glob(root + "/band/m*/b*_a%03d_segcomposite.png" % a)]
         rcs = fan("bf", fine, extra_bg, root + "/band", U)
         assert all(x == 0 for x in rcs), "fine band failed"
         regf = {}
