@@ -501,7 +501,7 @@ while ci < len(cands):
                 break
             if _try:
                 print("FINE_RETRY %d: %d frames missing (frame-level OOM)" % (_try, len(fine)), flush=True)
-            rcs = fan("bf", fine, extra_bg, root + "/band", U)
+            rcs = fan("bf" if _try == 0 else "br%d" % _try, fine, extra_bg, root + "/band", U)
             assert all(x == 0 for x in rcs), "fine band failed"
         regf = {}
         for mf in glob.glob(root + "/band/m*/manifest*.json"):
