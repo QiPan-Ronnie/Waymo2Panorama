@@ -132,3 +132,32 @@ def compose_frame(band, ez, fil, fai, wb):
     out[~(zone2 | bnz)] = 0
     stats = {"zone2": int(zone2.sum()), "t1": int(ok.sum()), "t2": int(t2.sum()), "resid": int(resid.sum())}
     return out, resid, stats
+
+
+def clean_blur(fin_u8, band, ez, spec_v=135, spec_s=80):
+    """v7b post-PP polish of the filled area (run AFTER ProPainter composited the resid).
+
+    Why: the fill's high-frequency ENERGY matches the band (HF std 6.3 vs 5.8 measured) but its
+    high-frequency QUALITY is junk — patch seams, multi-source speckle, PP smears — because the
+    map cell (5cm) is under-resolved at near-nadir ERP magnification. Sharpening is the WRONG drug
+    (measured); the right look is a photographic near-field falloff: edge-preserving smooth of the
+    filled area only, plus a sub-threshold glare kill (wet-road specular the V>150 gate missed).
+    Verdict frame 05fa5048 a091: ghost-writing gone, junk texture -> clean falloff."""
+    H2, W2 = fin_u8.shape[:2]
+    zone = ez > 127
+    bnz = band.sum(2) >= 12
+    lower = np.zeros((H2, W2), bool)
+    lower[H2 // 2:] = True
+    fnz = fin_u8.astype(np.int32).sum(2) >= 12
+    filled = lower & fnz & ~(bnz & ~zone)
+    hsv = cv2.cvtColor(fin_u8, cv2.COLOR_BGR2HSV)
+    spec2 = filled & (hsv[:, :, 2] > spec_v) & (hsv[:, :, 1] < spec_s)
+    spec2 = cv2.dilate(spec2.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0
+    fin = fin_u8
+    if spec2.any():
+        fin = cv2.inpaint(fin, (spec2 & filled).astype(np.uint8) * 255, 7, cv2.INPAINT_TELEA)
+    sm = cv2.bilateralFilter(fin, 11, 45, 9)
+    sm = cv2.GaussianBlur(sm, (5, 5), 0)
+    dist = cv2.distanceTransform((~(bnz & ~zone)).astype(np.uint8), cv2.DIST_L2, 3)
+    alpha = np.clip(dist / 6.0, 0, 1)[:, :, None] * filled[:, :, None].astype(np.float32)
+    return (fin.astype(np.float32) * (1 - alpha) + sm.astype(np.float32) * alpha).astype(np.uint8)
