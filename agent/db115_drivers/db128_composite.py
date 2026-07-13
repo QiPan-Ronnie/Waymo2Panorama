@@ -65,12 +65,23 @@ import cv2
 H, W = 1024, 2048
 
 
-def _spec_mask(img_f32):
-    """View-dependent wet-road glare (specular) detector: bright AND unsaturated."""
+def _spec_mask(img_f32, zone2=None, valid=None, ring_lum=90.0):
+    """View-dependent wet-road glare detector: bright AND unsaturated — v10.2 (DB-130).
+    Two sunny-scene fixes, both eyeballed on 0aa4e8f5/0b86f508:
+    1. RELATIVE threshold: dry sunny roads are bright+unsaturated by NATURE — the absolute
+       V>150 gate nuked whole scenes (resid 59-85%%). Threshold = max(150, ring_lum*1.35).
+    2. EXPOSURE NORMALISATION: map/fill sources carry other frames' exposure; brightness
+       offset is gain's job, not a specular signature — normalise V to the band ring first.
+    """
     hsv = cv2.cvtColor(np.clip(img_f32, 0, 255).astype(np.uint8), cv2.COLOR_BGR2HSV)
     v = hsv[:, :, 2].astype(np.float32)
     s = hsv[:, :, 1].astype(np.float32)
-    return cv2.dilate(((v > 150) & (s < 70)).astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
+    if zone2 is not None and valid is not None:
+        sel = zone2 & valid
+        med = float(np.median(v[sel])) if sel.sum() > 500 else ring_lum
+        v = v * (ring_lum / max(med, 1.0))
+    v_thr = max(150.0, ring_lum * 1.35)
+    return cv2.dilate(((v > v_thr) & (s < 70)).astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
 
 
 def band_holes(bnz, zone):
@@ -106,8 +117,11 @@ def compose_frame(band, ez, fil, fai, wb):
     nz = fil.sum(2) >= 12
     faith = fai > 127
     wbok = wb.sum(2) >= 12
-    spec_f = _spec_mask(fil)
-    spec_w = _spec_mask(wb)
+    _ring0 = (cv2.dilate(zone2.astype(np.uint8), np.ones((21, 21), np.uint8)) > 0) & ~zone2 & bnz
+    _gb = cv2.cvtColor(band.astype(np.uint8), cv2.COLOR_BGR2GRAY).astype(np.float32)
+    _rl = float(np.median(_gb[_ring0])) if _ring0.sum() > 500 else 90.0
+    spec_f = _spec_mask(fil, zone2, nz, _rl)
+    spec_w = _spec_mask(wb, zone2, wbok, _rl)
 
     gray = cv2.cvtColor(fil.astype(np.uint8), cv2.COLOR_BGR2GRAY).astype(np.float32)
     lap = cv2.Laplacian(gray, cv2.CV_32F)
