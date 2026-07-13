@@ -494,10 +494,15 @@ while ci < len(cands):
             continue
         # ---- band stage 2: FINE render of the window (skip already-probed anchors) ----
         t0 = time.time()
-        fine = [a for a in range(P, P + 93)
-                if not glob.glob(root + "/band/m*/b*_a%03d_segcomposite.png" % a)]
-        rcs = fan("bf", fine, extra_bg, root + "/band", U)
-        assert all(x == 0 for x in rcs), "fine band failed"
+        for _try in range(3):
+            fine = [a for a in range(P, P + 93)
+                    if not glob.glob(root + "/band/m*/b*_a%03d_segcomposite.png" % a)]
+            if not fine:
+                break
+            if _try:
+                print("FINE_RETRY %d: %d frames missing (frame-level OOM)" % (_try, len(fine)), flush=True)
+            rcs = fan("bf", fine, extra_bg, root + "/band", U)
+            assert all(x == 0 for x in rcs), "fine band failed"
         regf = {}
         for mf in glob.glob(root + "/band/m*/manifest*.json"):
             m = json.load(open(mf))
