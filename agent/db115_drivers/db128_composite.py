@@ -36,8 +36,14 @@ is to STOP pasting low-quality-real and hand the WHOLE zone2 to ProPainter: temp
 from the sharp out-of-band anchors — clean, seam-free, temporally stable (3-frame strip verified;
 lane paint crosses the band continuously). Semantics: band interior = 100% invented (vs ~40%
 grazing-real before) — provenance note for koi; honest-black stays the fallback semantic option.
-Recipe: video=EGO_BLACK band frames, mask=zone2 (jurisdiction incl. band holes), ProPainter
---fp16 --subvideo_length 15 --neighbor_length 5 (+expandable_segments on 40GB), composite mask-only.
+Recipe (v8c FINAL): video = EGO_BLACK band frames with the ERP FORMAT-BLACK below the content
+envelope replaced by per-column road-tone edge-padding (+sigma3 grain) — WITHOUT this, PP treats the
+format black as content and bleeds darkness into the zone, worsening over the sequence (user-caught
+"black grows over time"); the content envelope colmax MUST be computed on band-real UNION zone2
+(computing it on the holed band re-blacks the freshly filled zone — v8b bug). mask = zone2; ProPainter
+--fp16 --subvideo_length 15 --neighbor_length 5 (+expandable_segments on 40GB); composite mask-only,
+then restore format black below the envelope. Known minor traces: slight lane-paint smear-down (PP
+colour diffusion), faint dark falloff at the very bottom edge.
 compose_frame()/clean_blur() below are kept for the tier-cascade variant (02678d04-style dry scenes
 where the graze-real pixels ARE decent); wet/complex scenes ship v8.
 """
