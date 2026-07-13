@@ -29,7 +29,15 @@ History: v1 (DB-125, plain 4-gate) -> v2 feather-blur(band) REGRESSION -> v3 (ga
 (REGRESSION per user eyeball) -> v8/v8c PP-FULL-ZONE (technically clean after the edge-pad black-bleed
 fix, but REJECTED by user value verdict 2026-07-13: it discards ALL real road pixels — 'smooth invention'
 loses to 'low-quality truth'. Consistent with the DB-122 B-coherence ruling: realism outranks looks).
-FINAL STANDING: v6 = maximal-realism compositor (shipped); v8c recipe kept below ONLY as the
+DB-129 MFSR UPDATE (2026-07-13, shipped as v10): the map itself got better WITHOUT inventing
+anything — build reps '_MHALF, _CW = 46.0, 0.05'->'23.0, 0.025' (fine grid; the trail lives <10m so
+half radius buys double resolution at equal build cost) + render the 6-slot MEDIAN instead of the
+single best source (rep the _wmap line; U3 'single renders' was ruled on 5cm full-nadir where graze
+misregistration smears — on a 2.5cm near-field grid registration is tight and the median is
+denoise + sub-pixel retention; U3 stays valid in its original domain). 12-crop eyeball: fuse+fine
+beats v6 everywhere; diagnostics: 6/6 slots filled per cell, best-source egod p10=8.2m (no gated-out
+near views — the graze supply IS the physics). Recipe file: db129_mfsr.py / db129_v10_job.py.
+FINAL STANDING: v10 = v6 gate stack + MFSR map (shipped); v8c recipe kept below ONLY as the
 'smooth' option artifact for koi's 3-way semantic choice (v6 real / v8c invented / honest-black).
 
 v8 verdict (DB-128 final, 2026-07-13): the ego-trail band (zone2) is a PHYSICS-limited region — the
