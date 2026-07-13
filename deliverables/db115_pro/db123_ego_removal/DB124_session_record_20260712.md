@@ -707,6 +707,16 @@ fill+wbev 从 41min 压到 **9.4min** 后,**map 构建 990s(16.5min)成为单卡
 3. **composite v6 尚未回补 `02678d04`** ——该场景无这些问题(简单场景),配方版本差异已记录。
 4. **v6 四门未回写进 `db127_general.py` 量产 orchestrator** ——量产 driver v10 时合并。
 
+### 12.10 v7b 中央车头纹理断层修复 + 频率解剖反直觉判决(2026-07-14,用户二次标注）
+
+v6 交付后用户**放大 `05fa5048` 修复版**发现新问题:**中央车头填充区纹理与前方道路明显不同**——暗色涂抹感 + **字迹状鬼影**(PP 时序传播把邻帧文字/车道线残影拖进来)。
+
+- **★频率解剖反直觉判决(准备好的增强被判错药)**:先入为主的诊断是"填充区糊了、要锐化+加噪回补高频"。但实测填充区 **HF std = 6.28**,**超过** band 参照 **5.80**——**问题根本不是高频『量』不足,而是高频的『质』**:patch 接缝 / 多源杂斑 / PP 涂抹。**根源 = map 5cm cell 在近 nadir ERP 放大下欠采样**(每个世界 cell 被拉伸成一大片 ERP 像素,拼接缝与杂斑被放大)。→ **已写好的 unsharp + grain 增强当场判为错药弃用**;正确的药是**摄影级近场虚化**(edge-preserving 平滑填充区 + 亚阈值反光追杀)。**"眼睛胜过指标"再一次应验**(HF std 更高却更丑)。
+- **★三方眼核(current / clean-blur / honest-black)**:①`current` = v6+PP 原样(字迹鬼影 + 涂抹);②`clean-blur` = 本役 v7b(填充区摄影级虚化);③`honest-black` = 车头区**回归黑**(= Cosmos 生成域语义,把这块交给下游生成模型)。**判决 = clean-blur 胜出**(字迹鬼影消失、近场虚化自然、暗涂抹平顺);**honest-black 记为给 koi 的语义选项**(若下游 Cosmos 约定"黑=生成域",车头填充可整块留黑交模型,而非我们补真值)。
+- **★v7b 定稿配方(PP 之后的后处理,`clean_blur`)**:① 亚阈值反光追杀 = HSV `V>135 & S<80`(比 v6 主门 `V>150 & S<70` 更严的亚阈值,dilate7)→ Telea inpaint(7)去掉 v6 主门漏网的湿路面反光小斑;② `bilateralFilter(11,45,9)` + `GaussianBlur(5,5)` **只作用于填充区**(`filled` = 下半球 ∩ 非黑 ∩ 非 band 直采区);③ **6px feather**(distanceTransform / 6.0 的 alpha 混合,边界带渐入,绝不 `blur(band)` —— v2 黑区晕染教训)。**92 帧 45s**;Drive 已**重打包**(v6 版移入 `v6_backup/`)。
+- **★已集成进正式模块** `agent/db115_drivers/db128_composite.py`(`compose_frame` + `clean_blur` 两函数,module docstring 含 v1→v7b 判决史;`clean_blur` 自带频率解剖 docstring:HF std 6.3 vs 5.8、"sharpening is the WRONG drug (measured)")。
+- **★git commit 记录(纪律修正)**:本仓库 `experiments/Waymo2Panorama/.git` **完好可用**(remote = github QiPan-Ronnie/Waymo2Panorama,push main 成功;旧情报"本地 git 被 BaiduSync 弄坏"已过时——**外层 koi chen 目录无 git,Waymo2Panorama 子仓库健康**)。两个 commit 已推 main:`0f7ebd4`(DB-123..128 全部 driver + v9 内核 + 备份 + 文档证据)+ `82dbfbe`(v7b `clean_blur` 模块)。**新纪律 = 每轮代码改进即 commit + push main**(feedback 已有直推授权)。
+
 ---
 
 *记录完成:2026-07-12(§1–§7)/ 2026-07-13 补(§8 DB-125 级联版 1+92 数据集全链量产 + §9 车头痕迹修复 v3 定稿 + wbev sampler 判负 + 加速诚实蓝图 + §10 CAP-fast 内核 v9 手术与实测大捷 + §11 DB-127 三场景盲测泛化验证)/ 2026-07-14 补(§12 DB-128 `05fa5048` 复杂场景四问题解剖 + composite v6 四新门定稿 + 湿路面朗伯失效物理边界 + 40GB 卡 PP 定式)。两个实验(§3/§4)均已眼核 + 归档;六方法版图闭合;④ 档三级级联证据链完整,并在新场景 `02678d04` 端到端量产实证(残洞 0.00%);composite v3 定稿(gain 对齐 / 色调门 45 / 自模糊 feather)已推为 Drive 主产物;wbev sampler 旁路加速三轮判负(与 DiffuEraser/Wan 同构),加速正道 = 内核内 `CAP_ONLY`;§10 内核 v9 三开关实测 fill 2.4s/帧(42×)、wbev 3.8s/帧(260×)、成品级 zone diff med=4.0(vs sampler med=47),CAP-fast v9 定稿;**§11 盲测泛化验证 1/3 过 93 门(重遮挡 `05fa5048` 全链产出、Tier3 首次实战 2.9%)、级联分工随难度合理滑动、产出率受内容限制被证实、最重要工程发现 = band 无源黑洞纳入级联管辖(zone → zone ∪ band 黑洞)**。凭据零泄露。*
