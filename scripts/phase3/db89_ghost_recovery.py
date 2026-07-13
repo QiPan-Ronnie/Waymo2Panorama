@@ -67,6 +67,9 @@ WORLDBEV_CENTER = ""  # DB-123 cascade: "x,y" city metres; pins the map grid ori
 CAP_ONLY = False  # DB-126: fill/wbev renders whose BAND pixels are unused by the cascade composite skip YOLO seg + OMC object matching (morph/view-morph collapse via empty morph_jobs); the cap pipeline (cast/low-pass/resid fallback) is untouched. Default False (all shipped paths unchanged).
 CAP_LIMIT_TMPL = ""  # DB-126: printf-style glob template (anchor as %03d) for an external mask ANDed into the nadir cap — band frames only need the egozone strip, skipping 75-85% of the candidate scan. Empty = full cap (unchanged).
 CAP_REF_TMPL = ""  # DB-126: printf-style glob template for an external band segcomposite used as the cast-correction truth ring when CAP_ONLY leaves comp black (self-reference would disable the cast fix). Empty = comp ring (unchanged).
+WORLDBEV_SHARD = ""  # DB-131: "i,k" — this build only processes source frames _wfis[i::k]; combined with WORLDBEV_DUMP, K parallel shard workers replace the single-process map build (its 4-15min was the production critical path). Empty = full build (unchanged).
+WORLDBEV_DUMP = ""  # DB-131: npz path; after the source-selection+sampling loops, dump (chosen, score, col) raw slot state for the shard-merge. Empty = no dump (unchanged).
+WORLDBEV_LOAD = ""  # DB-131: npz path; SKIP both build loops and load merged (chosen, score, col) instead — the native post-processing (gain/median/tier/Telea) then runs unchanged, so the merge path re-uses the tuned pipeline instead of re-implementing it. Empty = build normally (unchanged).
 COHERENT = False  # DB-109 B-coherence (fill variant, gated, default off): keep the per-pixel cap reprojection (the 81.9% MOVING_GATE=False path) but make the SOURCE PICK a deterministic function of the WORLD ground point (FIXED window + egod-closest-to-sweet) so neighbouring anchors agree on the same world point -> temporal coherence WITHOUT the world-grid's discretisation/accumulation loss. Use with MOVING_GATE=False; nvalid>=2 guard against single-source car-body.
 COHERENT_WIN = (0, 92)  # fixed candidate window for COHERENT (driver sets per scene)
 COHERENT_SWEET = 22.0   # egod sweet-spot (m): the source whose ground-distance is closest to this is picked, deterministically per world point (20-28 m is the inner-cap grazing window)
@@ -1818,13 +1821,16 @@ def run_case(case_spec, run_name):
             _inbf = _reach[np.floor(_dispA[_reach] / 5.0) == _bv]
             _pickf.extend(int(x_) for x_ in _inbf[np.argsort(np.abs(_inbf - _aidx))][:8])
         _wfis = sorted(sorted(set(_pickf), key=lambda i_: abs(i_ - _aidx))[:110])
+        if WORLDBEV_SHARD:   # DB-131: this worker builds only its interleaved share of the source frames
+            _sh_i, _sh_k = (int(_v) for _v in WORLDBEV_SHARD.split(","))
+            _wfis = _wfis[_sh_i::_sh_k]
         _NSW = 6
         _wchosen = np.full((_NSW, _NWC), -1, np.int64)
         _wscore = np.full((_NSW, _NWC), np.inf, np.float32)
         _eb = [(C + (a_ + b_) / 2.0, b_ - a_, np.eye(3)) for a_, b_ in (
             (np.array([-2.2, -1.6, -C[2] - 0.33]), np.array([4.6, 1.6, -C[2] + 0.67])),
             (np.array([-1.7, -1.6, -C[2] - 0.33]), np.array([1.0, 1.6, -0.35])))]
-        for _fi in (_wfis if not WORLDBEV_FILL else []):   # P1: skip the expensive build when a filled map overrides it
+        for _fi in (_wfis if not (WORLDBEV_FILL or WORLDBEV_LOAD) else []):   # P1: skip the expensive build when a filled map overrides it; DB-131: or when merged shard state is loaded below
             _tsf = int(all_ts[_fi])
             _fb = [(c2_, sz2_ * 1.3, R2_) for (c2_, sz2_, R2_) in boxes_at(ann, _tsf, moving)]
             _tfa = cte(_tsf)[1]
@@ -1899,6 +1905,15 @@ def run_case(case_spec, run_name):
                 _py = _K[1, 1] * _Xc[:, 1] / np.maximum(_z, 1e-6) + _K[1, 2]
                 _wcol[_s][_sel] = np.clip(bilinear(_fr.images[ring_cams[_ci]], _px, _py) * np.exp(gains[_ci])[None, :], 0, 255).astype(np.float32)
         _wcache.clear()
+        if WORLDBEV_DUMP:   # DB-131 shard worker: dump raw slot state for the merge, before any post-processing
+            np.savez_compressed(WORLDBEV_DUMP, chosen=_wchosen, score=_wscore, col=_wcol)
+            print("WORLDBEV_DUMPED", WORLDBEV_DUMP, int((_wchosen[0] >= 0).sum()), flush=True)
+        if WORLDBEV_LOAD:   # DB-131 merge consumer: adopt merged slot state; the tuned post-processing below runs unchanged
+            _wz_npz = np.load(WORLDBEV_LOAD)
+            _wchosen = _wz_npz["chosen"]
+            _wscore = _wz_npz["score"]
+            _wcol = _wz_npz["col"]
+            print("WORLDBEV_LOADED", WORLDBEV_LOAD, flush=True)
         _wh = ~np.isnan(_wcol[:, :, 0])
         # U2: per-SOURCE 3-channel global gain vs the pre-gain map median (exposure+WB).
         _wmed0 = np.nanmedian(np.where(_wh[:, :, None], _wcol, np.nan), axis=0)
