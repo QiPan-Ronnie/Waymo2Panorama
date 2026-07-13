@@ -1045,4 +1045,91 @@ DB-88 / U3 的原判是 **"cluster validates, single renders"**(混合错位掠�
 
 ---
 
-*记录完成:2026-07-12(§1–§7)/ 2026-07-13 补(§8 DB-125 级联版 1+92 数据集全链量产 + §9 车头痕迹修复 v3 定稿 + wbev sampler 判负 + 加速诚实蓝图 + §10 CAP-fast 内核 v9 手术与实测大捷 + §11 DB-127 三场景盲测泛化验证)/ 2026-07-14 补(§12 DB-128 `05fa5048` 复杂场景四问题解剖 + composite v6 四新门定稿 + 湿路面朗伯失效物理边界 + 40GB 卡 PP 定式)。两个实验(§3/§4)均已眼核 + 归档;六方法版图闭合;④ 档三级级联证据链完整,并在新场景 `02678d04` 端到端量产实证(残洞 0.00%);composite v3 定稿(gain 对齐 / 色调门 45 / 自模糊 feather)已推为 Drive 主产物;wbev sampler 旁路加速三轮判负(与 DiffuEraser/Wan 同构),加速正道 = 内核内 `CAP_ONLY`;§10 内核 v9 三开关实测 fill 2.4s/帧(42×)、wbev 3.8s/帧(260×)、成品级 zone diff med=4.0(vs sampler med=47),CAP-fast v9 定稿;**§11 盲测泛化验证 1/3 过 93 门(重遮挡 `05fa5048` 全链产出、Tier3 首次实战 2.9%)、级联分工随难度合理滑动、产出率受内容限制被证实、最重要工程发现 = band 无源黑洞纳入级联管辖(zone → zone ∪ band 黑洞)**／ 2026-07-14 补(**§13 ★终局**:用户否决 v7b(clean-blur 左右模糊超 v6 = 净退化)→ 第一性重分析坐实**左中右三车头区 = ego 自遮挡轨迹带**(front-pod rig 永不能近距垂直观测自己足迹、唯一观测 = 4–6° 掠射 → 1px 垂直误差 = 米级水平拉伸、带内 wbev HF std 3.58 vs 路面 5.80、中央 fill 真实像素仅 2%);v6 杂纹与 v7b 糊块 = 同一物理事实两种掩饰、composite 门控到顶;三选项实验 A(轨迹带全交 ProPainter、zone2 全域 mask、PP 从带外锐利真实像素时序传播)胜出 = **v8 PP-full-zone 定稿**(全帧眼核几乎无填充痕迹、时序三帧条 f010/f050/f090 穿带标线连续、PP 92 帧 171s);provenance 换性质(~40% 掠射低质真实+编造 → 100% PP 编造)必告知 koi(完美编造 vs 杂讯真实 vs 黑洞由他拍板);干湿分工(干 02678d04 用 tier-cascade compose_frame、湿 05fa5048 ship v8);Drive `mv` 毁链接坑(FUSE `mv` = 复制+删除换 `fileId` 毁用户旧链接)→ 同名 `cp` 覆盖 + 版本副本 clip_v*.mp4 并存新纪律;commit `55fb4e5` 已推 main)／ 2026-07-14 再补(**§13.11 v8 黑渗透修复**:v8 交付后用户发现左右车头黑 mask 随播放渐吞、地面渐糊(`f080`)→ 排除法证伪"管辖遗漏"(`unmanaged_black≈0`、mask 面积稳定 47–53k)→ 真凶 = **PP 把 ERP 格式黑边当内容、从黑边吸色时序累积恶化**(`f061`→`f092` 近全黑);**v8b** colmax 用带洞 band 算错致抹黑 zone → **v8c 定稿** = edge-pad 每列底边下 40 行均值色 + σ3 颗粒延伸 + colmax 用 `band-real∪zone2` 全包络 + PP 只贴 mask 内恢复格式黑,尾帧眼核黑吞噬消失、微痕 L 黄线轻微下拖;commit `d9ef65c` 已推 main)／ 2026-07-13 定档(**§13.12 ★★用户价值判决 = DB-128 FINAL STANDING**:v8c 技术上干净但用户判负 **"完全丢失了真实的路面像素,现在整个就是糊的"**——PP-full-zone 把轨迹带 ~40% 掠射真实像素全换 100% 编造、违背 evidence-gated 真实优先第一性;**与 DB-122 B-coherence 同脉 = 真实性 > 观感、用户立场一贯**;关键认知定档 = **v6 的"模糊" = 4–6° 掠射真实数据本来面目非 bug、v6 之下不存在"更清晰的真实"只有编造/留白**,终结整条"在轨迹带追清晰"路线;**v6 = 最大真实合成器最终定档**(恢复为 `05fa5048` 主版本、同名 `cp` 覆盖保 `fileId`);**三哲学三版本并存交 koi 三选**(v6 最大真实 `clip_v6_fourfix` / v8c 平滑编造 `clip_v8c_ppzone_edgepad` / honest-black 生成域可随时生成);koi 问题定稿 = band 条件帧"低质真实/干净编造/留黑"哪个对 Cosmos 微调最好 = **数据语义决策非工程决策**;commit `8b364c7` FINAL STANDING 已推 main,DB-128 终稿链 `0f7ebd4→82dbfbe→0561a53→55fb4e5→d4cc9d0→d9ef65c→8b364c7`)／ 2026-07-13 再补(**§14 DB-129 v6 之上 restoration 改进版图 + ESRGAN 超分首实验**:用户问"v6 还能改进吗/有什么没调研的"后的方法盘点+首实验;未调研版图四路线按潜力排序=①**map 端多帧超分 MFSR**(每 cell 现单帧上色但被几十帧亚像素观测=经典 MFSR 理想输入,**复用 DB-118 GSR 逆问题 T+δ+c 联合优化范式**、纯真实预期质变=下一专项主攻待用户立项)②restoration 单帧/时序超分(半真实、语义在 v6 与 v8 之间)③map 2.5cm 参数刀+近观测利用率诊断(rear 8-15° 回看是否被 moving-box/self-occ 门错杀=可能免费提质)④低强度扩散增强(排最后、判负史警告);**ESRGAN 首实验**(Real-ESRGAN x4→下采样回原分辨率、只贴轨迹带 f050、tile512 half True 3.5s/帧,**basicsr shim 坑=torchvision 移除 functional_tensor 需 `from torchvision.transforms.functional import rgb_to_grayscale` 补回**)眼核=**温和净改善**(杂斑收敛/边缘干净/噪点平滑,结构性糊未变=ESRGAN 退化假设与真实掠射拉伸+多源拼接退化不匹配)=可叠加层非质变;产物 `db129_sr.jpg`)／ 2026-07-13 再补(**§15 DB-129 map 端 MFSR 实验与 v10 定稿**:用户授权"直接进行改进"后的 MFSR 专项;三 map 变体 A/B 对拍 v6 基线(M1 细网格单源/M2 细网格+6 槽中值/M3 粗网格+融合),**轨迹带<10m 让半径减半换分辨率翻倍=构建成本不变的免费提采样**;WBDIAG 诊断=M2 slots_used 中值 6.0 满观测、best-source egod **p10=8.2m** 就是物理供给(近观测未被门错杀、掠射 8-22m 是全部材料);**12 宫格眼核=M2(fuse+fine)全 9 位置碾压或持平 v6、零编造**(M1 小改善/M3 平滑但糊);**★U3 判决适用域细化(非推翻)**=U3"错位掠射源不能融"在 5cm 全 nadir 域成立、MFSR"紧配准近场源可融"在 2.5cm 近场网格安全反转,同原理两域两正确结论;**v10=v6 全门 stack+M2 map**(同哲学,v6 的 map 升级版),全量 92 帧 wbev 355s+compose 79s(Telea 收残洞),全帧眼核 f050 轨迹带干净连贯、右下角残留少量暗斑(诚实);**踩坑=首发 heredoc 超长命令 bash 截断 exit 2,文件式重发一次通过=再验"超长命令必文件式发射"纪律**;配方 rep=map 构建加 `_MHALF,_CW 46/0.05→23/0.025`+`_wmap` 6 槽中值+wbev 加 GRID rep+FILL=m2 map(纯参数零内核重写);三哲学"最大真实"档 v6→**v10**;产物 `05fa5048` 主版本=v10(同名 cp 覆盖保 fileId)+`clip_v10_mfsr.mp4`+`worldmap_v10_m2.png`;git `3914e9b`(db129_mfsr.py+db129_v10_job.py 入库+db128_composite.py docstring FINAL STANDING: v10)已推 main;遗留=完整 MFSR 亚像素配准+反卷积 GSR 式联合优化仍是 upside / v10 未回补 02678d04(可选) / 单变体量产估 ~10min)。凭据零泄露。*
+## 16. DB-130 双 log 量产 + anchor 空间系统性根因发现(2026-07-13/14)
+
+> **一句话:** 用户给 **48 核 RTX PRO 6000 Blackwell("G4")** 要求产 **2 个真实 1+92 级联数据集 + 效率记录**。本役在 48 核机上把并行拉到 **K=24 worker**(band **0.8s/帧**),产出 **2 个合格 v10 数据集**;量产暴露出**四层根因**逐层解剖修复,其中最深一层 = **anchor 空间系统性 bug(全管线级发现)——所有 orchestrator 半年来只处理了每个 log 的前半段(~8s)**;并确立**运动感知选窗**新判据。全部实测 + 眼核,事实不软化。
+
+### 16.1 硬件与并行
+
+- **机器:** **RTX PRO 6000 Blackwell 96GB / 48 CPU 核**(对比:此前 A100 只有 **12 核**),`torch 2.11 + cu128` 兼容性已验证。
+- **并行:** **K=24 worker**(48 核给足并行度,CPU/Drive I/O 才是瓶颈的老结论下,核数翻 4× 直接吃满)。
+
+### 16.2 产出(Drive `datasets/av2_1plus92_cascade_v1/`)
+
+| log | 版本 | 说明 |
+|---|---|---|
+| **`0aa4e8f5`** | **v10.5-motionwin** | 最终版,**P=225 运动窗口**(前半静止 → 补渲后半 + 全空间 clean-run + 运动优先选窗) |
+| **`0b86f508`** | v10.2 | 曝光归一化修复后 resid 85→17-19% |
+| `0b5142c1` | — | 候选,**被 gate 正确拒绝**(clean run len=29 < 93) |
+
+### 16.3 效率账本(模型常驻口径,全实测,ledger 在 Drive `db130_ledger.json`)
+
+| 阶段 | 耗时 | 说明 |
+|---|---|---|
+| band(K=24) | **0.8s/帧** | vs A100 8-worker **3s/帧 = 3.8×**(核数翻 4× 直接兑现) |
+| `0aa4` 顺利链 | **≈9min** | 全链墙钟 |
+| `0b86` 全链 | **≈21min** | map 构建 **889s** 是场景方差(见 §16.7 遗留) |
+| FLUX | 冷读 **668s**(一次性)/ 常驻后 page cache **74s** / 生成 **~60s/log** | 与 §11 FLUX cache 顾虑消解一致 |
+| compose | **3s**(Pool16) | — |
+| **稳态估算** | **12-18min/log** | 模型常驻口径 |
+
+**"G4 2-3min" 对账(诚实澄清):** 用户记忆中的"G4 2-3min"是 **① 档纯黑化版**(band-only、不做级联/FLUX);本机今日实测**黑化版约 4-5min/log(含下载)**。级联全链(band + cand + fill + map + wbev + compose + FLUX + 打包)是 12-18min 量级,两者不是同一口径,不能混谈。
+
+### 16.4 ★★四层根因链(量产暴露,逐层解剖修复,全部眼核验证)
+
+量产比单场景更能逼出系统性缺陷。本役连续四轮"修复—证伪—再挖",逐层深入:
+
+**第 1 层 — spec 门晴天过杀(resid 59-85%、Telea 大面积):**
+- **症状:** 晴天干燥场景 resid 高到 59-85%,大片走 Telea 兜底。
+- **根因:** 镜面门用**绝对阈值 `V>150`** → 晴天干燥亮路面(**天然高 V、低 S**)被整片误判成反光、被拒源。
+- **修:** 改**相对阈值 `max(150, ring_lum×1.35)`**(以本帧 band ring 亮度为基准,只有显著高于环境才算反光)。
+
+**第 2 层 — 曝光差冒充反光:**
+- **根因:** map / fill 源携带**其他帧的曝光**,整体亮度偏移**是 gain 的职责、不是镜面特征**;镜面门却把这种全局亮度偏移当成高光。
+- **修:** 镜面判定前先把 **V 归一到 band ring 亮度**(剥离曝光偏移,只留真实高光)。→ `0b86` **resid 85% → 17-19%**。
+
+**第 3 层 — map 半径不自适应:**
+- **修:** `R = clip(窗口 dmax + 14, 23, 46)`,**网格恒 1840²**(半径随窗口运动幅度自适应、网格数不变 → 分辨率自适应,时间成本不变)。
+
+**第 4 层 — ★★anchor 空间系统性 bug(全管线级发现,本役最深一刀):**
+- **实锤:** `inspect.getsource` 读 `AV2RingLoader.anchor_timestamps_ns()` 源码 → anchor 时间戳来自 **`ring_front_center` 相机的 20Hz 时间戳(每 log ~319 个)**;而**所有 orchestrator 一直用 `len(lidar)=156` 当 anchor 总数**(LiDAR 是 ~10Hz)。
+- **后果:** 每个 log **只处理了前半段(~8s)** —— 索引空间被 LiDAR 帧数腰斩,窗口永远落在 log 前半。
+- **影响面(诚实分级):**
+  1. **历史产物仍自洽有效** —— 全链(band/cand/fill/wbev/compose)用的是**同一个** index 空间,内部一致、成品没错;
+  2. **产出率被系统性低估** —— 被 gate 拒绝的 log,其**后半段可能有合格窗口**,却从未被扫描过;
+  3. **帧率语义澄清(告知 koi):** anchor 是 **20Hz**,故 **93 帧 @ 20Hz = 4.65 秒**(此前若按 10Hz 理解会把时长算错一倍)。
+- **`0aa4e8f5` 实战修复(眼核质变):** 该 log **前半静止**(motion profile 揭穿:`dmax=1.8m`,轨迹带是**纯物理盲区**、frame-1 是灰浆)→ **补渲后半段(106s)+ 全空间 clean-run + 运动优先选窗**(合格窗口中取 `dmax` 最大者,选中 **P=225、dmax=17.7m**)→ **resid 46% → 11.7%、frame-1 灰浆 → 完整路面**,眼核质变通过。
+
+### 16.5 ★运动感知选窗(新判据入配方)
+
+- **新判据:** **选窗必须运动感知(`dmax ≳ 10m`),纯 `imperfect` 升序不够**。
+- **物理依据:** 静止段(`dmax` 极小)= 轨迹带**物理纯盲区** —— 车没动,ego 足迹从没被别的时刻从掠射角观测过,fill/wbev 拿不到任何真实材料,只能出灰浆。这与 §13 的"front-pod rig 掠射物理硬边界"同脉:**没有位移就没有掠射观测,没有掠射观测就没有真实像素**。
+- **落地:** 选窗打分从"`imperfect` 最小"升级为"合格窗口中 **运动幅度 `dmax` 最大**",`0aa4` 的 P=225 运动窗口即此判据产物。
+
+### 16.6 诊断方法论亮点(记录,这套方法是本役能挖到第 4 层的关键)
+
+1. **motion profile(pose 端点位移画像):** 对 pose 序列算端点位移,**当场揭穿"静止假象"** —— `0aa4` 前半 `dmax=1.8m` 一眼看出是静止段,而非"选帧没选好"。
+2. **lidar 文件名直算位置 vs `ta_of` 对比:** 用 LiDAR 文件名(时间戳)直接反算车辆位置,与 anchor 时间戳插值出的位置对比,**锁定"时间戳源不一致"**这个方向。
+3. **`inspect.getsource` 实锤 anchor 定义:** 不靠猜、直接读 `anchor_timestamps_ns()` 源码,坐实 anchor = **ring_front_center 20Hz** 而非 LiDAR 帧。
+- **元教训:** 连续四轮**没有止步于表面修复**(spec 门一修 resid 就降了,很容易收手),而是每修一层就问"还有没有更深的",才挖到 anchor 空间这个全管线级 bug。
+
+### 16.7 工程踩坑(本役新增)
+
+1. **`fix4` 的 sed 替换漏改 `find1` 长串路径** → `map3` / `m4` 阶段路径错位(sed 只改了部分出现处)。
+2. **`fix6` 的 glob `**` 需 `recursive=True`** —— Python `glob` 的 `**` 不加 `recursive=True` 不递归,静默漏文件。
+3. **`fix7` compose 的 glob 未适配 `band2` / `bh` tag** —— 新 tag 命名没进 glob 模板,漏匹配。
+4. **heredoc 超长命令截断再犯一次** —— §2.1 / §6.3 / §15.5 的"超长命令必须文件式发射"纪律,本役是**第 N+1 次验证**(文件式重发即过)。
+
+### 16.8 git
+
+- **`405eb94`**(spec v10.2 进 `db128_composite.py` + `db130_job.py` / `db130_fix6_build.py` 入库)已推 main。
+
+### 16.9 遗留(诚实)
+
+1. **★orchestrator `n=len(lidar)` bug 修复要回写量产版:** 本役是在 `0aa4` 上手工"补渲后半 + 全空间"救回来的;**根治 = 把 `db130_job.py` 的 anchor 总数从 `n=len(lidar)` 改成 `n=len(cam jpg)`**(用 20Hz 相机帧数),否则下一个 log 又只跑前半。这是全管线级修复,优先级最高。
+2. **`0b86` map 构建 889s 场景方差待查:** 同配方下 `0aa4` map 快、`0b86` 慢到 889s,场景相关因子未定位。
+3. **被拒 log 全空间重试(产出率回收):** `04994d08` / `070bbf42`(DB-127 被拒)/ `0b5142c1`(本役被拒)**都是在腰斩的前半空间被拒的** —— 用修复后的全空间(20Hz 全 anchor)重试,后半段可能有合格窗口,**产出率有系统性回收空间**。
+
+---
+
+*记录完成:2026-07-12(§1–§7)/ 2026-07-13 补(§8 DB-125 级联版 1+92 数据集全链量产 + §9 车头痕迹修复 v3 定稿 + wbev sampler 判负 + 加速诚实蓝图 + §10 CAP-fast 内核 v9 手术与实测大捷 + §11 DB-127 三场景盲测泛化验证)/ 2026-07-14 补(§12 DB-128 `05fa5048` 复杂场景四问题解剖 + composite v6 四新门定稿 + 湿路面朗伯失效物理边界 + 40GB 卡 PP 定式)。两个实验(§3/§4)均已眼核 + 归档;六方法版图闭合;④ 档三级级联证据链完整,并在新场景 `02678d04` 端到端量产实证(残洞 0.00%);composite v3 定稿(gain 对齐 / 色调门 45 / 自模糊 feather)已推为 Drive 主产物;wbev sampler 旁路加速三轮判负(与 DiffuEraser/Wan 同构),加速正道 = 内核内 `CAP_ONLY`;§10 内核 v9 三开关实测 fill 2.4s/帧(42×)、wbev 3.8s/帧(260×)、成品级 zone diff med=4.0(vs sampler med=47),CAP-fast v9 定稿;**§11 盲测泛化验证 1/3 过 93 门(重遮挡 `05fa5048` 全链产出、Tier3 首次实战 2.9%)、级联分工随难度合理滑动、产出率受内容限制被证实、最重要工程发现 = band 无源黑洞纳入级联管辖(zone → zone ∪ band 黑洞)**／ 2026-07-14 补(**§13 ★终局**:用户否决 v7b(clean-blur 左右模糊超 v6 = 净退化)→ 第一性重分析坐实**左中右三车头区 = ego 自遮挡轨迹带**(front-pod rig 永不能近距垂直观测自己足迹、唯一观测 = 4–6° 掠射 → 1px 垂直误差 = 米级水平拉伸、带内 wbev HF std 3.58 vs 路面 5.80、中央 fill 真实像素仅 2%);v6 杂纹与 v7b 糊块 = 同一物理事实两种掩饰、composite 门控到顶;三选项实验 A(轨迹带全交 ProPainter、zone2 全域 mask、PP 从带外锐利真实像素时序传播)胜出 = **v8 PP-full-zone 定稿**(全帧眼核几乎无填充痕迹、时序三帧条 f010/f050/f090 穿带标线连续、PP 92 帧 171s);provenance 换性质(~40% 掠射低质真实+编造 → 100% PP 编造)必告知 koi(完美编造 vs 杂讯真实 vs 黑洞由他拍板);干湿分工(干 02678d04 用 tier-cascade compose_frame、湿 05fa5048 ship v8);Drive `mv` 毁链接坑(FUSE `mv` = 复制+删除换 `fileId` 毁用户旧链接)→ 同名 `cp` 覆盖 + 版本副本 clip_v*.mp4 并存新纪律;commit `55fb4e5` 已推 main)／ 2026-07-14 再补(**§13.11 v8 黑渗透修复**:v8 交付后用户发现左右车头黑 mask 随播放渐吞、地面渐糊(`f080`)→ 排除法证伪"管辖遗漏"(`unmanaged_black≈0`、mask 面积稳定 47–53k)→ 真凶 = **PP 把 ERP 格式黑边当内容、从黑边吸色时序累积恶化**(`f061`→`f092` 近全黑);**v8b** colmax 用带洞 band 算错致抹黑 zone → **v8c 定稿** = edge-pad 每列底边下 40 行均值色 + σ3 颗粒延伸 + colmax 用 `band-real∪zone2` 全包络 + PP 只贴 mask 内恢复格式黑,尾帧眼核黑吞噬消失、微痕 L 黄线轻微下拖;commit `d9ef65c` 已推 main)／ 2026-07-13 定档(**§13.12 ★★用户价值判决 = DB-128 FINAL STANDING**:v8c 技术上干净但用户判负 **"完全丢失了真实的路面像素,现在整个就是糊的"**——PP-full-zone 把轨迹带 ~40% 掠射真实像素全换 100% 编造、违背 evidence-gated 真实优先第一性;**与 DB-122 B-coherence 同脉 = 真实性 > 观感、用户立场一贯**;关键认知定档 = **v6 的"模糊" = 4–6° 掠射真实数据本来面目非 bug、v6 之下不存在"更清晰的真实"只有编造/留白**,终结整条"在轨迹带追清晰"路线;**v6 = 最大真实合成器最终定档**(恢复为 `05fa5048` 主版本、同名 `cp` 覆盖保 `fileId`);**三哲学三版本并存交 koi 三选**(v6 最大真实 `clip_v6_fourfix` / v8c 平滑编造 `clip_v8c_ppzone_edgepad` / honest-black 生成域可随时生成);koi 问题定稿 = band 条件帧"低质真实/干净编造/留黑"哪个对 Cosmos 微调最好 = **数据语义决策非工程决策**;commit `8b364c7` FINAL STANDING 已推 main,DB-128 终稿链 `0f7ebd4→82dbfbe→0561a53→55fb4e5→d4cc9d0→d9ef65c→8b364c7`)／ 2026-07-13 再补(**§14 DB-129 v6 之上 restoration 改进版图 + ESRGAN 超分首实验**:用户问"v6 还能改进吗/有什么没调研的"后的方法盘点+首实验;未调研版图四路线按潜力排序=①**map 端多帧超分 MFSR**(每 cell 现单帧上色但被几十帧亚像素观测=经典 MFSR 理想输入,**复用 DB-118 GSR 逆问题 T+δ+c 联合优化范式**、纯真实预期质变=下一专项主攻待用户立项)②restoration 单帧/时序超分(半真实、语义在 v6 与 v8 之间)③map 2.5cm 参数刀+近观测利用率诊断(rear 8-15° 回看是否被 moving-box/self-occ 门错杀=可能免费提质)④低强度扩散增强(排最后、判负史警告);**ESRGAN 首实验**(Real-ESRGAN x4→下采样回原分辨率、只贴轨迹带 f050、tile512 half True 3.5s/帧,**basicsr shim 坑=torchvision 移除 functional_tensor 需 `from torchvision.transforms.functional import rgb_to_grayscale` 补回**)眼核=**温和净改善**(杂斑收敛/边缘干净/噪点平滑,结构性糊未变=ESRGAN 退化假设与真实掠射拉伸+多源拼接退化不匹配)=可叠加层非质变;产物 `db129_sr.jpg`)／ 2026-07-13 再补(**§15 DB-129 map 端 MFSR 实验与 v10 定稿**:用户授权"直接进行改进"后的 MFSR 专项;三 map 变体 A/B 对拍 v6 基线(M1 细网格单源/M2 细网格+6 槽中值/M3 粗网格+融合),**轨迹带<10m 让半径减半换分辨率翻倍=构建成本不变的免费提采样**;WBDIAG 诊断=M2 slots_used 中值 6.0 满观测、best-source egod **p10=8.2m** 就是物理供给(近观测未被门错杀、掠射 8-22m 是全部材料);**12 宫格眼核=M2(fuse+fine)全 9 位置碾压或持平 v6、零编造**(M1 小改善/M3 平滑但糊);**★U3 判决适用域细化(非推翻)**=U3"错位掠射源不能融"在 5cm 全 nadir 域成立、MFSR"紧配准近场源可融"在 2.5cm 近场网格安全反转,同原理两域两正确结论;**v10=v6 全门 stack+M2 map**(同哲学,v6 的 map 升级版),全量 92 帧 wbev 355s+compose 79s(Telea 收残洞),全帧眼核 f050 轨迹带干净连贯、右下角残留少量暗斑(诚实);**踩坑=首发 heredoc 超长命令 bash 截断 exit 2,文件式重发一次通过=再验"超长命令必文件式发射"纪律**;配方 rep=map 构建加 `_MHALF,_CW 46/0.05→23/0.025`+`_wmap` 6 槽中值+wbev 加 GRID rep+FILL=m2 map(纯参数零内核重写);三哲学"最大真实"档 v6→**v10**;产物 `05fa5048` 主版本=v10(同名 cp 覆盖保 fileId)+`clip_v10_mfsr.mp4`+`worldmap_v10_m2.png`;git `3914e9b`(db129_mfsr.py+db129_v10_job.py 入库+db128_composite.py docstring FINAL STANDING: v10)已推 main;遗留=完整 MFSR 亚像素配准+反卷积 GSR 式联合优化仍是 upside / v10 未回补 02678d04(可选) / 单变体量产估 ~10min)／ 2026-07-13/14 补(**§16 DB-130 双 log 量产 + anchor 空间系统性根因发现**:用户给 **48 核 RTX PRO 6000 Blackwell(G4)** 要 2 个真实 1+92 级联数据集 + 效率记录;**K=24 worker、band 0.8s/帧(vs A100 8w 3s/帧 3.8×)**;产 2 合格 v10 数据集(`0aa4e8f5` v10.5-motionwin P=225 运动窗口 + `0b86f508` v10.2,候选 `0b5142c1` clean 29<93 被 gate 正确拒);账本模型常驻口径 `0aa4`≈9min / `0b86`≈21min(map 889s 场景方差)/ FLUX 冷读 668s→page cache 74s / compose 3s Pool16 / 稳态 12-18min/log,"G4 2-3min"是 ①档黑化版口径(本机黑化 4-5min 含下载)非级联;**★★四层根因链**=① spec 门晴天过杀(V>150 绝对阈值把晴天干燥亮路面高V低S 全判反光→相对阈值 max(150,ring_lum×1.35))② 曝光差冒充反光(map/fill 源带其他帧曝光→spec 前 V 归一到 band ring→`0b86` resid 85→17-19%)③ map 半径自适应 R=clip(dmax+14,23,46) 网格恒 1840²④ **★★anchor 空间系统性 bug 全管线级发现**=`inspect.getsource` 实锤 `anchor_timestamps_ns()`=ring_front_center **20Hz** 时间戳(~319/log)而所有 orchestrator 用 `len(lidar)=156` 当总数→**每 log 只处理前半段~8s**(历史产物同 index 空间自洽有效、但产出率被系统性低估=被拒 log 后半可能有合格窗、**93 帧@20Hz=4.65 秒**帧率语义告知 koi);`0aa4` 前半静止(motion profile dmax=1.8m 轨迹带纯盲区/frame-1 灰浆)→补渲后半 106s+全空间 clean-run+**运动优先选窗**(合格窗 dmax 最大 P=225 dmax=17.7m)→resid 46→11.7%、灰浆→完整路面眼核质变;**★运动选窗新判据入配方=选窗必须运动感知 dmax≳10m、纯 imperfect 不够、静止段=轨迹带物理纯盲区**;诊断方法论=motion profile 揭穿静止假象/lidar 文件名直算位置 vs ta_of 锁时间戳源差/inspect.getsource 实锤,连续四轮"修复-证伪-再挖"不止表面;踩坑=fix4 sed 漏改 find1 长路径(map3/m4 错位)/fix6 glob `**` 需 recursive=True/fix7 compose glob 未适配 band2/bh tag/heredoc 超长截断再犯;git `405eb94`(spec v10.2 进 db128_composite.py+db130_job.py/db130_fix6_build.py)已推 main;遗留=**orchestrator n=len(lidar) bug 修复要回写 db130_job.py 量产版(n=len(cam jpg))**、`0b86` map 889s 场景方差待查、被拒 log(04994d08/070bbf42/0b5142c1)可用全空间重试回收产出率)。凭据零泄露。*
