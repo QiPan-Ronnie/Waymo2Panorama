@@ -25,8 +25,12 @@ Residual (resid) goes to ProPainter (temporal propagation, only-inside-mask comp
 40GB-A100 PP recipe: --subvideo_length 15 --neighbor_length 5 + PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True.
 
 History: v1 (DB-125, plain 4-gate) -> v2 feather-blur(band) REGRESSION -> v3 (gain+colour+self-blur, shipped
-02678d04) -> v4/v5 jurisdiction+lum experiments -> v6 (this file, shipped 05fa5048 fix) -> v7b clean_blur
-(REGRESSION per user eyeball: big uniform smudge beats junk texture nowhere) -> **v8 PP-FULL-ZONE (shipped)**.
+02678d04) -> v4/v5 jurisdiction+lum experiments -> v6 (this file, SHIPPED for all scenes) -> v7b clean_blur
+(REGRESSION per user eyeball) -> v8/v8c PP-FULL-ZONE (technically clean after the edge-pad black-bleed
+fix, but REJECTED by user value verdict 2026-07-13: it discards ALL real road pixels — 'smooth invention'
+loses to 'low-quality truth'. Consistent with the DB-122 B-coherence ruling: realism outranks looks).
+FINAL STANDING: v6 = maximal-realism compositor (shipped); v8c recipe kept below ONLY as the
+'smooth' option artifact for koi's 3-way semantic choice (v6 real / v8c invented / honest-black).
 
 v8 verdict (DB-128 final, 2026-07-13): the ego-trail band (zone2) is a PHYSICS-limited region — the
 front-pod rig can never observe its own footprint except at 4-6 deg grazing, so BOTH tiers only ever
