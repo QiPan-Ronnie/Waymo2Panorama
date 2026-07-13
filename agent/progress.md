@@ -1,5 +1,27 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-13 ◆ DB-135 run100 全量量产终盘：100/100 判定、17 成品(17%)、零 FAIL(双机 48 核 Blackwell ~4.6h)
+> **背景**：DB-131~134 把量产管线优化到投机建图后（v14），本役首次跑**全量 100 候选**并实测**真实产出率**。双机 48 核 Blackwell RTX PRO 6000 96GB。全部实测、事实不软化。
+> **★LOG100 定义（可复现）**：AV2 val 150 个 log **排除 `USED` 28 个** → 剩 122 排序**取前 100**，**冻结嵌入 driver** `agent/db115_drivers/db135_run100.py`。**产物** Drive `datasets/av2_1plus92_production_v14/`（`manifest_m0of2.json`/`manifest_m1of2.json` + `db135_run100_ledger_m*.json` + `run100_summary.json` = **全判定记录**含拒因）。
+> **★★终盘：100/100 判定，17 成品（17%），零 FAIL**。拒因分布：`SKIP_fine_dirty` **71**（**主因** = 交通密集反投影拉花、fine band 过不了 `max_reg_px≤8` 干净门）/ `SKIP_static` **10**（纯静止段 = 轨迹带物理盲区）/ `SKIP_no_clean_window` **2**。总耗时 **~4.6h 双机（~5.5min/判定）**。
+> **★17 成品 resid 分层（egozone 残洞占比）**：**<10% 十个** `bf382949`(2.4 最优)/`42f92807`/`4e3fedbb`/`22052525`/`9a448a80`/`201fe83b`/`335aabef`/`b6e967f6`/`20bcd747`/`adf9a841`；**10-17% 四个** `1da4a0aa`/`858d739b`/`2ff4f798`/`d89f80be`；**>20% 三个待用户裁** `27be7d34`(21.9)/`1f434d15`(29.3)/`b2053fdc`(33.1)。
+> **★量产中热修链（每次 commit 即推 main）**：**v14.2（`64fc5ea`）** = ①**fine 自愈**（盘上缺什么就渲什么）②日志名带阶段 tag ③**Drive ledger 断点续跑**（OK/SKIP 跳过、只 FAIL 重试）；**v14.3（`3c16761`）** = fine **缺失集循环重试 ≤3 轮**。**★根因链（量产必读）** = probe/fine **静默缺帧** 的真凶 = **帧级 GPU OOM 被内核逐帧 `try/except` 吞掉**（FLUX 常驻 35GB + 24 worker 高峰竞争显存），worker **rc=0 无 Traceback**（表面成功、实则缺帧）；fine-retry 后**零 FAIL**、实战触发多次全部**一轮补齐**，`20bcd747` FAIL→重试→OK = **自愈闭环实证**。
+> **★跨机 Drive FUSE 同步延迟坑（巡检纪律）**：一台机 `ls` **看不到**另一台机新写的目录/ledger（**双向**），曾据此**误判"成品丢失"**。纪律 = **巡检统计各机读各自的 ledger、合并要本地中转**（别指望一台机实时看到另一台的 Drive 写）。
+> **★黑斑-mask 契约（用户拍板，数据语义定档）**：贴身高大车辆 ∩ ego 拒源区 = **级联三层（fill/wbev/PP）全无供给 = 诚实黑**。打包纪律 = **mask=(RGB 和 ≥12)、近黑自动标 0=无效**；Cosmos 把 mask 当 loss/条件 mask 时**黑斑=unknown=无毒**；**不用 PP/FLUX 涂**（把幻觉标成真值更糟）；原则 = **"数据侧只给真实、生成责任归模型"**（合 DB-128 §13.12「真实 > 观感」）。
+> **★回收提案（待用户）**：①**浅 fine_dirty（≤3 帧脏）18 个** → 窗口平移回收、期望 **+5-10 成品**；②**pool 剩 25 候选**直接跑、期望 **+4**；③resid>20% 三个标记/剔除待裁。
+> **★速度三口径定版（别混）**：**合格 log 单机 ~7-8min 热机** / **双机渲染吞吐 ~3-3.5min/合格 log** / **全量摊销实测 ~4.6h/100 候选**（含 71 被拒 log 判定开销）。
+> **commit 链**：`de5bcd3`(v14.1 存档)→ `a67f01c`(文档+db135 实例)→ `64fc5ea`(v14.2)→ `3c16761`(v14.3)。脚本 `agent/db115_drivers/db135_run100.py`。[[db123-ego-removal]] [[db115-parallel-framework]]
+> ---
+
+> ### 2026-07-13 ◆ DB-131~134 投机建图量产管线：map 分片内核 v11(2.4×)+ v12 四刀 driver + 单机极限判决 + v14 specmap(100% 命中)
+> **背景**：DB-126 CAP-fast v9 后，map 构建成单卡关键路径新瓶颈。本链把量产管线一路推到投机建图，为 DB-135 run100 全量量产铺路。全部实测。
+> **★DB-131 map 分片内核 v11（纯参数级）**：db89 内核加**三开关 `WORLDBEV_SHARD` / `WORLDBEV_DUMP` / `WORLDBEV_LOAD`**，默认全关 = **byte-identical**（已发布路径零影响，同 `WORLDBEV_CENTER`/`CAP_ONLY` 内核手术纪律）；A/B **100% 像素一致**，map 构建 **471→195s（2.4×）**；内核 md5 `cca4f0c5`，备份 `_backup_db115pro/db89_ghost_recovery_20260713_v10_pre_mapshard.py`。
+> **★DB-132 v12 四刀量产 driver**：四刀合一 = **两段式 band**（probe stride-3 粗探 → 运动窗选择 → fine 精渲）+ **分片 map**（DB-131）+ **FLUX 后台线程**（常驻消费不阻塞渲染）+ **`MACHINE_SHARD` 机器级 log 分片**（跨机静态切分零撞车）。双机首批 **3 成品 / 8 判定**。
+> **★DB-133 单 log 极致判决（加速方向定档）**：重叠编排把最难 log 压到 **11.2min**。判决 = **48 核 CPU 已饱和、总量守恒 = 单机物理极限**（渲染/建图/band 三段可隐藏的都隐藏了）→ **后续加速的唯一方向 = 投机（speculation）**：把仍串行的段藏进等待轴。这条判决直接催生 DB-134。
+> **★DB-134 v14 投机建图（specmap，渲染层再提速）**：localize 一拿到 pose 表就**算全表 dmax → 猜窗中心 `P_guess` → 猜半径 `R_g=dmax+20` → 让 map shards 在 probe 还在跑时就提前开建**；probe 跑完后做**几何检验**（真实选窗帧距 guess 中心 `≤R_g−2`）命中则**复用预建 map**。实测 **`specmap_hit` 全程 100% 命中率**（pose 表 dmax 猜窗足够准、几何检验从不落空）；渲染层 **5.9min vs v12 7.1min**（同 log）。**v14.1 三修复** = worker env `expandable_segments`（碎片化 OOM）+ FLUX `_pipe_retry`（OOM 退避重试）+ `USED` 集合补齐。
+> **产物 / 脚本**：内核 `scripts/phase3/db89_ghost_recovery.py`（三开关，md5 `cca4f0c5`，备份见上）；driver `agent/db115_drivers/db13{2,4}_*.py`；全链记录 `deliverables/db115_pro/db123_ego_removal/DB124_session_record_20260712.md`。[[db123-ego-removal]] [[db115-parallel-framework]]
+> ---
+
 > ### 2026-07-13 ◆ DB-129 v6 之上 restoration 改进版图 + ESRGAN 超分首实验：MFSR(复用 DB-118 GSR)= 治本首推、ESRGAN = 温和净改善可叠加层
 > **背景**：DB-128 §13.12 把 **v6 定档为「最大真实合成器」**、并坐实「v6 之下不存在更清晰的真实（只能编造/留白）」后，用户追问「**v6 还能改进吗 / 有什么没调研的**」。本轮做**未调研方法版图盘点（四路线，全部围绕『保真实提质』而非『换成编造』）** + **一次 restoration 超分首实验（Real-ESRGAN）**。全部实测 + 眼核，事实不软化。关键前提：composite 门控在轨迹带追清晰已到顶（§13.12），但**在像素生成阶段就提高有效分辨率**的路线仍未调研。
 > **★未调研方法版图（四路线，按潜力排序）**：①**map 端多帧超分（MFSR）= 最大潜力治本** —— world-BEV map 每 cell 现仅**单帧上色**（DB-117 U3 single-source），但同一 cell 被整 log **几十帧以亚像素偏移反复观测** = 经典 **MFSR 理想输入**（多帧亚像素位移 + 已知运动 = 可联合反解超分真值）；**★可直接复用 DB-118 GSR 逆问题范式**（毯区已把「多帧真实观测 → 联合优化 `T+δ+c` → 反解真值」跑通眼核胜出，GSR = MFSR 在毯区的已证实例，把 map「单帧上色」换成「多帧亚像素联合反解」即移植到轨迹带）；纯真实、预期质变、约一个专项 → **下一改进专项主攻、待用户立项**。②restoration 单帧/时序超分（Real-ESRGAN / SwinIR / RealBasicVSR）= 半真实（真实为底 + 先验补细节），语义**恰在 v6（全真实低质）与 v8（全编造）之间**。③**map 2.5cm 参数刀**（cell 5cm→2.5cm，纯参数提采样密度）+ **近观测利用率诊断**（rear 相机车开远后 **8-15° 回看**比 4-6° 掠射更垂直高清，但是否被 moving-box / self-occ 门**错杀**？若是 = **修门 = 免费提质**）。④低强度扩散增强（img2img denoise 0.2）= **排最后**（全图 latent 重编码劣化 + 逐帧时序闪烁，踩 DiffuEraser/Wan 判负线）。
