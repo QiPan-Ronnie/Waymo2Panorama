@@ -645,6 +645,8 @@ while ci < len(cands):
         print("QUEUED_FLUX %d (%s)" % (ok_count, U8), flush=True)
     except Exception as e:
         led(U8, "verdict", "FAIL: %s" % str(e)[:180])
+        shutil.rmtree("/content/localav2/val/" + U, ignore_errors=True)
+        shutil.rmtree(root, ignore_errors=True)
         continue
 if flux_thread is not None:
     flux_thread.join()
