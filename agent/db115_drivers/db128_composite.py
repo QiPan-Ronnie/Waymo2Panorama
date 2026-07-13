@@ -25,7 +25,21 @@ Residual (resid) goes to ProPainter (temporal propagation, only-inside-mask comp
 40GB-A100 PP recipe: --subvideo_length 15 --neighbor_length 5 + PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True.
 
 History: v1 (DB-125, plain 4-gate) -> v2 feather-blur(band) REGRESSION -> v3 (gain+colour+self-blur, shipped
-02678d04) -> v4/v5 jurisdiction+lum experiments -> v6 (this file, shipped 05fa5048 fix).
+02678d04) -> v4/v5 jurisdiction+lum experiments -> v6 (this file, shipped 05fa5048 fix) -> v7b clean_blur
+(REGRESSION per user eyeball: big uniform smudge beats junk texture nowhere) -> **v8 PP-FULL-ZONE (shipped)**.
+
+v8 verdict (DB-128 final, 2026-07-13): the ego-trail band (zone2) is a PHYSICS-limited region — the
+front-pod rig can never observe its own footprint except at 4-6 deg grazing, so BOTH tiers only ever
+hold stretched low-res pixels there (measured: in-band wbev HF 3.58 vs road 5.80; centre fill only 2%
+real). Junk texture (v6) and uniform smudge (v7b) are two disguises of the same fact. The winning move
+is to STOP pasting low-quality-real and hand the WHOLE zone2 to ProPainter: temporal flow propagation
+from the sharp out-of-band anchors — clean, seam-free, temporally stable (3-frame strip verified;
+lane paint crosses the band continuously). Semantics: band interior = 100% invented (vs ~40%
+grazing-real before) — provenance note for koi; honest-black stays the fallback semantic option.
+Recipe: video=EGO_BLACK band frames, mask=zone2 (jurisdiction incl. band holes), ProPainter
+--fp16 --subvideo_length 15 --neighbor_length 5 (+expandable_segments on 40GB), composite mask-only.
+compose_frame()/clean_blur() below are kept for the tier-cascade variant (02678d04-style dry scenes
+where the graze-real pixels ARE decent); wet/complex scenes ship v8.
 """
 import numpy as np
 import cv2
