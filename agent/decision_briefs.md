@@ -5,6 +5,253 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-136: v15 数据契约定版(用户 + koi 三方对齐)
+Status: **DEFINED / 待量产(2026-07-14,五项拍板全部用户亲自敲定,面向 koi 三方对齐 + 开会 PPT 取材)。** 本条把 v15 数据集契约的五个关键决策、核心论点(去车头黑区必然性)、PPT 数字包与素材索引一次性定档;下一步 = 按 `datasets/av2_1plus92_v15/` 布局全量重制(train 700 + val 150 全池 × ~60% × ~1.5 窗 ≈ 550-700 数据,双机 2-3 天),旧 73 个 v14 成品随 v15 全量重制自动补齐 A/B。
+Question: v15 数据集喂 Cosmos 微调,第三级填充用什么 / 浅脏瑕疵帧放不放行 / mask "白=真实" 契约怎么补齐 / A vs B(去车头填充 vs 车头区全黑)两版本要不要一次导出 / 多窗与旧场景重制开不开——五个契约级问题一次拍死。
+
+**五项拍板(全部用户亲自定):**
+  - **① 第三级填充 = Telea 保留**(用户原话"就我们的 telea 吧)。tier3 三方实测:Telea 大洞灰白糊 < Wan(洞内 composite 可用但 640→2048 上采样偏软、337s 慢 4 倍)< ProPainter(85s 最优)。用户选保守 Telea,PP/Wan 判决留档备用(下游 Cosmos 会重生成外观,tier3 只需几何占位)。
+  - **② Telea 翻黑 = 采纳**(用户"telea 的 mask 我觉得做的很好,可以保留")。Telea 插值像素(占比 2-9%)在 mask 从白改黑,画面像素零变化,补齐"白 = 100% 严格真实"契约。证据 `19350c96_v15_preview/telea_maskflip_demo.jpg`(帧逐像素相同、mask 红圈区白→黑)。
+  - **③ γ 浅脏放行 = 条带版定档**。演进链:帧级(用户质疑"全黑帧 Cosmos 没锚")→ 条带版(接缝 ±90px 竖条,标定 = 7 相机外参一次算出 yaw:front 0° / front_l_r ±45° / side ±99° / rear ±153°,`x=(0.5-yaw/360)*2048`,瑕疵帧的 manifest 自带超差 cam_pair 查表)→ 用户嫌条带太多 → 像素级实验(条带∩纹理行)saved=0%(该帧条带全程有结构)→ 数字定谳:条带真实代价 = 21,337px = 全帧 1% = band 内容 3.9%,且仅发生在 92 帧里 1-3 帧,总监督损失 <0.1% → 用户拍板"就这样吧"。功效:val 被整场枪毙的 44 个瑕疵场景复活 ~30 个。
+  - **④ A/B 双版本 = koi 要求,一次渲染同时导出**。A = 车头去掉 + 时序真实填充 + 无源区黑;B = 车头区直接全黑(= A 流程的 band 中间产物,增量成本 ~1min/窗)。同窗口同帧位严格对齐,供 A/B 训练对比。**旧 73 个场景随 v15 全量重制自动补齐 A/B(用户特别叮嘱)。**
+  - **⑤ 多窗 + train 全池 + 旧 73 重制 = 全开**(用户"可以就这样吧")。
+
+**核心论点 — 为什么去车头必然出现黑区(开会核心,用户指定记录;92b900b1 红 F-350 铁证):** 原 AV2 白色车头占据的画面位置,去掉车头后其背后内容(贴身车下半身)从未被任何相机拍到(原始 ring_side_right 里皮卡近到溢出视野底缘)。黑区 = 掀开车头遮挡后的真实数据边界,非处理缺陷;"以前没黑"只因那里显示的是白车头图像本身。mask 全标黑 = 生成责任归模型。所有贴身大车场景(Hertz / Gordon 货车)同族,是数据固有属性。证据 `_gamma_static_demo/92b900b1_hoodproof.jpg`(上 = 原图白车头挡皮卡下半身,下 = 去车头后诚实黑)。
+
+**数字包(PPT 直接可用):**
+  - 150 val 去向:73 产出 / 44 瑕疵整场拒(旧一票否决规则) / 10 静止(物理不可救) / 4 无干净窗 / 其余早期实验。
+  - 冤案史:run100 通过率 17% → v14.4 修 manifest 覆盖 bug 后重审 45%(83 个被拒重审放行 45 个,fd_36 / fd_44 实测 0-3 帧真脏)。
+  - 每成品成本(双机):17% 时代 ~16min → 修 bug 后 ~6min → v15(γ + 多窗,~60% 通过)预期 **4-5min/成品**。
+  - 瑕疵实态:8-12.3px 贴身车接缝错位、1-3 帧/场景;最重 = 92b900b1 a154 红皮卡裂口(12.3px);典型 = 9-11px 轻微重影,缩略图不可见。
+  - 产能预期:train 700 + val 150 全池 × ~60% 通过 × ~1.5 窗 ≈ **550-700 个数据**,双机 2-3 天。
+  - 当前库存:73 个 v14 成品(`production_v14` 66 + `cascade_v1` 7),v15 重制后统一语义。
+
+**v15 数据集布局(已定):** `datasets/av2_1plus92_v15/<log8>_w<n>/{A,B}/{frames,masks,clip}.{png,mp4}` + `sample_sheet` / `ledger` / `worldmap` + 顶层 `manifest` / `run_summary` + `_docs/`;根目录单点预创建防 Drive 分身(07-13 曾双机 makedirs 竞争产生两个同名目录)。
+
+**PPT 素材索引(全部已存在):**
+  - **mask 语义三图**:`meeting/mask_demo/adf9a841_f0001/f0046_frame_vs_mask.jpg`(白/黑语义)、`gamma_frame_level_demo.jpg`(γ 帧级)、Drive `_gamma_static_demo/92b900b1_seamstrip_demo.jpg`(条带版三行)+ `92b900b1_finestrip_demo.jpg`(像素级实验)。
+  - **黑区成因**:`meeting/mask_demo/92b900b1_hoodproof.jpg` + `92b900b1_blackproof.jpg`(egozone + seam 超放大);`meeting/新建 Markdown.md` 已有成文论点段。
+  - **Telea 翻黑**:Drive `19350c96_v15_preview/telea_maskflip_demo.jpg` + `v14_vs_v15_cmp.jpg`。
+  - **tier3 三方**:Drive `_tier3_abc_19350c96/tier3_cmp_f020.jpg` + `clip_telea/propainter/wan.mp4`。
+  - **A/B 版本样例**:Drive `db123/cosmos_abl_A_black*`(纯黑)vs `cosmos_abl_C_tempofill*`(填充)。
+  - **瑕疵实态**:Drive `_dirty_examples/92b900b1_a154_zoom.jpg`(最重裂口)+ 两张 dirtydemo。
+
+---
+
+# DB-123: scene-band ego 车身去除 — band 帧下缘车身(hood 反光凸块 + 两端车顶总成镜面反光弧)去除
+Status: **ACTIVE (2026-07-11,user 07-11 晨判决开三条线)。v6/v7 基线已定稿:解析双盒(body+roof)per-camera 图像域 mask,composite 主投影源头拒除→置黑;roof 盒专门制服两端车顶总成镜面反射弧。生成器 `agent/db115_drivers/db123_egomask_analytic.py`,内核 hook=db89 DB-123 v2(`EGO_IMG_MASK` npz),driver v7 端到端验证过(e28c16d0 COMPLETE)。六轮判决史见 progress.md 2026-07-11 条目。当前三线并行:黑 mask 机理论证 / 时间反投影填充实验 / v6 mask 过拦精修。**
+Question: band 帧下缘的 ego body(hood 反光凸块 + 两端车顶总成镜面反光弧)与 f000(无车头)不一致,喂 Cosmos 会产生前后帧矛盾;如何在不发明假地面、不损伤真实非车身像素的前提下把它干净去除,并让去除后的洞区对 Cosmos 生成友好?
+
+背景:band 帧下缘有 ego body(hood 反光凸块 + 两端车顶总成镜面反光弧),而 f000 无车头、band 有,喂 Cosmos 不一致。koi 明确要求去除。
+
+已定稿 v6/v7 基线:解析双盒(AV2 ego 系原点=后轴轴心)——body `[-1.25,-1.05,-0.45]→[3.95,1.05,0.60]` + roof `[-1.00,-1.00,0.60]→[1.30,1.00,1.30]`,per-camera 图像域 mask,composite 主投影在源头拒除→置黑;生成器 `agent/db115_drivers/db123_egomask_analytic.py`(纯标定解析、毫秒级 per-log);内核 hook=db89 DB-123 v2(`EGO_IMG_MASK` npz 接口,空 mask byte-identical);driver v7 端到端验证过(e28c16d0 COMPLETE)。宁过勿漏原则。
+
+用户 07-11 晨判决,开三条线:
+  - **线1(黑 mask Cosmos 机理论证)**:写机理论证文档给 koi 决策——纯黑洞区 vs mask + 生成基础地面,哪种对 Cosmos 生成更友好、失真更小。
+  - **线2(时间反投影填充实验)**:band 帧 A 的车头区用邻帧 A+2..A+10 的地面观测反投影填充(= STAGE-4 fill 机制的定向应用),对比黑化版做眼核 + 时序闪烁评估;并行深度调研 video-inpainting / 时序一致填充方案。
+  - **线3(v6 mask 过拦精修)**:用户圈出 cd22abca a125 三处过拦(mask 吃掉车头以外的真实地面);修法=rear 盒 y 半宽收窄 + 车顶盒 z 上限微调 + dilate 9→5,目标=mask 边界贴真实车顶上缘 ±10px。
+
+留存:证据链 12+ 图 `deliverables/db115_pro/db123_ego_removal/`;Drive `results/db115pro/db123/`;memory `db123-ego-removal.md`。
+
+**2026-07-11 Cosmos 代理 ablation 判决**:公开 Cosmos-Transfer2.5-2B(diffusers 0.38)跑 A=黑化 vs C=时间反投影填充,同段 31 帧、两控制强度(cs=1.0/0.5),四变体结论——cs1.0 黑区被 base 当"内容"原样保留(实锤"黑=生成域"是微调语义非模型先验)、C 填充两强度均被尊重且下缘连续零伪影、cs0.5 时 A 黑角仅部分脑补留残迹。**建议:门控填充(时间反投影)为主案推给 koi,黑化为保守回退**;终裁需 koi 的 360 微调版跑同一对输入。数据已备:`db123/{u8}_fine`(93 帧黑化)+ `{u8}_gfill`(31 帧填充);产物 `cosmos_abl_*` mp4/stills + 对比图(Drive `db123/`,deliverables 19 文件)。
+
+---
+
+# DB115-PRO2: 冻结 `av2_1plus92_dataset` 好像素的分层收口——地面污染、ego/真盲区、sky seam、mask 与吞吐
+Status: **ACTIVE (2026-07-10,user 明确授权独立开工)。与另一条 `db115_pro` 完全隔离：不复用、不修改其代码或产物；只读基线=`deliverables/av2_1plus92_dataset/`，代码=`agent/db115_pro2/`，产物=`deliverables/db115_pro2/`。DB-121 暂停。当前检查点：旧基线已做像素级冻结；sky 先走窄带 Gaussian；ground 只允许旧底图上的局部修补，不得整层替换。**
+Question: 能否不重建已经较好的 scene band/真实地面、不让 world-BEV RGB 再次接管前景，只在有明确 ownership/provenance 的缺陷区修复 ①孤立黑斑 ②ego body 残留/真盲区 ③sky↔scene-band 接缝，并同时产出严格的 1+92 known-mask 与 fresh、可复现的速度账本？
+
+Frozen baseline / non-negotiables:
+  - 三个 f000 分别为 BMW a014、2c652f9e a145、8749 a160；后续 92 帧 scene band 是硬资产。基线目录只读，任何候选均另写 PRO2。
+  - 非目标像素 byte-exact；BMW 的近场弧线/curb 与 8749 的连续白弧是回归哨兵。任何膜、生成、MTF 或重采样若把它们磨糊，组件直接判负。
+  - BEV/map 可作 source ledger、拓扑 QA、洞区低频 init；不得作为普通可见地面的 RGB 上屏载体。生成仅进入“全 log 无合法证据”的真洞；车辆下方非常规 ERP 楔形不允许生成整车/假路面。
+
+Plan / staged gates:
+  - **P0 ownership freeze + defect ledger (CPU)**：从 DB115/116 原始渲染 sidecar/valid mask 还原 `band/sky/observed_ground/ego/fg_occ/unknown`；先写测试证明 mask 外 byte-exact、ERP wrap 正确、真实黑像素不会因 RGB 阈值被误判 unknown。若旧 sidecar 不足，回到渲染器导出 ownership，而不是从成品颜色猜。
+  - **P1 observed-ground / ego (old-base small A/B)**：`av2_1plus92_dataset` 成品是唯一像素底板；孤立黑斑只在 provenance/形态/前景接触门共同确认的小连通域内修补，mask 外 byte-exact。`fg_occ`/皮卡下大黑区与孤立黑斑分流，采用“选帧惩罚 + 深短接触阴影 + abstain”，禁止画路面或让整片 BEV/REST/MTF 接管。
+  - **P2 sky seam (simple first)**：scene band 与结构物锁死；第一臂只在双方均为天空的 seam 窄带做 Gaussian feather，以最小半径消除硬边。宽 cyan camera-sky 块与窄 seam 分开记账；Gaussian 不负责消除前者。只有窄带方案视觉失败，才允许升级到更复杂的 photometric/multiband/outpaint；禁止改楼体/线杆/文字。
+  - **P3 mask contract (CPU)**：f000=全 255；f001-f092=`known/condition=255`、其余 0，2048×1024 uint8 单通道，逐张同名。mask 来自最终 compositor ownership，不用 `RGB>threshold` 反推。
+  - **P4 speed (L4 first, A100 generation)**：fresh 1/16/93 帧、全新输出目录、无缓存；保存每帧 QA sidecar，skip 时无 sidecar 必须重渲；hash 比对 1/16/93 输出。先 profile/缓存/模型复用/7-camera batch/worker sweep，再由证据决定是否 CUDA `grid_sample`，不继承历史 32s 或 188s 口径。
+  - **P5 generality**：三现有场景同一代码与阈值，随后一个随机 held-out log；未过 held-out 前只称“三场景有效”，不称 general。
+
+Kill criteria: 任一成立即停该组件——①改动非目标 band/建筑/车辆/文字或回归哨兵；②靠 per-scene ROI/阈值/手绘 mask 才过；③用黑色阈值生成 known-mask；④生成出现文字、车体、重复标线、swirl 或大平板；⑤缓存/缺失 QA 被误报为 clean/提速；⑥同参数在第二场景明显退化；⑦ PRO2 需要读取或覆盖 `db115_pro` 才能工作。
+Max scope: 只新增 `agent/db115_pro2/` 的聚焦模块/测试/runner，必要时给既有 DB116 渲染路径加一个默认关闭的 ownership/QA 导出 hook；不改基线 PNG，不改 DB118/DB121 默认算法，不 commit（当前 repo/用户纪律）。GPU 先小样本，视觉 PASS 后才扩全量。
+Required vision check: 每个候选必须看原始 2048×1024 全图 + 同位 crop + diff/ownership overlay；主 agent 逐张眼核，数值只做护栏。第一生死图=`2c652f9e a145`，同时以 BMW a014/8749 a160 好线条做负回归。
+Compute: L4 负责 fresh band/ground/速度 A/B；A100 负责 sky overlap 与仅真洞生成；凭据只放进进程环境，不写 repo/log。
+
+Checkpoint (2026-07-10): `av2_1plus92_dataset/.../f000_c0_a145_perfect.png` 与 `db116_frame1/V7_c0_a145.png` SHA256 均为 `BD26C1FB72AAC2CD7363E897599DE46C7E39CAA595BF7DAC1EC4408E78B1E77D`，确认基线谱系。simple Gaussian 四臂中 `radius=24,sigma=4` 是当前视觉/保真折中：seam 邻行 Lab 跳变 median `2.236→1.000`，0 个 building-column 像素改变；36/48px 虽指标更低但开始过度软化。ground 选择器和 byte-exact compositor 已单测通过，但 a145 两个黑斑的实图修补尚未完成眼核，不得写成已交付；皮卡大黑区明确不进入该修补器。当前聚焦测试 `78 passed`。
+
+---
+
+# DB-121: AV2 HD-map 条件的分层 world-BEV 路面编译 — 标线拓扑与沥青材质解耦
+Status: **PAUSED while DB115-PRO2 ACTIVE (2026-07-10；现有结果与产物原样保留)。原状态：ACTIVE (2026-07-09,user 明确授权按红队建议立项并实验)。P0 BMW map-alignment 视觉判决 PASS：AV2 原生 city 坐标的双黄线/白边/crosswalk 与 T 实景结构同拓扑，ERP 回投形成与当前破碎大弧线同形的完整连续曲线，叠 R71 未形成远离实线的第二条假线；第一版像素证据配准候选打到 (+0.5m,+0.5m) 搜索边界且距离仅改善 3.2%，全分辨率眼核明显更差，v2 已加通用 abstain 门并自动回零偏移。P1 已完成窄横截面门控 + 同 feature sideband residual 编译器 + material/paint 双输出，25 项测试通过（含 2.5cm 真尺度 0.125m 窄线 vs 0.525m swirl、宽带不得劫持 offset、窄白芯+宽彩 halo 不得作 donor、mask 外 byte-exact）；本地全分辨率 R70→R71 眼核又确认 REST 会把清楚标线磨成紫绿 halo，因此正式架构改为 material-only 走 REST、真实 paint residual 绕过 REST 后贴。尚未跑远端同源 T_gsr/Tgen2 真图，不宣称外观修复。DB-119 暂停、DB-120 排队。**
+Question: 三场景共同头号缺陷“大弧线/曲线标线糊碎”，根因是否是把拓扑和材质都塞进 RGB mosaic/扩散模型？若让 AV2 vector map 只负责 lane/crosswalk 的世界坐标拓扑，让现有 DB-118 T/Tgen 负责沥青材质、真实同类 paint donor 负责油漆外观，能否在不改 scene band、不发明文字/车辆、不做 per-scene 手调的前提下，使 BMW a014 目标弧线在 T 域和 ERP 域都连续自然？
+
+Alternatives attacked:
+  1. **A: 现计划“像素弧拟合 + 沿弧 donor”**：最便宜，但只能从已经破碎的图猜拓扑，容易拟错弧/相位；保留为无地图 fallback，不作为首选。
+  2. **B: AV2 HD-map 拓扑 + 真实 donor 材质（本 brief）**：地图只给曲线/类型，真实证据决定 offset/宽度/颜色/磨损；不让生成器画细线，风险最可控。
+  3. **C: map-conditioned diffusion/LoRA**：可能最通用，但在 B 尚未证明地图与目标缺陷对应前就训练属于烧算力；本轮禁止。
+
+Plan / staged gates:
+  - **P0 map-alignment（生死关，BMW `02a00399...` a014，CPU）**：读 `map/log_map_archive_*.json`，把有实际 mark type 的左右 lane boundary、crosswalk polygon、drivable area投到 DB-118 2.5cm city-XY T 网格；输出 typed vector mask + 半透明 T overlay + 经现有 `geo2.npz` 回投的 ERP overlay。只允许从全图可见标线自动估一个鲁棒全局小偏移，不允许手点控制点或按 ROI 调参。
+  - **P1 topology/material split（P0 通过才做）**：只允许单峰 `SOLID_WHITE`；在 map Frenet corridor 内按 0.25m 分 bin，用窄横截面宽度（≤0.22m）+ 两侧 asphalt contrast 判 REAL donor，宽亮 swirl/同色模糊带不得投票或当 donor。只修两侧均有真实 flank、≤3m、且存在等长不复用 donor 的 gap；先用 ±0.45m sideband 恢复最多 ±0.30m 的 material，再搬运 donor 相对其本地 asphalt 的 signed paint residual。真实 anchor 与 corridor 外 byte 保留；DASHED/crosswalk/双峰本轮 abstain。
+  - **P2 ERP two-layer eye gate**：复用 `db117_resample.py --cw 0.025` 分别回投 material-only T 与 compiled T。material-only ERP 走 REST；两者之差构成有 provenance 的真实 paint layer，在 REST 后以固定 MTF 回贴，生成模型不得接触细线。输出 baseline / material-REST / post-paint 三臂全图与同位 crop board；必须在原始亮度、原始 2048×1024 眼核。
+  - **P3 generality（BMW 通过才做）**：完全同一参数跑 8749 a165；不得换宽度、offset、阈值。highway 暂不做，避免 fg_occ/车底混入本问题。
+
+P0 pass criteria: (a) map 中至少一条有标记类型的曲线与 BMW 目标弧线是同一拓扑；(b) 在未损坏可见段，自动对齐后视觉偏差不超过约一个实测 paint 宽度，且无明显重复/平行假线；(c) 对齐来自全局可见证据，不来自目标 ROI 手工拟合。
+Kill criteria: 任一成立即停——① map 没有对应目标弧线/标线类型；② 自动对齐后仍偏差 > 一个 paint 宽度或拓扑方向错误；③ 需要手工控制点/per-scene 参数；④ 找不到等长连续真实 donor、只能放宽 profile 门/重复铺贴；⑤ P1 新增重复线、纯白塑料感、REST 后 halo/双线仍在、或损伤真实像素；⑥ BMW 过而同参数 8749 明显错位。若高置信写区覆盖不到视觉坏弧约 30%，保留为选择性工具但停止把它当头号缺陷主解。
+Max scope: 一个独立 `agent/db117_worldbev/db121_vector_ground.py`；不改 `db89_ghost_recovery.py`、DB-118 optimizer、FLUX 或 shipped 默认；P0/P1 全 CPU，A100 仅作为已挂载 AV2/Drive 执行环境；最多 BMW+8749 两场景。输出只写 `deliverables/db121_vector_ground/`，不新增说明类 Markdown。
+Required vision check: P0 typed overlay 的全 T + ERP 全图；P1/P2 的 T 与 ERP 三臂、目标弧线 1×/2× crop；检查连续性、宽度、磨损质感、重复线、假文字/假物体、mask 外 byte-diff。coverage/offset 只作诊断，生死看全分辨率图。
+Inputs: BMW map 三件套已在 Drive `data/argoverse2/val/02a00399.../map/` 实证存在；最终归因 A/B 必须用 R71 同源远端 `results/db118/bmw118x/T_gsr_bmw.png` + 对应 Tgen2（先在 geo footprint 机械核验是否同值），本地 `ex_bmw118w_a014_T.png` 仅作链路 smoke；geo=`results/db118/geo/bmw_a014_geo2.npz`；resample base=`FINAL_bmw_a014_R69b.png`。A100 `/status` 实测在线、80GB、active_jobs=0；外部调用额度 19:45 恢复后继续。
+
+---
+
+# DB-119: 跨 log 借用主线(v65)— 从同城异日 log 借真实地面像素替换毯区生成填充 + per-sample occlusion 通用门
+Status: **PAUSED while DB-121 ACTIVE (2026-07-09；现有结果与产物原样保留，待 DB-121 判决后再恢复 BMW 跨-log generality)。** **原状态:立项(2026-07-08,承 DB-118 GSR 架构零改动)。触发 = v63/v64 跨 log 战报:DTW 双场景 <4m 命中(hw `9239d493` min=3.6m / 894 pose in 30m / az 166°;BMW `c062ba0f` min=3.3m / n30≈2694),拉帧眼核证实异日"毯"下真实地面裸露、裂缝拓扑可配准 → generality 成立。取代"毯区只能生成"的认知:毯 = 本 log 遮挡体伪装(truck 腹部 / 树影)或 fg_occ,异日同址真实像素存在且可借。**
+**更新(2026-07-09,BEST67 落地)**:v66→v69 工程闭环——v68 我方 log 静态占据图判决 hw144 双毯 = 瞬态 moving-box(非停放,DB-109 复现);全城 116 同城 log 按矩形重排名仅 `9239d493` 真过矩形(min 4.6m;`d1695c5e` visfrac=0.00 = 最近 15.3m 被 45m 内街景 occluder 物理挡死)→ **单证人 + abstain = 此场景物理上限(非算法不足)**。融合端定版(`best63.py` step 1.5 v6:disagreement 门 + 中频移植 + 连续能量顶补 + mid 去偏置);pano 链破案 = step6 统一 MTF 低通磨掉 BEV 细纹理 → **step6.5 pano 域移植**(plate 正下方真实 cap 条带中频平铺 + MTF 匹配)+ plate 双线性去糊去平移。交付 `deliverables/db118_surfel/FINAL_hw144_BEST67.png`(皮卡毯→带标线磨损沥青,无平板)。**剩余** = v67 可用帧仅 40(当年子采样,补抓提质)+ BMW `c062ba0f` 3.3m 跨 log generality 复验。用户眼核判 67 车底糊状=反向优化 → BEST68=补丁回归+跨log打底+车底AO v2,交付 FINAL_hw144_BEST68.png;跨 log 角色修正=BEV 基底非 plate 前台。BEST69=S1 整根 bar 外推穿 plate(周期实测 1.00m)+plate 落点验尸(皮卡不在斑马线上,糊状物=色调跳变)+plate↔pano 低频膜,交付 FINAL_hw144_BEST69.png。**
+Question: 把 BEST62/64 圈出的两块"毯"(truck 灰绿矩形 = 遮挡体伪装地面;pickup = fg_occ 永久障碍洞),用**同城异日 log 的真实地面像素**跨 log 借用替换 GSR 生成填充,能否让毯区真实纹理与周边裂缝拓扑连续(眼核判)、且不引入 per-scene 调参(generality)?
+Plan(v65):
+  1. **提取** `9239d493`(备选 `d1695c5e`;BMW 用 `c062ba0f`)相机样本到我们的 BEV 网格(复用 DB-118 extract/GSR,架构零改动)。
+  2. **配准验证**:两 log 同城 frame 一致性——裂缝 / 井盖拓扑对齐;city-frame pose 有残差,系统偏移 Δxy 用 BEV 相关性显式估出。
+  3. **并入 GSR 样本池重渲染毯区**:跨 log 真实样本喂 DB-118 逆问题优化 T,毯区真实像素替换生成毯。
+  4. **per-sample occlusion 门(通用判据)**:gsr_blurfield IoU 0.09 已证 blur-only 路由对"遮挡体伪装"盲(毯区 blur 0.026 = 干净区),须补每样本遮挡门筛掉伪装地面样本,与跨 log 一起实装进 extract/GSR。
+  5. **修正验尸投影**:定案 truck 毯真身(卡车腹部 vs 树影路面),校验借用替换命中正确物面。
+判决标准: 毯区真实纹理与周边裂缝 / 斑马线拓扑连续(眼核);跨 log 借用不得引入接缝或 per-scene 参数。BMW 带 `c062ba0f` 同法复验 = generality 第二场景。
+Max scope: 只动 DB-118 的 `GROUND_MODE="extract"` dump + 本地 GSR 优化(跨 log 样本池 + occlusion 门),不动 shipped fill;先 hw `9239d493` 判决,BMW `c062ba0f` 复验;不训练网络(仅 BA 式优化 T/δ/c + 跨 log 样本注入)。
+Required vision check: 每张毯区 crop 全分辨率逐张眼核 vs BEST65 生成版(裂缝拓扑连续?借用像素与本 log 无接缝?);配准 Δxy / IoU 看数值但生死看眼。
+Output: `deliverables/db118_surfel/`(承 DB-118);跨 log 索引 `xlog_index.csv` / `bmw_xlog_index.csv`、`gsr_blurfield.npz` 已在 agent/。
+Handoff: 承 DB-118/117 纪律(非沙箱 Bash 直连 Colab、读回远端结果验证、结果写 deliverables、中文回复、`.git` 已被 BaiduSync 损坏先不动 git;dr_run launch 前必删旧 DONE marker;FLUX/GSR pipeline VM RAM cache 存活可秒级复用)。[[waymo2pano-general-goal]] [[waymo2pano-ground-fill-physics]] [[db118-inverse-ground]]
+
+---
+
+# DB-118: 地面范式跃迁 — 逆问题联合优化(RoGS 式 surfel/纹理 BA)取代 mosaic 选择
+Status: **✅ 原型判决 POS(2026-07-06,BMW 眼核:斑马线零重影+弧线平滑=历版最佳;δ p95=2.5cm 配准被解出)。方向=user 连续眼核批评+"别被现有方案拘束"驱动的从头思考;文献=RoMe/RoGS/MagicRoad。下一步=hw/8749 复验→工程化(障碍阈值/洞接 genfill/仿射升级)→固化替换 V2 构建端。**
+**loop 迭代进展(2026-07-06→07,/loop 自主探索)**:
+  - **E-ego REFUTED**(第 1 迭代):ego-body 直接污染 ≠ 糊根因(hw118g/h A/B:掩膜拒 76 万样本,T 仅动 272 px,δ p95 0.1164→0.1166;robust reweight 早已投出车体少数派)。通用 ego 掩膜 v3(位移感知+触底连通域)已写入 db89 `EGO_IMG_MASK`,留作保险。
+  - **E-shadow POS 大胜**(第 2 迭代):亮模式偏置 opt(丢 lum<muu−0.10 且 std≥0.04)——斑马线复活、污斑收缩,**δ p95 0.117→0.073**(影子多数派污染配准);产物 `ex_hw118i_a144_T.png` → 全链 `FINAL_hw144_BEST4.png`。
+  - **E-res/E-sr 判决完成 POS**(第 3 迭代,移出在飞):三 T 对决(hw118i/j2/m,单变量链)——**mip 去卷积**(`db118_sr.py`,Phase2 冻结 δ/c、T 作自由变量 + 每样本 GSD 匹配 mip 层)大胜,近场斑马线/井盖/停止线解出,δ p95 累计 2.5× 至 0.047;2.5cm-plain(朴素 splat)仅边际改善。**判决:近场糊最后一层 = 前向模型(splat 点采样平均)+ 粗网格,不是物理;近场 1-8m 无需生成。** 待修 = 高对比边缘处方格状块(mip 硬取整+层间不连续)。
+  - **E-sr v3 判决 NEG(移出在飞)**:coarse-tie(细层零证据格绑粗层)没治 BMW 弧线台阶;重新归因=quilt 类伪影(相邻格不同源主导,源内局部曝光/渐晕差印出交替色块,mosaic 逆问题残影,细层证据掩膜罩不住)。bmwv3cmp.png 为证。
+  - **E-sr v4/v5 判决 NEG、v6 部分 POS 已入配方(第 5 迭代,移出在飞)**:v4 每源线性空间增益场 + v5 每源仿射配准均不对症(色调/配准类修不了细层稀薄区的逐源拼花台阶);**v6 高斯金字塔降采样**(5-tap 高斯替 P2 box `avg_pool`,消池化边界印块)部分 POS——块幅减弱、黄线边缘更顺但未根除,零代价入标准配方(hw 铁证:splat 无块 / mip 有块 = P2 池化实锤)。`bmwv3/v4/v5/v6cmp.png` 为证。
+  - **E-sr 残余块斑在飞(BMW 弧线台阶未根除)**:三候选 = ① 高阶(二次)增益场 ② 渲染端按细层覆盖自适应低通 ③ per-cell 源一致性选择。
+  - **BEST52→65 loop 已归档 progress(2026-07-08/09,fable5)**:BEST60 三级深度思考主链落地;BEST63/64/65 修 user 圈的 cap↔band truck 毯(生成 A/B 判 LaMa)+ pickup fg_occ 毯(FLUX s0)+ 天空双缝(cyan 校正 + 交通灯黑团重画)+ 皮卡车底鬼影(接触阴影重塑)。原待办 ①(mip-cap 接 REST + BEST 合成)已由 BEST52/53/54/60 实现。**跨 log 借用真实像素替换生成毯 = v65 主线,已分拆 DB-119(顶部)**;gsr_blurfield IoU 0.09 证 blur-only 路由对遮挡体伪装盲 → per-sample occlusion 门并入 v65。
+  - **待办**:① 修好的 mip-cap 接 REST + BEST 合成 = BEST5;② 多场景验证(BMW/8749);③ ego 足迹洞 + 障碍格并入 G1 genfill 掩膜;④ 提速三项(off 死代码/跨 anchor 缓存/懒解码,~2-3×,与 DB-115 4× 正交)等地面质量收敛后实施;⑤ 引擎升级(HYPIR/DiffBIR,等 user 授权外部仓库)。首张完整 360 交付候选 `deliverables/db118_surfel/FINAL_hw144_FULL.png`。
+Question: 把地面从"逐点选择拼接"(mosaic,边界 artifact 与源数成正比)换成"全观测联合优化 T+δᵢ+cᵢ"(边界结构性不存在),能否根治波浪/重影/缝/补丁全家族?
+判决要点:① mosaic 精度地板(DB-90 定理)= 配准残差 + 光度阶差,地面以百倍源数(200+ 掠射源)重演;② 逆问题 = 未知 纹理 T + 每源 2D 平移 δᵢ + 每源 RGB gain cᵢ,Huber loss 联合优化,边界结构性不存在;③ 原型 v2 收敛(loss 0.0346→0.0329,δ p95=2.5cm,cgain≈1),BMW 眼核斑马线零重影 + ERP 弧线平滑无碎片 = 历版最佳。修复关键:零均值 gauge(δ 均值 + cgain 全局锚)+ δ L2 正则 + lr 降 10×(v1 发散教训)。
+Max scope: 原型只动 `GROUND_MODE="extract"` dump + 本地 torch 优化,不动 shipped fill;先 BMW 判决,hw/8749 复验;不训练网络(仅 BA 式优化 T/δ/c)。
+Required vision check: 每张 T 图、每张 resample ERP 全分辨率逐张眼核 vs mosaic 版(斑马线/弧线重影与碎片);δ/loss 收敛看数值但生死看眼。
+Output: `deliverables/db118_surfel/`;driver `agent/db117_worldbev/db118_run.py`。
+Handoff: 承 DB-117 纪律(非沙箱 Bash 直连 Colab、读回远端结果验证、结果写 deliverables、中文回复、`.git` 已被 BaiduSync 损坏先不动 git)。[[waymo2pano-ground-fill-physics]] [[waymo2pano-general-goal]]
+
+**user 眼核 FINAL_hw144_FULL 四问题清单(2026-07-07,已归因待修 = BEST5 计划):**
+  - **①左侧车机盖隐约可见 + ②右侧黑块 → classic fill 层的 ego 泄漏 + fg_occ"诚实阴影板"政策遗产。** 双根因:(a) `EGO_IMG_MASK`(位移感知 ego 掩膜)只插进了 extract 分支,**classic fill 源循环还是旧两盒门**,rear 相机后备箱像素混入 → 左侧车机盖隐约可见;(b) fg_occ 走 db89 L2026 的"诚实阴影板"政策(`comp[fg_occ]=plate*0.55`)——持续障碍(persistent)的 footprint 本应走 A 类洞生成,却被压成黑板 → 右侧黑块。**修 F1**=classic fill 源循环插同款 `EGO_IMG_MASK` 门(与 extract 分支对齐);**修 F2**=fg_occ 改从 Tgen(生成层)采样,不再用 `plate*0.55` 黑板。
+  - **③band-cap 过渡不平滑 → 三子因叠加。** (i) 直线 ramp(`rows-720` 固定行)vs 真实波浪 band 边界(修=改用 nadirmask 的真实边界曲线做过渡带,不用固定行);(ii) E1.5 缝带低频色彩协调在 BEST 合成中缺失(修=缝带 ±40px 的 cap 侧低频向 band 渐变匹配,重启 E1.5 原理);(iii) 锐度台阶(mip-T 上场后自然缩小,非独立修)。**修 F5**=合成 v2(把 (i)(ii) 装进 BEST 合成端)。
+  - **④cap 像素与 band 不在一个 level → 新认领根因 = ISP/锐化统计指纹不匹配。** band = 相机 JPEG,含 in-camera 锐化 halo + 特定亮度噪声谱;cap = 平均/优化产物,无此指纹 → 两者"质感 level"对不上(非亮度/色彩阶差,是统计指纹差)。**修 F4**=终步相机指纹匹配(unsharp 强度 + 亮度噪声谱按 band 路面条带实测统计拟合,**确定性非生成**)。另有 ERP 低仰角投影拉伸的感知成分(物理,非缺陷,不修)。
+  - **F3(已在队列)**=mip 方格 fractional-level 修复(承 E-sr v2:相邻两 mip 层插值 + 边缘感知正则,去高对比边缘方格块)。
+  - **BEST5 定义** = mip-cap(F3 修好) + F1/F2 修复的 classic 基底 + F5 无缝合成 + F4 指纹对齐 + 天空;预计一个 A100 下午产出;**待 user 拍板**再跑。
+  - **上一条 user 指示完成度自评(诚实):** ego body **60%**(extract 路径已修净 / classic fill 层仍漏,= F1 未做);band 过渡 **40%**(颗粒/锐度维修了 / 低频协调与波浪边界未修,= F5 未做);模糊 **概念 70% + 落地 30%**(mip 去卷积原理已解锁验证,但尚未装进交付图 = F3 未收口)。
+
+---
+
+# DB-117: 地面下一代 = world-BEV 公平版(证据门全继承 + 单源渲染 + per-source 色彩 solve + 证据分级)—— fable 5 回归第一性判决与 P0 spike
+Status: **✅ P0 三场景判决通过(2026-07-02,hw309/bmw14/u165 眼核)— world-BEV 公平版结构性优于经典;3 轮迭代(anchor 中心帧窗 / BEV-Telea 洞填充 / U6 眼核 NEG 已撤销(条带化+过曝);BMW 紫重新定性=源 ISP 色调非缺陷);残余=curb 源切换碎片(P1 大块 DP-seam)+ 大洞诚实灰(P1 BEV 域生成)。**P1 亦 POS(2026-07-02,hw309f 眼核:BEV 域 FLUX 填洞零 melt 零造车,residual 475k→0)——DB-117 全链收敛;下一步=固化(共享图域+GPU 化)>P2>P3。** **P1.5 配方定型(2026-07-03,hw309h 眼核 POS):genfill→refine(0.30)→layered(tier2 保真)→fgocc 车辆延伸;user 圈三缺陷全过。下一步=BMW/8749 同配方复验→固化。** (前情:fable 5〔项目原架构师〕2026-07-01 回归接手为核心大脑,通读全部 memory/文档/代码/交付视频后的第一性判决;user 全权授权"按你觉得不错的走";P0 spike A100 active_url_5。) **三场景终版收官(2026-07-03):LL_hw309_layered/LL_bmw_genfill/LL_u166_genfill;组合门修近车被盖(user 抓);轻迭代回路(dumpgeo+resample,秒级);配方 v2=场景自适应(亮场景 skip refine);下一技术点=BEV 域源间配准碎片;然后固化。**
+
+判决(第一性,通读后落锤):
+  1. **我们没有用错工具,是把对的工具放进了错的求解域。** 经典反投影(fable5 STAGE-4)至今最优,因为它是唯一在三个物理降质轴上都诚实的方法;它的四大可见缺陷(视频 swirl、BMW 紫、NS-inpaint 白条纹彗尾、黑斑死角)**全部是 per-anchor ERP 极点域的实现产物,不是反投影本身的错**。
+  2. **nadir 补不完美的第一性 = 三轴降质**:① 分辨率失配——内圈只能 20-28m / 4-6° 掠射看到,源 GSD ~20cm vs ERP 正下方像素 footprint ~4mm,差 ~50 倍;"锐利的正下方地面"物理上不存在,忠实上限 = 20cm 级低通(v3i 的分辨率匹配低通是对的);② 视角依赖外观(Fresnel 天色,只能采样后 view-dependent 补偿);③ 配准放大(掠射 dz→dx 放大 11-19×,spread abstain 是症状不是墙)。遮挡分三类:moving(跨时刻可恢复)/ persistent + ego 轨迹死角(必须生成)/ fg_occ(**本质是"物体下半身未观测",不是地面洞,跨时刻填地面反而错**)。
+  3. **world-BEV 从未被公平测试**:2026-06-24 "DROPPED" 否定的是无门 strawman(naive median 堆叠);2026-06-25 的 84-88% 是 selfocc OFF 的 hood 反光假覆盖。代码级实证(工作版 db89 worldbev 分支 L1498-1587)缺 5 件套:(a) `_gzw` 常数平面 Z、无 LiDAR 高度图(掠射放大 → 系统错位);(b) tight-cluster 平均渲染(违反"median 只验证、单源渲染"铁律 DB-88/v6);(c) luminance-only per-cell 归一(不解 WB 色度 → BMW 紫);(d) abstain 二值洞(轨迹带必然 disagree → 大面积洞);(e) 固定 (0,92) 窗口。
+  4. **ERP 域生成 = 错域**:F 环"小洞行大洞糊"的本质是 FLUX 不懂 ERP 极点几何;大洞生成应在 BEV 平面域做(模型训练分布内),一次生成全帧共享。3DGS / EPI / 学习法对地面是错工具(地面不缺几何),不追。
+  5. **"可恢复 vs 必须生成"的可靠边界 = log 级世界域可见性审计**(gate-funnel 的世界域推广):对每 BEV cell 遍历全 log (frame,cam) 过三门(FOV / two-box selfocc / moving-box),输出 N_vis、best grazing、GSD、方位多样性、moving/persistent 归因。确定性几何,零启发式。
+  6. **scene band 近车头断裂 = 一半可修**:route2_middle_v1 / highway t7s(≈a309 白车)断裂案例,DB-105 已证 side_left 单相机看到整车(1610px vs front_left 149)+ LiDAR 密集(1742 点)→ 可修类走 Tier-2 LiDAR-coverage-gated 单相机路由(DB-104 designed-not-built);无单相机全貌的跨缝近物 = 共观测物理地板,只能避(band-gate 兜底)。修 Tier-2 直接提升 1+92 产出率。
+  7. **速度与地面重设计是同一件事**:STAGE-4 全部是数据并行几何运算(cKDTree→BEV 高度图栅格化 + bilinear、slab / 投影 → 张量、融合 → scatter),world-BEV 用 torch 写 = GPU-native 的自然形态;一次构建摊薄 93 帧。band-gate 的 STAGE1-3 是另一块存量(后续独立张量化)。
+  8. **天空接缝(user 圈图)+ 树冠色斑 = 工程活非物理**:成因 = mask 沿 petal 波浪边界 + 真实带上缘 vignette(p33)+ 色调阶差;修法三件套 = mask 下扩吃掉 vignette + 边界带低频色彩协调(E1.5 原理)+ 树冠 mask 限纯天空 + anti-object prompt。
+Question: 把 fable5 经典证据演算从 per-anchor ERP 极点域搬进 log 级 world-BEV 域(公平版:全门继承 + 单源渲染 + per-source 色彩 solve + 证据分级 + LiDAR 高度图),能否一次性根治 紫 / 彗尾 / swirl / 黑斑 / 空旷糊 五类缺陷,同时把 CPU 瓶颈搬上 GPU?
+Plan(P0→P3):
+  - **P0(判决 spike,进行中)**:改工作版 db89 worldbev 分支为公平版——U1 LiDAR 世界高度图替代常数平面;U2 per-source (frame,cam) 3 通道全局 gain;U3 单源渲染、median 只验证;U4 证据分级 conf / low / hole(low = best-grazing 单源);U5 窗口全 log 分桶采样。三场景判决:highway 2c652f9e a309(彗尾 + swirl + moving 最狠)、BMW 02a00399 a014(紫)、8749f79f a165(空旷糊),渲 worldmap + nadir A/B vs 经典 v7,逐张全分辨率眼核。
+  - **P1**:BEV 域生成填洞(先 NS / Telea 平面域延伸,再 FLUX 平面 inpaint),对比 F 环 ERP 域版。
+  - **P2**:Tier-2 单相机路由(band 产出率),5-scene 回归防 p10 式拉伸回归(Tier-2 是 gated 路由非重投影,风险低但必须回归)。
+  - **P3**:天空接缝三件套。
+  - 全程 GPU-native(torch)实现为固化目标;spike 阶段允许 numpy(复用门代码,改动最小)。
+必须继承的守门(历史 NEG,一条不能丢):**selfocc 永远 ON**(06-25 hood 反光假覆盖);**Fresnel 色调留在采样后 per-anchor truth-ring gain**(烤进图 = 重蹈 v3b/c);**轨迹带只用 best-grazing 单源 + 验证不 median 堆叠**;**渲染永不平均几何**(单源);**v3i 分辨率匹配低通保留**;**fg_occ 在采样端保持近车保护**(DB-106)。
+Kill criteria(预注册):P0 若带全门后、轨迹带以外区域的真实覆盖 / 干净度仍不如 per-anchor 经典(眼核判)→ 世界域假设死,回经典 + 局部修(色彩对齐 per-source gain 单独救紫)。轨迹带本身预期只有 20cm 级低频 + 低信心层,不以它锐利与否判生死。
+Max scope: P0 只动 worldbev 分支(gated,`GROUND_MODE` 默认不变),不动 shipped fill;三场景各渲 ≤3 帧;不训练。
+Required vision check: 每张 worldmap、每张 nadir A/B 全分辨率逐张眼核(眼睛胜过指标;coverage% 不是质量指标——06-25 教训)。
+Output: `deliverables/db117_worldbev/`。driver `agent/db117_worldbev/`(本地驱动),url/token 绝不进仓库(读 `~/.waymo2panorama/runtime/active_url_5.json`)。
+Handoff(照抄 DB-115/116 纪律):非沙箱 Bash 直连 Colab、读回远端结果验证、结果写 `deliverables/`、中文回复、难思考自己做只派简单杂活给 subagent、pristine 在 `scripts/phase3/_baseline_fable5/`、`.git` 已被 BaiduSync 损坏先不动 git。[[waymo2pano-ground-fill-physics]] [[waymo2pano-general-goal]] [[db116-frame1-perfect360]] [[waymo2pano-seam-direction]]
+
+---
+
+# DB-116: frame-1 完美 360 panorama — 干净 band 上"地面保真 + 无车头 + 天空 outpaint"的 general robust 方法(自主 loop)
+Status: **✅ 方法 PROVEN + pipeline 固化 + batch 端到端打通(更新 2026-07-01 下午)。** 进展链:①general `nadir_imperfect_px` 选帧定型(a145/8749 眼核,fg_occ∪resid 最小);②F 环打通(imperfect 压小盲区 + `db116_ground.py` FLUX 只填 faithfill 局部,无 melt);③整条 1+92 pipeline 固化权威文档 `agent/PIPELINE_1plus92.md`;④batch orchestrator `agent/db115_drivers/db116_batch.py` + 数据本地化(`localize()` s5cmd S3→本地 SSD)→4 机 CPU 拉满(load 12-16);⑤**2026-07-01 下午**:A100 隧道 530 断→换新 endpoint(active_url_5),修 3 个稳定性 bug 后端到端做完 `2c652f9e` 完整 1+92(f000=c8_a168,imp=30434;存 Drive `results/db116/clips/2c652f9e_1plus92/`,93帧/0缺失)。**修的 3 个 bug:** (a) `run_driver` `subprocess(text=True)` 缺 encoding→Windows cp1252 解 FLUX tqdm 非ASCII 崩→`p.stdout=None`→`None+str`,改 `encoding="utf-8",errors="replace"`+None兜底;(b) `process()` 跑完 sky 不检查返回→sky 真失败被 ground `cv2.cvtColor(imread(v7)=None)` OpenCV 断言掩盖(v7 其实 sky 产出,A100 断线那刻误判);(c) **Google Drive 并发写同名目录分裂成 `2c652f9e (1)(2)(3)`**→band-gate 4 机各写一份,主目录只剩 60/319 帧→package 缺 72 帧,即时合并分身修复。**眼核 v8:车头去除✓ 地面保真✓ 天空 outpaint✓,唯右侧 REMAX 楼上方有 FLUX 把树冠延伸进天空的暖褐色斑(待修)。** **★待根治(全量前必修)★:① Drive 分身写(band-gate 每机写独立子目录 or package glob 全分身,别再靠事后合并);② `localize` 遍历 fleet 单机失败即抛→A100 断则全 batch 停,要容错跳过;③ 天空 outpaint 树冠色斑(sky mask 限制在纯天空区 or prompt/构图约束)。** 单场景饱和耗时估 ~22-25min(非一次干净自动跑,含手动补)。user 授权自主迭代、给 A100(active_url_5)+ L4/T4。承接 DB-115(选帧定型)。
+关键修正(对原 Plan):① **选 frame-1 用 `residual_inpaint_px` 升序,不是 `coverage_pct`**(后者恒 100% 没区分度;前者=非真实 plate 像素,越少=真实 LiDAR 地面越多)。② **地面盲区用 FLUX-Fill(faithfill_mask)即可**,DiT360 非必须(盲区极小:a160 仅 1791px)。③ **frame-1 须满足 contiguity:p+92≤run.end**(a265 越界=只是手法证明,a160=真 deliverable)。④ **FLUX offline:HF_HOME→Drive cache + HF_HUB_OFFLINE=1,无 token 无下载**。⑤ gate=`max(view_morph.max_reg_px)≤8`(非 ECC max|du|)。⑥ 渲染冷读 Drive 数据慢(~6min/帧),A100 比 L4 可靠。
+Question: 在 DB-115 选出的干净 band 区间(新场景 8749f79f = a160–292,133 帧)里,怎么找/造一个 frame-1 完美 360 —— ① 车头去掉 ② 地面保真 ③ 天空 outpaint —— 且 general+robust、能扩到全 AV2 随机场景?
+核心点子(user):用 LiDAR 衡量"有多少真实地面像素"→ db89 `GROUND_MODE="fill"` 的 `ground_fill.coverage_pct` = nadir cap 真实重投影(LiDAR 支撑)像素占比 → 选 coverage 最高的帧当 frame-1(地面最保真,生成最少)。
+Plan: ① 渲干净区候选帧 `fill+FAITH_MASK+HOOD_TO_MASK`(A100 并行)→ coverage_pct 排名 + carhead=0 → 选 frame-1 base(`db116_frame1_cand.py`);② frame-1 盲区(faithfill_mask,含车头)走 `DiT360` 生成(守 **no-NS-inpaint** 红线);③ 天空 `sky_fill_flux`;④ 逐图全分辨率核(无车头?地面真?天空自然?接缝?);⑤ 该场景拿到完美 360 后,固化成"全 AV2 随机场景可跑"的整套 pipeline。
+Kill/降级: coverage 普遍低→该场景地面本难,记 graceful degrade;DiT360 出 swirl/车形→调 tau/init 或换 `run_dit360_trimap_clamp.py`;车头去不掉→查 HOOD_TO_MASK 的 Zsupport 门。
+Output: `deliverables/db116_frame1/`。driver `agent/db115_drivers/db116_*`。GPU A100+L4/T4。守红线无 NS-inpaint;眼睛胜过指标。[[waymo2pano-ground-fill-physics]] [[waymo2pano-dit360-findings]] [[db115-selection-pipeline]]
+
+---
+
+# DB-115: AV2→Cosmos 1+92 数据集构建 — 两阶段"搜干净窗"筛选机制(几何预筛 + 渲染后质检门 + 定向人眼)
+Status: **ACTIVE(主线)— user co-decided 2026-06-30 via /brainstorming(设计逐段共定,user 已批"写吧")。取代地面-outpaint-优化线(DB-108/109/110/112 降级:用户明确"不再纠结地面 outpainting 优化")。承接 DB-114 的 S0-v2 选帧 + hood 思路,升级为完整数据集机制。下一步=按实现计划执行(先 Phase A 零 GPU)。未 git(user:先不急)。**
+Plan: `agent/plans/2026-06-30-db115-1plus92-dataset.md`(writing-plans 产出:bite-sized;纯几何函数本地单测,渲染/生成用"读回+人眼"验收;GPU 全 gated;git 暂停)。
+Question: 不修 fable5 算法的缺陷,而是利用"一个 log 几百帧"的海量,SEARCH 出算法"恰好不出问题"的连续 93 帧 → 1+92 数据集(frame-1=完整 360 全景;后 92 帧=纯净 scene band,天地黑不填)→ 喂下游 Cosmos。能否用"几何预筛 + 渲染后自动门 + 定向人眼"两阶段、高效且保证正确性地做到?
+核心范式(user 锐化,字典序目标):**先**找 band 100% 干净的连续 93 窗口(硬过滤,二元)→ **再**在其中挑 frame-1 全景质量最高者(排序)。不强求算法处处完美,只找它已 work 的那一段;某 log 找不到 → 诚实跳过(graceful degradation,北极星通用性)。frame-1 标准=务实"现有有缺陷算法下能得到的最完美 360",非绝对完美。
+两个要狙击的具体缺陷(user 4 场景实测指明):
+  - 缺陷1 — band 近 ego 车头处 seam 断裂(highway 一辆白车跨前向接缝;4 场景仅此处坏)。检测=① 几何预测(AV2 3D 框:近 egod + 跨前缝 + 前下方 → 高断裂风险,Stage-1 预先避)② 渲染后 db89 `morph_report.max_reg_px`(db89:1048)数字门兜底。
+  - 缺陷2 — frame-1 地面车头/车形 artifact(fable5 ground video 前段干净、中段冒车头=帧相关,非永久)。检测=① 几何预测(该帧正前下方 nadir 有无近车 → 有则不选作起点;无前车运动帧最干净)② 渲染后 nadir 跑 YOLO 检不该有的车形 + 人眼核(每 clip 仅 1 张 frame-1,高效)。
+  两缺陷都"既可几何预测(便宜避开)、又可渲染后检测(数字/YOLO/眼 兜底)"——这是"完美挑选法"的骨架。
+Plan(两阶段):
+  - Stage-1 几何预筛(零 GPU,本地新写小模块):每 anchor 算 ① band 断裂风险(近物跨缝惩罚,=记忆 S0-v2 思路但仓库无、需重建)② 运动充分度(复用 video_gen_av2 --diag 的 path-length+反静止,L96)③ 起点可补分(LiDAR 地面真实占比 + 上半球天空空洞 + S 处 band 风险)。→ 每 log 排 Top-K 候选窗口。
+  - Stage-2 渲染+门+眼(GPU,复用 db89 / video_gen_av2 / sky_fill_flux / DiT360):92 帧 GROUND_MODE="off"(天地黑);frame-1=GROUND_MODE="fill"+FAITH_MASK → DiT360 地面生成(守红线,不 NS-inpaint)→ sky_fill_flux 天空。收 db89 QA(max_reg_px / coverage_pct / low_coverage_warning)→ 自动门(band 帧 max_reg_px≤τ_seam 起始 8px;窗口=93 帧全过;frame-1=band 干净 ∧ coverage≥τ_cov ∧ 天空无破绽;阈值按第一批渲图用眼校准)→ 人眼核每 clip 的 frame-1 + band 抽样/被 flag 帧。
+  - 失败=换窗不修帧(连续性优先);某 log 无通过窗 → 标"无干净 clip"。
+frame-1 盲区填法(守 user 第一条红线):生成式 DiT360/FLUX,**绝不 NS-inpaint**;fable5 ground video 仅作"干净帧确实存在"的证据,不回到 inpaint。
+Why now: koi 明确要 1+92 喂 Cosmos;放弃地面 outpaint 死磕,转"选择+质检"工程。范围=通用流水线,先 highway(最难)+ 1-2 易场景端到端验证机制,再放量全 AV2 val(每 log 1 clip)。
+Kill criteria: 若 Stage-1 几何预测与渲染后实际缺陷(max_reg_px/YOLO)不相关 → 几何预筛失效,退回全渲门(贵);若字典序在多个 log 都找不到一个通过窗 → 该数据集形态对当前算法不可达,回报用户重定向;任何步骤需 per-scene 调参 → 记通用性失败。
+Max scope: 先 highway + 1-2 易场景端到端;Stage-1 纯几何本地;Stage-2 只渲少数候选。不改 db89 算法本身(只用现有 flag),不训练。一次一个 ACTIVE。
+Required vision check: 每 clip 的 frame-1 全分辨率逐图核(无车头 + 天空/地面/band 三者完美)+ band 抽样 + 所有被 flag 帧;阈值用眼校准(眼睛胜过指标)。
+Output: deliverables/db115_1plus92_dataset/(选窗判据 + 渲出 clip + 门日志 + 人眼对照板)。driver 在 scratchpad(非仓库)。
+Handoff: 非沙箱 Bash + 脚本顶禁代理(U.install_opener ProxyHandler({}))直连 Colab(L4 渲 band、A100 跑 FLUX/DiT360);url/token 绝不进仓库(读非仓库 ~/.waymo2panorama/runtime/active_url.json);ALWAYS 读回远端结果文件核实(本仓库有伪造工具输出史,VERIFY 别信);结果写 deliverables 非 agent;中文回复;难思考自己做,只派简单 subagent 干杂活;Pristine 预改核心在 scripts/phase3/_baseline_fable5/。
+
+---
+
+# DB-112: "可救 vs 真盲" 判据图 — 范式重审(DB-111)后的第一步最小实验,决定算力投向
+Status: **SUPERSEDED by DB-115(2026-06-30,user redirect:不再死磕地面 outpaint 优化,转 1+92 数据集"搜干净窗"筛选)。(原)ACTIVE(主线)— 取代 DB-110 成为当前 ACTIVE;DB-110 分区门卫降级为"本判据图确认中场可救后的候选修法之一";DB-111 范式重审已完成(结论见 progress.md 2026-06-26 条目)。GPU 待用户充钱(L4/CPU 几分钟、零训练)。**
+Question: nadir 每个像素到底属于 (A)已观测可几何借的真实 / (B)算法 abstain 但物理可恢复(被 moving/spread 门误杀) / (C)真 geometry-blind + self-occ 零源? 三类面积占比 → 直接决定:中场该"修门"(B大)还是动底座(B小);深中心是否必须"诚实生成"(C 非零=物理无解,停止用门卫幻想救它)。
+Why now: 用户担忧"自嗨/一直走局部最优";范式重审确认"中场修门 vs 深中心生成"该分层,但需数据厘清边界,避免盲目烧 A100 在已判负的 world-grid 重建上。最便宜、最高判据价值的一步。
+Hypotheses: H1 中场环带大量像素是 B(被 moving-gate 1.3x / spread>30 误杀的可恢复真实);H2 深中心 disc 大量是 C(self-occ 零源,只能生成);H3 A(已观测真实)集中在好场景(bmw)。
+Plan: 复用 db89 GROUND_MODE="funnel"(L1671),两处最小改:(a)放开 flat_g 的 t_g<30m 裁剪(L1112)使诊断覆盖 ego 正下方中心 disc → gate0/n_blind 才真覆盖正下方;(b)给"过了 self-occ 两箱"的像素加一道 hood-grazing 真实性判定(复用 two-box + evidenceAA 的 self-occ ON 逻辑),把 gate5(REAL)拆成"真路面"vs"实为 hood 反光"。bmw_a044 / highway_a309 / clean_a046 / crowd 各一次几何前向(L4/CPU 几分钟)。输出三类面积占比 + 彩色判据图。
+Kill criteria: n/a(诊断)。产出=判据图 + 三类面积表 + "算力该投修门 vs 生成"的结论。
+Max scope: 一次诊断注入(改 funnel 裁剪 + 加一道 self-occ 判定),不动 shipped fill 默认,不跑任何模型。
+Required check: 全分辨率逐图核(三类着色是否落对位置:B 在中场环带、C 在正下方 disc)。
+Output: deliverables/db112_recoverable_vs_blind/。
+Handoff: 非沙箱 Bash + 脚本顶禁代理直连 L4(代理 7890 未运行,真直连通);funnel 是诊断模式、不改 fill 输出;产物写 deliverables(D盘非沙箱前台 Read 可见);url/token 绝不进仓库。
+
+---
+
+# DB-110: 分区 self-occ 门(中场放真路面 + 深中心拒→生成) + nvalid≥2 + 蓝椭圆并入生成 mask
+Status: **降级→候选(2026-06-26 DB-111 范式重审后;主线见 DB-112) — (原)user co-decided 2026-06-26(试"分区门卫"代替 self-occ 二元 gate);GPU 待用户充钱后跑一帧验证。**
+Question: SELFOCC 二元 gate 是局部最优陷阱(ON 删中场车道线/OFF 放车头+痤疮+白光);"分区门卫"(SELFOCC_DEEP_R=深中心拒 hood、中场放真掠射源)+ nvalid≥2 守卫 + 把 ERP 极点 nadir-floor 蓝椭圆并入生成 mask,能否一帧同时做到 去车头 + 留车道线 + 去痤疮?
+Why now: 用户视频实测三病(车头/痤疮黑点/白光)代码根因已查清=lever-1 关 self-occ 放进"掠过源车自身车体、采到 hood 反光而非路面"的坏源(深中心=车头/中场=单源掠射痤疮/grazing=白光);occ ON 又因两箱过严误拒中场掠射真源→删车道线。二元 gate 两头不对→该换"按区域精确判断"。DEEP_R 已验证留车道线+去深 hood,只剩两尾巴。
+Hypotheses: H1 SELFOCC_DEEP_R 留中场车道线 + 去深中心 hood 车头;H2 nvalid≥2(给 db89 L1751 的 _gm 加 haveg.sum(0)>=2,目前仅 COHERENT 有此守卫)去痤疮(拒单源掠射脏块);H3 深中心蓝椭圆=db89 L1756 DB-99 nadir-floor plate(非 occ 能管),并入 faithfill_mask 交 FLUX 重画可去。
+Plan: 一帧 bmw(白天,痤疮+车头最明显):SELFOCC=True + SELFOCC_DEEP_R=6 + 给 _gm 加 nvalid≥2 守卫(gated 新 flag)+ 把 capg 深中心极点区并入 faithfill_mask → A100 FLUX。全分辨率核图:车头?车道线?痤疮?白光?
+Kill criteria: 若 DEEP_R+nvalid 后痤疮/车头仍在、或中场车道线被删 → "分区门卫"这种局部修补不成立 → 转 DB-111 范式重审结论(3D 重建渲染 / 工业 AVM / 生成范式)。
+Max scope: 一帧 bmw 诊断;db89 加 nvalid 守卫 flag(gated,默认不变)+ mask 扩展;不动 shipped 默认。一次一个 ACTIVE。
+Required check: 全分辨率深中心不提亮逐图核(车头/车道线/痤疮/白光),对比 lever-1 同帧。
+Output: deliverables/db110_zoneselfocc/。
+Handoff: 非沙箱 Bash + 脚本顶禁代理直连 Colab(代理 7890 未运行);FLUX 用 A100、render 用 L4;产物写 deliverables(D盘非沙箱前台 Read 可见);视频本地 ffmpeg(imageio_ffmpeg)转 h264;url/token 绝不进仓库(读非仓库 active_url*.json)。
+
+---
+
+# DB-111: 战略范式重审 — 跳出"单中心 ERP mosaic + self-occ + 生成补洞"局部最优(via ultracode Workflow)
+Status: **DONE(2026-06-26)— 8-agent Workflow 已完成,结论见 progress.md DB-111 条目,产出第一步=DB-112。(原)user 2026-06-26 担忧"自嗨/一直走局部最优",开 ultracode 要从第一性原理 + 工业级 SOTA 探索根本更好的范式。Workflow 调研进行中。**
+Question: 多相机透视→360 ERP(尤其 nadir 地面)的当前范式(per-anchor reprojection 单中心 mosaic + self-occ 几何门 + spread 一致性 abstain + plate/inpaint/FLUX/DiT360 生成补洞)是否是局部最优?工业级(环视 AVM/surround-view、自动驾驶 BEV/occupancy)+ 学术 SOTA(街景 3DGS/NeRF 重建渲染、可控街景生成、360 扩散、几何条件补洞)有无根本更好、能跳出"mosaic+self-occ"破局的解法?
+Plan: ultracode Workflow 6 路并行(①内部诊断当前范式假设/是否解错问题 ②工业环视拼接 AVM ③BEV/occupancy ④街景 3DGS 重建渲染 ⑤可控街景+360 生成 ⑥几何条件补洞)→ 综合排序 → 对抗审查(约束:AV2 多相机+LiDAR+pose+多帧、要 360 ERP、ego 正下方物理盲区、真实+连贯+通用)。
+Kill criteria: n/a(调研);产出=战略选项排序 + "当前路线是否局部最优"的判断。
+Output: Workflow 结果 → progress.md(DB-111 条目)+ 据结论决定是否开新方向 brief。
+Handoff: 调研在云端(Workflow agent),不占本地 GPU;GPU 验证仍走 DB-110 / 后续 brief。
+
+---
+
 # DB-109: Nadir ground ROOT-CAUSE fix — per-anchor independent rebuild (temporal incoherence) → world-frame BEV ground mosaic
 Status: **ACTIVE / top priority — user co-decided 2026-06-23 to take the ROOT-CAUSE route (not a per-frame filler choice). GPU = L4 live.** Two stages: (1) gate-funnel diagnostic splitting "no-source" into geometry-blind vs rule-rejected; (2) no-network world-frame BEV ground mosaic. Supersedes DB-108.
 **DIRECTION UPDATE (2026-06-24, user co-decided A after Evidence-A/B/C — see `progress.md`):** the 格子/tiling that replaced the swirl is NOT selection-fixable (Evidence-B: argmin-to-median pick changes pixels by only 2.66/255) and the nadir ground is only **~6–22% faithfully-recoverable per traffic frame** (Evidence-C SPREAD_MAX 8/14/30 sweep → real 6.6/22/92%, but ≤30 = quilt). The 格子 = grazing-stretch + genuine multi-view disagreement (spread 15–30); no single source is clean there. **NEW ARCHITECTURE (chosen): faithful spread-gated base (clean, deterministic-coherent, ~spread≤14) + GENERATIVE fill (DiT/Cosmos = DB-14) for the honest holes.** The "fill the cap to 100% via reprojection" goal is RETIRED (fights physics). Generative fill MUST be temporally coherent (video model) or the hole re-swirls. Evidence: `deliverables/db109_ground_rootcause/evidence{A,B,C}_*`. NEW gated flag `COHERENT_PICK` (default "sweet"=unchanged) + the per-cap winning-source LABEL dump (db89 ~:1567) added this session; shipped default untouched.
@@ -134,3 +381,15 @@ Status: icebox - known principled gap, low priority.
 Question: can the cast shadow be treated as evidence-bound object appendage (dark region adjacent to the object mask, luminance-ratio detected) and moved/kept with the body during compositing?
 Why: a remaining visible artefact class on the BMW scene (fill bands show unshadowed background); currently mitigated by harmonic fill.
 Plan: only if the downstream consumer flags it; otherwise leave to the generative layer.
+
+---
+
+# DB-120: 量化选帧 score + 1+92 工程化(夜航提案,待 user 审)
+Status: **QUEUED while DB-121 ACTIVE (2026-07-09)。band-off 提速与量化选帧范围原样保留；S1 曲线族像素拟合子题由 DB-121 的 HD-map 拓扑 kill-test 取代。** **原提案(2026-07-09 夜航启动,待 user 审)。BMW 升代五件套在跑:L4 = `02a00399` 2.5cm extract(tag bmw118x / a014)+ A100 = gen2 FLUX 填 bmw118w T 洞。承 DB-116/115 的 1+92 orchestrator + DB-118 逆问题地面。** **2026-07-10 夜航实测**:默认 188s/帧×2 复测一致(92帧≈4.8h);EMC 开关无效;band-off 重建=第一优先;三场景(hw/BMW/8749)泛化首验完成,弧线=共性缺陷→S1 曲线族推广立项。**
+Question: 交付帧如何量化选择以"避弱"(近距遮挡车 anchor 自动降权),1+92 全链如何压到 <1h/数据集?
+提案要点(score 量化选帧): score = w1·`nadir_imperfect_px`(已有,resid∪fg_occ)+ w2·`plate_px`(fg_occ 语义板面积,近车代理)+ w3·(1−`cov2_frac`)(地面数据覆盖)+ w4·`band_clean`(动目标占比);权重用 hw / BMW 两场景标定;阈值分级 GOOD(全组件不触发)/ DEGRADED(触发生成组件)/ REJECT。
+提速抓手(1+92 工程化): band-off 渲染已验证 32s/帧(346→32s,byte-identical);extract 一次/log 摊薄 93 帧;rep 8 并发串;FLUX 步集中 batch。目标预算:extract ~40min + 92 帧渲染 ~50min → 并行后 <1h/数据集。
+Max scope: 先 hw / BMW 两场景标定权重 + 阈值;不改 db89 算法本身(只用现有 flag);量化门先落地为选帧排序器,不自动 REJECT(人眼复核)。
+Required vision check: score 排名 Top-K 帧全分辨率逐张眼核(近车 anchor 是否被正确降权);分级阈值用眼校准(眼睛胜过指标)。
+Output: `deliverables/db116_frame1/` + `deliverables/db118_surfel/`(承 DB-116/118)。
+Handoff: 承 DB-118/117/116 纪律(非沙箱 Bash 直连 Colab、读回远端结果验证、结果写 deliverables、中文回复、dr_run launch 前必删旧 DONE marker、FLUX/GSR pipeline VM RAM cache 可秒级复用)。[[db116-frame1-perfect360]] [[db115-selection-pipeline]] [[db118-inverse-ground]]
