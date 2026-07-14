@@ -310,7 +310,7 @@ def flux_and_pack(U8, U, SC, CDIR, root, P, dirty_strips, led):
         cv2.putText(c, U8 + " " + lb + " v15", (6, 18), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 128), 1)
         tiles.append(c)
     cv2.imwrite(out + "/sample_sheet.jpg", np.vstack(tiles), [cv2.IMWRITE_JPEG_QUALITY, 90])
-    DST = DRIVE + "/datasets/av2_1plus92_v15/%s_w1" % U8
+    DST = DRIVE + "/datasets/av2_1plus92_v15/%s/%s_w1" % (SPLIT_OF[U], U8)
     os.makedirs(DST, exist_ok=True)
     json.dump(LED["logs"][U8], open(out + "/ledger.json", "w"), indent=1)
     shutil.copy(root + "/worldmap.png", out + "/worldmap_m2.png")
