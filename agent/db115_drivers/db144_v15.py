@@ -13,7 +13,7 @@ H, W = 1024, 2048
 DRIVE = "/content/drive/MyDrive/koi_waymo2pano_colab"
 USED = []
 MACHINE_SHARD = "__MS__"   # "i,k": this machine takes cands[i::k]
-LED = {"gpu": "Blackwell96G", "K": K, "pipeline": "v14-specmap", "machine": MACHINE_SHARD, "logs": {}}
+LED = {"gpu": "Blackwell96G", "K": K, "pipeline": "v15-db144", "git": "aa6ca3c", "machine": MACHINE_SHARD, "logs": {}}
 
 
 def led(u8, k, v):
