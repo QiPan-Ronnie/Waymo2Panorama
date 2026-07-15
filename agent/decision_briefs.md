@@ -36,6 +36,8 @@ Question: v15 数据集喂 Cosmos 微调,第三级填充用什么 / 浅脏瑕疵
   - **A/B 版本样例**:Drive `db123/cosmos_abl_A_black*`(纯黑)vs `cosmos_abl_C_tempofill*`(填充)。
   - **瑕疵实态**:Drive `_dirty_examples/92b900b1_a154_zoom.jpg`(最重裂口)+ 两张 dirtydemo。
 
+**执行结果(2026-07-15,DB-144 全量量产收官更新):** val 全池 **150 → 101 OK(67% 通过率)**,**γ 接缝条带规则救回 34 个 log**(dirty≤3 帧、坏接缝竖条 ±90px 在 A-mask 标黑);A/B 双版产物 Drive `datasets/av2_1plus92_v15/val/<log8>_w1/`。train 700 三机量产**进行中**(截至 07-15 中午 76 判定 / 43 OK,加 val 101 = 库存 144 个 A/B 双版样本)。详见 progress.md DB-144 条目。
+
 ---
 
 # DB-123: scene-band ego 车身去除 — band 帧下缘车身(hood 反光凸块 + 两端车顶总成镜面反光弧)去除

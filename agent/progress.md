@@ -1,5 +1,13 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-15 ◆ DB-144 v15 全量量产：val 150 收官 101 OK(67%)+ γ 接缝条带救 34 + train 700 三机启动 + BOSCH 7.15 PPT 定稿
+> **背景**：DB-136 五项契约拍板后（v15 数据契约定版,commit `4f4bc24`），v15 pipeline 进入全量量产。本条固化 **val 全池收官 / train 启动 / BOSCH 7.15 会议 PPT 定稿** 三件事,承前 DB-136。全部实测、事实不软化。
+> **★① val 150 收官（DB-144 v15 pipeline）**：val 全池 **150 个 log 全部判定完毕 → 101 个 OK 成品（67% 通过率）**；产物 = **A/B 双版本 1+92 样本**（A=去车头 + 时序真实填充 + 严格 mask；B=`EGO_BLACK` 车头留黑），Drive `datasets/av2_1plus92_v15/val/<log8>_w1/`。**★γ 接缝条带规则救回 34 个 log**：dirty≤3 帧放行、只把坏接缝竖条 **±90px** 在 A-mask 标黑（v14 会整场拒绝）。双机 48 核 Blackwell G4（K=24）分片 `m0of2`/`m1of2`,ledger 实时写 Drive（`db144_v15_ledger_m{0,1}of2.json`,头部嵌 git ref）；Colab 隧道两次断线、**断点续跑零判定丢失**。途中修复 `15ec0778` fluxpack bug（P 变量错用 121→应为 76、被 specmap 罩住 + LED 全局未定义），修复重跑 verdict=OK。
+> **★② train 700 量产启动（2026-07-14 起,进行中）**：三机并行 = G4_1（48 核 K=24）/ G4_2（48 核 K=24）/ A100（K=12），`MACHINE_SHARD` 三分片、driver=db144_v15 train 变体（`/content/_dj_db144tr.py`）、ledger `db144_v15_ledger_m{0,1,2}of3.json`。截至 07-15 中午 **train 累计 76 判定 / 43 OK**；加 val 101 → **库存 144 个 A/B 双版样本**。**本地防空转哨兵 `train_guard.py`**：每 5 分钟经隧道巡检三机,driver 死自动重拉（重跑机器上残留 `_dj` 文件、ledger `DONE_VERDICTS` 断点续跑）,三机 `EXHAUSTED` 自动收官。
+> **★③ BOSCH 7.15 会议 PPT 定稿**：`meeting/7.15_meeting with BOSCH/Waymo2Pano_BOSCH_dataset_2026-07-15.pptx`（6 页）。**scene-band 页（用户多轮迭代拍板）= 两张分离图**：上图 = ORIGINAL 裸 scene band 单张（`f001_a15` 原始多相机拼接形态,上下留黑、不做天空/地面填充）；下图 = Version A(frame|mask) + Version B(frame|mask) 对照,mask 列保留。极端场景页（`adf9a841` 货车挡区）与 γ 条带演示页沿用 band 条结构。
+> **产物 / 脚本**：Drive `datasets/av2_1plus92_v15/{val,train}/<log8>_w1/`；PPT `meeting/7.15_meeting with BOSCH/Waymo2Pano_BOSCH_dataset_2026-07-15.pptx` + 素材 `meeting/mask_demo/`；driver db144_v15（train 变体 `/content/_dj_db144tr.py`）；哨兵 `train_guard.py`；ledger `db144_v15_ledger_m*.json`。承前 DB-136（数据契约,commit `4f4bc24`）。[[db123-ego-removal]] [[db115-parallel-framework]]
+> ---
+
 > ### 2026-07-13 ◆ DB-135 run100 全量量产终盘：100/100 判定、17 成品(17%)、零 FAIL(双机 48 核 Blackwell ~4.6h)
 > **背景**：DB-131~134 把量产管线优化到投机建图后（v14），本役首次跑**全量 100 候选**并实测**真实产出率**。双机 48 核 Blackwell RTX PRO 6000 96GB。全部实测、事实不软化。
 > **★LOG100 定义（可复现）**：AV2 val 150 个 log **排除 `USED` 28 个** → 剩 122 排序**取前 100**，**冻结嵌入 driver** `agent/db115_drivers/db135_run100.py`。**产物** Drive `datasets/av2_1plus92_production_v14/`（`manifest_m0of2.json`/`manifest_m1of2.json` + `db135_run100_ledger_m*.json` + `run100_summary.json` = **全判定记录**含拒因）。
