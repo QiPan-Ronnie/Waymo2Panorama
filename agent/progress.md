@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-16 ◆ DB-144 train 700 量产中期：三机→双机演变(停 A100 保双 G4)+ 中期冻结 train 399判/261OK(65%)+ 总库存 362(val 101 + train 261)
+> **背景**：承前 DB-144 07-15（val 150 收官 101 OK + train 700 三机启动）。本条固化 **train 量产中期进度**——机队演变、中期冻结账目、吞吐实测,承前 DB-136（v15 数据契约,commit `4f4bc24`）。全部实测、事实不软化。
+> **★① 三机→双机演变（Colab 回收驱动）**：**Colab 反复回收 G4_1（一天 3 次）** —— 主因 = **RTX Pro 6000 Blackwell 稀缺卡 + 满载长跑 + 同账号多会话烧 CU**（对照组 **A100 反而零回收**）。每次断线 **Drive ledger 零丢失**,重部署 + 断点续跑 **10 分钟归队**（`RESUME` 精确跳过已判定 log）。**★用户决策 = 停 A100 保双 G4**（**1 台 G4 吞吐 ≈ 4 台 A100**,双 G4 vs 三机总产能只差 **10-15%**）：新 G4 接管 `m2of3` 分片；A100 的 `m0of3` 分片剩余 **~203 个待空闲 G4 接管**（发 shard 0,3 driver 续写同一账本）。**★本地电脑重启一次** = 远端不受影响、仅本地哨兵重挂（`train_guard.py`,5 分钟巡检 + 死进程自动重拉 + `EXHAUSTED` 自动收官）。
+> **★② 中期冻结账目（用户主动停机重启 Colab 规避长时会话回收）**：优雅停机（账本最终同步 Drive → pkill driver）。**最终账目** = `m2of3` **176 判 / 120 OK** + `m1of3` **192 判 / 117 OK** + `m0of3`(A100) **31 判 / 24 OK** → **train 合计 399 判 / 261 OK（通过率 65%）**；**★总库存 = val 101 + train 261 = 362 个 A/B 双版样本**。剩余 **~301 候选**,预计**最终总库存 ~550**。
+> **★③ 吞吐实测（train 700）**：**单台 G4 ~10.5min/判定**（端到端 11-12min/成品）,**双机摊销 ~5.2min/判定**；**A100 ~40min/判定**（G4 是主力吞吐,量化坐实「停 A100 保双 G4」= 只丢 10-15% 产能却省一半会话回收风险）。
+> **★④ BOSCH 7.15 会议材料交付**：**6 页 PPT + 讲解稿**（`meeting/7.15_meeting with BOSCH/讲解稿_2026-07-15.md`,含**逐页稿 + Q&A 备弹**）已交付。
+> **产物 / 脚本**：Drive `datasets/av2_1plus92_v15/train/<log8>_w1/`；ledger `db144_v15_ledger_m{0,1,2}of3.json`（头部嵌 git ref）；driver db144_v15 train 变体（`/content/_dj_db144tr.py`）；哨兵 `train_guard.py`；会议讲解稿 `meeting/7.15_meeting with BOSCH/讲解稿_2026-07-15.md`。承前 DB-144 07-15 + DB-136（数据契约,commit `4f4bc24`）。[[db123-ego-removal]] [[db115-parallel-framework]]
+> ---
+
 > ### 2026-07-15 ◆ DB-144 v15 全量量产：val 150 收官 101 OK(67%)+ γ 接缝条带救 34 + train 700 三机启动 + BOSCH 7.15 PPT 定稿
 > **背景**：DB-136 五项契约拍板后（v15 数据契约定版,commit `4f4bc24`），v15 pipeline 进入全量量产。本条固化 **val 全池收官 / train 启动 / BOSCH 7.15 会议 PPT 定稿** 三件事,承前 DB-136。全部实测、事实不软化。
 > **★① val 150 收官（DB-144 v15 pipeline）**：val 全池 **150 个 log 全部判定完毕 → 101 个 OK 成品（67% 通过率）**；产物 = **A/B 双版本 1+92 样本**（A=去车头 + 时序真实填充 + 严格 mask；B=`EGO_BLACK` 车头留黑），Drive `datasets/av2_1plus92_v15/val/<log8>_w1/`。**★γ 接缝条带规则救回 34 个 log**：dirty≤3 帧放行、只把坏接缝竖条 **±90px** 在 A-mask 标黑（v14 会整场拒绝）。双机 48 核 Blackwell G4（K=24）分片 `m0of2`/`m1of2`,ledger 实时写 Drive（`db144_v15_ledger_m{0,1}of2.json`,头部嵌 git ref）；Colab 隧道两次断线、**断点续跑零判定丢失**。途中修复 `15ec0778` fluxpack bug（P 变量错用 121→应为 76、被 specmap 罩住 + LED 全局未定义），修复重跑 verdict=OK。
