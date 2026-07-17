@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+import re
 from typing import Mapping, Sequence
 
 import cv2
@@ -79,13 +80,80 @@ class GateDecision:
         }
 
 
-def balanced_group_folds(
+_GROUP_PATTERN = re.compile(r"^f(?P<frame>\d+):(?P<camera>.+)$")
+
+
+def _group_identity(group: str) -> tuple[int, str]:
+    match = _GROUP_PATTERN.match(group)
+    if match is None:
+        raise ValueError(f"source group {group!r} does not match f###:camera")
+    return int(match.group("frame")), match.group("camera")
+
+
+def _contiguous_time_folds(
+    counts: Mapping[str, int],
+    groups: Sequence[str],
+    n_folds: int,
+) -> tuple[tuple[str, ...], ...]:
+    by_time: dict[int, list[str]] = {}
+    for group in groups:
+        frame, _ = _group_identity(group)
+        by_time.setdefault(frame, []).append(group)
+    times = sorted(by_time)
+    if len(times) < n_folds:
+        raise ValueError("fewer distinct source times than inner folds")
+    block_counts = np.asarray(
+        [sum(counts[group] for group in by_time[frame]) for frame in times],
+        np.int64,
+    )
+    prefix = np.r_[0, np.cumsum(block_counts)]
+    target = float(prefix[-1]) / n_folds
+
+    # Exact dynamic programming is unnecessary for three folds and <=24 AV2
+    # source times.  Enumerating the two cut positions makes the structural
+    # rule transparent and deterministic.
+    if n_folds != 3:
+        raise ValueError("DB-146 freezes exactly three inner folds")
+    options: list[tuple[float, int, int]] = []
+    for first in range(1, len(times) - 1):
+        for second in range(first + 1, len(times)):
+            totals = (
+                prefix[first],
+                prefix[second] - prefix[first],
+                prefix[-1] - prefix[second],
+            )
+            imbalance = max(abs(float(total) - target) for total in totals) / max(
+                target, 1.0
+            )
+            options.append((imbalance, first, second))
+    _, first, second = min(options)
+    time_partitions = (times[:first], times[first:second], times[second:])
+    return tuple(
+        tuple(
+            sorted(
+                group
+                for frame in partition
+                for group in by_time[frame]
+            )
+        )
+        for partition in time_partitions
+    )
+
+
+def structured_group_folds(
     group_counts: Mapping[str, int],
     groups: Sequence[str],
     *,
     n_folds: int = 3,
 ) -> tuple[tuple[str, ...], ...]:
-    """Deterministically balance whole source groups by evidence pixels."""
+    """Hold out whole cameras or contiguous time blocks, never interleaved views.
+
+    Random or largest-first group assignment leaks neighbouring frames into
+    both fit and validation.  DB-146 reconstructs temporal outpainting holes,
+    so its inner missingness must have the same structure: leave out complete
+    cameras when at least three cameras carry useful evidence; otherwise leave
+    out three contiguous time ranges.
+    """
 
     selected = sorted(set(groups))
     if len(selected) < n_folds:
@@ -97,17 +165,28 @@ def balanced_group_folds(
             raise ValueError(f"group {group!r} has no positive geometry count")
         counts[group] = count
 
-    bins: list[list[str]] = [[] for _ in range(n_folds)]
-    totals = [0] * n_folds
-    # Largest-first scheduling minimizes the worst fold imbalance while the
-    # group boundary keeps every validation view physically unseen.
-    for group in sorted(selected, key=lambda item: (-counts[item], item)):
-        target = min(range(n_folds), key=lambda index: (totals[index], index))
-        bins[target].append(group)
-        totals[target] += counts[group]
-    if any(not fold for fold in bins):
-        raise RuntimeError("balanced split produced an empty fold")
-    return tuple(tuple(sorted(fold)) for fold in bins)
+    by_camera: dict[str, list[str]] = {}
+    for group in selected:
+        _, camera = _group_identity(group)
+        by_camera.setdefault(camera, []).append(group)
+    if len(by_camera) >= n_folds:
+        bins: list[list[str]] = [[] for _ in range(n_folds)]
+        totals = [0] * n_folds
+        camera_totals = {
+            camera: sum(counts[group] for group in camera_groups)
+            for camera, camera_groups in by_camera.items()
+        }
+        for camera in sorted(by_camera, key=lambda item: (-camera_totals[item], item)):
+            target = min(range(n_folds), key=lambda index: (totals[index], index))
+            bins[target].extend(by_camera[camera])
+            totals[target] += camera_totals[camera]
+        total = sum(totals)
+        # A camera with only a handful of grazing pixels is not an informative
+        # validation fold.  Fall back to time blocks rather than pretending it
+        # is independent evidence.
+        if all(value >= 0.05 * total for value in totals):
+            return tuple(tuple(sorted(fold)) for fold in bins)
+    return _contiguous_time_folds(counts, selected, n_folds)
 
 
 def _gaussian(image: np.ndarray, sigma: float) -> np.ndarray:

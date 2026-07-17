@@ -16,7 +16,7 @@ Question: 能否仅用 outer-training 内部的交叉验证，自动决定 senso
 
 **固定协议：**
   1. 沿用 DB-145 r3 的 3 logs × high/low 六块 frozen patch 与 outer train/held-out；不重选 BMW ROI，不看 outer 结果调门。
-  2. outer-training 的完整 source groups 按几何有效 pixel 数确定性分成 3 folds。每 fold 用其余 groups 重建 leak-free A/B，只在该 fold 的原始相机像素上验证。
+  2. outer-training 的完整 source groups 确定性分成 3 个**结构化** folds：≥3 个有效相机时整相机留出，否则按几何有效 pixel 数切成连续时间块；严禁把相邻帧交错分散到 fit/validation。每 fold 用其余 groups 重建 leak-free A/B，只在该 fold 的原始相机像素上验证。
   3. 候选不是逐场景超参搜索，而是同一组固定残差频带：`A + LPσ(B-A)`，σ=`8/4/2/1/0 cell`；从粗到细逐级放行。一个频带必须在 inner folds 中改善、跨 fold 稳定，且不过度增加 Nyquist/checker 能量，否则截断。
   4. 最终 D 在全部 outer-training 上重建一次，再应用 inner 选出的最高安全频带；没通过的区域回退 A。wet/view-dependent residual 只能收紧门或 abstain，不能扩大生成模型。
   5. r3 六块规则冻结后，再增加至少 1 个未参与规则选择的新 AV2 log、high/low 两块作泛化终验；新 log 也必须先冻结 outer split，再运行同一规则。

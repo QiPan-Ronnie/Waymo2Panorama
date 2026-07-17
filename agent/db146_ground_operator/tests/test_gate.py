@@ -5,9 +5,9 @@ from agent.db145_ground_operator.solver import SolverResult
 from agent.db146_ground_operator.gate import (
     BAND_SPECS,
     FoldBandMetrics,
-    balanced_group_folds,
     checker_ratio,
     select_safe_band,
+    structured_group_folds,
     truncated_texture,
 )
 
@@ -25,14 +25,36 @@ def _inverse(texture):
     )
 
 
-def test_balanced_group_folds_are_deterministic_disjoint_and_complete():
-    counts = {"a": 100, "b": 80, "c": 60, "d": 40, "e": 20, "f": 10}
-    first = balanced_group_folds(counts, list(reversed(counts)))
-    second = balanced_group_folds(counts, list(counts))
+def test_structured_group_folds_are_deterministic_disjoint_and_complete():
+    groups = [f"f{frame:03d}:ring_front_center" for frame in range(6)]
+    counts = dict(zip(groups, [100, 80, 60, 40, 20, 10], strict=True))
+    first = structured_group_folds(counts, list(reversed(counts)))
+    second = structured_group_folds(counts, list(counts))
     assert first == second
     flattened = [group for fold in first for group in fold]
     assert sorted(flattened) == sorted(counts)
     assert len(flattened) == len(set(flattened))
+    fold_frames = [
+        [int(group.split(":", 1)[0][1:]) for group in fold] for fold in first
+    ]
+    assert max(fold_frames[0]) < min(fold_frames[1])
+    assert max(fold_frames[1]) < min(fold_frames[2])
+
+
+def test_structured_folds_hold_out_complete_cameras_when_informative():
+    groups = [
+        f"f{frame:03d}:cam_{camera}"
+        for camera in "abcd"
+        for frame in range(3)
+    ]
+    counts = {group: 100 for group in groups}
+    folds = structured_group_folds(counts, groups)
+    camera_fold: dict[str, int] = {}
+    for fold_index, fold in enumerate(folds):
+        for group in fold:
+            camera = group.split(":", 1)[1]
+            camera_fold.setdefault(camera, fold_index)
+            assert camera_fold[camera] == fold_index
 
 
 def test_truncated_texture_suppresses_checker_correction():

@@ -26,11 +26,11 @@ from agent.db145_ground_operator.solver import SolverResult, solve_sensor_native
 from .gate import (
     BAND_SPECS,
     FoldBandMetrics,
-    balanced_group_folds,
     checker_ratio,
     correction_uncertainty,
     result_from_texture,
     select_safe_band,
+    structured_group_folds,
     truncated_texture,
 )
 from .report import make_safe_patch_board
@@ -311,7 +311,7 @@ def run(args: argparse.Namespace) -> None:
                 raise TimeoutError("DB-146 GPU-hour ceiling reached")
             print(f"DB146_INNER_START {key}", flush=True)
             training_groups = tuple(selected["training_groups"])
-            folds = balanced_group_folds(
+            folds = structured_group_folds(
                 selected["heldout_geometry_pixel_counts"],
                 training_groups,
                 n_folds=3,
