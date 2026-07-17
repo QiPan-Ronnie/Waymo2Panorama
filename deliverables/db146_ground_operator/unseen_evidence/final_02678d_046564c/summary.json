@@ -1,0 +1,96 @@
+{
+  "bands": [
+    {
+      "label": "lp8",
+      "sigma_cell": 8.0
+    },
+    {
+      "label": "lp4",
+      "sigma_cell": 4.0
+    },
+    {
+      "label": "lp2",
+      "sigma_cell": 2.0
+    },
+    {
+      "label": "lp1",
+      "sigma_cell": 1.0
+    },
+    {
+      "label": "full",
+      "sigma_cell": 0.0
+    }
+  ],
+  "created_utc": "2026-07-17T16:25:57.593256+00:00",
+  "cuda": "12.8",
+  "elapsed_s": 156.07562479999615,
+  "git_commit": "046564c",
+  "gpu": "NVIDIA GeForce RTX 5070 Ti Laptop GPU",
+  "max_operator_observations": 60000,
+  "patches": {
+    "unseen_dry:high": {
+      "completed_utc": "2026-07-17T16:27:25.537322+00:00",
+      "inner_decision_sha256": "4700dc98176ca293594303bba8c5a05ba5839c8ac6730d87f0ffd21ac40b8c31",
+      "key": "unseen_dry:high",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.029171502217650414,
+          "n_pixels": 43953,
+          "p95_rgb_l1": 0.038053739815950394,
+          "robust_rgb_mae": 0.016408266499638557
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.03247736021876335,
+          "n_pixels": 43953,
+          "p95_rgb_l1": 0.03439171984791756,
+          "robust_rgb_mae": 0.01777496002614498
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.029171502217650414,
+          "n_pixels": 43953,
+          "p95_rgb_l1": 0.038053739815950394,
+          "robust_rgb_mae": 0.016408266499638557
+        }
+      },
+      "selected_label": "A"
+    },
+    "unseen_dry:low": {
+      "completed_utc": "2026-07-17T16:28:33.662120+00:00",
+      "inner_decision_sha256": "18b90ae6e1f3356416fb0cf66cf1b4998db1ffd0e2d6d3f4a5581cc7e039a52a",
+      "key": "unseen_dry:low",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.040603332221508026,
+          "n_pixels": 5778,
+          "p95_rgb_l1": 0.09636566787958145,
+          "robust_rgb_mae": 0.02671685814857483
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.04201296716928482,
+          "n_pixels": 5778,
+          "p95_rgb_l1": 0.10329187661409378,
+          "robust_rgb_mae": 0.02798624336719513
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.040603332221508026,
+          "n_pixels": 5778,
+          "p95_rgb_l1": 0.09636566787958145,
+          "robust_rgb_mae": 0.02671685814857483
+        }
+      },
+      "selected_label": "A"
+    }
+  },
+  "python": "3.11.15",
+  "run_id": "final_02678d_046564c",
+  "schema": "db146_run_v1",
+  "source_manifest": "D:\\BaiduSyncdisk\\2024 to future\\koi chen\\w\\db145\\deliverables\\db146_ground_operator\\unseen_manifest.json",
+  "source_manifest_sha256": "93e345b53db5ac7e908d15dce5d0a014a73f3e18f98a87cfb000ed0ba0918d80",
+  "torch": "2.10.0+cu128"
+}

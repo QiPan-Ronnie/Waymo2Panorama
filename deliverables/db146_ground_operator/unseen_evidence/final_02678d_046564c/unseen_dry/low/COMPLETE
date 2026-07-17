@@ -1,0 +1,29 @@
+{
+  "completed_utc": "2026-07-17T16:28:33.662120+00:00",
+  "inner_decision_sha256": "18b90ae6e1f3356416fb0cf66cf1b4998db1ffd0e2d6d3f4a5581cc7e039a52a",
+  "key": "unseen_dry:low",
+  "outer_metrics": {
+    "A": {
+      "coverage": 1.0,
+      "median_rgb_l2": 0.040603332221508026,
+      "n_pixels": 5778,
+      "p95_rgb_l1": 0.09636566787958145,
+      "robust_rgb_mae": 0.02671685814857483
+    },
+    "B": {
+      "coverage": 1.0,
+      "median_rgb_l2": 0.04201296716928482,
+      "n_pixels": 5778,
+      "p95_rgb_l1": 0.10329187661409378,
+      "robust_rgb_mae": 0.02798624336719513
+    },
+    "D": {
+      "coverage": 1.0,
+      "median_rgb_l2": 0.040603332221508026,
+      "n_pixels": 5778,
+      "p95_rgb_l1": 0.09636566787958145,
+      "robust_rgb_mae": 0.02671685814857483
+    }
+  },
+  "selected_label": "A"
+}

@@ -6,7 +6,7 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 ---
 
 # DB-146: Evidence-gated spectral inverse — 训练内证明频带，失败即回退
-Status: **ACTIVE（2026-07-17,user 授权 L4 持续迭代；当前唯一 ACTIVE）。DB-145 的无门控 B 判决保持不变，本条只研究安全门控，不授权修改 v15。**
+Status: **DONE — KILL / NOT PRODUCTION（2026-07-17）。安全回退成立，但 6 个开发块 + 2 个未见块没有任何 inverse 频带通过全部结构化 inner folds；保留 v15 A，未修改 db89/db144/v15。当前无 ACTIVE brief。**
 Question: 能否仅用 outer-training 内部的交叉验证，自动决定 sensor-native 逆成像在每个局部地面块可恢复到哪个空间频带，使最终结果在保留 dry/high 真实增益的同时，对 low-observability 与 wet/specular 自动回退到 A 或诚实黑？
 
 **第一性原理：**
@@ -31,6 +31,14 @@ Question: 能否仅用 outer-training 内部的交叉验证，自动决定 senso
   - 若 inner gate 与 outer 真值方向系统性不一致，或必须看 outer 才能选频带，KILL sensor-native 生产升级，保留 v15 A。
   - 最多固定 5 个频带、3 folds、两种无场景常数的稳定性门；不得扩成 learned gate、扩散模型、BRDF 或全量 555 样本重渲染。
   - L4 预算 12 GPU-hour；先复用现有 3 logs，只有通过 r3 才下载 unseen log。每轮必须留下 metrics 与视觉 board，但不重复做与判决无关的基础审计。
+
+**执行结果（最终冻结 run：development=`final_046564c`，unseen=`final_02678d_046564c`）：**
+  - 为防单个近距离高像素 source 支配目标并限制 EWA 图峰值，最终通用契约增加颜色盲、几何均匀的 source-balanced 60,000 observation 上限；同一约束重跑全部 6 个开发块，未只修 unseen。实验提交 `046564c`，33 tests pass。
+  - **安全门 PASS**：6 个开发块和 unseen log `02678d04…` 的 high/low 两块全部在 outer held-out 读取前写入 `INNER_FROZEN` SHA；D 全部回退 A，8/8 outer robust MAE 与 median RGB L2 相对 A 为 0% 退化。总览眼核确认 D=A、无新棋盘/彩边/moiré。
+  - **效用门 FAIL**：没有一个 dry/high 保留稳定正增益。dry-straight/high 的 `lp1` 虽在 2/3 inner folds 改善，但最坏完整 source 折 robust MAE / median L2 分别约 **−54.0% / −54.5%**；所有 5 个频带都因至少一折回退而否决。outer 上 B 偶有正数不能反过来选门。
+  - B 的 outer robust MAE 相对 A：straight high **+8.41%**、straight low **+10.27%**、turn high **−47.44%**、turn low **+1.66%**、wet high **−9.10%**、wet low **+10.95%**；未见 high/low 分别 **−8.33% / −4.75%**。正负号跨 source/scene 不稳定，且 B 眼核仍有棋盘、拉丝和结构漂移。
+  - **最终判决**：门控器是安全的但为空操作；DB-146 生产升级按 PASS gate 正式 **KILL**。不得放宽零回退门、挑 outer 赢的 patch 或接入 v15。若继续，必须另立 brief 改变观测模型，而不是继续调本门。
+  - L4 隧道开始可用、随后持续 HTTP 530；按用户“L4 彻底断才切换”的授权，最终在本机 RTX 5070 Ti Laptop 12GB 完成。证据：`deliverables/db146_ground_operator/{README.md,verdict.json,final_aggregate/,development_evidence/final_046564c/,unseen_manifest.json,unseen_evidence/final_02678d_046564c/}`。
 
 ---
 

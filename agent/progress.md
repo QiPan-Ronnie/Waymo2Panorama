@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-17 ◆ DB-146 收官：训练内 evidence gate 安全但无有效 inverse 频带 → KILL / NOT PRODUCTION
+> **问题与冻结协议**：承接 DB-145“dry/high 有局部正收益、无门控 B 会在 low/wet 造棋盘”的条件结论，只问能否用 outer-training 内部 3-fold 结构化 source-group 验证，自动选择 `A + LPσ(B-A)`（σ=8/4/2/1/0 cell），再让 untouched outer held-out 当一次性法官。任一 inner fold 的 robust MAE 或 median RGB L2 回退即否决；禁止看 outer 选门、逐 log 常量或 BMW 特判。
+> **通用资源/统计修复**：未见 log 的近距离 source 暴露 EWA 图资源峰值，同时揭示“像素多的单相机支配目标”的统计问题。最终契约加入颜色盲的 **60,000 observation/operator** 上限：预算在 source views 间水位均分，再按 `(u,v)` 图像栅格均匀取样；不读取 RGB/重建结果。该规则不是只补 unseen，而是以提交 `046564c` 重跑原 6 块；峰值进程内存约 2.1GB，33 tests pass。
+> **开发集最终结果（3 logs × high/low）**：六块 inner 全选 A。outer 的 B robust MAE 相对 A（正=改善）为 straight high **+8.41%** / low **+10.27%**、turn high **−47.44%** / low **+1.66%**、wet high **−9.10%** / low **+10.95%**；但 outer 不参与选择。关键反例 straight/high 的 `lp1` 在 2/3 inner folds 为正、最坏完整 source 折却 robust/median 分别约 **−54.0% / −54.5%**，5 个频带全被零回退门否决。说明表面正收益依赖视角权重/混叠相位，并非跨 source 稳定地面真值。
+> **未见泛化**：新 AV2 val log `02678d04-cc9f-3148-9f95-1ba66347dff9` 完全未参与规则开发；P0 仅按几何冻结 high=`f125_lat+0`、low=`f075_lat+2` 和完整相机 outer split。两块同样在读取 outer 前选 A；其 B outer robust 分别 **−8.33% / −4.75%**，安全回退成立但没有新收益。
+> **★眼核与最终判决**：8 块 D 全部 byte/数值等价回退 A，outer 两指标 0% 退化，聚合板眼核无新棋盘/彩边/moiré；B 在 turn、wet-low、unseen-low 可见棋盘、拉丝或结构漂移。故 **safety PASS、efficacy FAIL、DB-146 KILL / NOT PRODUCTION**：门控器安全但为空操作，不得接入 db89/db144/v15，不得放宽门或用 outer 挑赢家；生产继续保留 v15 A + 诚实黑。后续若再研究必须另立 brief 改观测模型。
+> **运行与产物**：L4 隧道由可用转为持续 HTTP 530 后，按用户授权切到 RTX 5070 Ti Laptop 12GB 完成；算法/阈值未随硬件改变。最终 run development=`final_046564c`、unseen=`final_02678d_046564c`；证据 `deliverables/db146_ground_operator/{README.md,verdict.json,final_aggregate/,development_evidence/final_046564c/,unseen_manifest.json,unseen_evidence/final_02678d_046564c/}`；代码 `agent/db146_ground_operator/`。[[db146-ground-operator]] [[db145-ground-operator]]
+> ---
+
 > ### 2026-07-17 ◆ DB-145 收官：sensor-native footprint 逆成像局部成立、无门控主案 KILL → CONDITIONAL / NOT PRODUCTION
 > **有效实验**：最终判决 run=`db145_r3_20260717`，commit `9b748c6`，3 logs × high/low `2m×2m` 共 6 patches；straight=`8749f79f…`、turn=`02a00399…`、wet=`05fa5048…`。所有 patch、平面、参数与 held-out group 在 P0 冻结；r3 held-out 几何证据占比 13.3/19.7/20.1/26.4/18.8/20.5%，全部在 10–35% 内、与训练组严格不交叉。A=`2.5cm+≤6 source median`，B=raw-pixel anisotropic EWA inverse + bounded shift/gain，C=B+整 source 残差/MAD 拒绝；无生成、无 BMW 特调、v15 零改动。
 > **协议事故（均在判决前诚实作废）**：r1 视觉检查发现 held-out 下半部是 AV2 白色车头——几何把 ego-body 像素误当地面；接入 DB-123 v8-fine analytic body+roof mask，A/B/C/held-out 同门后重跑。r2 审计发现按“20% 时间点数”会因观测不均产生 4.3%/9.3% 的实际 held-out；改为 P0 枚举连续时间块或整相机、按几何有效 pixel 数冻结 10–35%，生成 r3。另将 149 万 observation 的逐 pixel Python support 构建改为 byte-equivalent 分桶向量化；10 万 observation 本机 0.266s，exact pair-set 回归测试通过。

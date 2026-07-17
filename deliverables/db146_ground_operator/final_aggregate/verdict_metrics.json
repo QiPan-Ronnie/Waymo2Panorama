@@ -1,0 +1,352 @@
+{
+  "automatic_pass": false,
+  "checks": {
+    "all_D_within_1pct_of_A_on_both_outer_metrics": true,
+    "all_inner_decisions_hash_frozen": true,
+    "all_unseen_D_within_1pct_of_A_on_both_outer_metrics": true,
+    "at_least_one_dry_high_retains_real_gain": false,
+    "no_low_or_wet_patch_selects_untruncated_full": true,
+    "no_unseen_patch_selects_untruncated_full": true,
+    "six_patches_complete": true,
+    "two_unseen_patches_complete": true
+  },
+  "development_root": "deliverables\\db146_ground_operator\\development_evidence\\final_046564c",
+  "efficacy_pass": false,
+  "expected_git_commit": "046564c",
+  "patches": [
+    {
+      "B_vs_A_percent": {
+        "median_rgb_l2": 14.58680919805119,
+        "robust_mae": 8.41194659404212
+      },
+      "D_vs_A_percent": {
+        "median_rgb_l2": 0.0,
+        "robust_rgb_mae": 0.0
+      },
+      "automatic_no_regression": true,
+      "board": "deliverables\\db146_ground_operator\\development_evidence\\final_046564c\\dry_straight\\high\\patch_board.png",
+      "inner_decision_sha256": "30b24c6777bcb3b01fb563b63eb1ff0e735c1510c3a0b826d1d6c98a70da8125",
+      "key": "dry_straight:high",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0809803456068039,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.16889910399913788,
+          "robust_rgb_mae": 0.05248250812292099
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.06916789710521698,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.1527647078037262,
+          "robust_rgb_mae": 0.04806770756840706
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0809803456068039,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.16889910399913788,
+          "robust_rgb_mae": 0.05248250812292099
+        }
+      },
+      "safe_inverse_fraction": 0.0,
+      "selected_label": "A",
+      "uncertainty_mean": 1.0,
+      "uses_inverse": false
+    },
+    {
+      "B_vs_A_percent": {
+        "median_rgb_l2": 9.567937840576395,
+        "robust_mae": 10.26822457279347
+      },
+      "D_vs_A_percent": {
+        "median_rgb_l2": 0.0,
+        "robust_rgb_mae": 0.0
+      },
+      "automatic_no_regression": true,
+      "board": "deliverables\\db146_ground_operator\\development_evidence\\final_046564c\\dry_straight\\low\\patch_board.png",
+      "inner_decision_sha256": "9a97ae0dc06aaa4fd9d3070dcb2f2569b62d311eee85943399e42bf4d2803d3d",
+      "key": "dry_straight:low",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0159560889005661,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.02784462459385395,
+          "robust_rgb_mae": 0.009711047634482384
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.014429420232772827,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.024388832971453667,
+          "robust_rgb_mae": 0.008713895455002785
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0159560889005661,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.02784462459385395,
+          "robust_rgb_mae": 0.009711047634482384
+        }
+      },
+      "safe_inverse_fraction": 0.0,
+      "selected_label": "A",
+      "uncertainty_mean": 1.0,
+      "uses_inverse": false
+    },
+    {
+      "B_vs_A_percent": {
+        "median_rgb_l2": -145.2484206174989,
+        "robust_mae": -47.442551688226054
+      },
+      "D_vs_A_percent": {
+        "median_rgb_l2": 0.0,
+        "robust_rgb_mae": 0.0
+      },
+      "automatic_no_regression": true,
+      "board": "deliverables\\db146_ground_operator\\development_evidence\\final_046564c\\dry_turn\\high\\patch_board.png",
+      "inner_decision_sha256": "70d672408319f229ff1aa1f971b5f8c4dbf6c085910a0b5a98413620499e8319",
+      "key": "dry_turn:high",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.07865558564662933,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.38788682222366333,
+          "robust_rgb_mae": 0.1026897206902504
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.1929015815258026,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.4027155637741089,
+          "robust_rgb_mae": 0.1514083445072174
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.07865558564662933,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.38788682222366333,
+          "robust_rgb_mae": 0.1026897206902504
+        }
+      },
+      "safe_inverse_fraction": 0.0,
+      "selected_label": "A",
+      "uncertainty_mean": 1.0,
+      "uses_inverse": false
+    },
+    {
+      "B_vs_A_percent": {
+        "median_rgb_l2": 1.3948042544390185,
+        "robust_mae": 1.6617670237510755
+      },
+      "D_vs_A_percent": {
+        "median_rgb_l2": 0.0,
+        "robust_rgb_mae": 0.0
+      },
+      "automatic_no_regression": true,
+      "board": "deliverables\\db146_ground_operator\\development_evidence\\final_046564c\\dry_turn\\low\\patch_board.png",
+      "inner_decision_sha256": "e49cf9ec7904db200389a253b3c3b736bee095d3d9c13d8c3ac378e9b02421cd",
+      "key": "dry_turn:low",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.05333147570490837,
+          "n_pixels": 19022,
+          "p95_rgb_l1": 0.42975422739982605,
+          "robust_rgb_mae": 0.041527342051267624
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0525876060128212,
+          "n_pixels": 19022,
+          "p95_rgb_l1": 0.4208647310733795,
+          "robust_rgb_mae": 0.040837254375219345
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.05333147570490837,
+          "n_pixels": 19022,
+          "p95_rgb_l1": 0.42975419759750366,
+          "robust_rgb_mae": 0.041527342051267624
+        }
+      },
+      "safe_inverse_fraction": 0.0,
+      "selected_label": "A",
+      "uncertainty_mean": 1.0,
+      "uses_inverse": false
+    },
+    {
+      "B_vs_A_percent": {
+        "median_rgb_l2": -1.3405307641988966,
+        "robust_mae": -9.098841675785863
+      },
+      "D_vs_A_percent": {
+        "median_rgb_l2": 0.0,
+        "robust_rgb_mae": 0.0
+      },
+      "automatic_no_regression": true,
+      "board": "deliverables\\db146_ground_operator\\development_evidence\\final_046564c\\wet_or_specular\\high\\patch_board.png",
+      "inner_decision_sha256": "f6304ddfa15752aa957cbb89f26e9631df0d76b0a50129d3cf53df1c5ea2cc08",
+      "key": "wet_or_specular:high",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.012061826884746552,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.025046108290553093,
+          "robust_rgb_mae": 0.007688939105719328
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.012223519384860992,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.033593643456697464,
+          "robust_rgb_mae": 0.008388543501496315
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.012061826884746552,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.025046108290553093,
+          "robust_rgb_mae": 0.007688939105719328
+        }
+      },
+      "safe_inverse_fraction": 0.0,
+      "selected_label": "A",
+      "uncertainty_mean": 1.0,
+      "uses_inverse": false
+    },
+    {
+      "B_vs_A_percent": {
+        "median_rgb_l2": 9.30003312714357,
+        "robust_mae": 10.945530000671674
+      },
+      "D_vs_A_percent": {
+        "median_rgb_l2": 4.7405757827496514e-05,
+        "robust_rgb_mae": 0.0
+      },
+      "automatic_no_regression": true,
+      "board": "deliverables\\db146_ground_operator\\development_evidence\\final_046564c\\wet_or_specular\\low\\patch_board.png",
+      "inner_decision_sha256": "7f9f5b7ec5540ea5b23f922a5018ef88724ca82b2bbfea17635372c337f15f09",
+      "key": "wet_or_specular:low",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.039291538298130035,
+          "n_pixels": 14201,
+          "p95_rgb_l1": 0.24819761514663696,
+          "robust_rgb_mae": 0.035329800099134445
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.03563741222023964,
+          "n_pixels": 14201,
+          "p95_rgb_l1": 0.202825129032135,
+          "robust_rgb_mae": 0.031462766230106354
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.03929151967167854,
+          "n_pixels": 14201,
+          "p95_rgb_l1": 0.24819761514663696,
+          "robust_rgb_mae": 0.035329800099134445
+        }
+      },
+      "safe_inverse_fraction": 0.0,
+      "selected_label": "A",
+      "uncertainty_mean": 1.0,
+      "uses_inverse": false
+    }
+  ],
+  "safety_pass": true,
+  "schema": "db146_aggregate_v1",
+  "unseen_patches": [
+    {
+      "B_vs_A_percent": {
+        "median_rgb_l2": -11.332491472148822,
+        "robust_mae": -8.329298689392505
+      },
+      "D_vs_A_percent": {
+        "median_rgb_l2": 0.0,
+        "robust_rgb_mae": 0.0
+      },
+      "automatic_no_regression": true,
+      "board": "deliverables\\db146_ground_operator\\unseen_evidence\\final_02678d_046564c\\unseen_dry\\high\\patch_board.png",
+      "inner_decision_sha256": "4700dc98176ca293594303bba8c5a05ba5839c8ac6730d87f0ffd21ac40b8c31",
+      "key": "unseen_dry:high",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.029171502217650414,
+          "n_pixels": 43953,
+          "p95_rgb_l1": 0.038053739815950394,
+          "robust_rgb_mae": 0.016408266499638557
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.03247736021876335,
+          "n_pixels": 43953,
+          "p95_rgb_l1": 0.03439171984791756,
+          "robust_rgb_mae": 0.01777496002614498
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.029171502217650414,
+          "n_pixels": 43953,
+          "p95_rgb_l1": 0.038053739815950394,
+          "robust_rgb_mae": 0.016408266499638557
+        }
+      },
+      "safe_inverse_fraction": 0.0,
+      "selected_label": "A",
+      "uncertainty_mean": 1.0,
+      "uses_inverse": false
+    },
+    {
+      "B_vs_A_percent": {
+        "median_rgb_l2": -3.471722320933294,
+        "robust_mae": -4.751251855892396
+      },
+      "D_vs_A_percent": {
+        "median_rgb_l2": 0.0,
+        "robust_rgb_mae": 0.0
+      },
+      "automatic_no_regression": true,
+      "board": "deliverables\\db146_ground_operator\\unseen_evidence\\final_02678d_046564c\\unseen_dry\\low\\patch_board.png",
+      "inner_decision_sha256": "18b90ae6e1f3356416fb0cf66cf1b4998db1ffd0e2d6d3f4a5581cc7e039a52a",
+      "key": "unseen_dry:low",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.040603332221508026,
+          "n_pixels": 5778,
+          "p95_rgb_l1": 0.09636566787958145,
+          "robust_rgb_mae": 0.02671685814857483
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.04201296716928482,
+          "n_pixels": 5778,
+          "p95_rgb_l1": 0.10329187661409378,
+          "robust_rgb_mae": 0.02798624336719513
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.040603332221508026,
+          "n_pixels": 5778,
+          "p95_rgb_l1": 0.09636566787958145,
+          "robust_rgb_mae": 0.02671685814857483
+        }
+      },
+      "safe_inverse_fraction": 0.0,
+      "selected_label": "A",
+      "uncertainty_mean": 1.0,
+      "uses_inverse": false
+    }
+  ],
+  "unseen_root": "deliverables\\db146_ground_operator\\unseen_evidence\\final_02678d_046564c",
+  "vision_gate": "PENDING_HUMAN_EYE"
+}

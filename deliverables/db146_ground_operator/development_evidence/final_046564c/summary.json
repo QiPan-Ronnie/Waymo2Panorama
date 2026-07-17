@@ -1,0 +1,212 @@
+{
+  "bands": [
+    {
+      "label": "lp8",
+      "sigma_cell": 8.0
+    },
+    {
+      "label": "lp4",
+      "sigma_cell": 4.0
+    },
+    {
+      "label": "lp2",
+      "sigma_cell": 2.0
+    },
+    {
+      "label": "lp1",
+      "sigma_cell": 1.0
+    },
+    {
+      "label": "full",
+      "sigma_cell": 0.0
+    }
+  ],
+  "created_utc": "2026-07-17T16:15:13.318830+00:00",
+  "cuda": "12.8",
+  "elapsed_s": 460.5054941999988,
+  "git_commit": "046564c",
+  "gpu": "NVIDIA GeForce RTX 5070 Ti Laptop GPU",
+  "max_operator_observations": 60000,
+  "patches": {
+    "dry_straight:high": {
+      "completed_utc": "2026-07-17T16:16:40.092073+00:00",
+      "inner_decision_sha256": "30b24c6777bcb3b01fb563b63eb1ff0e735c1510c3a0b826d1d6c98a70da8125",
+      "key": "dry_straight:high",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0809803456068039,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.16889910399913788,
+          "robust_rgb_mae": 0.05248250812292099
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.06916789710521698,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.1527647078037262,
+          "robust_rgb_mae": 0.04806770756840706
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0809803456068039,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.16889910399913788,
+          "robust_rgb_mae": 0.05248250812292099
+        }
+      },
+      "selected_label": "A"
+    },
+    "dry_straight:low": {
+      "completed_utc": "2026-07-17T16:18:04.075393+00:00",
+      "inner_decision_sha256": "9a97ae0dc06aaa4fd9d3070dcb2f2569b62d311eee85943399e42bf4d2803d3d",
+      "key": "dry_straight:low",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0159560889005661,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.02784462459385395,
+          "robust_rgb_mae": 0.009711047634482384
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.014429420232772827,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.024388832971453667,
+          "robust_rgb_mae": 0.008713895455002785
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0159560889005661,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.02784462459385395,
+          "robust_rgb_mae": 0.009711047634482384
+        }
+      },
+      "selected_label": "A"
+    },
+    "dry_turn:high": {
+      "completed_utc": "2026-07-17T16:19:17.661424+00:00",
+      "inner_decision_sha256": "70d672408319f229ff1aa1f971b5f8c4dbf6c085910a0b5a98413620499e8319",
+      "key": "dry_turn:high",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.07865558564662933,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.38788682222366333,
+          "robust_rgb_mae": 0.1026897206902504
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.1929015815258026,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.4027155637741089,
+          "robust_rgb_mae": 0.1514083445072174
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.07865558564662933,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.38788682222366333,
+          "robust_rgb_mae": 0.1026897206902504
+        }
+      },
+      "selected_label": "A"
+    },
+    "dry_turn:low": {
+      "completed_utc": "2026-07-17T16:20:28.317653+00:00",
+      "inner_decision_sha256": "e49cf9ec7904db200389a253b3c3b736bee095d3d9c13d8c3ac378e9b02421cd",
+      "key": "dry_turn:low",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.05333147570490837,
+          "n_pixels": 19022,
+          "p95_rgb_l1": 0.42975422739982605,
+          "robust_rgb_mae": 0.041527342051267624
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.0525876060128212,
+          "n_pixels": 19022,
+          "p95_rgb_l1": 0.4208647310733795,
+          "robust_rgb_mae": 0.040837254375219345
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.05333147570490837,
+          "n_pixels": 19022,
+          "p95_rgb_l1": 0.42975419759750366,
+          "robust_rgb_mae": 0.041527342051267624
+        }
+      },
+      "selected_label": "A"
+    },
+    "wet_or_specular:high": {
+      "completed_utc": "2026-07-17T16:21:43.645841+00:00",
+      "inner_decision_sha256": "f6304ddfa15752aa957cbb89f26e9631df0d76b0a50129d3cf53df1c5ea2cc08",
+      "key": "wet_or_specular:high",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.012061826884746552,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.025046108290553093,
+          "robust_rgb_mae": 0.007688939105719328
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.012223519384860992,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.033593643456697464,
+          "robust_rgb_mae": 0.008388543501496315
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.012061826884746552,
+          "n_pixels": 60000,
+          "p95_rgb_l1": 0.025046108290553093,
+          "robust_rgb_mae": 0.007688939105719328
+        }
+      },
+      "selected_label": "A"
+    },
+    "wet_or_specular:low": {
+      "completed_utc": "2026-07-17T16:22:53.817523+00:00",
+      "inner_decision_sha256": "7f9f5b7ec5540ea5b23f922a5018ef88724ca82b2bbfea17635372c337f15f09",
+      "key": "wet_or_specular:low",
+      "outer_metrics": {
+        "A": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.039291538298130035,
+          "n_pixels": 14201,
+          "p95_rgb_l1": 0.24819761514663696,
+          "robust_rgb_mae": 0.035329800099134445
+        },
+        "B": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.03563741222023964,
+          "n_pixels": 14201,
+          "p95_rgb_l1": 0.202825129032135,
+          "robust_rgb_mae": 0.031462766230106354
+        },
+        "D": {
+          "coverage": 1.0,
+          "median_rgb_l2": 0.03929151967167854,
+          "n_pixels": 14201,
+          "p95_rgb_l1": 0.24819761514663696,
+          "robust_rgb_mae": 0.035329800099134445
+        }
+      },
+      "selected_label": "A"
+    }
+  },
+  "python": "3.11.15",
+  "run_id": "final_046564c",
+  "schema": "db146_run_v1",
+  "source_manifest": "D:\\BaiduSyncdisk\\2024 to future\\koi chen\\w\\db145\\deliverables\\db145_ground_operator\\r3\\manifest.json",
+  "source_manifest_sha256": "f35e50e3ec1c3deaede1911f63a89035904f403e8c8189dc298266d70a4a3523",
+  "torch": "2.10.0+cu128"
+}

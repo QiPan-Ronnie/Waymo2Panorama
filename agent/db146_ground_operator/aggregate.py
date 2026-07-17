@@ -16,6 +16,10 @@ EXPECTED_DEVELOPMENT_PATCHES: tuple[tuple[str, str], ...] = tuple(
     for role in ("dry_straight", "dry_turn", "wet_or_specular")
     for level in ("high", "low")
 )
+EXPECTED_UNSEEN_PATCHES: tuple[tuple[str, str], ...] = (
+    ("unseen_dry", "high"),
+    ("unseen_dry", "low"),
+)
 
 
 def _sha256_file(path: Path) -> str:
@@ -132,6 +136,7 @@ def aggregate(
     development_root: Path,
     output: Path,
     expected_commit: str,
+    unseen_root: Path | None = None,
 ) -> dict[str, object]:
     patches = [
         _collect_patch(
@@ -145,6 +150,17 @@ def aggregate(
         for item in patches
         if item["key"] in ("dry_straight:high", "dry_turn:high")
     ]
+    unseen_patches = (
+        [
+            _collect_patch(
+                Path(unseen_root) / role / level,
+                f"{role}:{level}",
+            )
+            for role, level in EXPECTED_UNSEEN_PATCHES
+        ]
+        if unseen_root is not None
+        else []
+    )
     checks = {
         "six_patches_complete": len(patches) == 6,
         "all_inner_decisions_hash_frozen": all(
@@ -165,19 +181,40 @@ def aggregate(
             if ":low" in item["key"] or item["key"].startswith("wet_or_specular:")
         ),
     }
+    if unseen_root is not None:
+        checks.update(
+            {
+                "two_unseen_patches_complete": len(unseen_patches) == 2,
+                "all_unseen_D_within_1pct_of_A_on_both_outer_metrics": all(
+                    bool(item["automatic_no_regression"]) for item in unseen_patches
+                ),
+                "no_unseen_patch_selects_untruncated_full": all(
+                    item["selected_label"] != "full" for item in unseen_patches
+                ),
+            }
+        )
+    safety_checks = {
+        key: value
+        for key, value in checks.items()
+        if key != "at_least_one_dry_high_retains_real_gain"
+    }
     payload: dict[str, object] = {
         "schema": "db146_aggregate_v1",
         "expected_git_commit": expected_commit,
         "development_root": str(development_root),
+        "unseen_root": str(unseen_root) if unseen_root is not None else None,
         "checks": checks,
+        "safety_pass": all(safety_checks.values()),
+        "efficacy_pass": checks["at_least_one_dry_high_retains_real_gain"],
         "automatic_pass": all(checks.values()),
         "vision_gate": "PENDING_HUMAN_EYE",
         "patches": patches,
+        "unseen_patches": unseen_patches,
     }
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     write_json(output / "verdict_metrics.json", payload)
-    _make_board(patches, output / "verdict_board.png")
+    _make_board(patches + unseen_patches, output / "verdict_board.png")
     return payload
 
 
@@ -186,6 +223,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--development-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--expected-commit", required=True)
+    parser.add_argument("--unseen-root", type=Path)
     return parser.parse_args()
 
 
@@ -195,6 +233,7 @@ def main() -> None:
         development_root=args.development_root,
         output=args.output,
         expected_commit=args.expected_commit,
+        unseen_root=args.unseen_root,
     )
     print(
         f"DB146_AGGREGATE automatic_pass={payload['automatic_pass']} "

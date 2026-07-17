@@ -1,0 +1,31 @@
+{
+  "schema": "db146_final_verdict_v1",
+  "status": "DONE_KILL_NOT_PRODUCTION",
+  "experiment_git_commit": "046564c",
+  "development_run": "final_046564c",
+  "unseen_run": "final_02678d_046564c",
+  "unseen_log_id": "02678d04-cc9f-3148-9f95-1ba66347dff9",
+  "checks": {
+    "development_six_complete": true,
+    "unseen_two_complete": true,
+    "inner_decisions_hash_frozen_before_outer": true,
+    "all_D_within_1pct_of_A": true,
+    "human_eye_no_new_D_artifacts": true,
+    "at_least_one_dry_high_retains_real_gain": false
+  },
+  "safety_pass": true,
+  "efficacy_pass": false,
+  "vision_gate": "PASS_D_EQUALS_A_ALL_8",
+  "selected_bands": {
+    "dry_straight:high": "A",
+    "dry_straight:low": "A",
+    "dry_turn:high": "A",
+    "dry_turn:low": "A",
+    "wet_or_specular:high": "A",
+    "wet_or_specular:low": "A",
+    "unseen_dry:high": "A",
+    "unseen_dry:low": "A"
+  },
+  "decision": "The evidence gate is safe but vacuous: no inverse band survives every structured inner fold. Kill the DB-146 production upgrade and retain v15 A.",
+  "production_changes": false
+}
