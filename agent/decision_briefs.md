@@ -5,8 +5,60 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-145: Sensor-native 各向异性地面逆成像 — pixel-footprint operator kill-test
+Status: **ACTIVE (2026-07-17,user 明确授权立项；当前唯一 ACTIVE)。本条只授权一次小尺度 kill-test，不授权修改 v15 量产管线或重做数据集。**
+Question: 在不生成、不逐场景调参的前提下，直接从原始 AV2 相机像素及其真实地面投影足迹建立前向算子，能否比 v10/v15 的「2.5cm 网格 + 最多 6 观测 RGB 中值」恢复更多可被 held-out 原始相机验证的真实地面细节？
+
+**为什么这条没有真正做过：**
+  - v10/v15 当前所谓 MFSR 是细 world-BEV 网格上的多观测中值融合；它没有联合反解潜在纹理，也没有显式保留每个原始像素的亚像素相位和二维 footprint。
+  - DB-118 虽做过 `T+δ+c` 联合优化和 GSD-aware 观测，但其主流程先查询 BEV cell center、再回投相机，落盘核心仍是 `grid index + RGB`；GSD 是标量近似，不是从原始像素四角/局部 Jacobian 得到的各向异性成像算子。因此 DB-118 是重要先证，不等于本题已测。
+  - AV2 地面在 20–28m 处主要以约 4–6° 掠射角进入相机；一个像素在地面上的足迹沿径向会被拉长，径向/切向长轴比量级约为 `r/h≈9–12×`。把这种椭圆退化近似成一个点或各向同性 mip，会抹掉仍可能由多帧互补采样恢复的切向信息。
+
+**核心假设（必须可证伪）：**
+  - 对每个合法原始相机像素，用像素四角射线与固定/强约束 2.5D 地面求交，得到地面椭圆 footprint（或等价 Jacobian/EWA 核），构造 `y = H(T; pose, gain) + noise`。
+  - 在多帧 footprint 确实互补、且观测条件良好的区域，用 robust data term 联合求解潜在纹理 `T`，应比中值融合更清晰；所有观测共享的 null space 不可恢复，必须由可观测性图判为 unknown/abstain，不能靠正则项“锐化”出来。
+  - 湿地镜面反射不是同一个静态 Lambertian 纹理；首轮只把它当 falsification / rejection 分支，不把复杂 BRDF 塞进主解法。
+
+**非目标 / 红线：**
+  - 不用 FLUX、DiT、ESRGAN、ProPainter 或其他生成先验；不追求“看起来完整”，只问能否增加可验证的真实信息。
+  - 不跑完整 1+92，不改 `scripts/phase3/db89_ghost_recovery.py`、`agent/db115_drivers/db144_v15.py`、v15 mask 契约或已交付 555 个样本。
+  - 不 wholesale 移植 RoMe/RoGS，不自由优化几何到足以吸收纹理误差，不允许手画 ROI、逐场景阈值或只对 BMW 调参。
+
+**一次实验的冻结设计：**
+  - **场景**：3 个 log，各代表 dry-straight / dry-turn / wet-or-specular；ID 在看结果图前按现有几何/质量账本自动选定并写入 manifest。BMW `02a00399…` 最多只是三者之一，绝不是调参目标。
+  - **patch**：每 log 自动选 1 个高可观测、1 个低可观测的 `2m×2m` 地面 patch，共 6 个；选择只看 footprint 数、面积/长轴比、视角多样性、亚像素相位覆盖和动态遮挡，不看重建好坏。
+  - **A 基线**：复现 v10/v15 `2.5cm + ≤6 slot RGB median`。**B 主案**：固定/强约束地面 + sensor-native 椭圆 footprint + bounded pose/gain + Huber/L1 data term。**C 诊断**：B 加跨视角反光/离群拒绝，只回答 wet 失败是否来自观测模型破坏。
+  - **严格 held-out**：每个 patch 预先冻结整台相机或连续时间块，完全不进求解；最终把 A/B/C 重新渲染到这些 held-out 原始相机，与真实 raw view 比较。latent texture 自己更锐不算证据。
+  - **可观测性账本**：输出每 texel 的 footprint count、有效覆盖、长轴比、角度/相位多样性、局部条件数 proxy、provenance 和 uncertainty；它必须能提前解释“哪里可恢复、哪里只能黑”。
+
+**Pass criteria（全部满足才升级）：**
+  1. B 在三类场景中至少两个 dry 高可观测 patch 上，相对 A 同时改善 held-out robust photometric error 与全分辨率眼核；线纹/路缘/颗粒更清楚且无双边、振铃、拼布或漂移。
+  2. 改善来自 data term：held-out raw view 同步变好，而不只是 BEV/ERP 图更锐；mask 外/已观测真值不得被重绘。
+  3. 一套冻结参数跨 3 logs；高/低可观测成败与事前 observability prediction 一致。
+  4. 产物能逐像素追溯到真实观测，并给出 uncertainty；不可观测区保持 abstain。
+
+**Kill / 降级判据：**
+  - dry 高可观测 patch 的 B 对 held-out 不优于 A → **立即 kill sensor-native MFSR 主张**，接受当前中值融合已接近信息上限。
+  - latent/ERP 更锐但 held-out 不改善，或出现假线、双边、ringing → 判为正则幻觉，kill。
+  - 只有手选 ROI、逐场景参数、自由几何或 BMW 特调才成立 → 违反 General，kill。
+  - dry 通过、wet 失败 → 不扩成大型 BRDF 工程；wet 走自动 rejection/abstain，主案只声明适用于 photometrically stable 区域。
+  - 只有转弯高视差窗口通过 → 不宣称 universal fill；最多把 observability 用于条件启用/选窗。
+  - patch 级证据未过就要求整 log、完整 1+92 或改量产内核 → scope violation，停止。
+
+**Max scope / GPU budget：**
+  - 代码只进 `agent/db145_ground_operator/`，结果只进 `deliverables/db145_ground_operator/`；3 logs × 2 patches，单卡串行。
+  - **1×L4 24GB 足够且是首轮指定卡**；chunk 处理 source observations，目标峰值 `<16GB VRAM`，硬上限 **4 L4 GPU-hours**。不下载任何大模型权重。
+  - 预计纯优化几十分钟到约 1 小时，数据定位/几何预处理可能占主要时间；Colab 会话建议留 3–4 小时、RAM ≥24GB、临时盘预留约 40–60GB。
+  - 只有本 brief 全部 pass 后，才另立新 brief 讨论 full-log operator、world-map 增量更新或 A100/Blackwell 扩量；本轮不提前优化吞吐。
+
+**Required vision check / outputs：**
+  - 每 patch 必出：raw source + footprint overlay、observability map、A/B/C latent crop、uncertainty、held-out render↔raw 对照、最终 ERP crop；眼睛负责判伪影，held-out 负责防“假锐”。
+  - 固化 `manifest.json`、完整 config/seed/env、每 patch metrics、失败原因和一页 verdict board；结果回写 `progress.md`。未看全 6 组原图不得下结论。
+
+---
+
 # DB-136: v15 数据契约定版(用户 + koi 三方对齐)
-Status: **DEFINED / 待量产(2026-07-14,五项拍板全部用户亲自敲定,面向 koi 三方对齐 + 开会 PPT 取材)。** 本条把 v15 数据集契约的五个关键决策、核心论点(去车头黑区必然性)、PPT 数字包与素材索引一次性定档;下一步 = 按 `datasets/av2_1plus92_v15/` 布局全量重制(train 700 + val 150 全池 × ~60% × ~1.5 窗 ≈ 550-700 数据,双机 2-3 天),旧 73 个 v14 成品随 v15 全量重制自动补齐 A/B。
+Status: **DONE (2026-07-17,DB-144 全量收官)。** 五项契约已全部落地；AV2 850 个可用 log 已 100% 判定，最终交付 555 个 A/B 双版样本(val 101 + train 454)，零残留 FAIL。以下保留定版时的完整契约与预测，实际终盘数字以 `progress.md` DB-144 为准。
 Question: v15 数据集喂 Cosmos 微调,第三级填充用什么 / 浅脏瑕疵帧放不放行 / mask "白=真实" 契约怎么补齐 / A vs B(去车头填充 vs 车头区全黑)两版本要不要一次导出 / 多窗与旧场景重制开不开——五个契约级问题一次拍死。
 
 **五项拍板(全部用户亲自定):**
@@ -41,7 +93,7 @@ Question: v15 数据集喂 Cosmos 微调,第三级填充用什么 / 浅脏瑕疵
 ---
 
 # DB-123: scene-band ego 车身去除 — band 帧下缘车身(hood 反光凸块 + 两端车顶总成镜面反光弧)去除
-Status: **ACTIVE (2026-07-11,user 07-11 晨判决开三条线)。v6/v7 基线已定稿:解析双盒(body+roof)per-camera 图像域 mask,composite 主投影源头拒除→置黑;roof 盒专门制服两端车顶总成镜面反射弧。生成器 `agent/db115_drivers/db123_egomask_analytic.py`,内核 hook=db89 DB-123 v2(`EGO_IMG_MASK` npz),driver v7 端到端验证过(e28c16d0 COMPLETE)。六轮判决史见 progress.md 2026-07-11 条目。当前三线并行:黑 mask 机理论证 / 时间反投影填充实验 / v6 mask 过拦精修。**
+Status: **DONE / absorbed into DB-136 + DB-144 v15 production (2026-07-17)。** v15 A/B、ego removal、真实填充与严格 mask 已全量落地；以下保留历史问题与判决链。
 Question: band 帧下缘的 ego body(hood 反光凸块 + 两端车顶总成镜面反光弧)与 f000(无车头)不一致,喂 Cosmos 会产生前后帧矛盾;如何在不发明假地面、不损伤真实非车身像素的前提下把它干净去除,并让去除后的洞区对 Cosmos 生成友好?
 
 背景:band 帧下缘有 ego body(hood 反光凸块 + 两端车顶总成镜面反光弧),而 f000 无车头、band 有,喂 Cosmos 不一致。koi 明确要求去除。
@@ -60,7 +112,7 @@ Question: band 帧下缘的 ego body(hood 反光凸块 + 两端车顶总成镜�
 ---
 
 # DB115-PRO2: 冻结 `av2_1plus92_dataset` 好像素的分层收口——地面污染、ego/真盲区、sky seam、mask 与吞吐
-Status: **ACTIVE (2026-07-10,user 明确授权独立开工)。与另一条 `db115_pro` 完全隔离：不复用、不修改其代码或产物；只读基线=`deliverables/av2_1plus92_dataset/`，代码=`agent/db115_pro2/`，产物=`deliverables/db115_pro2/`。DB-121 暂停。当前检查点：旧基线已做像素级冻结；sky 先走窄带 Gaussian；ground 只允许旧底图上的局部修补，不得整层替换。**
+Status: **SUPERSEDED by DB-136 + DB-144 v15 production (2026-07-17)；历史产物保留。**
 Question: 能否不重建已经较好的 scene band/真实地面、不让 world-BEV RGB 再次接管前景，只在有明确 ownership/provenance 的缺陷区修复 ①孤立黑斑 ②ego body 残留/真盲区 ③sky↔scene-band 接缝，并同时产出严格的 1+92 known-mask 与 fresh、可复现的速度账本？
 
 Frozen baseline / non-negotiables:
@@ -194,7 +246,7 @@ Output: `deliverables/db116_frame1/`。driver `agent/db115_drivers/db116_*`。GP
 ---
 
 # DB-115: AV2→Cosmos 1+92 数据集构建 — 两阶段"搜干净窗"筛选机制(几何预筛 + 渲染后质检门 + 定向人眼)
-Status: **ACTIVE(主线)— user co-decided 2026-06-30 via /brainstorming(设计逐段共定,user 已批"写吧")。取代地面-outpaint-优化线(DB-108/109/110/112 降级:用户明确"不再纠结地面 outpainting 优化")。承接 DB-114 的 S0-v2 选帧 + hood 思路,升级为完整数据集机制。下一步=按实现计划执行(先 Phase A 零 GPU)。未 git(user:先不急)。**
+Status: **DONE / superseded by DB-144 v15 full production (2026-07-17)；以下保留历史计划。**
 Plan: `agent/plans/2026-06-30-db115-1plus92-dataset.md`(writing-plans 产出:bite-sized;纯几何函数本地单测,渲染/生成用"读回+人眼"验收;GPU 全 gated;git 暂停)。
 Question: 不修 fable5 算法的缺陷,而是利用"一个 log 几百帧"的海量,SEARCH 出算法"恰好不出问题"的连续 93 帧 → 1+92 数据集(frame-1=完整 360 全景;后 92 帧=纯净 scene band,天地黑不填)→ 喂下游 Cosmos。能否用"几何预筛 + 渲染后自动门 + 定向人眼"两阶段、高效且保证正确性地做到?
 核心范式(user 锐化,字典序目标):**先**找 band 100% 干净的连续 93 窗口(硬过滤,二元)→ **再**在其中挑 frame-1 全景质量最高者(排序)。不强求算法处处完美,只找它已 work 的那一段;某 log 找不到 → 诚实跳过(graceful degradation,北极星通用性)。frame-1 标准=务实"现有有缺陷算法下能得到的最完美 360",非绝对完美。
@@ -255,7 +307,7 @@ Handoff: 调研在云端(Workflow agent),不占本地 GPU;GPU 验证仍走 DB-11
 ---
 
 # DB-109: Nadir ground ROOT-CAUSE fix — per-anchor independent rebuild (temporal incoherence) → world-frame BEV ground mosaic
-Status: **ACTIVE / top priority — user co-decided 2026-06-23 to take the ROOT-CAUSE route (not a per-frame filler choice). GPU = L4 live.** Two stages: (1) gate-funnel diagnostic splitting "no-source" into geometry-blind vs rule-rejected; (2) no-network world-frame BEV ground mosaic. Supersedes DB-108.
+Status: **DONE / superseded by DB-117–129 and DB-144 production (2026-07-17)；以下保留根因与判决史。**
 **DIRECTION UPDATE (2026-06-24, user co-decided A after Evidence-A/B/C — see `progress.md`):** the 格子/tiling that replaced the swirl is NOT selection-fixable (Evidence-B: argmin-to-median pick changes pixels by only 2.66/255) and the nadir ground is only **~6–22% faithfully-recoverable per traffic frame** (Evidence-C SPREAD_MAX 8/14/30 sweep → real 6.6/22/92%, but ≤30 = quilt). The 格子 = grazing-stretch + genuine multi-view disagreement (spread 15–30); no single source is clean there. **NEW ARCHITECTURE (chosen): faithful spread-gated base (clean, deterministic-coherent, ~spread≤14) + GENERATIVE fill (DiT/Cosmos = DB-14) for the honest holes.** The "fill the cap to 100% via reprojection" goal is RETIRED (fights physics). Generative fill MUST be temporally coherent (video model) or the hole re-swirls. Evidence: `deliverables/db109_ground_rootcause/evidence{A,B,C}_*`. NEW gated flag `COHERENT_PICK` (default "sweet"=unchanged) + the per-cap winning-source LABEL dump (db89 ~:1567) added this session; shipped default untouched.
 **Stage-1 DONE (2026-06-23, eye+code+data, see `progress.md`):** the "physical wall" is DISPROVED — gate0 geometry-blind = 0.0% on all 4 frames (bmw/clean/highway a309/a260). a309's 94% "no-source" = `gate3` MOVING-BOX occlusion (NOT geometry-blind; Finding 5 corrected); bmw's = `gate4` spread>30; a260 = 99% real.
 **Stage-1b DONE (2026-06-23):** the moving-box gate is OVER-AGGRESSIVE — a309 real **5.6% → 81.9%** with `MOVING_GATE=False` (new diagnostic flag, default True). The 94.4% splits into 76.3% mis-blocked REAL ground (becomes spread≤30) + 18.1% genuine car (held by the spread gate). Eye-verified: nomove nadir = real asphalt+lanes, no car-hallucination. Root: `gseg_blocked` drops a whole grazing ray that merely passes near a 1.3x car box. ⇒ a309's low real-share = a FIXABLE single-frame gate bug, NOT a wall/world-BEV necessity. CAUTION: don't ship MOVING_GATE=False (leans on spread to catch cars); ship = a PRECISE moving gate.
@@ -319,7 +371,7 @@ Output: `deliverables/db105_nearfield_geometry/` (audit evidence already there).
 ---
 
 # DB-105: Route-2 middle-only current-core video set for Xinhan fallback
-Status: active - user requested start now on current L4.
+Status: **HISTORICAL / superseded by the 1+92 v15 route；not current ACTIVE.**
 Question: with the current Fable-5 core plus shipped `SEAM_FLOWMORPH=True`, are the 4 scenes × 93 exact Route-2 frames clean enough in the middle scene band when sky and ground are black (`GROUND_MODE='off'`) to serve Xinhan's fallback setting: first frame can carry full/ground context, frames 2-93 carry only clean middle-band perspective-to-pano content with no sky/ground loss?
 Why: existing `deliverables/route2_middle_v1/` already has the correct frame windows and black sky/ground, but most v1 clips were rendered before DB-103/104; only `highway_seamfixed.mp4` was patched after the near-car flow fix. Xinhan's fallback requires the middle band itself to be robust, so this should be rerendered as an isolated current-core v2 rather than relying on pre-fix v1 frames.
 Plan: render the same windows as `route2_middle_v1` / `ground_video_v1` into `datasets/route2_middle_v2`: bmw anchors 0-92, crowd 0-92, clean 0-92, highway 225-317. Use `scripts/phase3/db89_ghost_recovery.py` through the route2 wrapper with only `GROUND_MODE='off'`; no sky fill, no ground fill, no generation, no algorithm tuning, no frame-window changes. Assemble 4 mp4s, fetch to `deliverables/route2_middle_v2/`, then vision-check the middle band.

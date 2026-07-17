@@ -1,5 +1,15 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-17 ◆ DB-145 立项：sensor-native 各向异性地面逆成像 kill-test（L4 patch-first）
+> **触发**：v15 量产已收官，但用户认为纯地面 outpainting 的真实填充仍不够好，要求沿第一性原理方向正式立 decision brief，并询问 L4 是否足够。
+> **新颖性判定**：**这条精确路线以前没有真正做过。** v10/v15 是 `2.5cm world-BEV + ≤6 slot RGB median`，DB-118 虽验证过 `T+δ+c` 逆问题与 GSD-aware 观测，但仍先查询 BEV cell center、使用标量 GSD，未保留原始相机像素的亚像素相位和各向异性二维 footprint，也没有用严格 held-out 原始相机闭环防止“假锐”。因此 DB-145 测的是新的 imaging operator，而非再调一次中值融合。
+> **Question / 哲学**：直接从 source pixel 四角射线/局部 Jacobian 建立地面椭圆 footprint 前向算子，能否在可观测区域恢复更多由 held-out raw view 证实的真实细节？共享 null space 必须 abstain；不生成、不重画真值、不对 BMW 特调。
+> **冻结实验**：3 类 log（dry-straight / dry-turn / wet-or-specular）× 每 log 自动选 1 个高可观测 + 1 个低可观测 `2m×2m` patch；A=v10/v15 中值基线，B=sensor-native footprint inverse，C=反光/离群拒绝诊断；预先冻结整台相机或连续时间块作 held-out。所有场景 ID、patch 与参数必须在看结果前写入 manifest。
+> **Kill criteria**：dry 高可观测 patch 若 held-out 不优于 A，立即 kill；只 latent/ERP 更锐、需手选 ROI/逐场景参数/自由几何、或产生双边/振铃/假线，也 kill。dry 过而 wet 不过只允许 wet rejection/诚实黑，不扩成大型 BRDF 工程。
+> **Max scope / GPU**：仅 `agent/db145_ground_operator/` + `deliverables/db145_ground_operator/`；不改 db89/db144/v15 成品。**1×L4 24GB 足够**，观测 chunk 后目标峰值 `<16GB`，硬上限 **4 L4 GPU-hours**；预计 GPU 优化几十分钟到约 1 小时，完整 Colab 会话建议留 3–4 小时（数据定位可能比求解更慢）。
+> **当前状态**：brief 已建立，DB-145 为唯一 ACTIVE；尚未写实验代码、尚未占用 Colab。完整 Question/Pass/Kill/Max scope/vision outputs 见 `agent/decision_briefs.md` DB-145。
+> ---
+
 > ### 2026-07-17 ◆ DB-144 v15 量产收官终章：AV2 全 850 可用 log 判定 100% 完成 → 最终库存 555 个 A/B 双版样本(val 101 + train 454)、零 FAIL、超 BOSCH 口径 11%
 > **背景**：承前 DB-144 07-16（train 中期冻结 399 判 / 261 OK、总库存 362）+ DB-136（v15 数据契约,commit `4f4bc24`）。本条 = **AV2 全部 850 可用 log（val 150 + train 700）判定 100% 完成、v15 数据集量产收官**。全部实测、事实不软化、勿改数字。
 > **★① 最终库存 = 555 个 A/B 双版 1+92 样本** = **val 101（150 判,67% 通过率）+ train 454（700 判,64.9% 通过率）**。**超 BOSCH 口径「~500 expected」11%**（DB-136 数字包产能预期 550-700 命中下沿偏上）。每样本 = A/B 双版（A = 去车头 + 时序真实填充 + 逐帧严格 mask；B = `EGO_BLACK` 车头留黑），产物 Drive `koi_waymo2pano_colab/datasets/av2_1plus92_v15/{val,train}/<log8>_w1/`（frame1 完美 360° + 92 band 帧 + 逐帧严格 mask + mp4）。
