@@ -34,6 +34,7 @@ from .gate import (
     truncated_texture,
 )
 from .report import make_safe_patch_board
+from .sampling import MAX_OPERATOR_OBSERVATIONS, bound_observations
 
 
 def _sha256_file(path: Path) -> str:
@@ -83,12 +84,18 @@ def _inner_fold(
         training_groups=fit_groups,
         heldout_groups=validation_groups,
     )
-    train = extraction.train_observations.build_operator(
+    train_arrays, train_sampling = bound_observations(
+        extraction.train_observations
+    )
+    validation_arrays, validation_sampling = bound_observations(
+        extraction.heldout_observations
+    )
+    train = train_arrays.build_operator(
         grid_hw=extraction.baseline.valid.shape,
         config=DEFAULT_CONFIG,
         device=device,
     )
-    validation = extraction.heldout_observations.build_operator(
+    validation = validation_arrays.build_operator(
         grid_hw=extraction.baseline.valid.shape,
         config=DEFAULT_CONFIG,
         device=device,
@@ -125,8 +132,8 @@ def _inner_fold(
         "fold": fold_index,
         "fit_groups": list(fit_groups),
         "validation_groups": list(validation_groups),
-        "fit_observations": extraction.diagnostics["n_training_observations"],
-        "validation_observations": extraction.diagnostics["n_heldout_observations"],
+        "fit_observations": train_sampling.as_dict(),
+        "validation_observations": validation_sampling.as_dict(),
         "baseline": asdict(baseline_evaluation.metrics),
         "inverse_solver": {
             "elapsed_s": inverse.elapsed_s,
@@ -163,12 +170,18 @@ def _outer_and_save(
         training_groups=selected["training_groups"],
         heldout_groups=selected["heldout_groups"],
     )
-    train = extraction.train_observations.build_operator(
+    train_arrays, train_sampling = bound_observations(
+        extraction.train_observations
+    )
+    outer_arrays, outer_sampling = bound_observations(
+        extraction.heldout_observations
+    )
+    train = train_arrays.build_operator(
         grid_hw=extraction.baseline.valid.shape,
         config=DEFAULT_CONFIG,
         device=device,
     )
-    outer = extraction.heldout_observations.build_operator(
+    outer = outer_arrays.build_operator(
         grid_hw=extraction.baseline.valid.shape,
         config=DEFAULT_CONFIG,
         device=device,
@@ -214,15 +227,15 @@ def _outer_and_save(
         np.clip(uncertainty * 255.0, 0, 255).astype(np.uint8),
     )
 
-    original = extraction.heldout_observations.provenance["original_source_id"]
+    original = outer_arrays.provenance["original_source_id"]
     sources, counts = np.unique(original, return_counts=True)
     chosen_source = int(sources[np.argmax(counts)])
     chosen = original == chosen_source
     vision_outer = outer.subset(chosen)
     uv = np.column_stack(
         (
-            extraction.heldout_observations.provenance["u"][chosen],
-            extraction.heldout_observations.provenance["v"][chosen],
+            outer_arrays.provenance["u"][chosen],
+            outer_arrays.provenance["v"][chosen],
         )
     )
     source_evaluations = {
@@ -244,6 +257,10 @@ def _outer_and_save(
     a_metrics = evaluations["A"].metrics
     payload = {
         "extraction": extraction.diagnostics,
+        "operator_sampling": {
+            "training": train_sampling.as_dict(),
+            "outer_heldout": outer_sampling.as_dict(),
+        },
         "gate": decision.as_dict(),
         "outer_metrics": {
             name: asdict(evaluation.metrics) for name, evaluation in evaluations.items()
@@ -296,6 +313,7 @@ def run(args: argparse.Namespace) -> None:
         "cuda": torch.version.cuda,
         "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
         "bands": [{"label": label, "sigma_cell": sigma} for label, sigma in BAND_SPECS],
+        "max_operator_observations": MAX_OPERATOR_OBSERVATIONS,
         "patches": {},
     }
     for role, scene in manifest["scenes"].items():
