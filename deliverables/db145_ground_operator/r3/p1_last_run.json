@@ -1,0 +1,12 @@
+{
+  "completed": [
+    "dry_straight:high",
+    "dry_straight:low",
+    "dry_turn:high",
+    "dry_turn:low",
+    "wet_or_specular:high",
+    "wet_or_specular:low"
+  ],
+  "elapsed_s": 394.4096511919997,
+  "git_status": ""
+}

@@ -1,0 +1,28 @@
+{
+  "completed_utc": "2026-07-17T13:38:28.456916+00:00",
+  "key": "dry_straight:high",
+  "metrics": {
+    "A": {
+      "coverage": 1.0,
+      "median_rgb_l2": 0.08046364039182663,
+      "n_pixels": 69779,
+      "p95_rgb_l1": 0.16830651462078094,
+      "robust_rgb_mae": 0.05223666504025459
+    },
+    "B": {
+      "coverage": 1.0,
+      "median_rgb_l2": 0.07343773543834686,
+      "n_pixels": 69779,
+      "p95_rgb_l1": 0.17061682045459747,
+      "robust_rgb_mae": 0.04995888099074364
+    },
+    "C": {
+      "coverage": 1.0,
+      "median_rgb_l2": 0.07471594214439392,
+      "n_pixels": 69779,
+      "p95_rgb_l1": 0.1713375300168991,
+      "robust_rgb_mae": 0.05024217814207077
+    }
+  },
+  "metrics_sha256": "54a7376e182fa4cabc2b3f75c2fb03c749b449a45b4f91bde9e5ba2f79d7d611"
+}

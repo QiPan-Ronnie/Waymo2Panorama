@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-17 ◆ DB-145 收官：sensor-native footprint 逆成像局部成立、无门控主案 KILL → CONDITIONAL / NOT PRODUCTION
+> **有效实验**：最终判决 run=`db145_r3_20260717`，commit `9b748c6`，3 logs × high/low `2m×2m` 共 6 patches；straight=`8749f79f…`、turn=`02a00399…`、wet=`05fa5048…`。所有 patch、平面、参数与 held-out group 在 P0 冻结；r3 held-out 几何证据占比 13.3/19.7/20.1/26.4/18.8/20.5%，全部在 10–35% 内、与训练组严格不交叉。A=`2.5cm+≤6 source median`，B=raw-pixel anisotropic EWA inverse + bounded shift/gain，C=B+整 source 残差/MAD 拒绝；无生成、无 BMW 特调、v15 零改动。
+> **协议事故（均在判决前诚实作废）**：r1 视觉检查发现 held-out 下半部是 AV2 白色车头——几何把 ego-body 像素误当地面；接入 DB-123 v8-fine analytic body+roof mask，A/B/C/held-out 同门后重跑。r2 审计发现按“20% 时间点数”会因观测不均产生 4.3%/9.3% 的实际 held-out；改为 P0 枚举连续时间块或整相机、按几何有效 pixel 数冻结 10–35%，生成 r3。另将 149 万 observation 的逐 pixel Python support 构建改为 byte-equivalent 分桶向量化；10 万 observation 本机 0.266s，exact pair-set 回归测试通过。
+> **六块 robust MAE（B 相对 A，正数=改善）**：dry-straight high **+4.36%**（0.052237→0.049959）/ low **−113.93%**（0.010182→0.021782）；dry-turn high **+52.85%**（0.102722→0.048430）/ low **+1.73%**；wet high **−7.83%** / low **+10.72%**。两个 dry-high 的 median RGB L2 同时改善，证明保留原始 pixel footprint 在强可观测域确有真实信息价值。
+> **★眼核终判（眼睛胜过指标）**：turn-high held-out 的白色道路标线边界确实比 A 对齐；但 straight-low 是典型“latent 更锐、held-out MAE 翻倍”，turn-low 白线有棋盘/彩边，wet-low 出现严重斜向棋盘 + moiré，且同处 held-out error 爆亮。wet-low 的标量 MAE 虽改善 10.72%，仍判伪影失败。C 只按整 source 拒绝，不能稳定处理局部别名/反光。
+> **最终判决 = CONDITIONAL / NOT PRODUCTION**：**无门控 B 主案 KILL**，不得接入 db89/db144、不得把“有 support”直接标成 mask 白；当前 valid 只证明有观测，不证明逆问题局部可逆。sensor-native 假设不全死——两个 dry-high 通过，下一正确方向只能是 **训练内 held-out 交叉验证 + footprint/phase 局部条件数 + 截断奇异模态**，只放行被证据证明的频率/texel，其余回退 A 或诚实黑；wet 自动 abstain，不扩大型 BRDF。
+> **GPU/产物**：L4 24GB 完全足够；r3 六块 P1 墙钟 **394.4s**、峰值 **387.5MB CUDA**，训练/held-out raw pixels **1,768,341 / 395,378**，远低于 4 GPU-hour。产物 `deliverables/db145_ground_operator/{manifest_r3.json,verdict_r3.json,verdict_board_r3.png,r3/}` + Drive `results/db145_ground_operator/db145_r3_20260717/`；代码 `agent/db145_ground_operator/`，本地 **22 tests pass**。[[db145-ground-operator]] [[db123-ego-removal]] [[db118-inverse-ground]]
+> ---
+
 > ### 2026-07-17 ◆ DB-145 立项：sensor-native 各向异性地面逆成像 kill-test（L4 patch-first）
 > **触发**：v15 量产已收官，但用户认为纯地面 outpainting 的真实填充仍不够好，要求沿第一性原理方向正式立 decision brief，并询问 L4 是否足够。
 > **新颖性判定**：**这条精确路线以前没有真正做过。** v10/v15 是 `2.5cm world-BEV + ≤6 slot RGB median`，DB-118 虽验证过 `T+δ+c` 逆问题与 GSD-aware 观测，但仍先查询 BEV cell center、使用标量 GSD，未保留原始相机像素的亚像素相位和各向异性二维 footprint，也没有用严格 held-out 原始相机闭环防止“假锐”。因此 DB-145 测的是新的 imaging operator，而非再调一次中值融合。

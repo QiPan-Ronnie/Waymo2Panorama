@@ -1,0 +1,111 @@
+{
+  "schema": "db145_verdict_v1",
+  "run_id": "db145_r3_20260717",
+  "git_commit": "9b748c6",
+  "config_sha256": "8399492b847696b419f35227cf1be5327e0b5ec2d97c7d686cfb778ff5e6946f",
+  "status": "CONDITIONAL_NOT_PRODUCTION",
+  "decision": {
+    "ungated_B": "KILL",
+    "sensor_native_hypothesis": "RETAIN_ONLY_FOR_OBSERVABILITY_GATED_FOLLOWUP",
+    "wet_or_specular": "ABSTAIN",
+    "production_v15": "NO_CHANGE"
+  },
+  "why": [
+    "B improved identical held-out raw-pixel robust MAE and median RGB L2 on both dry high-observability patches.",
+    "Dry-straight low-observability B was 113.93% worse than A despite a sharper latent texture.",
+    "Dry-turn low showed checker/chromatic edge artifacts; wet-low showed severe diagonal checker and moire artifacts even though scalar MAE improved.",
+    "C whole-source rejection did not reliably remove the low-observability or wet artifacts.",
+    "The current implementation marks every supported texel valid but does not prove local inverse conditioning, so its white mask cannot satisfy the strict-real contract."
+  ],
+  "patches": [
+    {
+      "patch": "dry_straight:high",
+      "train_pixels": 454320,
+      "heldout_pixels": 69779,
+      "A_robust_mae": 0.052237,
+      "B_robust_mae": 0.049959,
+      "C_robust_mae": 0.050242,
+      "B_vs_A_percent": 4.36,
+      "C_vs_A_percent": 3.82,
+      "vision": "small real alignment improvement; no obvious new artifact"
+    },
+    {
+      "patch": "dry_straight:low",
+      "train_pixels": 347942,
+      "heldout_pixels": 85586,
+      "A_robust_mae": 0.010182,
+      "B_robust_mae": 0.021782,
+      "C_robust_mae": 0.021782,
+      "B_vs_A_percent": -113.93,
+      "C_vs_A_percent": -113.93,
+      "vision": "latent-only sharpness; held-out tone and alignment are worse"
+    },
+    {
+      "patch": "dry_turn:high",
+      "train_pixels": 406110,
+      "heldout_pixels": 101959,
+      "A_robust_mae": 0.102722,
+      "B_robust_mae": 0.048430,
+      "C_robust_mae": 0.047051,
+      "B_vs_A_percent": 52.85,
+      "C_vs_A_percent": 54.20,
+      "vision": "real held-out road-marking boundary alignment improvement"
+    },
+    {
+      "patch": "dry_turn:low",
+      "train_pixels": 53219,
+      "heldout_pixels": 19022,
+      "A_robust_mae": 0.041527,
+      "B_robust_mae": 0.040810,
+      "C_robust_mae": 0.040981,
+      "B_vs_A_percent": 1.73,
+      "C_vs_A_percent": 1.32,
+      "vision": "checker and chromatic ringing at the white road line"
+    },
+    {
+      "patch": "wet_or_specular:high",
+      "train_pixels": 451824,
+      "heldout_pixels": 104831,
+      "A_robust_mae": 0.007005,
+      "B_robust_mae": 0.007553,
+      "C_robust_mae": 0.007597,
+      "B_vs_A_percent": -7.83,
+      "C_vs_A_percent": -8.45,
+      "vision": "no visible detail gain"
+    },
+    {
+      "patch": "wet_or_specular:low",
+      "train_pixels": 54926,
+      "heldout_pixels": 14201,
+      "A_robust_mae": 0.035330,
+      "B_robust_mae": 0.031544,
+      "C_robust_mae": 0.034594,
+      "B_vs_A_percent": 10.72,
+      "C_vs_A_percent": 2.08,
+      "vision": "severe diagonal checker and moire; eye overrides scalar MAE"
+    }
+  ],
+  "protocol_audit": {
+    "r1": "invalidated before verdict: analytic ego-body mask was missing and hood pixels entered ground evidence",
+    "r2": "rejected before P1: two geometry-heldout fractions fell below the frozen 10% floor",
+    "r3": "valid: all six heldout fractions are 10-35%, groups are disjoint, and ego/body plus annotation evidence gates are active"
+  },
+  "compute": {
+    "gpu": "NVIDIA L4 24GB",
+    "p1_wall_seconds": 394.41,
+    "peak_cuda_memory_mb": 387.50,
+    "total_training_pixels": 1768341,
+    "total_heldout_pixels": 395378,
+    "gpu_hour_ceiling": 4.0
+  },
+  "next_test": {
+    "name": "observability-gated truncated inverse",
+    "requirements": [
+      "freeze an inner training-only validation split; outer r3 heldout remains untouched",
+      "compute local conditioning, footprint orientation diversity, and subpixel phase support",
+      "permit only singular modes proven by the inner split; no free high-frequency texels",
+      "fallback to A or honest black outside the proven support",
+      "use per-cell view-dependent residual rejection for wet surfaces; do not build a BRDF model"
+    ]
+  }
+}

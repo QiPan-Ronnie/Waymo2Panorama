@@ -107,3 +107,101 @@ def make_patch_board(
     rows.append(np.hstack(prediction_panels))
     board = np.vstack(rows)
     save_rgb(path, board)
+
+
+def _read_rgb(path: Path) -> np.ndarray:
+    image = cv2.imread(str(path), cv2.IMREAD_COLOR)
+    if image is None:
+        raise FileNotFoundError(path)
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+
+def _letterbox(image_rgb: np.ndarray, width: int, height: int) -> np.ndarray:
+    image = np.asarray(image_rgb)
+    scale = min(width / image.shape[1], height / image.shape[0])
+    resized = cv2.resize(
+        image,
+        (
+            max(1, int(round(image.shape[1] * scale))),
+            max(1, int(round(image.shape[0] * scale))),
+        ),
+        interpolation=cv2.INTER_NEAREST,
+    )
+    canvas = np.full((height, width, 3), 18, np.uint8)
+    x = (width - resized.shape[1]) // 2
+    y = (height - resized.shape[0]) // 2
+    canvas[y : y + resized.shape[0], x : x + resized.shape[1]] = resized
+    return canvas
+
+
+def make_verdict_board_from_artifacts(root: Path, output: Path) -> None:
+    """Create the six-patch full evidence board used for the DB-145 verdict."""
+
+    root = Path(root)
+    roles = (
+        ("dry_straight", "dry straight"),
+        ("dry_turn", "dry turn"),
+        ("wet_or_specular", "wet/specular"),
+    )
+    columns = (
+        ("A_texture.png", "A latent"),
+        ("B_texture.png", "B latent"),
+        ("C_texture.png", "C latent"),
+        ("A_heldout_raw.png", "held-out raw"),
+        ("A_heldout_pred.png", "A render"),
+        ("B_heldout_pred.png", "B render"),
+        ("C_heldout_pred.png", "C render"),
+        ("B_heldout_error_x4.png", "B error x4"),
+    )
+    tile_w, tile_h = 190, 150
+    label_w = 260
+    header_h = 40
+    header = np.full((header_h, label_w + tile_w * len(columns), 3), 20, np.uint8)
+    for index, (_, title) in enumerate(columns):
+        cv2.putText(
+            header,
+            title,
+            (label_w + index * tile_w + 8, 26),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.52,
+            (240, 240, 240),
+            1,
+            cv2.LINE_AA,
+        )
+    rows = [header]
+    for role, role_title in roles:
+        for level in ("high", "low"):
+            directory = root / role / level
+            metrics = json.loads((directory / "metrics.json").read_text(encoding="utf-8"))
+            heldout = metrics["heldout_metrics_all"]
+            a = heldout["A"]["robust_rgb_mae"]
+            b = heldout["B"]["robust_rgb_mae"]
+            c = heldout["C"]["robust_rgb_mae"]
+            b_delta = 100.0 * (a - b) / a
+            c_delta = 100.0 * (a - c) / a
+            label = np.full((tile_h, label_w, 3), 28, np.uint8)
+            lines = (
+                f"{role_title} / {level}",
+                f"A {a:.5f}",
+                f"B {b:.5f} ({b_delta:+.1f}%)",
+                f"C {c:.5f} ({c_delta:+.1f}%)",
+                f"train {metrics['extraction']['n_training_observations']:,}",
+                f"held {metrics['extraction']['n_heldout_observations']:,}",
+            )
+            for line_index, text in enumerate(lines):
+                cv2.putText(
+                    label,
+                    text,
+                    (8, 23 + line_index * 22),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.48,
+                    (245, 245, 245),
+                    1,
+                    cv2.LINE_AA,
+                )
+            panels = [
+                _letterbox(_read_rgb(directory / filename), tile_w, tile_h)
+                for filename, _ in columns
+            ]
+            rows.append(np.hstack([label, *panels]))
+    save_rgb(output, np.vstack(rows))

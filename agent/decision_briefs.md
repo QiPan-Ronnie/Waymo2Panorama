@@ -6,7 +6,7 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 ---
 
 # DB-145: Sensor-native 各向异性地面逆成像 — pixel-footprint operator kill-test
-Status: **ACTIVE (2026-07-17,user 明确授权立项；当前唯一 ACTIVE)。本条只授权一次小尺度 kill-test，不授权修改 v15 量产管线或重做数据集。**
+Status: **DONE — CONDITIONAL / NOT PRODUCTION（2026-07-17）。无门控 B 已 KILL；sensor-native 假设仅保留为 observability-gated 后续候选。未修改 db89/db144/v15 或 555 个已交付样本。**
 Question: 在不生成、不逐场景调参的前提下，直接从原始 AV2 相机像素及其真实地面投影足迹建立前向算子，能否比 v10/v15 的「2.5cm 网格 + 最多 6 观测 RGB 中值」恢复更多可被 held-out 原始相机验证的真实地面细节？
 
 **为什么这条没有真正做过：**
@@ -54,6 +54,14 @@ Question: 在不生成、不逐场景调参的前提下，直接从原始 AV2 �
 **Required vision check / outputs：**
   - 每 patch 必出：raw source + footprint overlay、observability map、A/B/C latent crop、uncertainty、held-out render↔raw 对照、最终 ERP crop；眼睛负责判伪影，held-out 负责防“假锐”。
   - 固化 `manifest.json`、完整 config/seed/env、每 patch metrics、失败原因和一页 verdict board；结果回写 `progress.md`。未看全 6 组原图不得下结论。
+
+**执行结果（r3 为唯一有效判决 run）：**
+  - 场景/patch 在 P0 自动冻结：straight=`8749f79f…`、turn=`02a00399…`、wet=`05fa5048…`；每 log 的 high/low patch、整台相机或连续时间 held-out 均在优化前写入 `manifest_r3.json`。r1 因漏 ego-body mask 作废；r2 因两块 held-out 实际证据 `<10%` 在 P0 作废；r3 六块 held-out 几何证据均为 `10–35%` 且与训练组不交叉。
+  - robust MAE 的 `B vs A`：dry-straight high **+4.36%**、dry-straight low **−113.93%**、dry-turn high **+52.85%**、dry-turn low **+1.73%**、wet high **−7.83%**、wet low **+10.72%**。两个 dry-high 的 median RGB L2 也都改善。
+  - **眼核否决全局升级**：turn-high 的白色道路标线边界改善是真实的；但 straight-low 是“latent 更锐、held-out 翻倍变差”，turn-low 出现棋盘/彩边，wet-low 出现严重斜向棋盘和 moiré。wet-low 即使标量 MAE 改善，仍按“眼睛胜过指标”判失败。C 的整 source 拒绝不能稳定消除局部反光/别名伪影。
+  - **最终判决**：未经条件数/null-space 门控的 B **KILL**，不得进入量产、不得把其 support 全标白；sensor-native footprint 的局部价值被 dry-high 证实，故研究假设不全死，最多进入下一轮“训练内 held-out + 局部条件数 + 截断奇异模态”的 evidence gate。wet 只允许 rejection/abstain，不做大型 BRDF。
+  - L4 实测完全足够：r3 六块 P1 墙钟 **394.4s**，峰值 **387.5MB CUDA**，训练/held-out raw pixels 合计 **1,768,341 / 395,378**，远低于 4 GPU-hour 与 16GB 门。
+  - 产物：`deliverables/db145_ground_operator/{manifest_r3.json,verdict_r3.json,verdict_board_r3.png,r3/}`；Drive `results/db145_ground_operator/db145_r3_20260717/`；实现 `agent/db145_ground_operator/`。完整数字与下一实验约束见 `verdict_r3.json`。
 
 ---
 
