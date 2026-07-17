@@ -328,12 +328,15 @@ def select_safe_band(
             reasons.append("median_robust_gain<0.5%")
         if int((robust > 0.0).sum()) < 2:
             reasons.append("fewer_than_2_positive_robust_folds")
-        if float(robust.min()) < -0.03:
-            reasons.append("worst_robust_regression>3%")
+        # A white-mask inverse has no licence to sacrifice one physical
+        # missingness structure for gains on the other two.  Even a small
+        # negative fold means the corresponding mode is not general evidence.
+        if float(robust.min()) < -1.0e-6:
+            reasons.append("some_robust_fold_regresses")
         if float(np.median(median_l2)) < 0.0:
             reasons.append("median_l2_not_improved")
-        if float(median_l2.min()) < -0.03:
-            reasons.append("worst_l2_regression>3%")
+        if float(median_l2.min()) < -1.0e-6:
+            reasons.append("some_l2_fold_regresses")
         if float(np.median(checker)) > 1.25:
             reasons.append("median_checker_excess")
         if float(checker.max()) > 1.75:

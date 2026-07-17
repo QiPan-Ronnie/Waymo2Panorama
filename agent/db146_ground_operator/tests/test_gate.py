@@ -115,3 +115,30 @@ def test_gate_falls_back_when_inner_validation_does_not_prove_gain():
     assert decision.selected_label == "A"
     assert not decision.uses_inverse
     assert decision.fallback_reason
+
+
+def test_one_regressing_fold_vetoes_two_large_positive_folds():
+    fold_metrics = {}
+    corrections = {}
+    for label, _ in BAND_SPECS:
+        gains = (0.20, 0.15, -0.01)
+        fold_metrics[label] = [
+            FoldBandMetrics(
+                fold=fold,
+                baseline_robust_mae=0.10,
+                candidate_robust_mae=0.10 * (1.0 - gain),
+                baseline_median_l2=0.12,
+                candidate_median_l2=0.12 * (1.0 - gain),
+                checker_ratio=1.0,
+            )
+            for fold, gain in enumerate(gains)
+        ]
+        corrections[label] = [
+            np.full((4, 4, 3), 0.01, np.float32) for _ in range(3)
+        ]
+    decision = select_safe_band(fold_metrics, corrections)
+    assert decision.selected_label == "A"
+    assert all(
+        "some_robust_fold_regresses" in verdict.reasons
+        for verdict in decision.verdicts
+    )
