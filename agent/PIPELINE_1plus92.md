@@ -1,7 +1,12 @@
 # 1+92 Panorama Pipeline (DB-116) — 权威说明 · 可复现
 
-> 最后更新 2026-07-01。任何时候要查"我们怎么从一个 AV2 log 造出 1+92 数据"都看这份。
-> 相关记忆:[[db116-frame1-perfect360]] [[db115-selection-pipeline]] [[waymo2pano-ground-fill-physics]] [[av2-cosmos-pipeline-db114]]
+> ## ⚠️ 状态框(2026-07-17,先读这一条)
+> **本文档主体(§0-§9)描述的是 07-01 时代的管线(单版 frame-1 完美 360 + 92 band),概念底盘仍然有效,但已不是当前量产版。**
+> **当前量产版 = v15(2026-07-14 定版,DB-136 契约 + DB-144 执行),见文末新增的 [§10 v15 量产管线](#10-v15-量产管线2026-07-14-定版db-144)。** v15 相对旧版的三大改动:① **A/B 双版一次渲染同时导出**(A=去车头+真实填充+诚实黑;B=车头置黑);② **mask "白=严格真实" 契约**(Telea 插值像素在 A-mask 翻黑);③ **γ 接缝条带放行浅脏帧**(旧版整场一票否决)。
+> **数据集已收官**:AV2 全 850 可用 log(val 150 + train 700)判定 100% 完成,**最终库存 555 个 A/B 双版 1+92 样本**,产物 Drive `datasets/av2_1plus92_v15/`。读者若只想理解"现在怎么量产",可直接跳到 §10。
+
+> 最后更新 2026-07-01(§0-§9);**§10 v15 追加于 2026-07-17**。任何时候要查"我们怎么从一个 AV2 log 造出 1+92 数据"都看这份。
+> 相关记忆:[[db116-frame1-perfect360]] [[db115-selection-pipeline]] [[waymo2pano-ground-fill-physics]] [[av2-cosmos-pipeline-db114]] [[db123-ego-removal]] [[db135-run100-production]]
 
 ---
 
@@ -146,6 +151,14 @@
 - **endpoint 隧道频繁 530(过夜死穴)**:Colab tunnel 会掉,断了 URL/token 会变→要 user 重贴、更新 `active_url_5.json`;orchestrator 有 3 次重试但彻底死透会卡等(=localize 容错的必要性)。
 - **url/token 绝不进仓库**:只更新本地 `~/.waymo2panorama/runtime/active_url_5..8.json`,绝不写进任何提交文件/日志/文档。
 - **地面别乱跑 `db116_ground.py` FLUX**:只在盲区**小**(imperfect 选帧已压过)时填 faithfill 局部(F 环,有效);盲区大会糊/覆盖真实 NS-inpaint(方案 A 教训)。今天 `2c652f9e` 盲区小=有效。
+
+### 🆕 v15 量产阶段新踩坑(2026-07-14~17,DB-144;跑 §10 前必读)
+- 🔴 **manifest-clobber = 重试轮 tag 复用 → 假脏**:被拒 log 重跑时复用同一 tag,fine band 的 manifest 被后一轮**覆盖**,把早轮的干净结果写脏 → run100 通过率被系统性低估(17% 假象)。**修**(v14.4):重试轮用独立 tag / 不覆盖 manifest。修后重审:83 个被拒 log 里 **45 个直接放行**(`fd_36`/`fd_44` 实测仅 0-3 帧真脏)。**纪律:凡"被拒率异常高"先怀疑 manifest 覆盖,别信第一轮拒因。**
+- 🔴 **FAIL 中断留半写 PNG → 毒化 resume**:map merge 瞬时故障等 FAIL 会在产物目录留下**半写/截断的 PNG**,`RESUME` 断点续跑按目录存在即跳过 → 把坏帧当成品。**修**:resume 前先**清场**(删该 log 目录再重跑),别在半写残骸上续。实测 2 个 FAIL(`c2c0e6bc`/`7ccdda39`)清场重跑后 verdict=OK,**零 FAIL 残留**。
+- 🟠 **跨机 Drive FUSE `ls` 互不可见**:一台机 `ls` 看不到另一台机刚写的目录/ledger(**双向延迟**),据此会误判"成品丢失"。**纪律**:巡检**各机读各自 ledger**、合并统计走本地中转,别指望一台机实时看到另一台的 Drive 写。
+- 🟠 **`pkill` 必用字符类防自杀**:清残留 driver/worker 用 `pkill -f` 时,匹配串若太宽会把**哨兵自己**和当前 shell 一起杀掉。**修**:模式用字符类打断自匹配(如 `pkill -f '[d]b144'` 而非 `db144`),让 `pkill` 自己的进程行不匹配。
+- 📌 **Drive 换版本用同名 `cp` 覆盖,绝不 `mv`**:Google Drive FUSE 下 `mv` 会**换 fileId**,毁掉旧的分享链接;要保住 koi 已拿到的链接就**同名 `cp` 覆盖**(保 fileId),另留版本副本并存。
+- 📌 **`db144_v15.py` 运行时是 `/content/_dj_db144tr.py`(train 变体)**:master 在 `agent/db115_drivers/db144_v15.py`,实际双机跑的是手术出的 train/val 变体(`MACHINE_SHARD` 与候选池不同);改逻辑改 master、发射前确认变体已同步。已修 bug:`15ec0778` fluxpack 的 `P` 变量错用(121→应 76、被 specmap 罩住)+ `LED` 全局未定义。
 
 ---
 
@@ -292,3 +305,76 @@ DB-130 把单 log 端到端压到 12-18min 后,**唯一独占时间轴是 world-
 - ⚠ **投机未命中要 kill 旧 shard**:`specmap_hit=False` 时必须 kill 掉投机建图进程再用真实窗口重建,否则残留进程抢 CPU。
 - 📌 **map 是唯一独占长杆**:所有提速判断先看 map 有没有藏进等待轴(`specmap_hit` / `map_s` 是否≈0 增量);别去优化已经并行掉的段。
 - 📌 **速度口径必须标注**(§9.5):汇报数字前先确认是单机端到端 / 双机吞吐 / 含摊销 哪个口径。
+
+---
+
+## 10. v15 量产管线(2026-07-14 定版,DB-144)★当前量产版
+
+> 追加 2026-07-17。§0-§9 讲"怎么造一个 log"和"怎么把它变成能双机批量跑的量产栈";**这一节讲当前实际量产的 v15 契约(DB-136 用户五项拍板)+ 全 850 log 收官账目(DB-144)**。看完这一节就能理解"我们现在到底在造什么、怎么造出来的 555 个样本"。
+> 事实来源:`decision_briefs.md` DB-136 + `progress.md` DB-144(07-15/16/17)。相关记忆:[[db135-run100-production]] [[db123-ego-removal]] [[db115-parallel-framework]]。
+
+### 10.1 v15 是什么(一句话)
+
+v15 = 在 §9 的 v14 投机建图量产栈之上,把**数据契约**换成 koi 三方对齐的定版:**每个 log 一次渲染同时导出 A/B 两个版本**,mask 严格"白=真实",浅脏帧靠 γ 接缝条带救活而非整场枪毙。词典目标(§1)与真实优先原则不变,零 per-scene 调参不变。
+
+### 10.2 v15 与旧版(v14)差异总表 ★
+
+| 维度 | 旧版 v14(§9) | v15(DB-136 拍板) |
+|---|---|---|
+| **版本导出** | 单版 | **A/B 双版一次渲染同时导出**(同窗同帧位严格对齐,供 A/B 训练对比;增量成本 ~1min/窗) |
+| **A 版语义** | (即旧版:去车头 + 时序真实填充) | **去车头 + 时序真实填充 + 诚实黑**(无源区留黑=真实数据边界) |
+| **B 版语义** | 无 | **`EGO_BLACK` 车头区直接置黑**(= A 流程的 band 中间产物,车头留黑) |
+| **mask 契约** | `(RGB和≥12)*255`,近黑标 0 | **白=严格真实**;**Telea 插值像素(占比 2-9%)在 A-mask 翻黑**(画面像素零变化、补齐"白=100%真实") |
+| **浅脏瑕疵帧** | **整场一票否决**(见 §6) | **γ 接缝条带放行**:`dirty≤3 帧`则放行,只把坏接缝 **±90px 竖条**在 A-mask 标黑(真实代价=全帧 1%=band 内容 3.9%,总监督损失 <0.1%) |
+| **质量门** | 运动窗 dmax≥8m | **运动窗 dmax≥8m / fine seam≤8px / resid≤15%** |
+| **建图** | 投机建图 specmap(v14 引入,v15 沿用) | **specmap**:建图藏进 probe 时间轴,pose 表算 dmax 预测窗口、几何检验命中即复用(§9.4) |
+
+**γ 接缝标定(可复现)**:7 接缝 yaw 由 7 相机外参一次算出——`front 0°` / `front_l/r ±45°` / `side ±99°` / `rear ±153°`;接缝像素列 `x = (0.5 − yaw/360) * 2048`。瑕疵帧的 manifest 自带超差 `cam_pair`,查表定位是哪条接缝、在该列 ±90px 竖条标黑。功效:val 被整场枪毙的 44 个瑕疵场景**复活约 34 个**(07-17 实测)。
+
+**核心论点(为什么去车头必然出现黑区,开会核心,`92b900b1` 红 F-350 铁证)**:原 AV2 白车头占据的画面位置,去掉车头后其背后内容(贴身车下半身)**从未被任何相机拍到**(原始 ring_side_right 里皮卡近到溢出视野底缘)。黑区 = 掀开车头遮挡后的真实数据边界,**非处理缺陷**;"以前没黑"只因那里显示的是白车头图像本身。mask 全标黑 = **生成责任归模型**。所有贴身大车场景(Hertz / Gordon 货车)同族,是数据固有属性。
+
+**第三级填充 = Telea 保留**:tier3 三方实测 Telea(大洞灰白糊)< Wan(可用但 640→2048 上采样偏软、慢 4×)< ProPainter(85s 最优);用户选**保守 Telea**(下游 Cosmos 会重生成外观,tier3 只需几何占位),PP/Wan 判决留档备用。
+
+### 10.3 管线流程(v15 端到端)
+
+```
+localize + egomask                # 一体 job;pose 表就位后立即算全窗 dmax
+  │
+probe(每 3 锚点 stride-3 全窗粗扫)  # 1/3 成本定位干净窗口;specmap 在此期间就提前开建 map
+  │
+运动选窗(dmax 最大的合格 clean 窗)  # dmax<8m → SKIP_static(轨迹带物理盲区)
+  │
+fine 渲染(只补渲窗口内未探帧)       # fine 复验脏帧 >3 → SKIP_fine_dirty;≤3 走 γ 条带放行
+  │
+cand(frame-1 基底,imperfect 选帧)  # nadir_imperfect_px 升序取真实最完整帧
+  │
+fill(门控反投影)+ map(8 分片 merge)+ wbev   # 三路;map 分片与 fill/probe 并行(specmap 命中则近零增量)
+  │
+compose(v10.2,七门级联)            # Tier1 fill ∩ Tier2 wbev,egozone∪band 黑洞全包络
+  │
+Telea 收残洞                        # tier3 几何占位;Telea 插值像素在 A-mask 翻黑
+  │
+FLUX sky + ground(仅 frame-1)      # 天空 outpaint + faithfill 局部补盲(§5,F 环)
+  │
+A/B 打包上 Drive                    # A(真实填充)+ B(EGO_BLACK)双版 + 逐帧严格 mask + mp4
+```
+
+- **driver**:`agent/db115_drivers/db144_v15.py`(master;`K=24`,pipeline tag `v15-db144`,ledger 头嵌 git ref)。实际双机跑的是手术出的 train/val 变体 `/content/_dj_db144tr.py`(候选池 + `MACHINE_SHARD` 不同,逻辑同 master)。
+- **内核**:`scripts/phase3/db89_ghost_recovery.py` = **v11,md5 `cca4f0c5`**;三开关(`WORLDBEV_SHARD`/`WORLDBEV_DUMP`/`WORLDBEV_LOAD`)默认全关时与 v9 **byte-identical**(§9.1)。worker = `/content/db125_worker.py`,`Popen` env 带 `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`(防 FLUX 线程 + 24 worker 并发 OOM)。
+- **B 版几乎白赚**:B = A 流程 band 阶段(`EGO_BLACK=True`)的中间产物,不用第二遍渲染,增量成本 ~1min/窗。
+
+### 10.4 运维定式(双机量产)
+
+- **机器级分片 `MACHINE_SHARD="i,k"`**:本机只跑 `cands[i::k]`,跨机**零通信、线性扩展**;收官夜用**半分片** `0of6`/`3of6`(继承种子账本切分、不重跑已判定 log)。
+- **Drive ledger 实时落盘 + 断点续跑**:每 log 判定即写 `datasets/av2_1plus92_v15/db144_v15_ledger_m{i}of{k}.json`(头部嵌 git ref);`RESUME` 靠 `DONE_VERDICTS` **精确跳过已判定 log**、只 `FAIL` 重试。全程经历 **~6 次 Colab 会话回收 + 2 次本地断电重启,零判定丢失**。
+- **哨兵巡检自动重拉**:本地 `train_guard.py` 每 5 分钟经隧道巡检各机,driver 死则自动重部署 + 续跑(10min 归队),全分片 `EXHAUSTED` 自动收官。收官夜双 G4 + 哨兵 **4.6h 守护零事故**。
+- **机队决策(07-16)**:三机(G4×2 + A100)→ **停 A100 保双 G4**——G4(RTX Pro 6000 Blackwell 48 核 96GB)单机 `~10.5min/判定` ≈ 4 台 A100(`~40min/判定`);A100 反而零回收但吞吐低,双 G4 只丢 10-15% 产能却省一半会话回收风险。双机摊销 `~5.2min/判定`。
+
+### 10.5 终盘数字(2026-07-17 收官,全实测,勿改) ★
+
+- **判定覆盖**:AV2 **全 850 可用 log(val 150 + train 700)判定 100% 完成**。
+- **最终库存 = 555 个 A/B 双版 1+92 样本** = **val 101(150 判,67% 通过)+ train 454(700 判,64.9% 通过)**;超 BOSCH 口径「~500 expected」11%,命中 DB-136 数字包「550-700」下沿偏上。
+- **train 700 拒因分布**:`SKIP_resid` **133**(**最大拒因**=真实填充覆盖不足、resid 超 15% 门)/ `SKIP_static` **53**(静止=轨迹带物理盲区)/ `SKIP_fine_dirty` **47**(接缝瑕疵 >3 帧、γ 条带救不回)/ `SKIP_no_clean_window` **13** / `FAIL` **2**(map merge 瞬时故障,`c2c0e6bc`/`7ccdda39` 断点重跑 verdict=OK)→ **零 FAIL 残留**。
+- **质量账目**:成品中位**端到端 704s(11.7min/台)**;**resid 中位 6.3% / p90 12.2%**(15% 门内富余,分布健康非贴门产出)。
+- **产物**:Drive `koi_waymo2pano_colab/datasets/av2_1plus92_v15/{val,train}/<log8>_w1/{A,B}/{frames,masks,clip}` + `sample_sheet`/`ledger`/`worldmap`(布局见 DB-136)。
+- **交付语境**:数据集就绪,**下一步 = koi 用 A/B 对照做 Cosmos 微调 conditioning 实验**(A/B 双版正是 DB-136 ④ 契约设计初衷)。
