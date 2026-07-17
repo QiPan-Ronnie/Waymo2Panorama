@@ -36,7 +36,7 @@ Question: v15 数据集喂 Cosmos 微调,第三级填充用什么 / 浅脏瑕疵
   - **A/B 版本样例**:Drive `db123/cosmos_abl_A_black*`(纯黑)vs `cosmos_abl_C_tempofill*`(填充)。
   - **瑕疵实态**:Drive `_dirty_examples/92b900b1_a154_zoom.jpg`(最重裂口)+ 两张 dirtydemo。
 
-**执行结果(2026-07-15,DB-144 全量量产收官更新):** val 全池 **150 → 101 OK(67% 通过率)**,**γ 接缝条带规则救回 34 个 log**(dirty≤3 帧、坏接缝竖条 ±90px 在 A-mask 标黑);A/B 双版产物 Drive `datasets/av2_1plus92_v15/val/<log8>_w1/`。train 700 三机量产**进行中**(截至 07-15 中午 76 判定 / 43 OK,加 val 101 = 库存 144 个 A/B 双版样本)。详见 progress.md DB-144 条目。
+**执行结果(2026-07-17,DB-144 v15 全量量产收官定谳):** AV2 **全 850 可用 log(val 150 + train 700)判定 100% 完成**。**最终库存 = 555 个 A/B 双版 1+92 样本 = val 101(150 判,67%)+ train 454(700 判,64.9%)**,超本条数字包「~500 / 550-700 预期」命中偏上、超 BOSCH 口径「~500」11%。train 700 拒因:`SKIP_resid` **133**(真实填充覆盖不足=最大拒因) / `SKIP_static` **53** / `SKIP_fine_dirty` **47** / `SKIP_no_clean_window` **13** / `FAIL` **2**(map merge 瞬时故障,均断点重跑回收 verdict=OK)→ **零 FAIL 残留**。质量:成品中位端到端 704s(11.7min/台)、resid 中位 6.3% / p90 12.2%(15% 门内富余)。收官夜双 G4 跑 `0of6`/`3of6` 半分片、哨兵 4.6h 守护零事故;train 700 全程 ~6 次 Colab 回收 + 2 次本地断电重启,Drive ledger 断点机制零判定丢失。γ 接缝条带规则(dirty≤3 帧、坏接缝竖条 ±90px 在 A-mask 标黑)val 救回 34 个 log。A/B 双版产物 Drive `datasets/av2_1plus92_v15/{val,train}/<log8>_w1/`。下一步 = koi 用 A/B 对照做 Cosmos 微调 conditioning 实验(A/B 双版 = 本条 ④ 契约设计初衷)。详见 progress.md DB-144 07-17 终章条目。
 
 ---
 
