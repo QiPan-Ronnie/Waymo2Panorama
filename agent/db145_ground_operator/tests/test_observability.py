@@ -57,3 +57,28 @@ def test_heldout_camera_groups_are_disjoint_and_large_enough():
     assert split.strategy == "complete_camera"
     assert set(split.training_groups).isdisjoint(split.heldout_groups)
     assert split.heldout_fraction >= 0.10
+
+
+def test_time_fallback_uses_evidence_fraction_not_number_of_timestamps():
+    counts = {}
+    cameras = {}
+    times = {}
+    # Each complete camera owns 50% (>35%), so the camera strategy is invalid.
+    # Uneven time counts make "20% of timestamps" incorrect; the selected
+    # contiguous block must still contain 10-35% of actual evidence.
+    per_time = [5, 5, 20, 20, 5, 5]
+    for time, count in enumerate(per_time):
+        for camera in ("a", "b"):
+            group = f"{camera}:{time}"
+            counts[group] = count
+            cameras[group] = camera
+            times[group] = time
+    split = select_heldout_groups(
+        counts,
+        group_camera=cameras,
+        group_time=times,
+    )
+    assert split.strategy == "central_time_block"
+    assert 0.10 <= split.heldout_fraction <= 0.35
+    selected_times = sorted({times[group] for group in split.heldout_groups})
+    assert selected_times == list(range(selected_times[0], selected_times[-1] + 1))

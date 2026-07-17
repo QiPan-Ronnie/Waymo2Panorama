@@ -192,11 +192,27 @@ def select_heldout_groups(
         strategy = "complete_camera"
     else:
         ordered_times = sorted(set(group_time[g] for g in groups))
-        wanted = max(1, int(round(len(ordered_times) * target_fraction)))
-        start = max(0, (len(ordered_times) - wanted) // 2)
-        time_block = set(ordered_times[start : start + wanted])
-        heldout = [g for g in groups if group_time[g] in time_block]
-        fraction = sum(group_counts[g] for g in heldout) / total
+        time_options: list[tuple[float, float, int, int, list[str], float]] = []
+        centre_index = (len(ordered_times) - 1) / 2.0
+        for start in range(len(ordered_times)):
+            for stop in range(start + 1, len(ordered_times) + 1):
+                time_block = set(ordered_times[start:stop])
+                selected = [g for g in groups if group_time[g] in time_block]
+                selected_fraction = sum(group_counts[g] for g in selected) / total
+                if 0.10 <= selected_fraction <= 0.35:
+                    time_options.append(
+                        (
+                            abs(selected_fraction - target_fraction),
+                            abs((start + stop - 1) / 2.0 - centre_index),
+                            stop - start,
+                            start,
+                            selected,
+                            selected_fraction,
+                        )
+                    )
+        if not time_options:
+            raise ValueError("no contiguous held-out time block has 10-35% evidence")
+        _, _, _, _, heldout, fraction = min(time_options)
         strategy = "central_time_block"
     training = [g for g in groups if g not in set(heldout)]
     if not training or not heldout:
