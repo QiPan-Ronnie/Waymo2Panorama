@@ -7,6 +7,89 @@ import numpy as np
 import torch
 
 
+def _build_fixed_support_pairs(
+    centers: np.ndarray,
+    covariances: np.ndarray,
+    *,
+    grid_hw: tuple[int, int],
+    support_sigma: float,
+    pose_shift_limit_cell: float,
+    max_candidate_pairs: int = 2_000_000,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Vectorized equivalent of per-observation EWA support enumeration."""
+
+    height, width = grid_hw
+    eigenvalues = np.linalg.eigvalsh(covariances.astype(np.float64))
+    invalid = ~np.isfinite(eigenvalues).all(axis=1) | (eigenvalues[:, 0] <= 0.0)
+    if invalid.any():
+        first = int(np.flatnonzero(invalid)[0])
+        raise ValueError(f"observation {first} has invalid covariance")
+    inverse = np.linalg.inv(covariances.astype(np.float64))
+    radius = support_sigma * np.sqrt(eigenvalues[:, 1]) + pose_shift_limit_cell
+    # One extra integer covers ceil(center + radius) when centre is fractional.
+    spans = np.ceil(radius).astype(np.int32) + 1
+    pair_observations: list[np.ndarray] = []
+    pair_texels: list[np.ndarray] = []
+    pair_xy: list[np.ndarray] = []
+
+    for span in np.unique(spans):
+        observation_ids = np.flatnonzero(spans == span)
+        axis = np.arange(-int(span), int(span) + 1, dtype=np.int32)
+        offset_x, offset_y = np.meshgrid(axis, axis)
+        offsets = np.column_stack((offset_x.ravel(), offset_y.ravel()))
+        n_candidates = len(offsets)
+        chunk_size = max(1, max_candidate_pairs // n_candidates)
+        for start in range(0, len(observation_ids), chunk_size):
+            obs = observation_ids[start : start + chunk_size]
+            base = np.floor(centers[obs]).astype(np.int32)
+            texel_xy = base[:, None, :] + offsets[None, :, :]
+            x = texel_xy[..., 0]
+            y = texel_xy[..., 1]
+            x0 = np.floor(centers[obs, 0] - radius[obs]).astype(np.int32)
+            x1 = np.ceil(centers[obs, 0] + radius[obs]).astype(np.int32)
+            y0 = np.floor(centers[obs, 1] - radius[obs]).astype(np.int32)
+            y1 = np.ceil(centers[obs, 1] + radius[obs]).astype(np.int32)
+            valid = (
+                (x >= x0[:, None])
+                & (x <= x1[:, None])
+                & (y >= y0[:, None])
+                & (y <= y1[:, None])
+                & (x >= 0)
+                & (x < width)
+                & (y >= 0)
+                & (y < height)
+            )
+            delta = texel_xy.astype(np.float64) - centers[obs, None, :]
+            inv = inverse[obs]
+            mahalanobis = np.einsum("nki,nij,nkj->nk", delta, inv, delta)
+            conservative = np.maximum(
+                mahalanobis
+                - pose_shift_limit_cell**2 / eigenvalues[obs, 0, None],
+                0.0,
+            )
+            valid &= conservative <= support_sigma**2
+            local_obs, local_pair = np.nonzero(valid)
+            if not len(local_obs):
+                continue
+            chosen_xy = texel_xy[local_obs, local_pair]
+            pair_observations.append(obs[local_obs].astype(np.int64, copy=False))
+            pair_texels.append(
+                (chosen_xy[:, 1].astype(np.int64) * width + chosen_xy[:, 0]).astype(
+                    np.int64, copy=False
+                )
+            )
+            pair_xy.append(chosen_xy.astype(np.float32, copy=False))
+
+    if not pair_observations:
+        raise ValueError("all observations have empty EWA support")
+    observation_ids = np.concatenate(pair_observations)
+    counts = np.bincount(observation_ids, minlength=len(centers))
+    if (counts == 0).any():
+        first = int(np.flatnonzero(counts == 0)[0])
+        raise ValueError(f"observation {first} has empty EWA support")
+    return observation_ids, np.concatenate(pair_texels), np.concatenate(pair_xy)
+
+
 @dataclass
 class EWAObservationSet:
     """Sparse, fixed-support elliptical weighted-average forward operator."""
@@ -63,38 +146,13 @@ class EWAObservationSet:
             raise ValueError("non-finite observation")
 
         height, width = grid_hw
-        pair_obs: list[np.ndarray] = []
-        pair_ids: list[np.ndarray] = []
-        pair_xy: list[np.ndarray] = []
-        for obs_id, (center, covariance) in enumerate(zip(centers, covariances, strict=True)):
-            eigenvalues = np.linalg.eigvalsh(covariance.astype(np.float64))
-            if not np.isfinite(eigenvalues).all() or eigenvalues[0] <= 0.0:
-                raise ValueError(f"observation {obs_id} has invalid covariance")
-            radius = support_sigma * float(np.sqrt(eigenvalues[-1])) + pose_shift_limit_cell
-            x0 = max(0, int(np.floor(center[0] - radius)))
-            x1 = min(width - 1, int(np.ceil(center[0] + radius)))
-            y0 = max(0, int(np.floor(center[1] - radius)))
-            y1 = min(height - 1, int(np.ceil(center[1] + radius)))
-            if x0 > x1 or y0 > y1:
-                raise ValueError(f"observation {obs_id} has empty grid support")
-            yy, xx = np.mgrid[y0 : y1 + 1, x0 : x1 + 1]
-            xy = np.column_stack((xx.ravel(), yy.ravel())).astype(np.float32)
-            # Prune by the nominal Mahalanobis ellipse, but retain the maximum
-            # permitted shift in Euclidean space so support stays fixed.
-            inv = np.linalg.inv(covariance.astype(np.float64))
-            delta = xy.astype(np.float64) - center
-            conservative = np.maximum(
-                np.einsum("ni,ij,nj->n", delta, inv, delta)
-                - (pose_shift_limit_cell**2 / eigenvalues[0]),
-                0.0,
-            )
-            keep = conservative <= support_sigma**2
-            xy = xy[keep]
-            if not len(xy):
-                raise ValueError(f"observation {obs_id} has empty EWA support")
-            pair_obs.append(np.full(len(xy), obs_id, dtype=np.int64))
-            pair_ids.append((xy[:, 1].astype(np.int64) * width + xy[:, 0].astype(np.int64)))
-            pair_xy.append(xy)
+        pair_obs, pair_ids, pair_xy = _build_fixed_support_pairs(
+            centers,
+            covariances,
+            grid_hw=grid_hw,
+            support_sigma=support_sigma,
+            pose_shift_limit_cell=pose_shift_limit_cell,
+        )
 
         target = torch.device(device)
         cov_tensor = torch.as_tensor(covariances, dtype=torch.float32, device=target)
@@ -105,13 +163,13 @@ class EWAObservationSet:
             source_ids=torch.as_tensor(sources, dtype=torch.long, device=target),
             rgb=torch.as_tensor(colours, dtype=torch.float32, device=target),
             pair_observation_ids=torch.as_tensor(
-                np.concatenate(pair_obs), dtype=torch.long, device=target
+                pair_obs, dtype=torch.long, device=target
             ),
             pair_texel_ids=torch.as_tensor(
-                np.concatenate(pair_ids), dtype=torch.long, device=target
+                pair_ids, dtype=torch.long, device=target
             ),
             pair_texel_xy=torch.as_tensor(
-                np.concatenate(pair_xy), dtype=torch.float32, device=target
+                pair_xy, dtype=torch.float32, device=target
             ),
             grid_hw=(height, width),
             support_sigma=float(support_sigma),

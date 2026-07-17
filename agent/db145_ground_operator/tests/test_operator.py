@@ -1,7 +1,10 @@
 import numpy as np
 import torch
 
-from agent.db145_ground_operator.operator import EWAObservationSet
+from agent.db145_ground_operator.operator import (
+    EWAObservationSet,
+    _build_fixed_support_pairs,
+)
 
 
 def _observations(covariance: np.ndarray, grid_hw=(5, 5)) -> EWAObservationSet:
@@ -62,3 +65,51 @@ def test_nominal_weights_are_positive_and_normalized():
     )
     torch.testing.assert_close(pred, torch.ones_like(pred))
     assert bool((weight_sum > 0).all())
+
+
+def test_vectorized_support_matches_scalar_reference_exactly():
+    rng = np.random.default_rng(145)
+    centers = rng.uniform(-0.5, 5.5, size=(40, 2)).astype(np.float32)
+    angle = rng.uniform(0, np.pi, size=40)
+    eigenvalues = rng.uniform([0.03, 0.4], [0.3, 3.0], size=(40, 2))
+    rotation = np.stack(
+        [
+            np.stack((np.cos(angle), -np.sin(angle)), axis=1),
+            np.stack((np.sin(angle), np.cos(angle)), axis=1),
+        ],
+        axis=1,
+    )
+    covariance = np.einsum(
+        "nij,nj,nkj->nik", rotation, eigenvalues, rotation
+    ).astype(np.float32)
+    obs, texel, xy = _build_fixed_support_pairs(
+        centers,
+        covariance,
+        grid_hw=(6, 6),
+        support_sigma=3.0,
+        pose_shift_limit_cell=0.5,
+    )
+    vectorized = set(
+        zip(obs.tolist(), texel.tolist(), map(tuple, xy.astype(int).tolist()), strict=True)
+    )
+
+    scalar = set()
+    for obs_id, (center, cov) in enumerate(zip(centers, covariance, strict=True)):
+        eig = np.linalg.eigvalsh(cov.astype(np.float64))
+        radius = 3.0 * np.sqrt(eig[-1]) + 0.5
+        x0, x1 = max(0, int(np.floor(center[0] - radius))), min(
+            5, int(np.ceil(center[0] + radius))
+        )
+        y0, y1 = max(0, int(np.floor(center[1] - radius))), min(
+            5, int(np.ceil(center[1] + radius))
+        )
+        yy, xx = np.mgrid[y0 : y1 + 1, x0 : x1 + 1]
+        points = np.column_stack((xx.ravel(), yy.ravel()))
+        delta = points - center
+        mahalanobis = np.einsum(
+            "ni,ij,nj->n", delta, np.linalg.inv(cov.astype(np.float64)), delta
+        )
+        keep = np.maximum(mahalanobis - 0.5**2 / eig[0], 0.0) <= 3.0**2
+        for point in points[keep]:
+            scalar.add((obs_id, int(point[1] * 6 + point[0]), tuple(point)))
+    assert vectorized == scalar
