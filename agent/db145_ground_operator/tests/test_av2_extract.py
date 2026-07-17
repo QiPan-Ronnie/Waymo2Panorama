@@ -8,6 +8,7 @@ from agent.db145_ground_operator.av2_extract import (
     GroundPatch,
     PoseTable,
     SourceView,
+    _ego_pixels,
     _occluded_by_boxes,
     _raw_pixels_for_view,
 )
@@ -71,3 +72,10 @@ def test_raw_records_retain_pixel_coordinates_and_anisotropic_covariance():
     assert len(records["u"]) == len(records["rgb"]) > 0
     assert np.median(records["aspect"]) > 1.0
     assert records["centers_cell"].shape[1] == 2
+
+
+def test_ego_mask_rejects_raw_pixels_before_they_become_ground_evidence():
+    mask = np.zeros((25, 25), bool)
+    mask[10, 12] = True
+    uv = np.array([[48, 40], [52, 40], [48, 44]])
+    assert _ego_pixels(mask, uv).tolist() == [True, False, False]

@@ -33,6 +33,15 @@ SOURCE_FRAME_STEP = 4
 COARSE_FRAME_STEP = 8
 LIDAR_FRAME_STEP = 4
 PATCH_LATERAL_OFFSETS_M = (-2.0, -1.0, 0.0, 1.0, 2.0)
+# DB-123 v8-fine analytic AV2 fleet-body mask.  These are ego-frame vehicle
+# constants, shared by every log; over-rejection is intentionally safer than
+# admitting specular hood/roof pixels as "ground evidence".
+EGO_BOXES = (
+    (np.array([-1.25, -1.05, -0.45]), np.array([3.60, 1.05, 0.60])),
+    (np.array([-1.00, -0.78, 0.60]), np.array([1.30, 0.78, 1.10])),
+)
+EGO_MASK_DILATE_QUARTER_PX = 5
+EGO_NEAR_LIMIT_M = 8.0
 
 
 @dataclass(frozen=True)
@@ -185,6 +194,61 @@ class AnnotationIndex:
             )
         self._cache[nearest] = tuple(boxes)
         return self._cache[nearest]
+
+
+def build_analytic_ego_masks(loader: AV2RingLoader) -> dict[str, np.ndarray]:
+    """Build DB-123's conservative quarter-resolution ego masks from calibration."""
+
+    masks: dict[str, np.ndarray] = {}
+    for camera in RING_CAMS_7:
+        calibration = loader.calibration(camera)
+        K = calibration.K
+        T_ego_cam = calibration.T_ego_cam
+        rotation = T_ego_cam[:3, :3]
+        origin = T_ego_cam[:3, 3]
+        height = calibration.image_height // 4
+        width = calibration.image_width // 4
+        uu, vv = np.meshgrid(
+            (np.arange(width) * 4 + 2).astype(np.float64),
+            (np.arange(height) * 4 + 2).astype(np.float64),
+        )
+        rays_camera = np.stack(
+            (
+                (uu - K[0, 2]) / K[0, 0],
+                (vv - K[1, 2]) / K[1, 1],
+                np.ones_like(uu),
+            ),
+            axis=-1,
+        )
+        rays_ego = rays_camera @ rotation.T
+        mask = np.zeros((height, width), bool)
+        for lower, upper in EGO_BOXES:
+            with np.errstate(divide="ignore", invalid="ignore"):
+                t1 = (lower - origin) / rays_ego
+                t2 = (upper - origin) / rays_ego
+            t_min = np.nanmax(np.minimum(t1, t2), axis=-1)
+            t_max = np.nanmin(np.maximum(t1, t2), axis=-1)
+            mask |= (
+                (t_max >= np.maximum(t_min, 0.0))
+                & (t_max > 0.0)
+                & (t_min < EGO_NEAR_LIMIT_M)
+            )
+        mask = cv2.dilate(
+            mask.astype(np.uint8),
+            np.ones(
+                (EGO_MASK_DILATE_QUARTER_PX, EGO_MASK_DILATE_QUARTER_PX),
+                np.uint8,
+            ),
+        ).astype(bool)
+        masks[camera] = mask
+    return masks
+
+
+def _ego_pixels(mask_quarter: np.ndarray, uv: np.ndarray) -> np.ndarray:
+    points = np.asarray(uv)
+    x = np.clip((points[:, 0] // 4).astype(int), 0, mask_quarter.shape[1] - 1)
+    y = np.clip((points[:, 1] // 4).astype(int), 0, mask_quarter.shape[0] - 1)
+    return mask_quarter[y, x]
 
 
 def build_source_views(
@@ -395,6 +459,7 @@ def _raw_pixels_for_view(
     view: SourceView,
     boxes: Sequence[Box3D],
     config: ExperimentConfig,
+    ego_mask: np.ndarray | None = None,
 ) -> dict[str, np.ndarray] | None:
     bbox = _patch_image_bbox(patch, view, config)
     if bbox is None:
@@ -410,6 +475,8 @@ def _raw_pixels_for_view(
         (rgb_u8 <= 3).all(axis=1) | (rgb_u8 >= 252).all(axis=1)
     )
     valid &= radiometric
+    if ego_mask is not None:
+        valid &= ~_ego_pixels(ego_mask, uv)
     if valid.any() and boxes:
         candidate = np.flatnonzero(valid)
         blocked = _occluded_by_boxes(
@@ -439,6 +506,7 @@ def _baseline_samples_for_view(
     view: SourceView,
     boxes: Sequence[Box3D],
     config: ExperimentConfig,
+    ego_mask: np.ndarray | None = None,
 ) -> dict[str, np.ndarray] | None:
     uv, valid = project_city_to_image(grid_xyz, view.K, view.T_city_cam)
     origin = view.T_city_cam[:3, 3]
@@ -451,6 +519,8 @@ def _baseline_samples_for_view(
         & (ranges >= config.min_source_range_m)
         & (ranges <= config.max_source_range_m)
     )
+    if ego_mask is not None:
+        valid &= ~_ego_pixels(ego_mask, uv)
     if valid.any() and boxes:
         candidate = np.flatnonzero(valid)
         blocked = _occluded_by_boxes(origin, grid_xyz[candidate], boxes)
@@ -524,7 +594,10 @@ def extract_patch(
 ) -> PatchExtraction:
     """Extract A/B/C evidence directly from raw AV2 pixels for one frozen patch."""
 
-    views, _, _ = build_source_views(log_dir, window)
+    views, _, loader_for_masks = build_source_views(log_dir, window)
+    # The mask is derived from fleet geometry and calibration only.  It never
+    # sees reconstruction output, so applying it cannot leak the held-out view.
+    ego_masks = build_analytic_ego_masks(loader_for_masks)
     views_by_id = {view.source_id: view for view in views}
     annotations = AnnotationIndex(Path(log_dir) / "annotations.feather")
     heldout_frames = _window_holdout_frames(window)
@@ -544,7 +617,10 @@ def extract_patch(
             raise FileNotFoundError(view.image_path)
         image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
         boxes = annotations.boxes_at(view.timestamp_ns)
-        raw = _raw_pixels_for_view(image_rgb, patch, view, boxes, config)
+        ego_mask = ego_masks[view.camera_name]
+        raw = _raw_pixels_for_view(
+            image_rgb, patch, view, boxes, config, ego_mask=ego_mask
+        )
         heldout = view.frame_idx in heldout_frames
         if raw is not None:
             if heldout:
@@ -557,7 +633,7 @@ def extract_patch(
                 training_groups.append(view.group_id)
         if not heldout:
             baseline = _baseline_samples_for_view(
-                image_rgb, grid_xyz, view, boxes, config
+                image_rgb, grid_xyz, view, boxes, config, ego_mask=ego_mask
             )
             if baseline is not None and len(baseline["rgb"]):
                 baseline_records.append(baseline)
