@@ -79,3 +79,10 @@ def test_ego_mask_rejects_raw_pixels_before_they_become_ground_evidence():
     mask[10, 12] = True
     uv = np.array([[48, 40], [52, 40], [48, 44]])
     assert _ego_pixels(mask, uv).tolist() == [True, False, False]
+
+
+def test_ego_mask_handles_invalid_projection_without_warning_or_evidence():
+    mask = np.zeros((2, 2), bool)
+    mask[0, 0] = True
+    uv = np.array([[np.nan, np.nan], [np.inf, -np.inf]])
+    assert _ego_pixels(mask, uv).tolist() == [True, True]

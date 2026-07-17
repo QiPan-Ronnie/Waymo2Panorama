@@ -17,9 +17,8 @@ import torch
 from .av2_extract import (
     GroundPatch,
     SOURCE_FRAME_STEP,
-    _window_holdout_frames,
-    build_source_views,
     extract_patch,
+    freeze_patch_heldout_groups,
     generate_patch_candidates,
 )
 from .config import DEFAULT_CONFIG
@@ -83,23 +82,20 @@ def run_p0(args: argparse.Namespace) -> None:
             _patch_dict(patch_by_id[high.patch_id], high, "high"),
             _patch_dict(patch_by_id[low.patch_id], low, "low"),
         ]
-        views, _, _ = build_source_views(log_dir, window)
-        heldout_frames = _window_holdout_frames(window)
-        training_groups = sorted(
-            view.group_id for view in views if view.frame_idx not in heldout_frames
-        )
-        heldout_groups = sorted(
-            view.group_id for view in views if view.frame_idx in heldout_frames
-        )
+        for item in selected:
+            patch = GroundPatch(**item["patch"])
+            split, group_counts = freeze_patch_heldout_groups(log_dir, patch, window)
+            item["training_groups"] = list(split.training_groups)
+            item["heldout_groups"] = list(split.heldout_groups)
+            item["heldout_strategy"] = split.strategy
+            item["heldout_fraction_geometry"] = split.heldout_fraction
+            item["heldout_geometry_pixel_counts"] = group_counts
         scenes[role] = {
             "log_id": log_id,
             "split": "val",
             "window": list(window),
             "selection_evidence": SCENE_CANDIDATES[log_id].get("evidence", "pose-ranked dry role"),
             "patches": selected,
-            "training_groups": training_groups,
-            "heldout_groups": heldout_groups,
-            "heldout_strategy": "central_contiguous_20pct_time_block",
             "candidate_diagnostics": diagnostics,
         }
         print(
@@ -108,7 +104,7 @@ def run_p0(args: argparse.Namespace) -> None:
             flush=True,
         )
     manifest = {
-        "schema": "db145_manifest_v1",
+        "schema": "db145_manifest_v2",
         "run_id": args.run_id,
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "experiment": "sensor-native anisotropic ground operator kill-test",
@@ -245,6 +241,8 @@ def run_p1(args: argparse.Namespace) -> None:
                 patch,
                 tuple(scene["window"]),
                 device=device,
+                training_groups=selected["training_groups"],
+                heldout_groups=selected["heldout_groups"],
             )
             print(f"DB145_P1_OPERATOR {key}", flush=True)
             train = extraction.train_observations.build_operator(

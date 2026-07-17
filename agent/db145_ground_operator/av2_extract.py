@@ -12,7 +12,7 @@ from scipy.spatial.transform import Rotation, Slerp
 from .baseline import BaselineResult, six_slot_median
 from .config import DEFAULT_CONFIG, ExperimentConfig
 from .geometry import camera_rays, intersect_rays_with_plane, project_city_to_image
-from .observability import PatchObservability
+from .observability import HeldoutSplit, PatchObservability, select_heldout_groups
 from .operator import EWAObservationSet
 
 if TYPE_CHECKING:
@@ -245,7 +245,7 @@ def build_analytic_ego_masks(loader: AV2RingLoader) -> dict[str, np.ndarray]:
 
 
 def _ego_pixels(mask_quarter: np.ndarray, uv: np.ndarray) -> np.ndarray:
-    points = np.asarray(uv)
+    points = np.nan_to_num(np.asarray(uv), nan=0.0, posinf=0.0, neginf=0.0)
     x = np.clip((points[:, 0] // 4).astype(int), 0, mask_quarter.shape[1] - 1)
     y = np.clip((points[:, 1] // 4).astype(int), 0, mask_quarter.shape[0] - 1)
     return mask_quarter[y, x]
@@ -591,6 +591,8 @@ def extract_patch(
     config: ExperimentConfig = DEFAULT_CONFIG,
     device: str = "cuda",
     progress: bool = True,
+    training_groups: Sequence[str] | None = None,
+    heldout_groups: Sequence[str] | None = None,
 ) -> PatchExtraction:
     """Extract A/B/C evidence directly from raw AV2 pixels for one frozen patch."""
 
@@ -601,6 +603,12 @@ def extract_patch(
     views_by_id = {view.source_id: view for view in views}
     annotations = AnnotationIndex(Path(log_dir) / "annotations.feather")
     heldout_frames = _window_holdout_frames(window)
+    if (training_groups is None) != (heldout_groups is None):
+        raise ValueError("training_groups and heldout_groups must be supplied together")
+    frozen_training = set(training_groups or ())
+    frozen_heldout = set(heldout_groups or ())
+    if frozen_training & frozen_heldout:
+        raise ValueError("frozen training and held-out groups overlap")
     grid_xyz = _grid_xyz(patch, config)
     train_records: list[dict[str, np.ndarray]] = []
     train_sources: list[int] = []
@@ -612,6 +620,12 @@ def extract_patch(
     heldout_groups: list[str] = []
 
     for index, view in enumerate(views):
+        if frozen_training or frozen_heldout:
+            if view.group_id not in frozen_training | frozen_heldout:
+                continue
+            heldout = view.group_id in frozen_heldout
+        else:
+            heldout = view.frame_idx in heldout_frames
         image_bgr = cv2.imread(str(view.image_path), cv2.IMREAD_COLOR)
         if image_bgr is None:
             raise FileNotFoundError(view.image_path)
@@ -621,7 +635,6 @@ def extract_patch(
         raw = _raw_pixels_for_view(
             image_rgb, patch, view, boxes, config, ego_mask=ego_mask
         )
-        heldout = view.frame_idx in heldout_frames
         if raw is not None:
             if heldout:
                 heldout_records.append(raw)
@@ -672,6 +685,11 @@ def extract_patch(
         "n_heldout_sources": int(heldout.source_ids.max() + 1),
         "baseline_coverage": float(baseline_result.valid.mean()),
         "heldout_frame_indices": sorted(heldout_frames),
+        "heldout_protocol": (
+            "p0_geometry_evidence_groups"
+            if frozen_training or frozen_heldout
+            else "legacy_central_time_block"
+        ),
     }
     return PatchExtraction(
         train,
@@ -681,6 +699,48 @@ def extract_patch(
         tuple(sorted(set(heldout_groups))),
         diagnostics,
     )
+
+
+def freeze_patch_heldout_groups(
+    log_dir: Path,
+    patch: GroundPatch,
+    window: tuple[int, int],
+    *,
+    config: ExperimentConfig = DEFAULT_CONFIG,
+) -> tuple[HeldoutSplit, dict[str, int]]:
+    """Count geometry-valid raw pixels per group, then freeze a disjoint split.
+
+    This P0 function reads calibration and ego geometry only.  It does not read
+    RGB values, reconstruction output, or any held-out metric.
+    """
+
+    views, _, loader = build_source_views(log_dir, window)
+    ego_masks = build_analytic_ego_masks(loader)
+    counts: dict[str, int] = {}
+    cameras: dict[str, str] = {}
+    times: dict[str, int] = {}
+    for view in views:
+        bbox = _patch_image_bbox(patch, view, config)
+        if bbox is None:
+            continue
+        u0, v0, u1, v1 = bbox
+        yy, xx = np.mgrid[v0 : v1 + 1, u0 : u1 + 1]
+        uv = np.column_stack((xx.ravel(), yy.ravel())).astype(np.float64)
+        _, _, _, _, _, valid = _vectorized_footprints(uv, view, patch, config)
+        valid &= ~_ego_pixels(ego_masks[view.camera_name], uv)
+        count = int(valid.sum())
+        if count <= 0:
+            continue
+        counts[view.group_id] = count
+        cameras[view.group_id] = view.camera_name
+        times[view.group_id] = view.frame_idx
+    split = select_heldout_groups(
+        counts,
+        group_camera=cameras,
+        group_time=times,
+        target_fraction=config.heldout_time_fraction,
+    )
+    return split, counts
 
 
 def load_lidar_city(
