@@ -20,6 +20,7 @@ class EWAObservationSet:
     pair_texel_ids: torch.Tensor
     pair_texel_xy: torch.Tensor
     grid_hw: tuple[int, int]
+    support_sigma: float
     pose_shift_limit_cell: float
     pair_chunk_size: int
     provenance: dict[str, Any]
@@ -113,6 +114,7 @@ class EWAObservationSet:
                 np.concatenate(pair_xy), dtype=torch.float32, device=target
             ),
             grid_hw=(height, width),
+            support_sigma=float(support_sigma),
             pose_shift_limit_cell=float(pose_shift_limit_cell),
             pair_chunk_size=int(pair_chunk_size),
             provenance={} if provenance is None else provenance,
@@ -132,6 +134,35 @@ class EWAObservationSet:
         ):
             setattr(self, name, getattr(self, name).to(target))
         return self
+
+    def subset(self, keep: np.ndarray | torch.Tensor) -> "EWAObservationSet":
+        """Rebuild an observation subset without leaking removed pixels."""
+
+        keep_np = np.asarray(
+            keep.detach().cpu().numpy() if isinstance(keep, torch.Tensor) else keep,
+            dtype=bool,
+        ).reshape(-1)
+        if len(keep_np) != self.n_observations:
+            raise ValueError("subset mask length does not match observations")
+        if not keep_np.any():
+            raise ValueError("subset would contain no observations")
+        provenance: dict[str, Any] = {}
+        for key, value in self.provenance.items():
+            array = np.asarray(value)
+            provenance[key] = array[keep_np] if len(array) == len(keep_np) else value
+        device = self.centers_cell.device
+        return EWAObservationSet.from_numpy(
+            centers_cell=self.centers_cell.detach().cpu().numpy()[keep_np],
+            covariance_cell=self.covariance_cell.detach().cpu().numpy()[keep_np],
+            source_ids=self.source_ids.detach().cpu().numpy()[keep_np],
+            rgb=self.rgb.detach().cpu().numpy()[keep_np],
+            grid_hw=self.grid_hw,
+            support_sigma=self.support_sigma,
+            pose_shift_limit_cell=self.pose_shift_limit_cell,
+            provenance=provenance,
+            pair_chunk_size=self.pair_chunk_size,
+            device=device,
+        )
 
     def bounded_shift(self, raw_source_shift: torch.Tensor) -> torch.Tensor:
         return self.pose_shift_limit_cell * torch.tanh(raw_source_shift)
