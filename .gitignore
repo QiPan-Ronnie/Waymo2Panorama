@@ -58,6 +58,7 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+.worktrees/
 
 # Keep
 !data/mini/**
