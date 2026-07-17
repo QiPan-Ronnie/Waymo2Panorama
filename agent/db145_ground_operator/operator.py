@@ -194,7 +194,13 @@ class EWAObservationSet:
         return self
 
     def subset(self, keep: np.ndarray | torch.Tensor) -> "EWAObservationSet":
-        """Rebuild an observation subset without leaking removed pixels."""
+        """Rebuild and source-compact a subset without leaking removed pixels.
+
+        Source compaction is not only an allocation optimization.  The solver
+        removes the shift/gain gauge across ``n_sources``; retaining empty IDs
+        after a held-out split would let non-existent views participate in that
+        gauge and change the fitted nuisance parameters.
+        """
 
         keep_np = np.asarray(
             keep.detach().cpu().numpy() if isinstance(keep, torch.Tensor) else keep,
@@ -209,10 +215,12 @@ class EWAObservationSet:
             array = np.asarray(value)
             provenance[key] = array[keep_np] if len(array) == len(keep_np) else value
         device = self.centers_cell.device
+        retained_sources = self.source_ids.detach().cpu().numpy()[keep_np]
+        _, compact_sources = np.unique(retained_sources, return_inverse=True)
         return EWAObservationSet.from_numpy(
             centers_cell=self.centers_cell.detach().cpu().numpy()[keep_np],
             covariance_cell=self.covariance_cell.detach().cpu().numpy()[keep_np],
-            source_ids=self.source_ids.detach().cpu().numpy()[keep_np],
+            source_ids=compact_sources,
             rgb=self.rgb.detach().cpu().numpy()[keep_np],
             grid_hw=self.grid_hw,
             support_sigma=self.support_sigma,

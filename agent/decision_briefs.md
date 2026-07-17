@@ -5,6 +5,35 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-146: Evidence-gated spectral inverse — 训练内证明频带，失败即回退
+Status: **ACTIVE（2026-07-17,user 授权 L4 持续迭代；当前唯一 ACTIVE）。DB-145 的无门控 B 判决保持不变，本条只研究安全门控，不授权修改 v15。**
+Question: 能否仅用 outer-training 内部的交叉验证，自动决定 sensor-native 逆成像在每个局部地面块可恢复到哪个空间频带，使最终结果在保留 dry/high 真实增益的同时，对 low-observability 与 wet/specular 自动回退到 A 或诚实黑？
+
+**第一性原理：**
+  - 原始像素只给出 `y = Hx + noise`；“被某个 footprint 覆盖”只说明 `H` 非零，不说明 `H` 的高频方向可逆。
+  - DB-145 的棋盘纹正是近零奇异模态被放大。正确动作不是继续平滑整图，而是只放行被独立真实像素证明的频带；未证明的模态不存在恢复权。
+  - outer held-out 是法官，不能参与选门。门只可由 outer-training 内部的 source-group 交叉验证产生；最终仍必须由 untouched outer held-out 和眼核判决。
+
+**固定协议：**
+  1. 沿用 DB-145 r3 的 3 logs × high/low 六块 frozen patch 与 outer train/held-out；不重选 BMW ROI，不看 outer 结果调门。
+  2. outer-training 的完整 source groups 按几何有效 pixel 数确定性分成 3 folds。每 fold 用其余 groups 重建 leak-free A/B，只在该 fold 的原始相机像素上验证。
+  3. 候选不是逐场景超参搜索，而是同一组固定残差频带：`A + LPσ(B-A)`，σ=`8/4/2/1/0 cell`；从粗到细逐级放行。一个频带必须在 inner folds 中改善、跨 fold 稳定，且不过度增加 Nyquist/checker 能量，否则截断。
+  4. 最终 D 在全部 outer-training 上重建一次，再应用 inner 选出的最高安全频带；没通过的区域回退 A。wet/view-dependent residual 只能收紧门或 abstain，不能扩大生成模型。
+  5. r3 六块规则冻结后，再增加至少 1 个未参与规则选择的新 AV2 log、high/low 两块作泛化终验；新 log 也必须先冻结 outer split，再运行同一规则。
+
+**PASS gates：**
+  - r3 outer 六块中，D 的 robust MAE 与 median RGB L2 均不得相对 A 实质恶化（容差 1%，且眼核无新棋盘/彩边/moiré）；两个 dry/high 至少保留一个明确正增益。
+  - low 与 wet 的门必须能主动收紧；不得把“latent 更锐”当成功。
+  - unseen-log high/low 同一规则过门；任何逐 log/逐 patch 常量、outer-heldout 选阈值、BMW 特判均直接 KILL。
+  - 输出必须包含 `safe_valid / selected_band / uncertainty / fallback_reason`，mask 白只能来自通过门的真实观测反演或 A 的真实像素。
+
+**Kill criteria / Max scope：**
+  - 若 inner gate 与 outer 真值方向系统性不一致，或必须看 outer 才能选频带，KILL sensor-native 生产升级，保留 v15 A。
+  - 最多固定 5 个频带、3 folds、两种无场景常数的稳定性门；不得扩成 learned gate、扩散模型、BRDF 或全量 555 样本重渲染。
+  - L4 预算 12 GPU-hour；先复用现有 3 logs，只有通过 r3 才下载 unseen log。每轮必须留下 metrics 与视觉 board，但不重复做与判决无关的基础审计。
+
+---
+
 # DB-145: Sensor-native 各向异性地面逆成像 — pixel-footprint operator kill-test
 Status: **DONE — CONDITIONAL / NOT PRODUCTION（2026-07-17）。无门控 B 已 KILL；sensor-native 假设仅保留为 observability-gated 后续候选。未修改 db89/db144/v15 或 555 个已交付样本。**
 Question: 在不生成、不逐场景调参的前提下，直接从原始 AV2 相机像素及其真实地面投影足迹建立前向算子，能否比 v10/v15 的「2.5cm 网格 + 最多 6 观测 RGB 中值」恢复更多可被 held-out 原始相机验证的真实地面细节？

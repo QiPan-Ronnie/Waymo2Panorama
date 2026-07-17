@@ -113,3 +113,24 @@ def test_vectorized_support_matches_scalar_reference_exactly():
         for point in points[keep]:
             scalar.add((obs_id, int(point[1] * 6 + point[0]), tuple(point)))
     assert vectorized == scalar
+
+
+def test_subset_compacts_sparse_source_ids():
+    observations = EWAObservationSet.from_numpy(
+        centers_cell=np.array([[1.0, 1.0], [2.0, 2.0], [3.0, 3.0]], np.float32),
+        covariance_cell=np.repeat(
+            np.array([[[0.2, 0.0], [0.0, 0.2]]], np.float32), 3, axis=0
+        ),
+        source_ids=np.array([0, 4, 9], np.int64),
+        rgb=np.zeros((3, 3), np.float32),
+        grid_hw=(5, 5),
+        support_sigma=3.0,
+        pose_shift_limit_cell=0.5,
+        provenance={"original_source_id": np.array([10, 20, 30])},
+    )
+    subset = observations.subset(np.array([False, True, True]))
+    assert subset.n_sources == 2
+    np.testing.assert_array_equal(subset.source_ids.cpu().numpy(), [0, 1])
+    np.testing.assert_array_equal(
+        subset.provenance["original_source_id"], [20, 30]
+    )
