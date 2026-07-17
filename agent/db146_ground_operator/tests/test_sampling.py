@@ -30,6 +30,15 @@ def test_budget_is_exact_and_balanced_across_source_views():
     assert report.selection == "geometry_only_equal_source_spatial_raster"
 
 
+def test_non_divisible_budget_never_overshoots():
+    bounded, report = bound_observations(
+        _observations((100, 100, 100, 100)), max_observations=61
+    )
+    kept = list(report.kept_by_source.values())
+    assert len(bounded.rgb) == sum(kept) == 61
+    assert max(kept) - min(kept) == 1
+
+
 def test_sampling_is_deterministic_and_does_not_look_at_rgb():
     observations = _observations((100, 100))
     changed_rgb = ObservationArrays(

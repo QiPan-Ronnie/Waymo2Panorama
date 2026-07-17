@@ -90,6 +90,13 @@ def _inner_fold(
     validation_arrays, validation_sampling = bound_observations(
         extraction.heldout_observations
     )
+    print(
+        f"DB146_BOUND fold={fold_index} "
+        f"fit={train_sampling.original_observations}->{train_sampling.kept_observations} "
+        f"val={validation_sampling.original_observations}"
+        f"->{validation_sampling.kept_observations}",
+        flush=True,
+    )
     train = train_arrays.build_operator(
         grid_hw=extraction.baseline.valid.shape,
         config=DEFAULT_CONFIG,

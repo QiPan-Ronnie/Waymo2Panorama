@@ -42,7 +42,11 @@ def _waterfill_quotas(counts: np.ndarray, total: int) -> np.ndarray:
     active = counts > 0
     while remaining > 0 and active.any():
         active_ids = np.flatnonzero(active)
-        share = max(1, remaining // len(active_ids))
+        if remaining < len(active_ids):
+            quotas[active_ids[:remaining]] += 1
+            remaining = 0
+            break
+        share = remaining // len(active_ids)
         capacity = counts[active_ids] - quotas[active_ids]
         increment = np.minimum(capacity, share)
         used = int(increment.sum())
