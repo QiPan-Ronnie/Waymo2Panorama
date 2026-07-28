@@ -2355,6 +2355,50 @@ def run_case(case_spec, run_name):
             _eb = _cv.dilate(_eb.astype(np.uint8), np.ones((EGO_BLACK_DILATE, EGO_BLACK_DILATE), np.uint8)) > 0
             comp[_eb] = 0
         ground_stats["ego_black_px"] = int(_eb.sum())
+    if GROUND_MODE == "off":   # DB-171 rule-5 band fallback (post-EGO_BLACK): interior band holes -> ANGULAR sample from the axis-closest in-frame camera whose sample is NOT on that camera's analytic ego mask. Root cause fixed: with annotations present, Zsupport excludes annotated objects' LiDAR returns, so parked-object footprints lose "support" and egoproj&no-support paints them black (the far-from-hood bites). Real hood/body directions land on the E-ego mask and stay black; misfires get their real anchor-time pixels back.
+        _nb = comp.astype(np.int32).sum(2) >= 12
+        _above = np.maximum.accumulate(_nb, 0)
+        _below = np.maximum.accumulate(_nb[::-1], 0)[::-1]
+        _fh = (~_nb) & _above & _below
+        _fh[:H // 2] = False
+        _hy, _hx = np.nonzero(_fh)
+        _nfill = 0
+        if _hy.size:
+            _dh = DIRS.reshape(-1, 3)[_hy * W + _hx]
+            _Xh = C[None, :] + _dh * 60.0
+            _fbest = np.full(len(_hy), -1, np.int32)
+            _fdot = np.full(len(_hy), -2.0, np.float32)
+            _pxs = np.zeros(len(_hy), np.float32)
+            _pys = np.zeros(len(_hy), np.float32)
+            for _ci in range(len(ring_cams)):
+                _K5, (_hh5, _ww5) = cals[_ci]
+                _Rc5, _tc5 = poses_emc[_ci]
+                _Xc5 = (_Rc5.T @ (_Xh - _tc5[None, :]).T).T
+                _z5 = _Xc5[:, 2]
+                _px5 = (_K5[0, 0] * _Xc5[:, 0] / np.maximum(_z5, 1e-6)).astype(np.float32) + _K5[0, 2]
+                _py5 = (_K5[1, 1] * _Xc5[:, 1] / np.maximum(_z5, 1e-6)).astype(np.float32) + _K5[1, 2]
+                _ok5 = (_z5 > 0.1) & (_px5 >= 1) & (_px5 < _ww5 - 1) & (_py5 >= 1) & (_py5 < _hh5 - 1)
+                if _EIMC is not None and _EIMC[_ci] is not None:
+                    _em5 = _EIMC[_ci]
+                    _exi5 = np.clip((_px5 / 4).astype(np.int64), 0, _em5.shape[1] - 1)
+                    _eyi5 = np.clip((_py5 / 4).astype(np.int64), 0, _em5.shape[0] - 1)
+                    _ok5 &= ~(_em5[_eyi5, _exi5] > 0)
+                _ax5 = _Rc5 @ np.array([0.0, 0.0, 1.0])
+                _dot5 = (_dh @ _ax5).astype(np.float32)
+                _pick5 = _ok5 & (_dot5 > _fdot)
+                _fbest[_pick5] = _ci
+                _fdot[_pick5] = _dot5[_pick5]
+                _pxs[_pick5] = _px5[_pick5]
+                _pys[_pick5] = _py5[_pick5]
+            for _ci, _cam5 in enumerate(ring_cams):
+                _sel5 = np.nonzero(_fbest == _ci)[0]
+                if not _sel5.size:
+                    continue
+                _img5 = frame.images[_cam5]
+                _gimg5 = np.clip(_img5.astype(np.float32) * np.exp(gains[_ci])[None, None, :].astype(np.float32), 0, 255).astype(np.uint8)
+                comp[_hy[_sel5], _hx[_sel5]] = np.clip(bilinear(_gimg5, _pxs[_sel5], _pys[_sel5]), 0, 255).astype(np.uint8)
+                _nfill += int(_sel5.size)
+        ground_stats["band_rule5_filled_px"] = _nfill
     if EMC_RENDER:   # DB-118 speed #1a: display-only A/B render — the 07-01 video batch patched the SAVE to pass but the 7-cam render still burned ~10-20s/frame
         # plain EMC base for the A/B
         embase = np.zeros((len(Xf), 3), np.uint8)
