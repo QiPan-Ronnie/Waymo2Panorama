@@ -5,6 +5,22 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-181: 四数据集单场景试点 — v15 契约跨数据集扩充可行性(user 2026-07-29 拍板)
+Status: **ACTIVE(user:「Waymo Perception / nuScenes / PandaSet 都做一下看看,Waymo E2E 也看一下 B 版能到什么样子」)**
+Question: v15 管线(1+92、A/B 双版、完美 360 锚帧)能否在四个候选数据集上各跑通一个场景?各自的产出质量/产出率/契约变形是什么?
+架构决策: **adapter 路线**——各数据集转成伪 AV2 目录格式(sensors/cameras + lidar feathers + calibration/pose feathers),**内核 db89 零改动**;相机槽位按 yaw 映射进 AV2 ring 名。
+分线契约:
+  - **nuScenes**(全契约首发):6 cam 360°@12Hz + 32 线;93帧=7.75s;风险=32 线近场证据密度 → resid 门下产出率,试点即答案。先用 v1.0-mini(10 scenes)。
+  - **PandaSet**(全契约,变体):6 cam 360° + 双雷达;80 帧@10Hz → **1+79 契约变体**(待 koi 认可);license 免费商用。
+  - **Waymo Perception**(变形版):5 cam 252° 局部 band + A 填充、后 108° 画布黑;定位=A 方法泛化靶场。
+  - **Waymo E2E**(B 版专线):8 cam 360° **无 LiDAR** → band 拼接走 plane-only 深度(**DB-82 已证 no-LiDAR ablation ≈ full LiDAR at panorama scale**);只出 B/band 数据,无 A 填充、锚帧地面无真实填充(语义变体待 koi);潜力=3,000+ 样本。
+  - Waymo 两线卡点=GCS 需用户 Google 授权(07-27 方案:waymo.com/open 注册 + Colab `auth.authenticate_user()`)。
+Kill/降级: 任一数据集 adapter 工程量失控(>2 天)→ 降级记录阻塞点待批;nuScenes 试点 resid 全场景超门 → 判「32 线不支撑 A 填充」降级为 B/band 源。
+Max scope: 每数据集 1-2 个场景端到端;代码进 `agent/db181_multids/`;结果进 `deliverables/db181_multids/`;不改 db89 内核、不改 v15 已交付产物。
+Required vision check: 每数据集出 band 样帧 + 锚帧(A 版含地面填充,E2E 为 B 版)全分辨率眼核 + resid 账目。
+
+---
+
 # DB-180: frame-1 地面 F 环零训练条件化 — 复合地面作 init 的低强度重绘 vs 裸 inpaint
 Status: **DONE & ARCHIVED (2026-07-29)。三条快速路径全 kill:①FLUX img2img 零训练条件化判负(证据/占位不可区分,用户眼核「都很一般」);②StreetCrafter 零样本 nadir 直连判负(faithfill 无源区条件恒空,SVD 非 inpaint 模型不填洞,f2b 大黑斑三帧原样保留);③零改造插入 v15 无位置(任务类型错位:SC 强项=有证据区忠实生成,我们缺口=无源区)。判定=v15 现状分工(真实反投影+FLUX)工具类型本来就对;超越只剩 conditioned 训练(自训 ERP 证据条件 inpainting,AV2 条件管线已跑通=数据就绪)或 SC 另类用法(C 版全生成地面/92 band 时序)=待 koi。正面资产=SC 全栈可跑+AV2 条件管线 v2+虚拟相机往返管线。全文见 progress.md 07-29 三条(第一轮/第二阶段/终章)。**
 Question: 不训练任何模型,把 frame-1 盲区的 FLUX 填充从「纯 mask inpaint(纯噪声起步)」改为「以 Tier1/Tier2 复合地面(含 Telea 几何占位)为 init 的低强度重绘(img2img / soft-inpaint)」,能否让完美 360 的盲区填充与周边真实地面在纹理/色调/结构上眼核可见地更一致,且不引入假结构?

@@ -1,5 +1,13 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-29 ◆ DB-181 R1:nuScenes 360° band 首渲成功 — v15 内核跨数据集泛化实证(adapter 路线零内核改动)
+> **架构**:伪 AV2 目录 adapter(nuScenes mini → sensors/cameras 硬链接改名 + LiDAR pcd.bin→ego 系 feather + 标定/逐帧 pose feathers)+ av2_loader `RING_CAMS_7` 改环境变量驱动(`W2P_RING_CAMS`,6 相机名单)——**db89 算法零改动**。场景自动选=mini 排除夜景后位移最大(scene-0796,236.9m,新加坡)。
+> **排雷链(通用适配清单,三雷各修一次)**:①bundle 解压出**两棵树**(/content/waymo2panorama 原始 + w2p_ego 工作),batch_py import 原始树 loader → **双树都要 patch**;②**空 annotations 表崩内核**(`boxes_at` 对标注时刻 argmin,DB-163 机制不容空)→ 试点先塞地下 50m 哑框(零影响),R2 转 nuScenes 真标注;③per-case 异常被吞成一行 → **worker extra rep 注入 `traceback.format_exc()` 替换 `str(e)[:200]`** = 现场拿全栈的定式。
+> **R1 眼核(3 锚点,a020/a117/a214)**:**360° 环带完整**(6 相机 wrap 相接连贯:行人/双层巴士/黄导流线/School Zone 牌/黑白路缘跨相机连续)= band 拼接在 nuScenes 成立。已知三处:前顶部小黑缺口、个别接缝轻错位+白平衡差(AV2 同款,gain/E1.5 链管)、**环带竖向比 AV2 窄**(相机 900px vs 1550,数据固有,带高契约影响待量化)。
+> **四线状态**:nuScenes R1 ✓(next=R2 真标注+ground fill 链,32 线 Tier1/Tier2 供给质量=核心未知);PandaSet=HF 镜像 `georghess/pandaset` 单 zip 待拉;Waymo Perception/E2E=**等用户 Colab `auth.authenticate_user()`**(桶确认存在,E2E 桶名 `waymo_open_dataset_end_to_end_camera_v_1_0_0`,匿名 401)。
+> **产物**:`deliverables/db181_multids/nusc_band_a*.png`;adapter 脚本 scratchpad `nusc_r1*.sh`(待固化 `agent/db181_multids/`)。
+> ---
+
 > ### 2026-07-29 ◆ DB-180 终章:SC 零样本 nadir 判负 → 零训练/零改造路径全部排除,v15 现状仍是无源区最优解
 > **nadir 实验两轮**:虚拟前下视相机(pitch 50°、90°FOV、与 ERP 球心同点=回投纯角度重映射)+ 聚合点云条件 + 首帧锚=cand composite 投影。**v1(相机随 ego)**:SC_f00=输入复读(SVD 首帧强锚定,不修首帧);f06/f12 有生成但回投用固定 P 几何 → 时空错位黑色碎块(用户抓的黑斑=此 bug 为主 + 条件扫描线间隙复制为次)。**v2(相机钉死 P 位姿,时窗滑动)**:错位黑洞消除、三帧时序稳定,但 **00a6ffc1 盲区=暗灰斑驳碎片(比 NS 占位还脏)、f2b0585b 大片诚实黑三帧原样保留零填充**——眼核两场景 SC 均输 E0(FLUX)。
 > **★根因(任务类型错位,DB-180 最重要结论)**:faithfill 盲区 by definition=全部真实证据(时序反投影∪全 log map)的补集 → **LiDAR 条件在此恒空**;SVD 类条件生成器对"条件空区"的行为=跟随首帧/上下文(首帧是黑就保持黑),它**不是 inpainting 模型**、没有补洞目标;FLUX 是 inpaint 专家 → 对无源区本来就是对的工具类型。SC 的强项(有证据区忠实生成)与我们的缺口(无源区)**错位**——有证据区我们有真实像素直贴,轮不到生成。
