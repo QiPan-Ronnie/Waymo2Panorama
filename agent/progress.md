@@ -1,5 +1,28 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-29 ◆ DB-180 终章:SC 零样本 nadir 判负 → 零训练/零改造路径全部排除,v15 现状仍是无源区最优解
+> **nadir 实验两轮**:虚拟前下视相机(pitch 50°、90°FOV、与 ERP 球心同点=回投纯角度重映射)+ 聚合点云条件 + 首帧锚=cand composite 投影。**v1(相机随 ego)**:SC_f00=输入复读(SVD 首帧强锚定,不修首帧);f06/f12 有生成但回投用固定 P 几何 → 时空错位黑色碎块(用户抓的黑斑=此 bug 为主 + 条件扫描线间隙复制为次)。**v2(相机钉死 P 位姿,时窗滑动)**:错位黑洞消除、三帧时序稳定,但 **00a6ffc1 盲区=暗灰斑驳碎片(比 NS 占位还脏)、f2b0585b 大片诚实黑三帧原样保留零填充**——眼核两场景 SC 均输 E0(FLUX)。
+> **★根因(任务类型错位,DB-180 最重要结论)**:faithfill 盲区 by definition=全部真实证据(时序反投影∪全 log map)的补集 → **LiDAR 条件在此恒空**;SVD 类条件生成器对"条件空区"的行为=跟随首帧/上下文(首帧是黑就保持黑),它**不是 inpainting 模型**、没有补洞目标;FLUX 是 inpaint 专家 → 对无源区本来就是对的工具类型。SC 的强项(有证据区忠实生成)与我们的缺口(无源区)**错位**——有证据区我们有真实像素直贴,轮不到生成。
+> **★DB-180 总判定(三条快速路径全 kill,brief 使命完成)**:①FLUX 零训练条件化(E1 img2img)判负=证据/占位不可区分;②SC 零样本 nadir 直连判负=无源区不填;③零改造插入 v15 无位置。**v15 现状(真实反投影管有源区 + FLUX 管无源区)在工具类型分工上本来就是对的**。要超越只剩 conditioned 训练一条路(方案③:用 555×93 自训 ERP 域"证据条件 inpainting"——SC 的条件思想 × inpaint 目标;**AV2 条件管线本日已跑通=训练数据管线就绪**),或 SC 的另类用法(C 版全条件生成地面 / 92 band 时序填充)=koi 数据语义决策。
+> **正面资产(留存)**:StreetCrafter 全栈可跑(A100 venv+multi-cam 权重+AV2 转换器);AV2→SC 条件管线(聚合±8 sweeps/三相机取色/裁盖,v2 质变实证);虚拟相机 ERP↔透视往返管线(固定视角版几何正确)。**产物**:`deliverables/db180_condflux/{00a6ffc1,f2b0585b}_board_sc_nadir{,_v3}.jpg`(v1 错位版+v3 固定视角终审版)+ 远端 `/content/db180_out/*/SC_nadir_f*.png`。
+> ---
+
+> ### 2026-07-29 ◆ DB-180 第二阶段:StreetCrafter 官方验证通过 + AV2 跨数据集直连成功(条件 v2 质变)
+> **官方验证(三场景 124/170658/767010,multi-cam 权重,576×1024)**:生成与 GT 几乎难分(骷髅贴纸/尾灯/湿路反光/骑车人全保真),条件实为稀疏扫描线+天空大黑——**「有点跟点走、无点自由生成」能力实证**(恰是 FLUX 轮缺的逐像素条件强度)。环境链踩雷 3 连修:①`vwm/data/dataset.py` 训练依赖 sdata 缺失→打印提示框后 `exit(1)` **静默杀死推理进程**(patch 为 None 兜底);②VAE attention 硬调 xformers(检测与使用不一致的上游 bug)→装 xformers 0.0.35(--no-deps 保 torch);③venv=virtualenv --system-site-packages(Colab py3.12 venv ensurepip 阉割),transformers 放宽 4.38.2(4.19.1 的 tokenizers 无 cp312 wheel)。**GPU 硬校验纪律**:发射后 150s 利用率<10% 即报错甩 log(防静默假跑,用户两次抓到 GPU 空转)。
+> **AV2 直连两轮(与 E0 同窗:00a6ffc1@63 / f2b0585b@175,front_center)**:**v1 判负**=单 sweep+单相机取色条件仅数条弧线(比官方稀 1-2 个量级)+车头盖占底 1/3(分布外)→首帧锚定耗尽后 f12+ 生成塌缩成横条纹(某种意义上仍在忠实跟随仅有的弧线条件);另发现其 `parse_guidance_path` 正则硬性要求**纯数字场景名+lidar/ 子目录**(`av2_00a6ffc1/color_render` 被 "No match found" 静默跳过,场景更名 900011/900012)。**v2 质变**=±8 sweeps 时间窗聚合(17-22 万点/帧,~17×)+三相机取色(fc/fl/fr)+车头盖裁除(v≤1350)→ **两场景生成接近官方质量**:场景结构/STOP 牌(字可读)/棕榈树/弧形公寓/橙巴士全对,25 帧时序连贯零塌缩。已知瑕疵=动态车拖影(未做 actor 分离,官方用 tracklets 分离动静点云;修法明确,annotations 我们现成)。
+> **坎位判定**:坎 2(条件分布)✓ 过;坎 1(nadir 虚拟相机=frame-1 盲区正戏)与坎 3(诚实黑处理)= 下一轮。**pkill 双连新坑**:①字符类防自匹配但杀掉了**脚本里含 `pgrep -f s5cmd` 字面的友军 job**;②pkill 与 nohup 目标同串在一个 job 脚本 = 整脚本是 bash cmdline→自杀;定式=**pkill 独立小 job + 模式用变量拼接打断字面**(`P1='xxx'; pkill -f "${P1}[.]py"`)。
+> **产物**:`deliverables/db180_condflux/sc_official_*`(官方三场景板+mp4)+ `sc_av2_9000*`(v1 判负证据)+ `sc_av2v2_9000*`(v2 质变板+mp4);远端 `/content/street_crafter/`(全栈+AV2 转换器);权重救援=用户浏览器下载(Drive 配额卡 gdown)误传 panq 账号→**Drive connector 服务端 copy_file 跨账号复制**(零流量)。
+> ---
+
+> ### 2026-07-29 ◆ DB-180 第一轮:frame-1 盲区零训练条件化(FLUX img2img)判负 → 转 StreetCrafter conditioned 阶段
+> **设计**:两场景按 resid 分层(00a6ffc1 P=63 resid 10.6% / f2b0585b P=175 resid 15.0%=全库最大盲区);v15 量产同款 v11 内核(git e52cd35~1 字节级抽出,md5 精确 `cca4f0c5`)重渲 frame-1 cand 中间产物(复合地面+faithfill 盲区 mask);臂=E0 裸 FluxFill(量产配方精确复现,对照)vs E1 FLUX.1-dev img2img(复合地面为 init,strength 0.3/0.5/0.7);全臂只在盲区 mask 内 composite、白域 byte-exact。A100,cand 渲染 60s/42s,FLUX 全链一次通。
+> **眼核判决(用户:「都很一般」→ 零训练轮判负)**:①E0=无视证据自由发挥——f2b 补全白 SUV 下半身(轮/拱/影)+凭空生成整辆灰轿车+黄线延续(语义合理但全编造);00a6 把带外延伸的**断续真实虚线改写成连续实线**+多画一条弧(改写有证据结构)。②E1_s030=00a6 **虚线保持虚线且更清晰(条件化方向的正面证据)**,但 f2b 大黑斑被当"内容"原样保留成灰糊(结构性失效)、00a6 黑斑被"物化"成轮状伪影;s050 两头不讨好;s070 两场景编造石块/涂鸦状杂物(崩)。
+> **★核心发现(比输赢重要)**:零训练工具箱**不存在「逐像素条件强度」自由度**——FluxFill=二值 mask(内全生成/外全保留)、img2img=全局标量 strength(证据与黑斑一视同仁);而需求恰是「有证据处跟证据走、无证据处自由生成」=StreetCrafter 类条件模型的定义性能力(彩色点云条件:有点跟点/无点生成)。本轮精确画出零训练天花板,并给 conditioned 路线开出需求单:**条件通道必须区分证据/无证据(黑斑标记)**。
+> **StreetCrafter 备货(并行完成)**:Vista base 10.1G(gdown)+multi-cam 微调权重 8.91G(Drive 配额卡死 gdown,无 HF 镜像;用户浏览器下载+传 Drive 救活)+官方参照场景(HF 镜像 `haozhanglife/waymo_streetcrafter` scenes.zip 5.9G,条件格式=images/ego_pose/extrinsics/intrinsics/track+lidar/{actor,background,color_render,depth})+独立 venv(virtualenv --system-site-packages;坑=Colab python3.12 venv ensurepip 阉割→virtualenv;transformers 4.19.1 的 tokenizers 无 cp312 wheel 编译崩→放宽 4.38.2,PL 2.0.1+torch 2.11 cu128 全通)。
+> **踩坑**:①pkill「杀友军」新变体——清 s5cmd 残进程时 `pkill -f 's5[c]md'` 命中**渲染 job 脚本里的 `pgrep -f s5cmd` 字面量**把 job 误杀(字符类只防自匹配、不防持串友军;修法=杀前 pgrep -af 核对命中列表);②AV2 单 log 全量实测仅 ~1.2GB(9 相机×319+LiDAR 157+annotations),此前「25-30GB」预估错误,s5cmd 挂尾不退才是等待假象;③E1 需 FLUX.1-dev(base)而非 Fill-dev,Drive cache 两者都有(DiT360 时代遗产)。
+> **产物**:`deliverables/db180_condflux/`(两场景 board_crop 六行对比板+E0_maskedge 红边)+ VM `/content/db180_out/`;下一步=multi-cam 权重进 ckpts→官方场景推理验证→AV2 条件适配层。
+> ---
+
 > ### 2026-07-29 ◆ DB-179 数据源扩展调研:Waymo E2E 无 LiDAR 坐实 + StreetCrafter 数据集 + PandaSet/nuScenes 修正「AV2 唯一兼得」
 > **触发**:koi 布置——AV2 850 判定/555 样本收官后需扩数据源;查证 xinhan 之前用的 Waymo E2E(waymo.com/open,last updated March 2025)是否有 LiDAR;读 StreetCrafter(zju3dv,CVPR 2025)看其数据集我们能否用。
 > **查证①(E2E 无 LiDAR 坐实)**:WOD-E2E 官方论文(arXiv:2510.26125)明确数据集=8 相机 360° 覆盖+高层 routing 指令,LiDAR 仅出现在"未来可能扩展";与 07-27 一手 parquet 检查(4,021 段×20s、8 相机 10Hz ~1920×1280、内外参、ego 2D 轨迹、无 LiDAR)一致。→ **A 哲学(真实地面填充)不可行,只能 B 哲学 band-only**;预估产出 3,000+ 样本(9× AV2);93帧@10Hz=9.3s vs AV2 20Hz=4.65s 帧率契约待 koi 拍板;卡点=Waymo GCS 需用户 Google 授权(07-27 评估的试点计划仍就绪)。

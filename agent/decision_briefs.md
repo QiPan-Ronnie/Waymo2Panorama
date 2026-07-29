@@ -5,6 +5,20 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-180: frame-1 地面 F 环零训练条件化 — 复合地面作 init 的低强度重绘 vs 裸 inpaint
+Status: **DONE & ARCHIVED (2026-07-29)。三条快速路径全 kill:①FLUX img2img 零训练条件化判负(证据/占位不可区分,用户眼核「都很一般」);②StreetCrafter 零样本 nadir 直连判负(faithfill 无源区条件恒空,SVD 非 inpaint 模型不填洞,f2b 大黑斑三帧原样保留);③零改造插入 v15 无位置(任务类型错位:SC 强项=有证据区忠实生成,我们缺口=无源区)。判定=v15 现状分工(真实反投影+FLUX)工具类型本来就对;超越只剩 conditioned 训练(自训 ERP 证据条件 inpainting,AV2 条件管线已跑通=数据就绪)或 SC 另类用法(C 版全生成地面/92 band 时序)=待 koi。正面资产=SC 全栈可跑+AV2 条件管线 v2+虚拟相机往返管线。全文见 progress.md 07-29 三条(第一轮/第二阶段/终章)。**
+Question: 不训练任何模型,把 frame-1 盲区的 FLUX 填充从「纯 mask inpaint(纯噪声起步)」改为「以 Tier1/Tier2 复合地面(含 Telea 几何占位)为 init 的低强度重绘(img2img / soft-inpaint)」,能否让完美 360 的盲区填充与周边真实地面在纹理/色调/结构上眼核可见地更一致,且不引入假结构?
+背景: StreetCrafter(CVPR 2025)证明「几何证据渲染作逐像素条件」的生成范式;我们的复合地面 = 更稠密的同类条件图,缺的只是忠于条件的生成器;零训练近似 = FLUX img2img 低 denoise 吃复合地面为条件。同时衔接 DB-145/146 远端 verdict(纯真实提质已近信息上限)——本条测 v6 与 v8 之间「有证据条件的生成」层级的最便宜入口。
+设计:
+  - 场景 2-3 个,按 v15 ledger resid 分层挑(盲区小/中/大各一,候选含 00a6ffc1 与 05fa5048);重渲 frame-1 cand 中间产物(faithfill_mask + 复合地面)。
+  - 臂:**E0** = 现状裸 FLUX-Fill(v15 配方,对照);**E1** = 复合地面 init + denoise sweep(0.3/0.5/0.7);**E2**(可选)= 周边取材的 prompt 自动增强。
+  - 全部输出只在 faithfill_mask ∪ 残洞内 composite,**白域 byte-exact**(mask 契约不动)。
+Kill criteria: E1 各档均不优于 E0(眼核);或低 denoise 只保留 Telea 糊无净提升、高 denoise 编造结构(假车道线/文字/物体一票否决)→ 判「零训练不够」,升级路径 = conditioned 训练(StreetCrafter 式,另立 brief)。
+Max scope: 实验脚本只进 `agent/db180_condflux/`,结果只进 `deliverables/db180_condflux/`;不改 db89 内核、不改 v15 量产管线与已交付成品;1×A100 优先(FLUX 惯例)或 L4+offload;≤1 天。
+Required vision check: 每场景全分辨率 E0/E1 全图对比 + 盲区 crop + 边界一致性;假结构清单逐项过;眼核生死、指标只做护栏。
+
+---
+
 # DB-179: 数据源扩展评估 — Waymo E2E 无 LiDAR 查证 + StreetCrafter 数据集调研 + PandaSet/nuScenes 新发现
 Status: **调研完成(2026-07-29),待 user/koi 定数据源优先级;试点未启动。** 事实全文见 progress.md 07-29 条目。
 Question: AV2 850 判定、555 样本收官后,还有哪些公开数据源能扩 1+92 全景数据(A 哲学=环视相机+LiDAR;B 哲学=仅环视相机)?koi 指定调研 StreetCrafter(zju3dv,CVPR 2025)所用数据集的可用性。
