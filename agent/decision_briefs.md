@@ -5,6 +5,18 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-179: 数据源扩展评估 — Waymo E2E 无 LiDAR 查证 + StreetCrafter 数据集调研 + PandaSet/nuScenes 新发现
+Status: **调研完成(2026-07-29),待 user/koi 定数据源优先级;试点未启动。** 事实全文见 progress.md 07-29 条目。
+Question: AV2 850 判定、555 样本收官后,还有哪些公开数据源能扩 1+92 全景数据(A 哲学=环视相机+LiDAR;B 哲学=仅环视相机)?koi 指定调研 StreetCrafter(zju3dv,CVPR 2025)所用数据集的可用性。
+核心结论(2026-07-29 联网查证):
+  - **Waymo E2E 无 LiDAR 坐实**(WOD-E2E arXiv:2510.26125 官方论文 LiDAR 仅列为未来扩展,与 07-27 一手 parquet 检查一致)→ 只能 B 哲学 band-only,预估 3000+ 样本(9× AV2);93帧@10Hz=9.3s 契约差异待 koi;卡点=Google 授权。
+  - **StreetCrafter 数据集 = Waymo Perception(front cam+LiDAR)+ PandaSet**,~35k 训练样本;其对数据的硬要求=标定图像+同步 LiDAR+object tracklets(与我们 1+92 管线同款)。两个都能用。
+  - **★07-27「AV2 唯一环+雷兼得」结论修正**(当时只扫了 Waymo 家族):**PandaSet**(6 cam 360°+Pandar64 机械 360°+PandarGT 前向固态;103 scenes×8s@10Hz=80 帧<93 需契约适配;**免费商用 license**)与 **nuScenes**(6 cam 360°@12Hz 1600×900+32 线@20Hz;1000 scenes×20s=兼得中规模最大;**license 非商用**,BOSCH 语境需先确认)均为环+雷兼得。
+  - 版图定位:扩量主力=Waymo E2E(B);A 泛化=nuScenes(量大)>PandaSet(license 干净量小)>Waymo Perception(1+4 短程 LiDAR 近场证据优于 AV2 但仅 252°)。
+待决:①数据源优先级(user/koi);②PandaSet 93→80 帧契约;③nuScenes 商用 license;④StreetCrafter「证据条件生成」范式对 frame-1 地面线的借用是否立项(另议)。
+
+---
+
 # DB-171: v15 B 版远处黑块根因判决 + rule-5 band 兜底修复
 Status: **DONE & ARCHIVED (2026-07-28)。全文见 progress.md 当日条目(含 07-28 续篇:37e7eae git 首提交终审、最佳含车盖配方判定、raw_withhood_00a6ffc1 交付)。内核修复已提交 e52cd35;存量 555 B 重导待 user 决。**
 ---

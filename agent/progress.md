@@ -1,5 +1,14 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-29 ◆ DB-179 数据源扩展调研:Waymo E2E 无 LiDAR 坐实 + StreetCrafter 数据集 + PandaSet/nuScenes 修正「AV2 唯一兼得」
+> **触发**:koi 布置——AV2 850 判定/555 样本收官后需扩数据源;查证 xinhan 之前用的 Waymo E2E(waymo.com/open,last updated March 2025)是否有 LiDAR;读 StreetCrafter(zju3dv,CVPR 2025)看其数据集我们能否用。
+> **查证①(E2E 无 LiDAR 坐实)**:WOD-E2E 官方论文(arXiv:2510.26125)明确数据集=8 相机 360° 覆盖+高层 routing 指令,LiDAR 仅出现在"未来可能扩展";与 07-27 一手 parquet 检查(4,021 段×20s、8 相机 10Hz ~1920×1280、内外参、ego 2D 轨迹、无 LiDAR)一致。→ **A 哲学(真实地面填充)不可行,只能 B 哲学 band-only**;预估产出 3,000+ 样本(9× AV2);93帧@10Hz=9.3s vs AV2 20Hz=4.65s 帧率契约待 koi 拍板;卡点=Waymo GCS 需用户 Google 授权(07-27 评估的试点计划仍就绪)。
+> **查证②(StreetCrafter 数据集)**:StreetCrafter=LiDAR 彩色点云渲染条件的可控视频扩散(novel view synthesis):把 LiDAR 点投到标定图像取色→时间窗聚合→NDC 光栅化成逐像素条件引导生成。数据集=**Waymo Perception(非 E2E;front camera 1066×1600+同步 LiDAR,val 15 seq 评测)+ PandaSet(900×1600,5 seq 评测+其余训练)**,~35,000 训练样本;GitHub 权重为 multi-camera 版。**其对数据的硬要求=标定图像+同步 LiDAR+object tracklets——与我们 1+92 管线同款**(AV2 annotations.feather 同物,DB-163 实锤过)。两个数据源我们都能用。
+> **★「AV2 唯一环+雷兼得」修正(07-27 结论只扫了 Waymo 家族,今日推翻)**:①**PandaSet**=6 相机 360° 环视+双 LiDAR(Pandar64 机械 360°+PandarGT 前向固态),103 scenes×8s@10Hz(San Francisco),28 类目标+37 类语义标注,**免费商用 license(BOSCH 语境大加分)**;限制=**8s=80 帧<93,契约需适配(如 1+79 或降帧率)**、规模小(~100 样本级)。②**nuScenes**=6 相机 360°@12Hz 1600×900+32 线 LiDAR@20Hz+5 radar,**1000 scenes×20s=环+雷兼得中规模最大**;93帧@12Hz=7.75s 每段可出 1-2 窗;限制=**license 非商用**(学术免费,BOSCH 商用语境需先确认)、32 线近场证据密度低于 AV2 双雷达(A 填充质量待实测)。
+> **版图定位(交 user/koi 定优先级)**:扩量主力=Waymo E2E(B 哲学,卡 Google 授权);A 哲学跨车队泛化=nuScenes(量大)>PandaSet(license 干净量小)>Waymo Perception(2,030 段,1 中程+4 短程 LiDAR 近场证据优于 AV2 但仅 5 相机 ~252° 无后视=靶场非主力)。
+> **Next**:①user/koi 定数据源优先级;②候选试点=PandaSet/nuScenes 单场景端到端(传感器布局+契约适配实测);③StreetCrafter「证据条件生成」范式对 frame-1 地面线的借用评估(用户已提出,另议立项)。
+> ---
+
 > ### 2026-07-28 ◆ DB-163~178 终审:v15 B 版四类瑕疵根因 + DB-171 内核修复 + koi 交付(归档 DB-171)
 > **触发**:用户抓 00a6ffc1_w1 成品四类瑕疵(①远离车头的脚下/车底/柱底黑块 ②fr_0001 竖条 ③fr_0037 行人重影/fr_0032 swirl ④A 版远处黑),连续四轮质疑推动七轮实验(raw 基线/标定几何探针/2×2 消融/6-19 快照重渲/EMC 对照/逐像素 fbcam-ok-poison dump/annotations 复现)+ git 首提交终审。
 > **判决**:①黑块=EGO_BLACK×annotations 交互误杀(真 bug):量产整 log 下载含 annotations.feather→Zsupport 剔除标注物体盒内 LiDAR 回波→停放物体自身足迹被判"无支撑自车"涂黑;所有无标注复现失败的钥匙=输入数据差异(db151 选择性下载无标注)。②竖条=拼接层取源失败,**git 首提交 37e7eae(06-10)同帧实测同在**(黑条 17.4k px,形态碎裂),"最初无此问题"不成立;_baseline_fable5 归档实为 6-19 快照(git --follow 实锤),其"无黑条"是被自带地面填充遮蔽的假象。③重影/swirl/招牌字复影=7 相机依次曝光+单源领地的物理限制,四版本(成品B/旧v11/v11+DB171/37e7eae)全有,历代只改失败形态;当年已知并有意接受。④A 远处黑=zone2 全窗无源诚实黑(设计)⊕①误杀残留。
