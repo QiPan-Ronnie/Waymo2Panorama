@@ -6,19 +6,7 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 ---
 
 # DB-171: v15 B 版远处黑块根因判决 + rule-5 band 兜底修复
-Status: **FIX LANDED (2026-07-28)。内核已加 DB-171 块;存量 555 是否重导=待 user 决。**
-Question: 用户抓 00a6ffc1_w1 B 版四类瑕疵:①远离车头的脚下/车底/柱底黑块 ②fr_0001 竖条 ③行人重影/扭曲 ④A 版远处黑——各是什么、谁的责任、怎么修?
-判决(七轮实验:raw 基线 / 标定几何探针 / 2×2 消融 / fable5 基线重渲 / EMC 对照 / 逐像素 fbcam-ok-poison dump / annotations 复现):
-- ①黑块 = **EGO_BLACK × annotations 交互误杀(真 bug)**:量产整 log 下载含 annotations.feather → Zsupport 支撑图剔除标注物体盒内的 LiDAR 回波 → 停放卡车/行人自己的足迹被判"无支撑",叠上覆盖大半下环带的 ERP egoproj → 被当自车涂黑(复现 ego_black_px=446,700)。此前所有无标注复现全失败,根源=复现用 db151 选择性下载(不含 annotations)而量产是整 log。E-ego 解析掩膜无罪(v6 设计过遮已知已接受)。
-- ②竖条 = EMC 纯直拼层的取源失败(细杆方位),**自最初 db89 存在**;原始管线被其地面填充盖住,v15 band(GROUND_MODE=off)无填充首次裸露,v11 深度机制再改其形状(dump:全相机 ok=False)。对 B 版=合法诚实黑。
-- ③重影/扭曲 = 7 相机异步曝光 + 运动行人跨单源领地;物理限制;seam≤8px 静态门量不到运动复影=质量门盲区(SKIP_fine_dirty 同族漏网)。
-- ④A 远处黑 = zone2 填充失败的诚实黑(设计)⊕ ①误杀残留。
-Fix: **rule-5 band 兜底(post-EGO_BLACK)**——带内内部黑洞按射线方向从"光轴最近、视场内、采样不落该相机解析 ego 掩膜"的相机取锚时刻像素(单源);真车盖方向被掩膜挡下保持黑,误杀区回填真实像素。实测 00a6ffc1 a100:回填 5,385px,truck 区黑 4,098→1,283(=无标注 raw 水平),feet 区 12,131→9,576;车身环带/竖条/带下全不动;A 链(GROUND_MODE≠off)零影响。
-诊断教训(记录错误):五次误诊(缝合弃权洞→E-ego 静态判据→driver zone2 涂黑→掩膜窗口依赖→单开关消融),每次都被下一轮实验推翻;终局方法=raw 基线→单变量消融→逐像素 dump→**对齐输入数据**(annotations 差异才是复现钥匙)。
-Impact: 存量 555 B 版每帧 ~0.3-0.5% 真实像素被误黑;逐帧 mask 自动正确标黑=训练无毒,纯利用率损失;是否修后重导 B 交 user。
-Required vision check: fix_truck/fix_feet 三行对比(bug复现/修复/成品)已眼核 ✓。
-Output: 内核 `scripts/phase3/db89_ghost_recovery.py` DB-171 块;证据图 Drive `datasets/av2_1plus92_v15/_docs/db163_raw_00a6ffc1/`。
-
+Status: **DONE & ARCHIVED (2026-07-28)。全文见 progress.md 当日条目(含 07-28 续篇:37e7eae git 首提交终审、最佳含车盖配方判定、raw_withhood_00a6ffc1 交付)。内核修复已提交 e52cd35;存量 555 B 重导待 user 决。**
 ---
 
 # DB-145: Sensor-native 各向异性地面逆成像 — pixel-footprint operator kill-test
