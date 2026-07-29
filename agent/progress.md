@@ -6,6 +6,7 @@
 > **R1 眼核(3 锚点,a020/a117/a214)**:**360° 环带完整**(6 相机 wrap 相接连贯:行人/双层巴士/黄导流线/School Zone 牌/黑白路缘跨相机连续)= band 拼接在 nuScenes 成立。已知三处:前顶部小黑缺口、个别接缝轻错位+白平衡差(AV2 同款,gain/E1.5 链管)、**环带竖向比 AV2 窄**(相机 900px vs 1550,数据固有,带高契约影响待量化)。
 > **四线状态**:nuScenes R1 ✓(next=R2 真标注+ground fill 链,32 线 Tier1/Tier2 供给质量=核心未知);PandaSet=HF 镜像 `georghess/pandaset` 单 zip 待拉;Waymo Perception/E2E=**等用户 Colab `auth.authenticate_user()`**(桶确认存在,E2E 桶名 `waymo_open_dataset_end_to_end_camera_v_1_0_0`,匿名 401)。
 > **产物**:`deliverables/db181_multids/nusc_band_a*.png`;adapter 脚本 scratchpad `nusc_r1*.sh`(待固化 `agent/db181_multids/`)。
+> **★PandaSet R1/R2(同日续)**:HF 镜像 `georghess/pandaset` 单 zip,RemoteZip 按 Range 抽场景(**坑:zip 内层还有 pandaset/ 目录层,选场景逻辑误判差点抽全量 80GB+,掐后发现 019/092 两场景已完整到手**);格式=每帧世界系 pose(世界原点=首帧 LiDAR)+6 相机(**front=52° 长焦 + 5×92° 广角环,总 FOV 511°**)+双雷达合帧 17 万点/帧。**R1 判负→根因=坐标约定**:PandaSet 车体前向在其坐标系指 +y,全部相机 yaw 偏 +90° → 方位槽错配、band 排布整转 90°;**R2 修复**(ego=lidar pose@Rz(+90°),四元数从修正矩阵重提)→ **band 大体成立**(眼核 a040:方位正确、跨缝车辆完整、绿道连续)。剩余=back 相机两侧 ~4° 窄重叠缝两处黑洞(数据固有紧张)、白色自车身入镜(ego 掩膜可处理)、长焦/广角曝光差。**对比定位:PandaSet band 质量介于 AV2 与 nuScenes 之间**;80 帧→1+79 契约待 koi。产物 `deliverables/db181_multids/panda_band*.png`。
 > ---
 
 > ### 2026-07-29 ◆ DB-180 终章:SC 零样本 nadir 判负 → 零训练/零改造路径全部排除,v15 现状仍是无源区最优解
