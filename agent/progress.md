@@ -1,5 +1,32 @@
 # Waymo2Panorama Progress
 
+> ### 2026-07-30 ◆ DB-184 / DB-184b:用户两条第一性质疑各带出一个真缺陷 — 单相机领地不该反投影、曝光增益过冲 2×
+> **触发**:用户看 00a6ffc1 fr_0037 含车头 raw 拼接,连问两句——「文字就只是在那个相机的正中间的位置,只是拿原图简单的拼接啊,为什么要反投影?」「这个色差感觉也不应该存在啊,只是拼接为啥会有?」**两条都成立,各修出一个缺陷。**
+>
+> **前置几何定谳(推翻我自己前一轮的骑缝解释)**:用 log 标定实算(`intrinsics.feather` + `egovehicle_SE3_sensor.feather`,ERP 约定 `theta = 180 − (u+0.5)/W·360`):side_right 覆盖 [−130.1°, −67.7°],front_right 到 −76.4° 即止,rear_right 从 −122.0° 起。**招牌 θ=−104.0°、蓝衣人 θ=−112.8° 都在 side_right 独占区,离最近重叠带 9–36°**。我前一轮断言「front_right 也拍到了雨棚所以骑缝」= **第二次在同一模式上栽跟头(先断言后验证)**;蓝衣人那次已被用户证伪过一回。证据 `deliverables/av2_1plus92_v15/q_geometry_azimuth_proof.txt`。
+>
+> **① DB-184 文字撕裂 = 单相机领地内的深度反投影(真缺陷,已根治)**
+> 第一性:逐像素反投影 `X = C + Zd·DIRS` 的**唯一**合法目的是消缝处视差,而全 ERP 被 ≥2 相机看到的只有 **4.15%**;其余 95.85% 深度场是纯负担——**深度场的空间梯度 = 图像位移的空间梯度**,而字母笔画只有 2–4 px 宽。实测(a100 招牌,side_right 垂直基线 0.353 m):当前位移中值 13.4 px、**|d disp/dx| p99=1.08 max=1.74 → 撕裂**;控制组素墙 p99=0.93。
+> 修法 `DEPTH_SEAMRAMP=60.0`:在**逆深度域**(视差 ∝ 1/Z,是唯一不会在 ramp 两端造台阶、不弯折直结构的域)按「到最近双相机重叠区的 EDT 距离」把 Zd 混向大尺度无梯度场;缝处保精细深度 → 不回归。修复后位移 12.8 px(**几乎不变=内容没搬走**)、梯度 **p99=0.44 max=0.75**;素墙 0.93→0.19。
+> 三帧验证 a095/a099/a100:fr_0036 「BI\|ILLS」→「BILL'S」、fr_0037 撕裂→干净、fr_0032 持平;卡车/缝处行人/蓝衣人眼核零退化;改动像素 11.5%(>30 仅 1.38%);接缝色阶 14.85 vs 14.64(噪声级)。
+> **★反证实验 FARFIELD**(全程不用深度=用户心智模型的「纯拼接」):接缝色阶 **34.33 vs 14.64**,皮卡/建筑/黄线在缝处肉眼断裂 → **深度是必要的,但只在缝附近必要**。附带关键数字修正:**相机基线只有 0.21–0.38 m**(我先前口算 1.5–2 m,错一个量级)。
+>
+> **② DB-184b 色差 = 曝光增益最小二乘过冲 ~2×(真缺陷,已改善)**
+> 色差**不是拼接产生的**:7 相机独立 AE/AWB,同一表面 front_center 记录值仅 side_right 的 ~1/2(增益比 1.28/0.65=1.97×)。`solve_gains_for` 就是在补偿它,但双指标实测(3 帧 × 4 条领地缝):
+> | 方案 | 接缝 \|dRGB\| | 色调偏离实际记录 |
+> |---|---|---|
+> | **增益 ×0.5** | **13.81** | **6.1%** |
+> | 增益 ×1.0(原) | 14.64 | 12.5% |
+> | 完全不做 | 15.29 | 0% |
+> | 限幅 ±0.2 | 15.38 | 11.0% |
+> **×0.5 双轴帕累托全赢**。用户圈的 side_right 店面:原图 [76.9,74.2,75.6] R/B=1.017 → 原版本 [59.6,58.4,62.6] R/B=0.953(**压暗 22%+偏冷,「发闷偏紫」被数字证实**)→ ×0.5 后 **[73.2,70.3,73.0] R/B=1.003**。过冲的机理:共视点的 log 中值差**不是纯曝光比**,视角相关 BRDF + 渐晕 + 眩光都漏进去。**★限幅不等价且更差**:截断部分相机破坏相机间**相对**关系,只有等比缩放保持它。
+> **★方法教训**:我先用**单帧**得出「增益净负收益」,三帧统计推翻(14.64 < 15.29)→ 判决改为「过冲」而非「有害」。**单帧不能judge色彩类全局量。**
+>
+> **落地**:`DEPTH_SEAMRAMP=60.0`(commit ce4ff64)、`GAIN_STRENGTH=0.5`(commit 66cbe6b),均可设 0/1.0 byte-identical 回退。**DB-192 交叉校验:把 commit 后的 repo 文件原样上传 A100 重渲三帧,与 patch 链验证批 md5 逐字节一致**(b5a88704/1f4adab4/71c7ae23)= 跑的就是 git 里的代码。Drive `_docs/raw_withhood_00a6ffc1/` 三帧同名覆盖(fileId 保留)。
+> **证据**:`deliverables/av2_1plus92_v15/` 下 q_sign_fix_3way.png(原图/当前/修复三联)、q_sign_fix_3frames.png、q_color_ghalf.png、q_color_sideright_vs_original.png、q_farfield_counterexperiment.png、q_ramp_no_regression_zones.png、q_geometry_azimuth_proof.txt。脚本 scratchpad db183~db193。
+> **遗留**:存量 555 样本重导决策待 user(累计 DB-171 黑洞误杀 + DB-181 重影 + DB-184/184b 画质);fill/worldbev 路径继承同一 gains 但未单独眼核。
+> ---
+
 > ### 2026-07-29 ◆ DB-181 R1:nuScenes 360° band 首渲成功 — v15 内核跨数据集泛化实证(adapter 路线零内核改动)
 > **架构**:伪 AV2 目录 adapter(nuScenes mini → sensors/cameras 硬链接改名 + LiDAR pcd.bin→ego 系 feather + 标定/逐帧 pose feathers)+ av2_loader `RING_CAMS_7` 改环境变量驱动(`W2P_RING_CAMS`,6 相机名单)——**db89 算法零改动**。场景自动选=mini 排除夜景后位移最大(scene-0796,236.9m,新加坡)。
 > **排雷链(通用适配清单,三雷各修一次)**:①bundle 解压出**两棵树**(/content/waymo2panorama 原始 + w2p_ego 工作),batch_py import 原始树 loader → **双树都要 patch**;②**空 annotations 表崩内核**(`boxes_at` 对标注时刻 argmin,DB-163 机制不容空)→ 试点先塞地下 50m 哑框(零影响),R2 转 nuScenes 真标注;③per-case 异常被吞成一行 → **worker extra rep 注入 `traceback.format_exc()` 替换 `str(e)[:200]`** = 现场拿全栈的定式。
