@@ -55,6 +55,7 @@ GROUND_MODE = "fill"   # "fill"=STAGE-4 nadir reconstruction; "off"=middle-only 
 SEAM_OBJDEPTH = False   # DB-103 isolation test (default OFF, never ships): force close-object ERP regions to their box depth before scene-band reproject, to isolate the near-car seam-shear cause (depth-field smoothing vs occlusion). Does NOT touch the Fable-5 core when False.
 SEAM_MASK_FILL = False  # DB-104 robust mask (default OFF, gated): fill ENCLOSED holes (windows) in each YOLO object mask via binary_fill_holes (NOT dilation -> cannot inflate the boundary or merge instances, so it does NOT reintroduce the v7 giant-instance bug). A complete object body also gives the flow-morph more registration signal. Off = pure Fable-5 mask.
 SEAM_FLOWMORPH = True   # DB-103 fix (SHIPPED 2026-06-19, validated: a309 shear gone 32->8.6px, crowd a50 helped, clean seams byte-identical, 6-frame temporal stable): when the view-morph ECC-AFFINE residual is large (close-object depth-varying parallax), replace the affine displacement with dense Farneback optical flow INSIDE the object body. GATED on max_reg_px>8 -> fires ONLY on the rare near-object-break seams, never touches the well-registered ones (clean frames byte-identical). Pristine core in _baseline_fable5/. Set False to revert to pure affine.
+DEPTH_SEAMRAMP = 60.0   # DB-184 (SHIPPED 2026-07-30, 3-frame validated on 00a6ffc1 a095/a099/a100): per-pixel depth reprojection exists ONLY to cancel parallax where two cameras must agree — and only 4.15% of the ERP is seen by >=2 cameras. Inside a camera's own territory the depth buys nothing and costs everything: ANY spatial gradient of the depth field becomes a spatial gradient of image displacement, and glyph strokes are 2-4 px wide. Measured on the BILL'S BAR sign (26 deg from the nearest seam, single-camera): displacement 13.4 px with |d disp/dx| p99=1.08 max=1.74 px -> torn. So blend the INVERSE depth toward the large-scale (gradient-free) field as a function of distance-in-px from the nearest 2-camera overlap: seams keep their exact fine depth, the interior goes smooth. After: displacement 12.8 px (unchanged — the content does not move) but |d disp/dx| p99=0.44 max=0.75 -> clean. Seam colour step 14.85 vs 14.64 (noise). Set 0.0 to restore the pre-DB-184 behaviour byte-identically.
 SEAM_SINGLE_SOURCE = False  # DB-105 (diagnostic-validated on a309): when c_own sees the object COMPLETE and a secondary contributes only a small grazing sliver (mask << c_own area), DROP the secondary body-fill + SKIP the view-morph -> pure single-source. The near-car seam's CAUSE is the morph FUSING a complete car (side_left 1610 LiDAR pts) with a 149-pt grazing sliver (front_left). Gated, default OFF; pristine core in _baseline_fable5/.
 GROUND_RESID = "plate"  # DB-108 (AUDIT 2026-06-22): how the evidence-INSUFFICIENT nadir (spread>30 or no source) is filled. "plate"=DB-99 gray DC plate (DEFAULT, honest-but-gray). "inpaint"=video-era NS-inpaint (cv2.INPAINT_NS extends real edges into the blind cap) -> ground-FEEL (the ground_video_v1 look; blurry/白团 on bare asphalt). COMBO (audit-verified, recovers ground-feel + keeps near car) = "inpaint" + the DB-106 boundary. Gated, default unchanged (gray).
 GROUND_TORCH = False  # DB115-PRO fix#3 (2026-07-10): GPU-batched STAGE-4 source-selection scan (same math as the CPU loop, ~25f x 7cam x 800k pts -> torch; fill 226s/frame bulk). False = untouched CPU path. Needs CUDA; silently falls back when unavailable.
@@ -431,6 +432,25 @@ def run_case(case_spec, run_name):
         Ri, ti_ = cte(cam_ts[cam])
         poses_emc.append((Ra.T @ Ri @ T[:3, :3], Ra.T @ (Ri @ T[:3, 3] + ti_ - ta)))
     cals = [(np.asarray(frame.calibrations[c].K, float), frame.images[c].shape[:2]) for c in ring_cams]
+    if DEPTH_SEAMRAMP > 0:   # DB-184: a camera's OWN territory needs no parallax correction
+        import cv2 as _cvr
+        from scipy.ndimage import distance_transform_edt as _edtr
+        _nv = np.zeros((H, W), np.int16); _dfr = DIRS.reshape(-1, 3)
+        for _i in range(len(ring_cams)):   # far-field visibility: depth-free, calibration only
+            _Rc, _tcp = poses_emc[_i]; _Kc, (_hhc, _wwc) = cals[_i]
+            _dcam = _dfr @ _Rc; _zc = _dcam[:, 2]
+            _pxc = _Kc[0, 0] * _dcam[:, 0] / np.maximum(_zc, 1e-6) + _Kc[0, 2]
+            _pyc = _Kc[1, 1] * _dcam[:, 1] / np.maximum(_zc, 1e-6) + _Kc[1, 2]
+            _nv += ((_zc > 0.05) & (_pxc >= 1) & (_pxc < _wwc - 1) & (_pyc >= 1) & (_pyc < _hhc - 1)).reshape(H, W)
+        _dov = _edtr(~(_nv >= 2)).astype(np.float32)
+        _wf = np.clip(1.0 - _dov / float(DEPTH_SEAMRAMP), 0.0, 1.0).astype(np.float32)
+        _Z32 = Zd.astype(np.float32)
+        _sm = _cvr.resize(_Z32, (W // 8, H // 8), interpolation=_cvr.INTER_NEAREST)
+        _Zc = _cvr.resize(_cvr.medianBlur(_sm, 5), (W, H), interpolation=_cvr.INTER_LINEAR)
+        # inverse-depth blend: parallax is linear in 1/Z, so this is the domain where a
+        # ramp neither creates a step at the ramp ends nor bends straight structures.
+        Zd = (1.0 / np.maximum(_wf / np.maximum(_Z32, 1e-3) + (1.0 - _wf) / np.maximum(_Zc, 1e-3), 1e-6)).astype(np.float32)
+        print("DEPTH_SEAMRAMP overlap=%.2f%% mean_w=%.3f" % (100.0 * float((_nv >= 2).mean()), float(_wf.mean())), flush=True)
     # ---- YOLO segmentation on all 7 native images ----
     if not CAP_ONLY:   # DB-126: seg feeds OMC/body/poison — all band-content machinery
         from ultralytics import YOLO
