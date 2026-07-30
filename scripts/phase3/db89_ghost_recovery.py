@@ -131,7 +131,7 @@ def load_all(case_spec):
         tc = float(np.clip(float(int(t) - t0), lo, hi)); return slerp(tc).as_matrix(), np.array([np.interp(tc, tss, tx[:, i]) for i in range(3)])
     def tri(ta):
         tc = np.clip((np.asarray(ta, np.int64) - t0).astype(np.float64), lo, hi); return np.stack([np.interp(tc, tss, tx[:, i]) for i in range(3)], 1)
-    ann = pd.read_feather(log_dir / "annotations.feather") if (log_dir / "annotations.feather").exists() else None
+    ann = pd.read_feather(log_dir / "annotations.feather") if ((log_dir / "annotations.feather").exists() and GROUND_MODE != "off") else None   # DB-181: band frames render movers RAW — the annotation-driven object compositor pastes non-straddling moving people at annotation-lagged positions (offset doubles, e.g. the blue-shirt man), harming band frames more than it protects straddlers; fill/worldbev modes keep it.
     cam_ts = {}
     for cam in RING_CAMS_7:
         files = sorted(int(p.stem) for p in (log_dir / "sensors" / "cameras" / cam).glob("*.jpg"))
