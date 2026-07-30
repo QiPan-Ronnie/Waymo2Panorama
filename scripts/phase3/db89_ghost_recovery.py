@@ -55,6 +55,8 @@ GROUND_MODE = "fill"   # "fill"=STAGE-4 nadir reconstruction; "off"=middle-only 
 SEAM_OBJDEPTH = False   # DB-103 isolation test (default OFF, never ships): force close-object ERP regions to their box depth before scene-band reproject, to isolate the near-car seam-shear cause (depth-field smoothing vs occlusion). Does NOT touch the Fable-5 core when False.
 SEAM_MASK_FILL = False  # DB-104 robust mask (default OFF, gated): fill ENCLOSED holes (windows) in each YOLO object mask via binary_fill_holes (NOT dilation -> cannot inflate the boundary or merge instances, so it does NOT reintroduce the v7 giant-instance bug). A complete object body also gives the flow-morph more registration signal. Off = pure Fable-5 mask.
 SEAM_FLOWMORPH = True   # DB-103 fix (SHIPPED 2026-06-19, validated: a309 shear gone 32->8.6px, crowd a50 helped, clean seams byte-identical, 6-frame temporal stable): when the view-morph ECC-AFFINE residual is large (close-object depth-varying parallax), replace the affine displacement with dense Farneback optical flow INSIDE the object body. GATED on max_reg_px>8 -> fires ONLY on the rare near-object-break seams, never touches the well-registered ones (clean frames byte-identical). Pristine core in _baseline_fable5/. Set False to revert to pure affine.
+GAIN_MIN_CORR = 0.30   # DB-203 (2026-07-30): minimum Pearson correlation of log intensities across a camera pair's co-visible points for that pair to be allowed to constrain the exposure solve. A pair's median log difference is an exposure RATIO only if both cameras imaged the same surface; a ratio is a constant offset in log space and cannot destroy correlation, so rho ~ 0 is direct evidence the samples are landing on DIFFERENT surfaces (near-range parallax through the ~8 deg overlap strip + any calibration/timestamp error). Measured separation is wide: worst healthy pair 0.372 (e453f164 a070), poisoned pair 0.029 (00a6ffc1 a100 side_right|front_right). Set 0 to disable the gate (pre-DB-203 behaviour).
+GAIN_PRIOR_W = 0.05   # DB-203b: weight (relative to the pair's own sample count) of the "no relative exposure difference" prior applied to a pair that FAILED the GAIN_MIN_CORR gate. Rejecting an edge outright is not neutral: the remaining graph then infers that pair's relative exposure around a 6-hop path through the other cameras, and the accumulated error can be worse than the poison (measured on 00a6ffc1 a099: front_right|side_right went 22.0 -> 38.0 when the edge was simply dropped). When a quantity is unmeasurable the honest fallback is the prior, not a long-range inference. 0 = drop the edge entirely (DB-203 behaviour).
 GAIN_STRENGTH = 1.0   # DB-184b REVERTED to 1.0 by DB-198 (2026-07-30). History, because the trap is instructive: on 00a6ffc1 the gain solution overshoots badly (fr_0037 front_right|side_right seam step: 70.5 at full gain vs 12.8 with NO gain — the solve is simply wrong on that log), and 0.5 looked like a clean Pareto win there (seam 8.75->6.92 on fr_0037, 8.00->6.21 on fr_0032, plus tonal deviation from the recorded sensor colour 12.5%->6.1%). It does NOT generalise: on three unseen crowded logs (1842383a / e453f164 / 280269f9) 0.5 made the seams WORSE on all three (5.50->7.33, 9.08->14.17, 6.33->7.67) — there the solve is right and halving it just under-corrects, leaving visible territory blocks (s2 front_left|front_center 8.3->20.7). So 00a6ffc1 is an outlier whose gain SOLVE is broken, not evidence that the gain is globally too strong; the real fix is robustifying solve_gains_for (reject co-visible pairs contaminated by flare / view-dependent BRDF), not a global scale. Set 0.5 only to reproduce the DB-184b experiment. ALSO NOTE: the seam numbers quoted in the DB-184b commit came from a measurement that fixed each seam at one COLUMN and only sampled rows where that column was a boundary — a territory boundary is a CURVE, so most rows went unmeasured; DB-198 walks the boundary row by row and is the number to trust.
 DEPTH_SEAMRAMP = 60.0   # DB-184 (SHIPPED 2026-07-30, 3-frame validated on 00a6ffc1 a095/a099/a100): per-pixel depth reprojection exists ONLY to cancel parallax where two cameras must agree — and only 4.15% of the ERP is seen by >=2 cameras. Inside a camera's own territory the depth buys nothing and costs everything: ANY spatial gradient of the depth field becomes a spatial gradient of image displacement, and glyph strokes are 2-4 px wide. Measured on the BILL'S BAR sign (26 deg from the nearest seam, single-camera): displacement 13.4 px with |d disp/dx| p99=1.08 max=1.74 px -> torn. So blend the INVERSE depth toward the large-scale (gradient-free) field as a function of distance-in-px from the nearest 2-camera overlap: seams keep their exact fine depth, the interior goes smooth. After: displacement 12.8 px (unchanged — the content does not move) but |d disp/dx| p99=0.44 max=0.75 -> clean. Seam colour step 14.85 vs 14.64 (noise). Set 0.0 to restore the pre-DB-184 behaviour byte-identically.
 SEAM_SINGLE_SOURCE = False  # DB-105 (diagnostic-validated on a309): when c_own sees the object COMPLETE and a secondary contributes only a small grazing sliver (mask << c_own area), DROP the secondary body-fill + SKIP the view-morph -> pure single-source. The near-car seam's CAUSE is the morph FUSING a complete car (side_left 1610 LiDAR pts) with a 149-pt grazing sliver (front_left). Gated, default OFF; pristine core in _baseline_fable5/.
@@ -236,6 +238,38 @@ def solve_gains_for(frame, ring_cams, lidar, C):
         rgb = np.zeros((len(sub), 3)); rgb[ok] = bilinear(img, px[ok], py[ok])
         obs.append((ok & (rgb.min(1) > SAT_LO) & (rgb.max(1) < SAT_HI), rgb))
     nc = len(ring_cams)
+    # DB-203 PAIR-VALIDITY GATE (first-principles): the median log difference of a
+    # camera pair is an EXPOSURE ratio only if both cameras actually imaged the SAME
+    # surface at those points. If they did, their log intensities must be CORRELATED
+    # across the co-visible set — whatever the exposure ratio happens to be, since a
+    # ratio is a constant offset in the log domain and cannot destroy correlation.
+    # A correlation near zero is therefore direct evidence that the "co-visible"
+    # points are NOT landing on the same surface in both images: the ERP overlap is
+    # only ~8 deg wide, so a pair whose shared points are all at close range has huge
+    # parallax and any calibration/timestamp error walks the two samples onto
+    # different surfaces. Measured (DB-201/202): on 00a6ffc1 a100 six pairs score
+    # 0.47-0.95 and side_right|front_right scores 0.029 with an IQR of 1.615 and a
+    # robust slope of -0.027 (i.e. the two sides are uncorrelated); that one pair is
+    # what drags side_right to x0.65 and makes its seam step 70.5 (12.8 with no gain
+    # at all). On a healthy frame (e453f164 a070) the WORST pair still scores 0.372.
+    # Dropping the pair keeps the camera graph connected (side_right stays tied in
+    # through rear_right), so the solve is unaffected apart from losing the poison.
+    pair_ok = {}
+    for i in range(nc):
+        for j in range(i + 1, nc):
+            both = obs[i][0] & obs[j][0]
+            if both.sum() < 50:
+                pair_ok[(i, j)] = False
+                continue
+            li = np.log(np.maximum(obs[i][1][both].mean(1), 1.0))
+            lj = np.log(np.maximum(obs[j][1][both].mean(1), 1.0))
+            if li.std() < 1e-3 or lj.std() < 1e-3:
+                pair_ok[(i, j)] = True   # flat patch: no contrast to correlate, but the median IS the ratio
+                continue
+            rho = float(np.corrcoef(li, lj)[0, 1])
+            pair_ok[(i, j)] = rho >= GAIN_MIN_CORR
+            if not pair_ok[(i, j)]:
+                print("GAIN_PAIR_REJECT %s|%s rho=%.3f n=%d" % (ring_cams[i], ring_cams[j], rho, int(both.sum())), flush=True)
     gains = np.zeros((nc, 3))
     for ch in range(3):
         A = np.zeros((nc, nc)); b = np.zeros(nc)
@@ -243,6 +277,18 @@ def solve_gains_for(frame, ring_cams, lidar, C):
             for j in range(i + 1, nc):
                 both = obs[i][0] & obs[j][0]
                 if both.sum() < 50: continue
+                if not pair_ok[(i, j)]:
+                    # DB-203b: the pair carries no usable evidence — but the two cameras are
+                    # still physically adjacent, and DROPPING the edge outright leaves the
+                    # solve inferring their relative exposure around a 6-hop path through the
+                    # rest of the ring, accumulating error (measured: a099's
+                    # front_right|side_right seam went 22.0 -> 38.0 that way). Evidence-gated
+                    # means: when a quantity is unmeasurable, fall back to the honest prior —
+                    # "no relative difference" — not to a long-range inference. Weak weight,
+                    # so any pair that DOES have evidence still dominates.
+                    wp = GAIN_PRIOR_W * both.sum()
+                    A[i, i] += wp; A[j, j] += wp; A[i, j] -= wp; A[j, i] -= wp   # target dm = 0
+                    continue
                 li = np.log(np.maximum(obs[i][1][both, ch], 1.0)); lj = np.log(np.maximum(obs[j][1][both, ch], 1.0))
                 wgt = both.sum(); dm = float(np.median(lj - li))
                 A[i, i] += wgt; A[j, j] += wgt; A[i, j] -= wgt; A[j, i] -= wgt
