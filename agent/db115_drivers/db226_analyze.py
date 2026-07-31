@@ -87,6 +87,19 @@ def validate_split_manifest(
             raise ValueError("manifest selected_log_ids must equal the frozen split selected set")
     if expected_log_count is not None and len(selected_ids) != expected_log_count:
         raise ValueError(f"manifest must contain exactly {expected_log_count} selected logs")
+    acquisition_helper_sha256 = manifest.get("helper_source_sha256")
+    if (
+        not isinstance(acquisition_helper_sha256, str)
+        or len(acquisition_helper_sha256) != 64
+        or any(
+            character not in "0123456789abcdefABCDEF"
+            for character in acquisition_helper_sha256
+        )
+    ):
+        raise ValueError(
+            "manifest acquisition helper_source_sha256 must be a legal 64-character hex SHA"
+        )
+    acquisition_helper_sha256 = acquisition_helper_sha256.lower()
 
     def normalize_anchors(
         raw_anchors: object,
@@ -190,6 +203,7 @@ def validate_split_manifest(
             "train_log_ids": train_ids,
             "heldout_log_ids": heldout_ids,
             "split_sha256": computed_hash,
+            "helper_source_sha256": acquisition_helper_sha256,
         }
     )
     if anchors is not None:
@@ -198,12 +212,10 @@ def validate_split_manifest(
     return normalized
 
 
-def _expected_helper_sha256(manifest: Mapping[str, object]) -> str:
-    local_hash = sha256_file(Path(luma_response.__file__).resolve())
-    recorded = manifest.get("helper_source_sha256")
-    if recorded is not None and recorded != local_hash:
-        raise ValueError("manifest helper_source_sha256 does not match the analyzer helper")
-    return local_hash
+def _acquisition_helper_sha256(manifest: Mapping[str, object]) -> str:
+    recorded = manifest["helper_source_sha256"]
+    assert isinstance(recorded, str)
+    return recorded
 
 
 def _load_json_object(path: Path) -> dict[str, object]:
@@ -360,7 +372,7 @@ def load_verified_sidecars(
             for log_id, values in anchors.items()
             for anchor in values
         }
-    helper_sha256 = _expected_helper_sha256(normalized)
+    helper_sha256 = _acquisition_helper_sha256(normalized)
     sidecar_paths = sorted(root.rglob("*_color_diag.json"), key=lambda path: path.as_posix())
     if not sidecar_paths and (expected_identities or require_all_selected_logs):
         raise ValueError("no DB-226 color diagnostic sidecars found")
@@ -469,6 +481,10 @@ def analyze_rows(
     sensitivity_statuses = [cell["evaluation"]["status"] for cell in sensitivity]
     return {
         "schema_version": "db226.frozen_cross_log_analysis.v1",
+        "acquisition_helper_source_sha256": normalized["helper_source_sha256"],
+        "analyzer_helper_source_sha256": sha256_file(
+            Path(luma_response.__file__).resolve()
+        ),
         "decision_rule": (
             "primary PASS requires at least three reliable bins and strict majorities of "
             "evaluable heldout pairs and logs for nonlinear-vs-zero; affine is diagnostic only"

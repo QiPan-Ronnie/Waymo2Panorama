@@ -672,6 +672,79 @@ def test_missing_expected_pair_aggregate_forces_registered_unknown():
     assert report["coverage"]["missing_pair_log_cell_n"] == 1
 
 
+def test_cross_sparse_pass_marginals_remain_unknown_in_every_sensitivity_cell():
+    from agent.db115_drivers.db226_analyze import analyze_rows
+
+    shape = np.linspace(-0.12, 0.12, 6)
+    rows = [
+        _profile_frame("train0", 0, shape, camera_pair=("cam_a", "cam_b")),
+        _profile_frame("train1", 0, shape, camera_pair=("cam_a", "cam_b")),
+        _profile_frame("train0", 1, shape, camera_pair=("cam_a", "cam_c")),
+        _profile_frame("train1", 1, shape, camera_pair=("cam_a", "cam_c")),
+        _profile_frame("heldout0", 0, shape, camera_pair=("cam_a", "cam_b")),
+        _profile_frame("heldout1", 0, shape, camera_pair=("cam_a", "cam_c")),
+    ]
+    report = analyze_rows(
+        rows,
+        _split_manifest(["train0", "train1"], ["heldout0", "heldout1"]),
+    )
+
+    assert report["primary"]["status"] == "UNKNOWN"
+    assert report["primary"]["majority_heldout_pairs_improved"] is False
+    assert report["primary"]["majority_heldout_logs_improved"] is False
+    assert all(pair["status"] == "PASS" for pair in report["primary"]["heldout_pairs"])
+    assert all(log["status"] == "PASS" for log in report["primary"]["heldout_logs"])
+    gate = report["primary"]["registered_completeness_gate"]
+    assert gate == {
+        "unit": "heldout_log_x_expected_canonical_pair",
+        "expected_cell_n": 4,
+        "evaluable_cell_n": 2,
+        "unknown_cell_n": 2,
+        "complete": False,
+        "unknown_cells": [
+            {"log_id": "heldout0", "camera_pair": ["cam_a", "cam_c"]},
+            {"log_id": "heldout1", "camera_pair": ["cam_a", "cam_b"]},
+        ],
+    }
+    for cell in report["sensitivity"]:
+        evaluation = cell["evaluation"]
+        assert evaluation["status"] == "UNKNOWN"
+        assert evaluation["registered_completeness_gate"]["complete"] is False
+
+
+def test_complete_heldout_log_pair_matrix_can_register_pass():
+    from scripts.phase3.db226_luma_response import evaluate_profile_transfer
+
+    shape = np.linspace(-0.12, 0.12, 6)
+    pairs = [("cam_a", "cam_b"), ("cam_a", "cam_c")]
+    rows = [
+        *[
+            _profile_frame(train_log, pair_index, shape, camera_pair=pair)
+            for pair_index, pair in enumerate(pairs)
+            for train_log in ("train0", "train1")
+        ],
+        *[
+            _profile_frame(heldout_log, pair_index, shape, camera_pair=pair)
+            for heldout_log in ("heldout0", "heldout1")
+            for pair_index, pair in enumerate(pairs)
+        ],
+    ]
+
+    report = evaluate_profile_transfer(
+        rows,
+        train_log_ids=["train0", "train1"],
+        heldout_log_ids=["heldout0", "heldout1"],
+    )
+
+    assert report["status"] == "PASS"
+    assert report["registered_pass"] is True
+    assert report["registered_completeness_gate"]["complete"] is True
+    assert report["registered_completeness_gate"]["unknown_cells"] == []
+    assert report["coverage"]["expected_pair_log_cell_n"] == 4
+    assert report["coverage"]["evaluable_pair_log_cell_n"] == 4
+    assert report["coverage"]["unknown_pair_log_cell_n"] == 0
+
+
 def test_transfer_report_is_deterministic_native_json():
     from scripts.phase3.db226_luma_response import evaluate_profile_transfer
 
@@ -689,7 +762,12 @@ def test_transfer_report_is_deterministic_native_json():
     assert first == second
 
 
-def _write_verified_bundle(root: Path, row: dict[str, object]) -> tuple[Path, Path]:
+def _write_verified_bundle(
+    root: Path,
+    row: dict[str, object],
+    *,
+    acquisition_helper_sha256: str | None = None,
+) -> tuple[Path, Path]:
     from scripts.phase3 import db226_luma_response as luma_response
 
     log_id = str(row["log_id"])
@@ -714,7 +792,9 @@ def _write_verified_bundle(root: Path, row: dict[str, object]) -> tuple[Path, Pa
             },
         )
     sample_sha256 = hashlib.sha256(npz_path.read_bytes()).hexdigest()
-    helper_sha256 = hashlib.sha256(Path(luma_response.__file__).read_bytes()).hexdigest()
+    helper_sha256 = acquisition_helper_sha256 or hashlib.sha256(
+        Path(luma_response.__file__).read_bytes()
+    ).hexdigest()
     transaction_binding = json.dumps(
         {
             "log_id": log_id,
@@ -769,6 +849,9 @@ def _split_manifest(
     manifest: dict[str, object] = {
         "train_log_ids": train_log_ids,
         "heldout_log_ids": heldout_log_ids,
+        "helper_source_sha256": hashlib.sha256(
+            Path(__file__).with_name("db226_luma_response.py").read_bytes()
+        ).hexdigest(),
     }
     selected = sorted(train_log_ids + heldout_log_ids)
     if include_selected:
@@ -776,6 +859,91 @@ def _split_manifest(
     if include_anchors:
         manifest["anchors"] = {log_id: [0] for log_id in selected}
     return manifest
+
+
+def test_loader_separates_recorded_acquisition_helper_from_analyzer_version(
+    db226_tmp_path: Path,
+):
+    from agent.db115_drivers.db226_analyze import load_verified_sidecars
+
+    acquisition_sha256 = "5fae29c5" + "1" * 56
+    _write_verified_bundle(
+        db226_tmp_path,
+        _profile_frame("heldout", 0, np.linspace(-0.12, 0.12, 6)),
+        acquisition_helper_sha256=acquisition_sha256,
+    )
+    manifest = _split_manifest(["train"], ["heldout"])
+    manifest["helper_source_sha256"] = acquisition_sha256
+    manifest["anchors"] = {"train": [], "heldout": [0]}
+
+    rows = load_verified_sidecars(
+        db226_tmp_path,
+        manifest,
+        require_all_selected_logs=False,
+    )
+
+    assert len(rows) == 1
+
+
+def test_loader_rejects_sidecar_helper_that_differs_from_acquisition_manifest(
+    db226_tmp_path: Path,
+):
+    from agent.db115_drivers.db226_analyze import load_verified_sidecars
+
+    _write_verified_bundle(
+        db226_tmp_path,
+        _profile_frame("heldout", 0, np.linspace(-0.12, 0.12, 6)),
+        acquisition_helper_sha256="b" * 64,
+    )
+    manifest = _split_manifest(["train"], ["heldout"])
+    manifest["helper_source_sha256"] = "a" * 64
+    manifest["anchors"] = {"train": [], "heldout": [0]}
+
+    with pytest.raises(ValueError, match="sidecar helper_source_sha256"):
+        load_verified_sidecars(
+            db226_tmp_path,
+            manifest,
+            require_all_selected_logs=False,
+        )
+
+
+def test_loader_requires_legal_recorded_acquisition_helper_sha256(db226_tmp_path: Path):
+    from agent.db115_drivers.db226_analyze import load_verified_sidecars
+
+    manifest = _split_manifest(["train"], ["heldout"])
+    manifest["helper_source_sha256"] = "not-a-64-hex-sha"
+    manifest["anchors"] = {"train": [], "heldout": [0]}
+    db226_tmp_path.mkdir(parents=True, exist_ok=True)
+
+    with pytest.raises(ValueError, match="64.*hex"):
+        load_verified_sidecars(
+            db226_tmp_path,
+            manifest,
+            require_all_selected_logs=False,
+        )
+
+
+def test_analysis_report_names_acquisition_and_analyzer_helper_hashes_separately():
+    from agent.db115_drivers import db226_analyze
+
+    acquisition_sha256 = "5fae29c5" + "2" * 56
+    shape = np.linspace(-0.12, 0.12, 6)
+    rows = [
+        _profile_frame("train0", 0, shape),
+        _profile_frame("train1", 0, shape),
+        _profile_frame("heldout", 0, shape),
+    ]
+    manifest = _split_manifest(["train0", "train1"], ["heldout"])
+    manifest["helper_source_sha256"] = acquisition_sha256
+
+    report = db226_analyze.analyze_rows(rows, manifest)
+
+    assert report["acquisition_helper_source_sha256"] == acquisition_sha256
+    assert report["analyzer_helper_source_sha256"] == hashlib.sha256(
+        Path(db226_analyze.luma_response.__file__).read_bytes()
+    ).hexdigest()
+    assert report["analyzer_helper_source_sha256"] != acquisition_sha256
+    assert "helper_source_sha256" not in report
 
 
 @pytest.fixture
