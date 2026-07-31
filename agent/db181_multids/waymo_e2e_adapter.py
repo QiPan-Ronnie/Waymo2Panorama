@@ -41,6 +41,7 @@ WAYMO_CAMERA_TO_OPENCV = np.array(
 )
 
 _PSEUDO_BY_SOURCE = dict(WAYMO_E2E_CAMERA_MAP)
+_FLOAT32_RIGID_ATOL = 1e-6
 
 
 @dataclass(frozen=True)
@@ -166,6 +167,37 @@ def _positive_integer(value: object, context: str) -> int:
     return value
 
 
+def _project_float32_near_rigid(transform: np.ndarray, context: str) -> np.ndarray:
+    """Project source float32 calibration roundoff to the nearest SO(3)."""
+
+    matrix = np.asarray(transform, dtype=np.float64)
+    if matrix.shape != (4, 4) or not np.isfinite(matrix).all():
+        raise ValueError(f"{context} must be a finite 4x4 transform")
+    if not np.allclose(
+        matrix[3], np.array([0.0, 0.0, 0.0, 1.0]), rtol=0.0, atol=1e-12
+    ):
+        raise ValueError(f"{context} bottom row must be [0, 0, 0, 1]")
+    rotation = matrix[:3, :3]
+    orthogonality_error = float(
+        np.max(np.abs(rotation.T @ rotation - np.eye(3)))
+    )
+    determinant_error = abs(float(np.linalg.det(rotation)) - 1.0)
+    if max(orthogonality_error, determinant_error) > _FLOAT32_RIGID_ATOL:
+        raise ValueError(
+            f"{context} must be near-rigid before float32 projection "
+            f"(orthogonality_error={orthogonality_error:.3g}, "
+            f"determinant_error={determinant_error:.3g})"
+        )
+    left, _singular_values, right = np.linalg.svd(rotation)
+    projected_rotation = left @ right
+    if np.linalg.det(projected_rotation) < 0.0:
+        left[:, -1] *= -1.0
+        projected_rotation = left @ right
+    projected = matrix.copy()
+    projected[:3, :3] = projected_rotation
+    return validate_rigid_transform(projected)
+
+
 def _calibration(camera: E2ECameraFrame) -> _Calibration:
     pseudo_name = _PSEUDO_BY_SOURCE[camera.source_name]
     if len(camera.intrinsic) < 9:
@@ -183,7 +215,9 @@ def _calibration(camera: E2ECameraFrame) -> _Calibration:
         ) from error
     convention = np.eye(4, dtype=np.float64)
     convention[:3, :3] = WAYMO_CAMERA_TO_OPENCV
-    transform = validate_rigid_transform(transform @ convention)
+    transform = _project_float32_near_rigid(
+        transform @ convention, f"{camera.source_name} extrinsic"
+    )
     return _Calibration(
         camera.source_name,
         pseudo_name,

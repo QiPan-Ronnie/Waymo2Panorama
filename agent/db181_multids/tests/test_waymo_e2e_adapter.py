@@ -303,3 +303,60 @@ def test_unverified_nonplaceholder_e2e_pose_fails_closed(
 
     assert not list(output_root.glob("waymo-e2e*"))
     assert not list(output_root.glob(".waymo-e2e*.staging-*"))
+
+
+def test_float32_calibration_roundoff_is_projected_to_strict_so3(
+    writable_test_dir: Path,
+) -> None:
+    source = writable_test_dir / "source.tfrecord"
+    _write_tfrecord(source, (b"record",))
+    frame = _frame(0)
+    cameras = [replace(camera, timestamp_ns=0) for camera in frame.cameras]
+    rounded = np.asarray(cameras[0].transform_ego_waymo_camera).reshape(4, 4).copy()
+    rounded[0, 0] += 5e-8
+    cameras[0] = replace(
+        cameras[0], transform_ego_waymo_camera=tuple(rounded.reshape(-1))
+    )
+    frame = replace(frame, anchor_timestamp_ns=0, cameras=tuple(cameras))
+
+    converted = convert_waymo_e2e_records(
+        source,
+        writable_test_dir / "output",
+        "waymo-e2e",
+        record_indices=(0,),
+        record_decoder=lambda _payload, _index: frame,
+        converter_git_commit=COMMIT,
+        created_at=CREATED_AT,
+    )
+
+    output_dir, manifest = converted[0]
+    sample = AV2RingLoader(output_dir, cameras=manifest.cameras).load_synced_frame(1)
+    rotation = sample.calibrations["ring_front_center"].T_ego_cam[:3, :3]
+    np.testing.assert_allclose(rotation.T @ rotation, np.eye(3), atol=1e-12)
+    assert np.linalg.det(rotation) == pytest.approx(1.0, abs=1e-12)
+
+
+def test_materially_nonrigid_camera_calibration_is_rejected(
+    writable_test_dir: Path,
+) -> None:
+    source = writable_test_dir / "source.tfrecord"
+    _write_tfrecord(source, (b"record",))
+    frame = _frame(0)
+    cameras = [replace(camera, timestamp_ns=0) for camera in frame.cameras]
+    sheared = np.asarray(cameras[0].transform_ego_waymo_camera).reshape(4, 4).copy()
+    sheared[0, 1] = 0.01
+    cameras[0] = replace(
+        cameras[0], transform_ego_waymo_camera=tuple(sheared.reshape(-1))
+    )
+    frame = replace(frame, anchor_timestamp_ns=0, cameras=tuple(cameras))
+
+    with pytest.raises(ValueError, match="near-rigid"):
+        convert_waymo_e2e_records(
+            source,
+            writable_test_dir / "output",
+            "waymo-e2e",
+            record_indices=(0,),
+            record_decoder=lambda _payload, _index: frame,
+            converter_git_commit=COMMIT,
+            created_at=CREATED_AT,
+        )
