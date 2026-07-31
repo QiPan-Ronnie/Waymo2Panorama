@@ -4,9 +4,11 @@ import json
 from dataclasses import FrozenInstanceError, replace
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import TextIO
 
 import pytest
 
+import agent.db181_multids.contract as contract_module
 from agent.db181_multids import (
     CameraRecord,
     ConversionManifest,
@@ -119,10 +121,128 @@ def test_valid_a_roundtrip_is_stable_deterministic_and_atomic() -> None:
         assert list(first_path.parent.iterdir()) == [first_path]
 
 
+def test_frame_camera_timestamp_mapping_is_defensively_copied_and_immutable() -> None:
+    timestamps = {"camera": 100}
+    frame = FrameRecord(0, 100, timestamps, None)
+    timestamps["camera"] = 200
+
+    assert frame.camera_timestamps_ns["camera"] == 100
+    with pytest.raises(TypeError):
+        frame.camera_timestamps_ns["camera"] = 300  # type: ignore[index]
+
+
+def test_direct_list_inputs_normalize_to_nested_immutable_tuples() -> None:
+    base = _manifest()
+    manifest = replace(
+        base,
+        cameras=list(base.cameras),
+        camera_records=list(base.camera_records),
+        frames=list(base.frames),
+        source_artifacts=list(base.source_artifacts),
+        supported_azimuth_deg=[list(interval) for interval in base.supported_azimuth_deg],
+        honest_black_azimuth_deg=[
+            list(interval) for interval in base.honest_black_azimuth_deg
+        ],
+        coordinate_convention_transform=[
+            list(row) for row in base.coordinate_convention_transform
+        ],
+    )
+
+    assert isinstance(manifest.cameras, tuple)
+    assert isinstance(manifest.camera_records, tuple)
+    assert isinstance(manifest.frames, tuple)
+    assert isinstance(manifest.source_artifacts, tuple)
+    assert isinstance(manifest.supported_azimuth_deg, tuple)
+    assert all(isinstance(interval, tuple) for interval in manifest.supported_azimuth_deg)
+    assert isinstance(manifest.honest_black_azimuth_deg, tuple)
+    assert all(
+        isinstance(interval, tuple) for interval in manifest.honest_black_azimuth_deg
+    )
+    assert isinstance(manifest.coordinate_convention_transform, tuple)
+    assert all(
+        isinstance(row, tuple) for row in manifest.coordinate_convention_transform
+    )
+    with pytest.raises(TypeError):
+        manifest.coordinate_convention_transform[0][0] = 2.0  # type: ignore[index]
+
+
+def test_atomic_write_preserves_destination_and_removes_temp_on_serialization_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail_after_partial_write(
+        _value: object, stream: TextIO, **_kwargs: object
+    ) -> None:
+        stream.write("partial")
+        raise TypeError("serialization failed")
+
+    monkeypatch.setattr(contract_module.json, "dump", fail_after_partial_write)
+    with TemporaryDirectory(dir=Path.cwd()) as temporary_directory:
+        directory = Path(temporary_directory)
+        destination = directory / "manifest.json"
+        destination.write_text("original\n", encoding="utf-8")
+
+        with pytest.raises(TypeError, match="serialization failed"):
+            _manifest().write_json(destination)
+
+        assert destination.read_text(encoding="utf-8") == "original\n"
+        assert list(directory.iterdir()) == [destination]
+
+
+def test_atomic_write_preserves_destination_and_removes_temp_on_replace_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail_replace(_path: Path, _target: str | Path) -> Path:
+        raise OSError("replace failed")
+
+    monkeypatch.setattr(type(Path.cwd()), "replace", fail_replace)
+    with TemporaryDirectory(dir=Path.cwd()) as temporary_directory:
+        directory = Path(temporary_directory)
+        destination = directory / "manifest.json"
+        destination.write_text("original\n", encoding="utf-8")
+
+        with pytest.raises(OSError, match="replace failed"):
+            _manifest().write_json(destination)
+
+        assert destination.read_text(encoding="utf-8") == "original\n"
+        assert list(directory.iterdir()) == [destination]
+
+
 def test_valid_b_may_omit_lidar_and_mask_patterns() -> None:
     manifest = _b_manifest()
     manifest.validate()
     assert ConversionManifest.from_dict(manifest.to_dict()) == manifest
+
+
+@pytest.mark.parametrize(
+    ("field_name", "invalid_value"),
+    [
+        (field_name, invalid_value)
+        for field_name in (
+            "real_mask_pattern",
+            "faithfill_mask_pattern",
+            "honest_black_mask_pattern",
+        )
+        for invalid_value in (object(), 1, "", "   ")
+    ],
+)
+def test_optional_mask_patterns_reject_non_strings_and_blanks_in_b_mode(
+    field_name: str, invalid_value: object
+) -> None:
+    with pytest.raises(ValueError, match=field_name):
+        replace(_b_manifest(), **{field_name: invalid_value}).validate()
+
+
+def test_valid_optional_mask_pattern_strings_are_preserved() -> None:
+    patterns = {
+        "real_mask_pattern": " masks/real/{index}.png ",
+        "faithfill_mask_pattern": " masks/faithfill/{index}.png ",
+        "honest_black_mask_pattern": " masks/black/{index}.png ",
+    }
+    manifest = replace(_b_manifest(), **patterns)
+    manifest.validate()
+    assert manifest.real_mask_pattern == patterns["real_mask_pattern"]
+    assert manifest.faithfill_mask_pattern == patterns["faithfill_mask_pattern"]
+    assert manifest.honest_black_mask_pattern == patterns["honest_black_mask_pattern"]
 
 
 @pytest.mark.parametrize(
@@ -184,6 +304,13 @@ def test_camera_record_order_must_exactly_match_cameras() -> None:
         replace(manifest, camera_records=tuple(reversed(manifest.camera_records))).validate()
 
 
+def test_malformed_camera_record_entry_has_contextual_error() -> None:
+    manifest = _manifest()
+    malformed_records = (object(), manifest.camera_records[1])
+    with pytest.raises(ValueError, match="camera_records"):
+        replace(manifest, camera_records=malformed_records).validate()
+
+
 @pytest.mark.parametrize(
     "record",
     [
@@ -215,6 +342,19 @@ def test_camera_record_frame_count_rejects_bool_equal_to_output_count() -> None:
         manifest.validate()
 
 
+@pytest.mark.parametrize("declared_delta_ns", [9, 11])
+def test_camera_record_max_sync_delta_must_exactly_match_observed_frames(
+    declared_delta_ns: int,
+) -> None:
+    manifest = _manifest()
+    records = (
+        manifest.camera_records[0],
+        replace(manifest.camera_records[1], max_sync_delta_ns=declared_delta_ns),
+    )
+    with pytest.raises(ValueError, match="max_sync_delta_ns"):
+        replace(manifest, camera_records=records).validate()
+
+
 def test_frame_count_must_match_output_count() -> None:
     with pytest.raises(ValueError, match="frames length"):
         replace(_manifest(), frames=_manifest().frames[:-1]).validate()
@@ -238,6 +378,13 @@ def test_frame_indices_must_be_real_integers(
         manifest.validate()
 
 
+def test_malformed_frame_entry_has_contextual_error() -> None:
+    manifest = _manifest()
+    malformed_frames = (object(), *manifest.frames[1:])
+    with pytest.raises(ValueError, match="frames"):
+        replace(manifest, frames=malformed_frames).validate()
+
+
 @pytest.mark.parametrize(
     "camera_timestamps",
     [
@@ -256,6 +403,19 @@ def test_frame_camera_keys_must_exactly_match_cameras(
         _manifest(), 0, camera_timestamps_ns=camera_timestamps
     )
     with pytest.raises(ValueError, match="camera timestamp keys"):
+        manifest.validate()
+
+
+def test_anchor_camera_timestamp_must_equal_anchor_timestamp() -> None:
+    manifest = _replace_frame(
+        _manifest(),
+        0,
+        camera_timestamps_ns={
+            "ring_front_center": 1_001,
+            "ring_front_left": 1_010,
+        },
+    )
+    with pytest.raises(ValueError, match="anchor camera timestamp"):
         manifest.validate()
 
 
@@ -345,6 +505,41 @@ def test_boolean_flags_from_json_must_be_actual_booleans(
 
 
 @pytest.mark.parametrize(
+    "commit",
+    ["not-a-commit", "ABCDEF0", "abcdeg0", "abcdef", "a" * 65],
+)
+def test_converter_git_commit_requires_lowercase_hex_7_to_64_chars(
+    commit: str,
+) -> None:
+    with pytest.raises(ValueError, match="converter_git_commit"):
+        replace(_manifest(), converter_git_commit=commit).validate()
+
+
+@pytest.mark.parametrize("created_at", ["yesterday", "2026-07-30T12:00:00"])
+def test_created_at_requires_parseable_timezone_aware_iso8601(created_at: str) -> None:
+    with pytest.raises(ValueError, match="created_at"):
+        replace(_manifest(), created_at=created_at).validate()
+
+
+@pytest.mark.parametrize(
+    ("commit", "created_at"),
+    [
+        ("abcdef0", "2026-07-30T12:00:00+00:00"),
+        ("a" * 64, "2026-07-30T12:00:00Z"),
+    ],
+)
+def test_valid_commit_and_timezone_aware_created_at_are_preserved(
+    commit: str, created_at: str
+) -> None:
+    manifest = replace(
+        _manifest(), converter_git_commit=commit, created_at=created_at
+    )
+    manifest.validate()
+    assert manifest.converter_git_commit == commit
+    assert manifest.created_at == created_at
+
+
+@pytest.mark.parametrize(
     "changes",
     [
         {"calibration_sha256": "A" * 64},
@@ -395,6 +590,65 @@ def test_coordinate_transform_is_finite_4x4_with_homogeneous_bottom_row(
 
 
 @pytest.mark.parametrize(
+    "transform",
+    [
+        (
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 0.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        (
+            (2.0, 0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        (
+            (1.0, 0.25, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        (
+            (-1.0, 0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+    ],
+)
+def test_coordinate_transform_rejects_non_rigid_rotation(
+    transform: tuple[tuple[float, ...], ...]
+) -> None:
+    with pytest.raises(ValueError, match="coordinate_convention_transform"):
+        _manifest(coordinate_convention_transform=transform).validate()
+
+
+@pytest.mark.parametrize(
+    "transform",
+    [
+        (
+            (0.0, -1.0, 0.0, 12.5),
+            (1.0, 0.0, 0.0, -3.0),
+            (0.0, 0.0, 1.0, 0.25),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        (
+            (1.0, 0.0, 0.0, -100.0),
+            (0.0, 0.0, -1.0, 5.0),
+            (0.0, 1.0, 0.0, 2.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+    ],
+)
+def test_coordinate_transform_accepts_rigid_rotation_and_translation(
+    transform: tuple[tuple[float, ...], ...]
+) -> None:
+    _manifest(coordinate_convention_transform=transform).validate()
+
+
+@pytest.mark.parametrize(
     ("supported", "honest_black"),
     [
         (((0.0, 250.0),), ((252.0, 360.0),)),
@@ -418,6 +672,25 @@ def test_azimuth_intervals_reject_gaps_overlaps_and_invalid_ranges(
 def test_partial_supported_azimuth_requires_honest_black_mask() -> None:
     with pytest.raises(ValueError, match="honest_black_mask_pattern"):
         _manifest(honest_black_mask_pattern=None).validate()
+
+
+def test_a_mode_requires_positive_supported_azimuth_width() -> None:
+    manifest = _manifest(
+        supported_azimuth_deg=(),
+        honest_black_azimuth_deg=((0.0, 360.0),),
+    )
+    with pytest.raises(ValueError, match="A mode requires.*supported azimuth"):
+        manifest.validate()
+
+
+def test_b_mode_may_be_fully_honest_black() -> None:
+    manifest = replace(
+        _b_manifest(),
+        supported_azimuth_deg=(),
+        honest_black_azimuth_deg=((0.0, 360.0),),
+        honest_black_mask_pattern="masks/black/{index}.png",
+    )
+    manifest.validate()
 
 
 def test_from_dict_rejects_missing_and_unknown_fields() -> None:

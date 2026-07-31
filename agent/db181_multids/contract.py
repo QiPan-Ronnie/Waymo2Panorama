@@ -4,13 +4,17 @@ import json
 import math
 import re
 import tempfile
-from dataclasses import asdict, dataclass, fields
+from dataclasses import dataclass, fields
+from datetime import datetime
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any, Literal, Mapping
 
 
 _SHA256_RE = re.compile(r"[0-9a-f]{64}\Z")
+_GIT_COMMIT_RE = re.compile(r"[0-9a-f]{7,64}\Z")
 _AZIMUTH_TOLERANCE_DEG = 1e-9
+_RIGID_TRANSFORM_TOLERANCE = 1e-9
 
 
 @dataclass(frozen=True)
@@ -32,8 +36,15 @@ class CameraRecord:
 class FrameRecord:
     index: int
     anchor_timestamp_ns: int
-    camera_timestamps_ns: dict[str, int]
+    camera_timestamps_ns: Mapping[str, int]
     lidar_timestamp_ns: int | None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "camera_timestamps_ns",
+            MappingProxyType(dict(self.camera_timestamps_ns)),
+        )
 
 
 @dataclass(frozen=True)
@@ -65,6 +76,26 @@ class ConversionManifest:
     converter_git_commit: str
     created_at: str
 
+    def __post_init__(self) -> None:
+        for name in (
+            "cameras",
+            "camera_records",
+            "frames",
+            "source_artifacts",
+        ):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
+        for name in ("supported_azimuth_deg", "honest_black_azimuth_deg"):
+            object.__setattr__(
+                self,
+                name,
+                tuple(tuple(interval) for interval in getattr(self, name)),
+            )
+        object.__setattr__(
+            self,
+            "coordinate_convention_transform",
+            tuple(tuple(row) for row in self.coordinate_convention_transform),
+        )
+
     @property
     def frame_contract(self) -> str:
         if not _is_int(self.output_frame_count) or self.output_frame_count < 1:
@@ -84,6 +115,11 @@ class ConversionManifest:
         ):
             if not _is_nonempty_string(getattr(self, name)):
                 raise ValueError(f"{name} must be a nonempty string")
+        if _GIT_COMMIT_RE.fullmatch(self.converter_git_commit) is None:
+            raise ValueError(
+                "converter_git_commit must be lowercase hexadecimal with 7 to 64 characters"
+            )
+        _validate_created_at(self.created_at)
 
         if self.mode not in ("A", "B"):
             raise ValueError("mode must be 'A' or 'B'")
@@ -116,11 +152,20 @@ class ConversionManifest:
         if self.mode == "A" and not _is_nonempty_string(self.real_mask_pattern):
             raise ValueError("A mode requires a nonempty real_mask_pattern")
 
+        for name in (
+            "real_mask_pattern",
+            "faithfill_mask_pattern",
+            "honest_black_mask_pattern",
+        ):
+            value = getattr(self, name)
+            if value is not None and not _is_nonempty_string(value):
+                raise ValueError(f"{name} must be None or a nonempty string")
+
+        if any(not isinstance(record, CameraRecord) for record in self.camera_records):
+            raise ValueError("camera_records entries must be CameraRecord objects")
         if tuple(record.name for record in self.camera_records) != self.cameras:
             raise ValueError("camera_records names/order must exactly match cameras")
         for record in self.camera_records:
-            if not isinstance(record, CameraRecord):
-                raise ValueError("camera_records entries must be CameraRecord objects")
             if not _is_nonempty_string(record.source_name):
                 raise ValueError("camera_records source_name must be nonempty")
             if (
@@ -135,6 +180,8 @@ class ConversionManifest:
 
         if len(self.frames) != self.output_frame_count:
             raise ValueError("frames length must equal output_frame_count")
+        if any(not isinstance(frame, FrameRecord) for frame in self.frames):
+            raise ValueError("frames entries must be FrameRecord objects")
         if any(not _is_int(frame.index) for frame in self.frames):
             raise ValueError("frame indices must be integers")
         expected_indices = tuple(range(self.output_frame_count))
@@ -144,8 +191,6 @@ class ConversionManifest:
         previous_anchor: int | None = None
         expected_camera_keys = set(self.cameras)
         for frame in self.frames:
-            if not isinstance(frame, FrameRecord):
-                raise ValueError("frames entries must be FrameRecord objects")
             if not _is_positive_int(frame.anchor_timestamp_ns):
                 raise ValueError("anchor timestamp must be a positive integer")
             if previous_anchor is not None and frame.anchor_timestamp_ns <= previous_anchor:
@@ -159,6 +204,13 @@ class ConversionManifest:
                 for timestamp in frame.camera_timestamps_ns.values()
             ):
                 raise ValueError("camera timestamps must be positive integers")
+            if (
+                frame.camera_timestamps_ns[self.anchor_camera]
+                != frame.anchor_timestamp_ns
+            ):
+                raise ValueError(
+                    "anchor camera timestamp must exactly equal anchor_timestamp_ns"
+                )
 
             if self.has_lidar:
                 if not _is_positive_int(frame.lidar_timestamp_ns):
@@ -167,6 +219,20 @@ class ConversionManifest:
                     )
             elif frame.lidar_timestamp_ns is not None:
                 raise ValueError("lidar_timestamp_ns must be null when has_lidar is false")
+
+        for record in self.camera_records:
+            observed_max_sync_delta_ns = max(
+                abs(
+                    frame.camera_timestamps_ns[record.name]
+                    - frame.anchor_timestamp_ns
+                )
+                for frame in self.frames
+            )
+            if record.max_sync_delta_ns != observed_max_sync_delta_ns:
+                raise ValueError(
+                    f"camera_records max_sync_delta_ns for {record.name!r} must equal "
+                    f"observed value {observed_max_sync_delta_ns}"
+                )
 
         if not _is_sha256(self.calibration_sha256):
             raise ValueError("calibration_sha256 must be a lowercase 64-hex SHA-256")
@@ -196,6 +262,8 @@ class ConversionManifest:
         _validate_complete_azimuth_union((*supported, *honest_black))
 
         supported_width = sum(end - start for start, end in supported)
+        if self.mode == "A" and supported_width <= 0.0:
+            raise ValueError("A mode requires strictly positive supported azimuth width")
         if (
             supported_width < 360.0 - _AZIMUTH_TOLERANCE_DEG
             and not _is_nonempty_string(self.honest_black_mask_pattern)
@@ -205,7 +273,63 @@ class ConversionManifest:
             )
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        return {
+            "schema_version": self.schema_version,
+            "dataset": self.dataset,
+            "source_scene_id": self.source_scene_id,
+            "output_log_id": self.output_log_id,
+            "mode": self.mode,
+            "cameras": list(self.cameras),
+            "anchor_camera": self.anchor_camera,
+            "source_frame_count": self.source_frame_count,
+            "output_frame_count": self.output_frame_count,
+            "source_frame_rate_hz": self.source_frame_rate_hz,
+            "output_frame_rate_hz": self.output_frame_rate_hz,
+            "camera_records": [
+                {
+                    "name": record.name,
+                    "source_name": record.source_name,
+                    "frame_count": record.frame_count,
+                    "max_sync_delta_ns": record.max_sync_delta_ns,
+                }
+                for record in self.camera_records
+            ],
+            "frames": [
+                {
+                    "index": frame.index,
+                    "anchor_timestamp_ns": frame.anchor_timestamp_ns,
+                    "camera_timestamps_ns": dict(frame.camera_timestamps_ns),
+                    "lidar_timestamp_ns": frame.lidar_timestamp_ns,
+                }
+                for frame in self.frames
+            ],
+            "calibration_sha256": self.calibration_sha256,
+            "source_artifacts": [
+                {
+                    "path": artifact.path,
+                    "sha256": artifact.sha256,
+                    "size_bytes": artifact.size_bytes,
+                }
+                for artifact in self.source_artifacts
+            ],
+            "has_lidar": self.has_lidar,
+            "has_ego_pose": self.has_ego_pose,
+            "has_annotations": self.has_annotations,
+            "real_mask_pattern": self.real_mask_pattern,
+            "faithfill_mask_pattern": self.faithfill_mask_pattern,
+            "honest_black_mask_pattern": self.honest_black_mask_pattern,
+            "supported_azimuth_deg": [
+                list(interval) for interval in self.supported_azimuth_deg
+            ],
+            "honest_black_azimuth_deg": [
+                list(interval) for interval in self.honest_black_azimuth_deg
+            ],
+            "coordinate_convention_transform": [
+                list(row) for row in self.coordinate_convention_transform
+            ],
+            "converter_git_commit": self.converter_git_commit,
+            "created_at": self.created_at,
+        }
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> ConversionManifest:
@@ -307,6 +431,16 @@ def _is_sha256(value: object) -> bool:
     return isinstance(value, str) and _SHA256_RE.fullmatch(value) is not None
 
 
+def _validate_created_at(value: str) -> None:
+    normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        raise ValueError("created_at must be a valid ISO-8601 timestamp") from None
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise ValueError("created_at must include a timezone")
+
+
 def _validate_positive_rate(name: str, value: object) -> None:
     if (
         isinstance(value, bool)
@@ -330,6 +464,32 @@ def _validate_transform(transform: tuple[tuple[float, ...], ...]) -> None:
         raise ValueError("coordinate_convention_transform must contain only finite numbers")
     if tuple(transform[3]) != (0, 0, 0, 1):
         raise ValueError("coordinate_convention_transform bottom row must be [0, 0, 0, 1]")
+
+    rotation = tuple(tuple(row[column] for column in range(3)) for row in transform[:3])
+    for left in range(3):
+        for right in range(3):
+            dot_product = sum(
+                rotation[left][column] * rotation[right][column]
+                for column in range(3)
+            )
+            expected = 1.0 if left == right else 0.0
+            if abs(dot_product - expected) > _RIGID_TRANSFORM_TOLERANCE:
+                raise ValueError(
+                    "coordinate_convention_transform upper 3x3 must be orthonormal"
+                )
+
+    determinant = (
+        rotation[0][0]
+        * (rotation[1][1] * rotation[2][2] - rotation[1][2] * rotation[2][1])
+        - rotation[0][1]
+        * (rotation[1][0] * rotation[2][2] - rotation[1][2] * rotation[2][0])
+        + rotation[0][2]
+        * (rotation[1][0] * rotation[2][1] - rotation[1][1] * rotation[2][0])
+    )
+    if abs(determinant - 1.0) > _RIGID_TRANSFORM_TOLERANCE:
+        raise ValueError(
+            "coordinate_convention_transform upper 3x3 determinant must be +1"
+        )
 
 
 def _validate_azimuth_intervals(
