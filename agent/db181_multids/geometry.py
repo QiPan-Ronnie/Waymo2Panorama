@@ -13,7 +13,16 @@ _QUATERNION_ZERO_ATOL = 1e-12
 
 def _float64_copy(value: object, name: str) -> np.ndarray:
     try:
-        return np.array(value, dtype=np.float64, copy=True)
+        array = np.asarray(value)
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"{name} must contain numeric values") from error
+    if np.iscomplexobj(array) or (
+        array.dtype == object
+        and any(isinstance(item, (complex, np.complexfloating)) for item in array.flat)
+    ):
+        raise ValueError(f"{name} must not contain complex values")
+    try:
+        return np.array(array, dtype=np.float64, copy=True)
     except (TypeError, ValueError) as error:
         raise ValueError(f"{name} must contain numeric values") from error
 
@@ -94,12 +103,10 @@ def matrix_to_quaternion_wxyz(R: object) -> tuple[float, float, float, float]:
     if quaternion[0] < -_QUATERNION_ZERO_ATOL:
         quaternion *= -1.0
     elif abs(quaternion[0]) <= _QUATERNION_ZERO_ATOL:
-        quaternion[0] = 0.0
         for component in quaternion[1:]:
             if abs(component) > _QUATERNION_ZERO_ATOL:
                 if component < 0.0:
                     quaternion *= -1.0
-                    quaternion[0] = 0.0
                 break
 
     return tuple(float(component) for component in quaternion)

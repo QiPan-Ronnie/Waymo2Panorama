@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import errno
 import os
 import warnings
 from collections.abc import Iterator
@@ -7,6 +8,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.feather
 import pytest
 
 import agent.db181_multids.io as io_module
@@ -71,20 +74,34 @@ def test_sha256_file_rejects_nonpositive_chunks(
 
 def test_materialize_file_uses_real_hardlink_when_supported(cache_temp_dir: Path) -> None:
     source = cache_temp_dir / "source.bin"
-    destination = cache_temp_dir / "nested" / "destination.bin"
+    destination = cache_temp_dir / "destination.bin"
     source.write_bytes(b"hardlink payload")
+
+    probe_source = cache_temp_dir / "hardlink-probe-source.bin"
+    probe_destination = cache_temp_dir / "hardlink-probe-destination.bin"
+    probe_source.write_bytes(b"probe")
+    try:
+        os.link(probe_source, probe_destination)
+    except OSError:
+        hardlinks_supported = False
+    else:
+        hardlinks_supported = True
+        probe_destination.unlink()
 
     method = materialize_file(source, destination)
 
-    assert method == "hardlink"
     assert destination.read_bytes() == source.read_bytes()
-    source_stat = source.stat()
-    destination_stat = destination.stat()
-    if source_stat.st_ino and destination_stat.st_ino:
-        assert (destination_stat.st_dev, destination_stat.st_ino) == (
-            source_stat.st_dev,
-            source_stat.st_ino,
-        )
+    if hardlinks_supported:
+        assert method == "hardlink"
+        source_stat = source.stat()
+        destination_stat = destination.stat()
+        if source_stat.st_ino and destination_stat.st_ino:
+            assert (destination_stat.st_dev, destination_stat.st_ino) == (
+                source_stat.st_dev,
+                source_stat.st_ino,
+            )
+    else:
+        assert method == "copy"
 
 
 def test_materialize_file_falls_back_to_copy2_on_link_error(
@@ -106,6 +123,108 @@ def test_materialize_file_falls_back_to_copy2_on_link_error(
     assert method == "copy"
     assert destination.read_bytes() == source.read_bytes()
     assert destination.stat().st_mtime_ns == source.stat().st_mtime_ns
+
+
+def test_materialize_file_reraises_hardlink_file_exists_race(
+    cache_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = cache_temp_dir / "source.bin"
+    destination = cache_temp_dir / "destination.bin"
+    source.write_bytes(b"source")
+
+    def race_link(_source: object, _destination: object) -> None:
+        destination.write_bytes(b"concurrent target")
+        raise FileExistsError(
+            errno.EEXIST,
+            "simulated hardlink race",
+            str(destination),
+        )
+
+    monkeypatch.setattr(io_module.os, "link", race_link)
+
+    with pytest.raises(FileExistsError, match="simulated hardlink race"):
+        materialize_file(source, destination)
+
+    assert destination.read_bytes() == b"concurrent target"
+
+
+def test_materialize_file_copy_interruption_removes_owned_partial_destination(
+    cache_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = cache_temp_dir / "source.bin"
+    destination = cache_temp_dir / "destination.bin"
+    source.write_bytes(b"source payload")
+    real_utime = io_module.os.utime
+
+    def interrupt_windows_copy_file2(
+        _source: object, destination_path: object, _flags: object
+    ) -> None:
+        Path(destination_path).write_bytes(b"partial")
+        error = OSError("simulated metadata-copy interruption")
+        error.winerror = 12345  # type: ignore[attr-defined]
+        raise error
+
+    windows_api = getattr(io_module.shutil, "_winapi", None)
+    if windows_api is not None and hasattr(windows_api, "CopyFile2"):
+        monkeypatch.setattr(windows_api, "CopyFile2", interrupt_windows_copy_file2)
+
+    def fail_destination_utime(path: object, *args: object, **kwargs: object) -> None:
+        if isinstance(path, int) or Path(path) == destination:
+            raise OSError("simulated metadata-copy interruption")
+        real_utime(path, *args, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(io_module.os, "utime", fail_destination_utime)
+
+    with pytest.raises(OSError, match="simulated metadata-copy interruption"):
+        materialize_file(source, destination, prefer_hardlink=False)
+
+    assert not os.path.lexists(destination)
+
+
+def test_materialize_file_symlink_race_never_touches_link_target(
+    cache_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    symlink_probe_target = cache_temp_dir / "symlink-probe-target.bin"
+    symlink_probe = cache_temp_dir / "symlink-probe.bin"
+    symlink_probe_target.write_bytes(b"probe")
+    try:
+        os.symlink(symlink_probe_target, symlink_probe)
+    except (NotImplementedError, OSError):
+        pytest.skip("file symlinks are not available in this test environment")
+    else:
+        symlink_probe.unlink()
+
+    source = cache_temp_dir / "source.bin"
+    destination = cache_temp_dir / "destination.bin"
+    victim = cache_temp_dir / "victim.bin"
+    source.write_bytes(b"new source bytes")
+    victim.write_bytes(b"victim must stay unchanged")
+    real_lexists = io_module.os.path.lexists
+    destination_checks = 0
+
+    def inject_symlink_after_check(path: object) -> bool:
+        nonlocal destination_checks
+        if Path(path) == destination:
+            destination_checks += 1
+            if destination_checks == 2:
+                os.symlink(victim, destination)
+                return False
+        return real_lexists(path)
+
+    monkeypatch.setattr(io_module.os.path, "lexists", inject_symlink_after_check)
+
+    with pytest.raises(FileExistsError):
+        materialize_file(source, destination, prefer_hardlink=False)
+
+    assert victim.read_bytes() == b"victim must stay unchanged"
+    assert destination.is_symlink()
+
+
+def test_materialize_file_documents_hardlink_inode_aliasing() -> None:
+    documentation = materialize_file.__doc__ or ""
+
+    assert "inode" in documentation
+    assert "affect" in documentation
 
 
 def test_materialize_file_never_overwrites_existing_destination(
@@ -154,8 +273,47 @@ def test_write_empty_annotations_roundtrips_exact_schema(cache_temp_dir: Path) -
         stored = pd.read_feather(destination)
     assert stored.empty
     assert list(stored.columns) == list(ANNOTATION_DTYPES)
-    assert {column: str(dtype) for column, dtype in stored.dtypes.items()} == ANNOTATION_DTYPES
+    stored_dtypes = {column: str(dtype) for column, dtype in stored.dtypes.items()}
+    for column, expected_dtype in ANNOTATION_DTYPES.items():
+        if expected_dtype == "object":
+            assert stored_dtypes[column] in {"object", "str", "string"}
+        else:
+            assert stored_dtypes[column] == expected_dtype
     _assert_no_sibling_temps(destination)
+
+
+def test_write_empty_annotations_has_exact_physical_arrow_schema(cache_temp_dir: Path) -> None:
+    destination = cache_temp_dir / "annotations.feather"
+    write_empty_annotations(destination)
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message="pyarrow.feather.read_table is deprecated.*",
+            category=FutureWarning,
+        )
+        table = pyarrow.feather.read_table(destination)
+
+    expected_schema = pa.schema(
+        [
+            pa.field("timestamp_ns", pa.int64()),
+            pa.field("track_uuid", pa.string()),
+            pa.field("category", pa.string()),
+            pa.field("length_m", pa.float64()),
+            pa.field("width_m", pa.float64()),
+            pa.field("height_m", pa.float64()),
+            pa.field("qw", pa.float64()),
+            pa.field("qx", pa.float64()),
+            pa.field("qy", pa.float64()),
+            pa.field("qz", pa.float64()),
+            pa.field("tx_m", pa.float64()),
+            pa.field("ty_m", pa.float64()),
+            pa.field("tz_m", pa.float64()),
+            pa.field("num_interior_pts", pa.int64()),
+        ]
+    )
+    assert table.num_rows == 0
+    assert table.schema.remove_metadata() == expected_schema
 
 
 def test_write_feather_serialization_failure_preserves_destination_and_cleans_temp(

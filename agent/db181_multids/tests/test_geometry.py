@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import pytest
 
@@ -97,6 +99,24 @@ def test_exact_180_degree_quaternion_uses_first_nonzero_vector_component_sign() 
     assert np.allclose(quaternion_wxyz_to_matrix(recovered), rotation, atol=1e-12)
 
 
+@pytest.mark.parametrize("w", [1e-12, -1e-12], ids=["below-pi", "above-pi"])
+def test_near_180_degree_canonicalization_preserves_nonzero_w(w: float) -> None:
+    x = np.sqrt(1.0 - w * w)
+    quaternion = np.array([w, x, 0.0, 0.0])
+    rotation = quaternion_wxyz_to_matrix(quaternion)
+
+    recovered = matrix_to_quaternion_wxyz(rotation)
+    recovered_from_negated_input = matrix_to_quaternion_wxyz(
+        quaternion_wxyz_to_matrix(-quaternion)
+    )
+
+    assert recovered[0] == pytest.approx(w, abs=1e-15)
+    assert recovered[1] > 0.0
+    assert recovered_from_negated_input == pytest.approx(recovered, abs=1e-15)
+    rebuilt = quaternion_wxyz_to_matrix(recovered)
+    assert np.max(np.abs(rebuilt - rotation)) <= 1e-14
+
+
 @pytest.mark.parametrize(
     "quaternion",
     [
@@ -126,6 +146,22 @@ def test_quaternion_wxyz_to_matrix_rejects_invalid_input(
 def test_matrix_to_quaternion_rejects_invalid_rotation(rotation: np.ndarray) -> None:
     with pytest.raises(ValueError):
         matrix_to_quaternion_wxyz(rotation)
+
+
+@pytest.mark.parametrize(
+    ("operation", "value"),
+    [
+        (quaternion_wxyz_to_matrix, np.array([1.0 + 1.0j, 0.0, 0.0, 0.0])),
+        (matrix_to_quaternion_wxyz, np.eye(3, dtype=np.complex128)),
+        (lambda value: make_transform(np.eye(3), value), np.array([1.0 + 1.0j, 2.0, 3.0])),
+    ],
+    ids=["quaternion", "matrix", "translation"],
+)
+def test_geometry_rejects_complex_inputs_without_warning(operation: object, value: object) -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(ValueError, match="complex"):
+            operation(value)  # type: ignore[operator]
 
 
 def test_make_transform_copies_inputs_and_requires_exact_translation_shape() -> None:
