@@ -6,7 +6,7 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 ---
 
 # DB-216: Waymo E2E 8-camera 真实 B-only 泛化门
-Status: **IN PROGRESS (2026-07-31) — 新 A100 已实读 shard：每条 record 是不同 context；全部物理时间字段为 0；首 record 的 8 个 `CameraImage.pose` 均为单位阵占位。适配器已按这一真实契约重写，本地 26/26 focused tests pass；5-record pilot 待跑。**
+Status: **PASSED AS A B-ONLY CANDIDATE (2026-07-31) — 真实 shard 的 records 0/100/300/500/700 pilot 为 5/5；后续分层扩量 48/48 也全部成功。每条 record 都是独立单帧 log，raw-sensor ownership，八相机提供完整水平 band。但 camera territory 明暗/色调阶跃和局部接缝高度差仍明显，无 LiDAR/真实 pose/物理 timestamp，故只通过“可生成 B 候选”门，不升级为生产完美 360。**
 Question: camera-only Waymo E2E（8 cameras、无 LiDAR/ego pose/annotations）能否只靠当前 DB-214 scene-band 核心，以显式 B 契约生成 360°、raw-sensor-owned panorama，而不把缺失的几何/运动证据伪装成已有？
 Expected evidence: (1) 原始 TFRecord 中 5 个分层 record 各自转换为独立的 8-camera 单帧 pseudo-AV2 log，manifest 必须 `mode=B`, `has_lidar=false`, `has_ego_pose=false`, `has_annotations=false`, `supported_azimuth=360°`; (2) provenance 明示物理 timestamp/pose 不可用、manifest 的 `1ns/1Hz` 只是单 record 容器占位；(3) renderer 在 `GROUND_MODE=off` 下真正到达 plane-depth/identity-gain/static-rig fallback；(4) 5 个真实 records 的输出和 worker manifest 全部存在、无吞异常；(5) 全分辨率眼核 moving objects、文字、八条 camera territory、黑区/coverage。
 Hypothesis: 8-camera 几何和 full-azimuth band 可泛化；无 LiDAR 时不做 color-gain solve、无 pose 时不做 EMC，因此快速运动物的 shutter offset 仍可能是诚实限制；旧 L1 的低频相机领地色块不会被 multiband 根治，DB-215 的颜色结论仍适用。
@@ -14,12 +14,12 @@ Plan: adapter 逐 record 解 protobuf，但**不把 shard 当视频**：每个�
 Kill criteria: 任一 camera 缺失/标定漂移/时间不单调/转换非原子；renderer 需要伪造 LiDAR 或 pose 才能运行；5-anchor 中 recurring 文字撕裂或 moving-object 双身；360 coverage 不成立；或任何修复需要 Waymo-scene-specific 参数。触发即保留 B 候选/abstain，不宣称生产泛化。
 Max scope: 一个已授权的 1.7 GB test shard；先 5 anchors，不扩量、不重写旧 3000+ 候选；不做 ground、生成、multiband、per-channel AWB。算法改动只允许 dataset-capability fallback 与 loader/adapter 层。
 Required vision check: 5 张 full ERP + 逐 camera territory，至少裁 moving vehicle/person、可读文字、rear seam；与旧 `deliverables/xihan/l1_on_waymo` 同类缺陷对照。数字只证明运行/coverage，不替代眼核。
-Output: remote `/content/db216_waymo_e2e_static_pilot/` + zip，证据复制到 Drive 同名 results 目录；通过后才拉回本地 deliverables 并更新结论。
+Output: pilot remote `/content/db216_waymo_e2e_static_pilot/`；Drive `results/db216_waymo_e2e_static_pilot/`；本地 `deliverables/db216_waymo_e2e_static_pilot/`。48-record follow-up 在 Drive `results/db220_waymo_e2e_48record_candidate/`，显式 `candidate_not_color_corrected`。
 
 ---
 
 # DB-215: scene-band 领地色块第一性诊断 — 全局 exposure 标量是否已到模型上限
-Status: **ACTIVE(2026-07-31；首轮 3 logs × 3 frames 已跑完，只证明全局标量不足和严重尾部多为瞬时 C 型；旧 JSON 只保存无符号 spatial range，无法证明稳定相机场 B。诊断器已补 4×4 有符号 luma/chroma/count/saturation grids，待同范围重跑；仍不改输出像素。)**
+Status: **KILLED AS A UNIVERSAL FIELD (2026-07-31；3 logs × 3 frames 的有符号 4×4 grid 已跑完。色度空间 profile 在同一 log 内高度重复，但跨 log Pearson 中位降到 R/G=-0.090、B/G=-0.349；亮度跨 log 也只有 0.129。说明全局标量确实不足，但当前空间形状不具跨场景可迁移性，按 kill rule 不把它做成相机低频校正场，输出像素保持不变。)**
 Question: DB-203/208/214 已处理坏相关边、错误 AWB 自由度和硬阈值后，`1842383a` / `e453f164` 仍可见的相机领地明暗块，到底是：(A) 全局曝光标量估错；(B) 单相机坐标中稳定的低频 ISP/渐晕场，说明标量模型太弱；还是 (C) 视差遮挡、镜面反射或真实局部照明，原则上不该被颜色算法抹掉？
 Why now: DB-214 heldout old/new 几乎相同，但 `1842383a a070` 全图仍肉眼可见领地区域。继续调 `GAIN_STRENGTH` 已被 DB-198 跨 log 证伪；直接 feather 会把近场视差重新混成双影。
 Expected evidence: 沿**本 log 自己的曲线领地边界**，对同一 LiDAR 3D ray 同时采相邻两相机，输出 raw / gain 后 `log-luma median/MAD/p90`、`log(R/G,B/G)` 色度残差、相机归一化坐标 4×4 低频分箱范围、`rho_log_luma`，并保存 `territory.png`。至少覆盖 `1842383a a070`、`e453f164 a070`、蓝人 log `00a6ffc1 a100`；再用相邻帧判空间模式是否固定在相机坐标。
@@ -27,20 +27,20 @@ Decision rule: (A) gain 后中位仍偏、空间 range 小 → 修 gain estimato
 Kill criteria: 若同点诊断不能在 territory 图上的肉眼色块边界给出一致残差，或残差主要来自低 `rho` 的几何/反射失配，则停止颜色修正路线；不得用整图平滑指标宣布修复。任何候选若让人/车/文字出现混合双影，立即 kill。
 Max scope: 3 个 log × 3 帧诊断；最多一个 gated、luminance-only、低频候选 A/B。禁止 multiband/feather、禁止 per-channel AWB、禁止场景特调，默认输出保持不变。
 Required vision check: 全分辨率 scene band + territory overlay + 同一帧 old/new/candidate；逐条看道路、白墙、天空和人物/文字边界。数字和眼睛冲突时先查测量是否沿真实曲线边界、是否同一 3D 点。
-Output: `analysis_outputs/db215_color_rootcause/`；结论写回 `PIPELINE_1plus92.md` 和本交接文档。
+Output: `analysis_outputs/db215_color_rootcause/`；v2 原始证据与可复核统计在 `deliverables/db215_color_rootcause_v2/`。若继续此方向，必须扩大到 scene-stratified 跨 log 标定实验；不得用同一场景内的高重复性冒充相机固有场。
 
 ---
 
 # DB-181: 四数据集单场景试点 — v15 契约跨数据集扩充可行性(user 2026-07-29 拍板)
-Status: **ACTIVE(user:「Waymo Perception / nuScenes / PandaSet 都做一下看看,Waymo E2E 也看一下 B 版能到什么样子」)**
+Status: **PARTIALLY COMPLETE (2026-07-31) — nuScenes official mini 已完成 scene-0061 全 206 帧 + 10-scene/30-anchor 回归；PandaSet scene 019 已完成 79 帧；Waymo E2E 已完成 5-record 眼核 + 48-record 扩量。Waymo Perception 仍被真实 source access 阻塞：当前 A100 无 active Google account、Drive 无 v2 parquet。**
 Question: v15 管线(1+92、A/B 双版、完美 360 锚帧)能否在四个候选数据集上各跑通一个场景?各自的产出质量/产出率/契约变形是什么?
-架构决策: **adapter 路线**——各数据集转成伪 AV2 目录格式(sensors/cameras + lidar feathers + calibration/pose feathers),**内核 db89 零改动**;相机槽位按 yaw 映射进 AV2 ring 名。
+架构决策: **adapter-first 路线**——各数据集转成伪 AV2 目录格式(sensors/cameras + 可用时的 lidar/calibration/pose feathers)，相机槽位按 yaw 映射进 AV2 ring 名。内核只允许 capability-general 修复（动态 camera contract、无 pose/LiDAR 的 B-only fail-closed fallback、断连 gain graph），禁止 dataset-specific 视觉参数。
 分线契约:
-  - **nuScenes**(全契约首发):6 cam 360°@12Hz + 32 线;93帧=7.75s;风险=32 线近场证据密度 → resid 门下产出率,试点即答案。先用 v1.0-mini(10 scenes)。
-  - **PandaSet**(全契约,变体):6 cam 360° + 双雷达;80 帧@10Hz → **1+79 契约变体**(待 koi 认可);license 免费商用。
+  - **nuScenes**(B candidate):6 cam 360°@12Hz + 32 线；scene-0061 从 224 front sweeps cadence-bounded 为 206，A 因近地证据不足仍 kill。
+  - **PandaSet**(B candidate):6 cam 360° + LiDAR；scene 019 的 frame0 超出 LiDAR pose support，禁止外推后从 80 诚实输出 **79 (`1+78`)**。
   - **Waymo Perception**(变形版):5 cam 252° 局部 band + A 填充、后 108° 画布黑;定位=A 方法泛化靶场。
   - **Waymo E2E**(B 版专线):8 cam 360° **无 LiDAR** → band 拼接走 plane-only 深度(**DB-82 已证 no-LiDAR ablation ≈ full LiDAR at panorama scale**);只出 B/band 数据,无 A 填充、锚帧地面无真实填充(语义变体待 koi);潜力=3,000+ 样本。
-  - Waymo 两线卡点=GCS 需用户 Google 授权(07-27 方案:waymo.com/open 注册 + Colab `auth.authenticate_user()`)。
+  - Waymo Perception 卡点=GCS/数据源需用户 Google 授权；E2E shard 已在 Drive，因此本轮已实跑。
 Kill/降级: 任一数据集 adapter 工程量失控(>2 天)→ 降级记录阻塞点待批;nuScenes 试点 resid 全场景超门 → 判「32 线不支撑 A 填充」降级为 B/band 源。
 Max scope: 每数据集 1-2 个场景端到端;代码进 `agent/db181_multids/`;结果进 `deliverables/db181_multids/`;不改 db89 内核、不改 v15 已交付产物。
 Required vision check: 每数据集出 band 样帧 + 锚帧(A 版含地面填充,E2E 为 B 版)全分辨率眼核 + resid 账目。

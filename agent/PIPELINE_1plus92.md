@@ -608,3 +608,35 @@ rho 分布:0.70–1.01 占 111/168,0.45 以上共 145/168(86%)。**灰区 0.20�
 DB-215 只读诊断已入核但默认关闭：沿**本 log 自己的曲线领地边界**，在同一 LiDAR 3D ray 上同时采两相机，输出 raw/gain 后 `log-luma median/MAD/p90`、`log(R/G,B/G)`、相机坐标低频空间 range、`rho_log_luma` 与 `territory.png`。判据区分：gain 标量估错 / 稳定低频 ISP 场 / 视差与非朗伯真实差异。只有第二类跨帧稳定，才允许研究 luminance-only 低频标定场；禁止回到 feather/multiband，因为它会把视差重新混成双影。
 
 **代码与验证**：隔离分支 `db214-root-artifact-fixes`; commits `da5223b`(三根因修复)、`6694d95`(renderer 遵守 loader 相机契约)、`e3ba41b`(DB-215 同点色残差诊断)。DB-214/215 focused tests 17 passed；多数据集 adapter 在短路径 worktree 254 passed。长路径合并 worktree 的全套 pytest 仍会因 Windows 260-char 临时文件路径失败，这不是算法失败，不能伪报成全绿。
+
+### 11.14 DB-215 v2：固定低频相机场候选被跨 log 证伪
+
+旧 v1 只保存无符号 spatial range，不能区分“同一模式重复”与“每帧各自有结构”。v2 因此保存每个相机坐标中 4×4 cell 的**有符号** corrected log-luma、`log(R/G)`、`log(B/G)`、MAD、p90、计数和饱和率；3 logs × 3 anchors × 7 pairs 全部重跑。
+
+同一 log 内，色度 profile 的三帧相关确实很高：R/G Pearson 中位 **0.855**、B/G **0.881**，强 cell 同号率 90.5% / 92.6%。但换 log 后 profile 完全不迁移：luma / R/G / B/G 的跨 log Pearson 中位分别只有 **0.129 / -0.090 / -0.349**（每通道 42 个比较）。这说明同一场景中的天空/道路层、视差、遮挡与反射能形成稳定结构，却不能被当成相机固有 ISP/渐晕场。
+
+**判决**：全局标量不足被确认；但当前“固定 per-camera 低频场”候选按 brief kill，不改生产像素。若以后继续，必须用更大的 scene-stratified 跨 log population 分离 `camera field` 与 `scene term`；不得拿同一 log 三帧的高相关冒充标定泛化。原始 JSON 与计算口径见 `deliverables/db215_color_rootcause_v2/GRID_STABILITY_ANALYSIS.md`。
+
+### 11.15 DB-216/217：Waymo E2E 与 nuScenes 的真实 B-band 产出
+
+**Waymo E2E**：真实 1.7 GB shard 的 records 0/100/300/500/700 各自是不同 context；所有物理 timestamp 为 0，`CameraImage.pose` 是 identity placeholder。适配器因此把每条 record 写成独立单帧 pseudo-log，以 1ns/1Hz 只作容器占位，显式 `has_lidar=false`、`has_ego_pose=false`、`has_annotations=false`。A100 5/5 worker 成功，五张 360°水平 B band 在白天/夜间均成立，源 FOV 外诚实黑；但八相机 territory 色阶与局部几何高度差明显，故只定为 **B-only candidate**，不冒充完美 360 或视频序列。
+
+**nuScenes official mini scene-0061**：DB-212 cadence-window v3 从 224 个 front anchors 得到 **206** 个六相机+LiDAR 唯一同步帧，超窗丢 18 帧；相机窗口 100 ms、LiDAR 49.787 ms，不复用、不填充。五锚点 pilot 眼核后，又以 12 workers 渲完整 **206/206** B-band，全部 rc=0、`n_objects_composited=0`，305 s；zip 和 summary 已存 Drive。旧 A 版 32-line 近地供给崩塌仍成立，所以这里固定 `GROUND_MODE=off`：band 几何可用、画布外诚实黑，但普通相机明暗 territory 和部分竖直接缝仍可见。
+
+**共同边界**：这两条证明 adapter/renderer 能在真实新数据上产出 source-owned B band，不证明普通色差已解决。coverage、rc=0 和 artifact 数量只能证明运行与契约；画质结论来自 full-resolution 眼核。
+
+### 11.16 DB-221/222：断连 gain graph 的真根因与跨场景回归
+
+nuScenes mini `scene-1077` 暴露了一个比“色差难看”更基础的线性代数错误：有证据的相机 overlap graph 会断成多个 connected components。旧解法只给整张图加一个 zero-mean gauge；anchor 116 的边只有 `(0,5),(3,4),(4,5)`，camera 1/2 各自孤立，矩阵 rank=4/6，直接 `Singular matrix`。更危险的是 anchor 0 虽 rc=0，rank=5/6、condition number 约 `1.13e17`，孤立相机得到 log-gain `+15.6899`（约 `6.5e6×`），整块 territory 被毒成近白色。
+
+DB-221 按图论定义逐 connected component 求解，每个 component 各自 zero-mean；无 evidence 的 singleton camera 必然 identity gain。它没有 epsilon、虚构跨分量边或场景阈值。focused tests **23 passed**；`scene-1077` anchors 0/116/231 实跑 3/3 成功，旧白块消失。DB-222 又复用官方 mini 10 个已转换场景，首/中/末共 **30/30** anchors rc=0、`n_objects_composited=0`，61.25 s，summary+zip 已存 Drive `results/db222_nuscenes_mini_10scene_component_gain_fix/`。
+
+这项修复的边界必须写清：它消除了**非法/无定义的 gain solve**与灾难性中毒，不会自动抹掉有真实相机响应、视差和照明成分的普通 territory。跨场景眼核仍能看到明暗阶跃；这与 DB-215 kill 固定相机场的结论一致。
+
+### 11.17 DB-220/225：E2E 扩量、PandaSet 真实产出与第四数据源边界
+
+Waymo E2E 在 5-record pilot 后扩为分层 **48/48** 独立 records，12 workers 全部成功；输出继续标记 `candidate_not_color_corrected`，因为 360°水平覆盖不等于颜色/几何完美。Drive：`results/db220_waymo_e2e_48record_candidate/`。
+
+PandaSet official-mirror scene 019 的第一版 independent-nearest 在 rear camera 最后一帧重复复用；ordered-distinct 修后又暴露第二个证据边界：六路 camera frame 0 均早于 LiDAR pose 起点 18.543–99.828 ms。DB-224 保留“禁止 pose 外推”，先把候选限制在 LiDAR pose support，再求 maximum-cardinality common anchors；因此诚实从 80 source frames 输出 **79 (`1+78`)**，不伪称 `1+79`。适配器短路径完整 tests **31/31 passed**。A100 12 workers 实渲 **79/79**、全部 rc=0 / `n_objects_composited=0`，174.37 s；summary+zip 与 450,762,950-byte raw scene 备份均已进 Drive。五帧 full-resolution 眼核显示 band 连贯可读，但 50.089 ms 最大相机 offset 会让运动汽车在边界被切开/错位，黑竖楔与下缘车身是诚实无证据/自遮挡，普通 territory 色阶仍在，所以只判 **B candidate**。
+
+Waymo Perception 本轮没有假装完成：当前 A100 的 `gcloud auth list` 无 active account，Drive 也没有本地 Perception/v2 parquet source。缺的是外部数据授权，不是 GPU；在真实 source 到位前不得生成替代样本或复述旧 pilot 为本轮实证。
