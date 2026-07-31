@@ -122,11 +122,11 @@ DIRS = erp_dirs()
 
 def load_all(case_spec):
     from depth_visibility_seam_probe import _parse_case
-    from waymo2panorama.data_io.av2_loader import AV2RingLoader, RING_CAMS_7
+    from waymo2panorama.data_io.av2_loader import AV2RingLoader
     import pandas as pd
     from scipy.spatial.transform import Rotation, Slerp
     short, log_dir, anchor_idx, tag = _parse_case(case_spec, DATA_ROOT)
-    loader = AV2RingLoader(log_dir); all_ts = loader.anchor_timestamps_ns()
+    loader = AV2RingLoader(log_dir); ring_cams = list(loader.cameras()); all_ts = loader.anchor_timestamps_ns()
     ts = all_ts[anchor_idx]; frame = loader.load_synced_frame(ts)
     p = pd.read_feather(log_dir / "city_SE3_egovehicle.feather").sort_values("timestamp_ns").drop_duplicates("timestamp_ns").reset_index(drop=True)
     ti = p["timestamp_ns"].to_numpy(np.int64); t0 = int(ti[0]); tss = (ti - t0).astype(np.float64)
@@ -140,11 +140,11 @@ def load_all(case_spec):
     ann_path = log_dir / "annotations.feather"
     ann = pd.read_feather(ann_path) if annotation_enabled(ANNOTATION_POLICY, ann_path.exists()) else None
     cam_ts = {}
-    for cam in RING_CAMS_7:
+    for cam in ring_cams:
         files = sorted(int(p.stem) for p in (log_dir / "sensors" / "cameras" / cam).glob("*.jpg"))
         arr = np.asarray(files, np.int64)
         cam_ts[cam] = int(arr[np.argmin(np.abs(arr - ts))])
-    return loader, log_dir, all_ts, anchor_idx, ts, frame, list(RING_CAMS_7), cte, tri, ann, cam_ts
+    return loader, log_dir, all_ts, anchor_idx, ts, frame, ring_cams, cte, tri, ann, cam_ts
 
 
 def moving_tracks(ann, t_lo, t_hi):

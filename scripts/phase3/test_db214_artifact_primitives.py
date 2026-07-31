@@ -111,3 +111,10 @@ def test_renderer_uses_resolution_invariant_angular_depth_ramp():
     assert "DEPTH_SEAMRAMP_DEG" in code
     assert "angular_overlap_weight(" in code
     assert "_dov / float(DEPTH_SEAMRAMP)" not in code
+
+
+def test_renderer_uses_loader_camera_contract_for_multidataset_rings():
+    code = remote_py()
+    assert "ring_cams = list(loader.cameras())" in code
+    assert "for cam in RING_CAMS_7" not in code
+    assert "list(RING_CAMS_7)" not in code
