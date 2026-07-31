@@ -7,7 +7,9 @@ import pytest
 from scripts.phase3.db214_artifact_primitives import (
     angular_overlap_weight,
     annotation_enabled,
+    ownership_boundary_indices,
     pair_evidence_weights,
+    photometric_pair_residual_stats,
 )
 from scripts.phase3.db89_ghost_recovery import remote_py
 
@@ -118,3 +120,48 @@ def test_renderer_uses_loader_camera_contract_for_multidataset_rings():
     assert "ring_cams = list(loader.cameras())" in code
     assert "for cam in RING_CAMS_7" not in code
     assert "list(RING_CAMS_7)" not in code
+
+
+def test_ownership_boundaries_include_both_sides_and_wrap_erp():
+    owners = np.array([[0, 0, 1, 1], [0, 0, 1, 1]], dtype=np.int8)
+
+    pairs = ownership_boundary_indices(owners)
+
+    assert set(pairs) == {(0, 1)}
+    # The internal boundary contributes columns 1/2 and the periodic ERP
+    # boundary contributes columns 0/3, so all pixels touch this pair.
+    assert np.array_equal(pairs[(0, 1)], np.arange(8))
+
+
+def test_photometric_report_separates_scalar_offset_from_spatial_underfit():
+    n = 400
+    x = np.linspace(0.0, 1.0, n)
+    rgb_a = np.repeat(np.array([[80.0, 100.0, 120.0]]), n, axis=0)
+    scalar = math.log(1.25)
+    spatial = 0.30 * (x - 0.5)
+    rgb_b = rgb_a * np.exp(scalar + spatial)[:, None]
+    xy = np.column_stack([x, np.full(n, 0.5)])
+
+    report = photometric_pair_residual_stats(
+        rgb_a,
+        rgb_b,
+        gain_a=np.zeros(3),
+        gain_b=np.full(3, -scalar),
+        xy_a=xy,
+        xy_b=xy,
+        bins=4,
+    )
+
+    assert report["corrected_log_luma_median"] == pytest.approx(0.0, abs=1e-3)
+    assert report["corrected_log_luma_mad"] > 0.07
+    assert report["camera_a_spatial_median_range"] > 0.20
+    assert report["corrected_chroma_logratio_p90"] == pytest.approx(0.0, abs=1e-6)
+
+
+def test_renderer_color_diagnostic_is_gated_and_same_point_based():
+    code = remote_py()
+    assert "COLOR_DIAG = False" in code
+    assert "ownership_boundary_indices(bestcam.reshape(H, W))" in code
+    assert "photometric_pair_residual_stats(" in code
+    assert "_color_diag.json" in code
+    assert "_territory.png" in code

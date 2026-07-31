@@ -59,6 +59,7 @@ SEAM_FLOWMORPH = True   # DB-103 fix (SHIPPED 2026-06-19, validated: a309 shear 
 GAIN_PER_CHANNEL = False   # DB-208 (2026-07-30, user: "修复后...感觉颜色发紫"): solve ONE exposure gain per camera on luminance, instead of three independent per-channel gains. Rationale, from what the co-visible evidence can and cannot support: an EXPOSURE difference is a common offset across all three channels and can be estimated from any surface; a WHITE-BALANCE difference is an R/B offset relative to G and estimating it needs a NEUTRAL reference, which co-visible LiDAR points cannot provide — they land on whatever colour the scene happens to have, so the three-channel solve fits that colour, not the AWB. Measured: on a healthy frame the per-channel solution's R/B ratio is 0.974-1.043 across all seven cameras (i.e. it finds no white-balance difference to correct — those three degrees of freedom buy nothing), while on the poisoned frame it swings to 0.898 (side_right) and 0.917 (rear_right), which is exactly the magenta cast the user saw: R +9.5% and B +16.8% over the raw sensor while G stayed at +0.9%. Per-channel therefore never fits real AWB, only noise. True = pre-DB-208 behaviour.
 GAIN_PRIOR_W = 0.05   # DB-203b/214: weight (relative to the pair's own sample count) of the "no relative exposure difference" prior. DB-214 applies it continuously to the unexplained fraction (1-max(rho,0)^2), rather than only after a threshold rejects an edge. Dropping an unmeasurable edge is not neutral: the remaining graph then infers the pair around a 6-hop path and can accumulate more error (00a6ffc1 a099 front_right|side_right: 22.0 -> 38.0). 0 disables this honest fallback.
 GAIN_STRENGTH = 1.0   # DB-184b REVERTED to 1.0 by DB-198 (2026-07-30). History, because the trap is instructive: on 00a6ffc1 the gain solution overshoots badly (fr_0037 front_right|side_right seam step: 70.5 at full gain vs 12.8 with NO gain — the solve is simply wrong on that log), and 0.5 looked like a clean Pareto win there (seam 8.75->6.92 on fr_0037, 8.00->6.21 on fr_0032, plus tonal deviation from the recorded sensor colour 12.5%->6.1%). It does NOT generalise: on three unseen crowded logs (1842383a / e453f164 / 280269f9) 0.5 made the seams WORSE on all three (5.50->7.33, 9.08->14.17, 6.33->7.67) — there the solve is right and halving it just under-corrects, leaving visible territory blocks (s2 front_left|front_center 8.3->20.7). So 00a6ffc1 is an outlier whose gain SOLVE is broken, not evidence that the gain is globally too strong; the real fix is robustifying solve_gains_for (reject co-visible pairs contaminated by flare / view-dependent BRDF), not a global scale. Set 0.5 only to reproduce the DB-184b experiment. ALSO NOTE: the seam numbers quoted in the DB-184b commit came from a measurement that fixed each seam at one COLUMN and only sampled rows where that column was a boundary — a territory boundary is a CURVE, so most rows went unmeasured; DB-198 walks the boundary row by row and is the number to trust.
+COLOR_DIAG = False   # DB-215 diagnostic only: compare both cameras at the SAME 3D rays along their real curved ownership boundary. Dumps raw/corrected luminance, chroma, and camera-coordinate spatial residuals plus the per-log territory map. It never changes rendered pixels.
 DEPTH_SEAMRAMP_DEG = 10.546875  # DB-214 resolution-invariant form of DB-184's validated 60 px at W=2048 (60*360/2048). Fine inverse depth is retained only near multi-camera overlap; single-camera interiors use the smooth field so glyph strokes cannot inherit LiDAR-depth gradients. Angular distance wraps at the ERP meridian.
 SEAM_SINGLE_SOURCE = False  # DB-105 (diagnostic-validated on a309): when c_own sees the object COMPLETE and a secondary contributes only a small grazing sliver (mask << c_own area), DROP the secondary body-fill + SKIP the view-morph -> pure single-source. The near-car seam's CAUSE is the morph FUSING a complete car (side_left 1610 LiDAR pts) with a 149-pt grazing sliver (front_left). Gated, default OFF; pristine core in _baseline_fable5/.
 GROUND_RESID = "plate"  # DB-108 (AUDIT 2026-06-22): how the evidence-INSUFFICIENT nadir (spread>30 or no source) is filled. "plate"=DB-99 gray DC plate (DEFAULT, honest-but-gray). "inpaint"=video-era NS-inpaint (cv2.INPAINT_NS extends real edges into the blind cap) -> ground-FEEL (the ground_video_v1 look; blurry/白团 on bare asphalt). COMBO (audit-verified, recovers ground-feel + keeps near car) = "inpaint" + the DB-106 boundary. Gated, default unchanged (gray).
@@ -102,7 +103,8 @@ OUT = {"phase": "db89_ghost_recovery", "started_utc": time.strftime("%Y-%m-%dT%H
        "scope": {"segmentation_ownership_only": True, "generation": False}}
 
 sys.path.insert(0, "/content/waymo2panorama/scripts/phase3"); sys.path.insert(0, "/content/waymo2panorama/code")
-from db214_artifact_primitives import angular_overlap_weight, annotation_enabled, pair_evidence_weights
+from db214_artifact_primitives import (angular_overlap_weight, annotation_enabled,
+    ownership_boundary_indices, pair_evidence_weights, photometric_pair_residual_stats)
 
 
 def save_rgb(path, arr):
@@ -764,6 +766,48 @@ def run_case(case_spec, run_name):
     import cv2 as _cv
     gimgs = [np.clip(frame.images[cam].astype(np.float32) * np.exp(gains[ci_]).astype(np.float32)[None, None, :], 0, 255).astype(np.uint8)
              for ci_, cam in enumerate(ring_cams)]
+    color_diag_report = None
+    if COLOR_DIAG:
+        _palette = np.asarray([[230, 75, 75], [60, 180, 75], [255, 225, 25],
+                               [0, 130, 200], [245, 130, 48], [145, 30, 180],
+                               [70, 240, 240], [240, 50, 230]], np.uint8)
+        _terr = np.zeros((H * W, 3), np.uint8)
+        for _ci in range(len(ring_cams)):
+            _terr[bestcam == _ci] = _palette[_ci % len(_palette)]
+        save_rgb(REMOTE_OUT / f"{run_name}_territory.png", _terr.reshape(H, W, 3))
+        _pair_reports = []
+        for (_ci, _cj), _idx0 in ownership_boundary_indices(bestcam.reshape(H, W)).items():
+            _boundary_n = int(len(_idx0))
+            if len(_idx0) > 50000:
+                _idx0 = _idx0[np.linspace(0, len(_idx0) - 1, 50000, dtype=np.int64)]
+            _pi, _pj = proj[_ci], proj[_cj]
+            _same = (_pi["ok"][_idx0] & ~_pi["poison"][_idx0] &
+                     _pj["ok"][_idx0] & ~_pj["poison"][_idx0])
+            _idx = _idx0[_same]
+            if len(_idx) < 32:
+                continue
+            _raw_i = bilinear(frame.images[ring_cams[_ci]], _pi["px"][_idx], _pi["py"][_idx])
+            _raw_j = bilinear(frame.images[ring_cams[_cj]], _pj["px"][_idx], _pj["py"][_idx])
+            _unsat = ((_raw_i.min(1) > SAT_LO) & (_raw_i.max(1) < SAT_HI) &
+                      (_raw_j.min(1) > SAT_LO) & (_raw_j.max(1) < SAT_HI))
+            if int(_unsat.sum()) < 32:
+                continue
+            _idx = _idx[_unsat]; _raw_i = _raw_i[_unsat]; _raw_j = _raw_j[_unsat]
+            _hi, _wi = cals[_ci][1]; _hj, _wj = cals[_cj][1]
+            _xy_i = np.column_stack([_pi["px"][_idx] / max(_wi - 1, 1),
+                                     _pi["py"][_idx] / max(_hi - 1, 1)])
+            _xy_j = np.column_stack([_pj["px"][_idx] / max(_wj - 1, 1),
+                                     _pj["py"][_idx] / max(_hj - 1, 1)])
+            _stats = photometric_pair_residual_stats(
+                _raw_i, _raw_j, gains[_ci], gains[_cj], xy_a=_xy_i, xy_b=_xy_j)
+            _stats.update({"camera_pair": [ring_cams[_ci], ring_cams[_cj]],
+                           "boundary_pixels": _boundary_n,
+                           "same_point_valid_before_saturation": int(_same.sum())})
+            _pair_reports.append(_stats)
+        color_diag_report = {"measurement": "same_3d_ray_at_curved_ownership_boundary",
+                             "render_gain_log_rgb": gains.tolist(), "pairs": _pair_reports}
+        (REMOTE_OUT / f"{run_name}_color_diag.json").write_text(
+            json.dumps(color_diag_report, indent=1), encoding="utf-8")
 
     def sample_cam_patch(ci_s, dist_s, rows_s, cols_s, shift=(0, 0)):
         """ERP patch (rows x cols grid at uniform distance) rendered from one camera.
@@ -2490,7 +2534,8 @@ def run_case(case_spec, run_name):
         board.save(REMOTE_OUT / f"{run_name}_db89_board.jpg", quality=90)
     return {"case": run_name, "n_objects_composited": int(n_handled), "n_unmatched": int(n_unmatched),
             "n_secondary_body_px": int(n_secondary), "n_temporal_filled_px": int(n_filled),
-            "omc_shifts": omc, "view_morph": morph_report, "ground_fill": ground_stats}
+            "omc_shifts": omc, "view_morph": morph_report, "ground_fill": ground_stats,
+            "color_diag": color_diag_report}
 
 
 try:

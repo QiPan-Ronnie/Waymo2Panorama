@@ -5,6 +5,19 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-215: scene-band 领地色块第一性诊断 — 全局 exposure 标量是否已到模型上限
+Status: **ACTIVE(2026-07-31；只诊断，不改输出像素)**
+Question: DB-203/208/214 已处理坏相关边、错误 AWB 自由度和硬阈值后，`1842383a` / `e453f164` 仍可见的相机领地明暗块，到底是：(A) 全局曝光标量估错；(B) 单相机坐标中稳定的低频 ISP/渐晕场，说明标量模型太弱；还是 (C) 视差遮挡、镜面反射或真实局部照明，原则上不该被颜色算法抹掉？
+Why now: DB-214 heldout old/new 几乎相同，但 `1842383a a070` 全图仍肉眼可见领地区域。继续调 `GAIN_STRENGTH` 已被 DB-198 跨 log 证伪；直接 feather 会把近场视差重新混成双影。
+Expected evidence: 沿**本 log 自己的曲线领地边界**，对同一 LiDAR 3D ray 同时采相邻两相机，输出 raw / gain 后 `log-luma median/MAD/p90`、`log(R/G,B/G)` 色度残差、相机归一化坐标 4×4 低频分箱范围、`rho_log_luma`，并保存 `territory.png`。至少覆盖 `1842383a a070`、`e453f164 a070`、蓝人 log `00a6ffc1 a100`；再用相邻帧判空间模式是否固定在相机坐标。
+Decision rule: (A) gain 后中位仍偏、空间 range 小 → 修 gain estimator；(B) gain 后中位近 0 但空间 range 跨帧稳定 → 只允许研究**低频亮度标定场**，不混合两相机像素、不改色度；(C) `rho` 低或空间模式随场景变化 → honest abstention，保留真实传感器差异，不做“好看化”。
+Kill criteria: 若同点诊断不能在 territory 图上的肉眼色块边界给出一致残差，或残差主要来自低 `rho` 的几何/反射失配，则停止颜色修正路线；不得用整图平滑指标宣布修复。任何候选若让人/车/文字出现混合双影，立即 kill。
+Max scope: 3 个 log × 3 帧诊断；最多一个 gated、luminance-only、低频候选 A/B。禁止 multiband/feather、禁止 per-channel AWB、禁止场景特调，默认输出保持不变。
+Required vision check: 全分辨率 scene band + territory overlay + 同一帧 old/new/candidate；逐条看道路、白墙、天空和人物/文字边界。数字和眼睛冲突时先查测量是否沿真实曲线边界、是否同一 3D 点。
+Output: `analysis_outputs/db215_color_rootcause/`；结论写回 `PIPELINE_1plus92.md` 和本交接文档。
+
+---
+
 # DB-181: 四数据集单场景试点 — v15 契约跨数据集扩充可行性(user 2026-07-29 拍板)
 Status: **ACTIVE(user:「Waymo Perception / nuScenes / PandaSet 都做一下看看,Waymo E2E 也看一下 B 版能到什么样子」)**
 Question: v15 管线(1+92、A/B 双版、完美 360 锚帧)能否在四个候选数据集上各跑通一个场景?各自的产出质量/产出率/契约变形是什么?
