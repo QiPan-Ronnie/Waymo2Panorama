@@ -435,6 +435,7 @@ while ci < len(cands):
         # ---- band stage 1: PROBE every 3rd anchor (finds the window at 1/3 cost) ----
         t0 = time.time()
         extra_bg = json.dumps([["GROUND_MODE = \"fill\"", "GROUND_MODE = \"off\""],
+                               ["ANNOTATION_POLICY = \"composite\"", "ANNOTATION_POLICY = \"raw_sensor\""],
                                ["EGO_BLACK = False", "EGO_BLACK = True"]])
         probes = list(range(0, N, 3))
         rcs = fan("bg", probes, extra_bg, root + "/band", U)
