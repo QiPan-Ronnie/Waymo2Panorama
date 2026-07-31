@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import errno
 import os
+import stat
 import warnings
 from collections.abc import Iterator
 from pathlib import Path
@@ -104,7 +105,7 @@ def test_materialize_file_uses_real_hardlink_when_supported(cache_temp_dir: Path
         assert method == "copy"
 
 
-def test_materialize_file_falls_back_to_copy2_on_link_error(
+def test_materialize_file_falls_back_to_atomic_copy_on_source_link_error(
     cache_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     source = cache_temp_dir / "source.bin"
@@ -112,17 +113,21 @@ def test_materialize_file_falls_back_to_copy2_on_link_error(
     source.write_bytes(b"copy payload")
     source_mtime_ns = 1_700_000_000_123_456_700
     os.utime(source, ns=(source_mtime_ns, source_mtime_ns))
+    real_link = io_module.os.link
 
-    def fail_link(_source: object, _destination: object) -> None:
-        raise OSError("forced hardlink failure")
+    def fail_source_link(source_path: object, destination_path: object) -> None:
+        if Path(source_path) == source:
+            raise OSError(errno.EXDEV, "forced cross-volume source link failure")
+        real_link(source_path, destination_path)
 
-    monkeypatch.setattr(io_module.os, "link", fail_link)
+    monkeypatch.setattr(io_module.os, "link", fail_source_link)
 
     method = materialize_file(source, destination)
 
     assert method == "copy"
     assert destination.read_bytes() == source.read_bytes()
     assert destination.stat().st_mtime_ns == source.stat().st_mtime_ns
+    _assert_no_sibling_temps(destination)
 
 
 def test_materialize_file_reraises_hardlink_file_exists_race(
@@ -148,76 +153,158 @@ def test_materialize_file_reraises_hardlink_file_exists_race(
     assert destination.read_bytes() == b"concurrent target"
 
 
-def test_materialize_file_copy_interruption_removes_owned_partial_destination(
+def test_materialize_file_publish_race_preserves_rival_and_removes_private_temp(
     cache_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     source = cache_temp_dir / "source.bin"
     destination = cache_temp_dir / "destination.bin"
     source.write_bytes(b"source payload")
-    real_utime = io_module.os.utime
+    link_calls = 0
 
-    def interrupt_windows_copy_file2(
-        _source: object, destination_path: object, _flags: object
-    ) -> None:
-        Path(destination_path).write_bytes(b"partial")
-        error = OSError("simulated metadata-copy interruption")
-        error.winerror = 12345  # type: ignore[attr-defined]
-        raise error
+    def inject_rival_before_publish(_source: object, _destination: object) -> None:
+        nonlocal link_calls
+        link_calls += 1
+        if link_calls == 1:
+            raise OSError(errno.EXDEV, "forced source link failure")
+        destination.write_bytes(b"rival bytes")
+        raise FileExistsError(errno.EEXIST, "simulated publication race", str(destination))
 
-    windows_api = getattr(io_module.shutil, "_winapi", None)
-    if windows_api is not None and hasattr(windows_api, "CopyFile2"):
-        monkeypatch.setattr(windows_api, "CopyFile2", interrupt_windows_copy_file2)
+    monkeypatch.setattr(io_module.os, "link", inject_rival_before_publish)
 
-    def fail_destination_utime(path: object, *args: object, **kwargs: object) -> None:
-        if isinstance(path, int) or Path(path) == destination:
-            raise OSError("simulated metadata-copy interruption")
-        real_utime(path, *args, **kwargs)  # type: ignore[arg-type]
+    with pytest.raises(FileExistsError, match="simulated publication race"):
+        materialize_file(source, destination)
 
-    monkeypatch.setattr(io_module.os, "utime", fail_destination_utime)
-
-    with pytest.raises(OSError, match="simulated metadata-copy interruption"):
-        materialize_file(source, destination, prefer_hardlink=False)
-
-    assert not os.path.lexists(destination)
+    assert destination.read_bytes() == b"rival bytes"
+    _assert_no_sibling_temps(destination)
 
 
-def test_materialize_file_symlink_race_never_touches_link_target(
+def test_materialize_file_byte_copy_interruption_leaves_no_final_or_temp(
     cache_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    symlink_probe_target = cache_temp_dir / "symlink-probe-target.bin"
-    symlink_probe = cache_temp_dir / "symlink-probe.bin"
-    symlink_probe_target.write_bytes(b"probe")
-    try:
-        os.symlink(symlink_probe_target, symlink_probe)
-    except (NotImplementedError, OSError):
-        pytest.skip("file symlinks are not available in this test environment")
-    else:
-        symlink_probe.unlink()
-
     source = cache_temp_dir / "source.bin"
     destination = cache_temp_dir / "destination.bin"
-    victim = cache_temp_dir / "victim.bin"
-    source.write_bytes(b"new source bytes")
-    victim.write_bytes(b"victim must stay unchanged")
-    real_lexists = io_module.os.path.lexists
-    destination_checks = 0
+    source.write_bytes(b"source payload large enough to interrupt")
+    real_write = io_module.os.write
 
-    def inject_symlink_after_check(path: object) -> bool:
-        nonlocal destination_checks
-        if Path(path) == destination:
-            destination_checks += 1
-            if destination_checks == 2:
-                os.symlink(victim, destination)
-                return False
-        return real_lexists(path)
+    def fail_source_link(_source: object, _destination: object) -> None:
+        raise OSError(errno.EXDEV, "forced source link failure")
 
-    monkeypatch.setattr(io_module.os.path, "lexists", inject_symlink_after_check)
+    def interrupt_write(descriptor: int, data: bytes) -> int:
+        real_write(descriptor, data[:3])
+        raise OSError("simulated byte-copy interruption")
 
-    with pytest.raises(FileExistsError):
-        materialize_file(source, destination, prefer_hardlink=False)
+    monkeypatch.setattr(io_module.os, "link", fail_source_link)
+    monkeypatch.setattr(io_module.os, "write", interrupt_write)
 
-    assert victim.read_bytes() == b"victim must stay unchanged"
-    assert destination.is_symlink()
+    with pytest.raises(OSError, match="simulated byte-copy interruption"):
+        materialize_file(source, destination)
+
+    assert not os.path.lexists(destination)
+    _assert_no_sibling_temps(destination)
+
+
+def test_materialize_file_unsupported_atomic_publication_cleans_temp(
+    cache_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = cache_temp_dir / "source.bin"
+    destination = cache_temp_dir / "destination.bin"
+    source.write_bytes(b"source payload")
+    link_calls = 0
+
+    def fail_both_links(_source: object, _destination: object) -> None:
+        nonlocal link_calls
+        link_calls += 1
+        if link_calls == 1:
+            raise OSError(errno.EXDEV, "forced source link failure")
+        raise OSError(errno.EOPNOTSUPP, "same-directory hardlinks unsupported")
+
+    monkeypatch.setattr(io_module.os, "link", fail_both_links)
+
+    with pytest.raises(OSError, match="atomic no-clobber publication failed"):
+        materialize_file(source, destination)
+
+    assert not os.path.lexists(destination)
+    _assert_no_sibling_temps(destination)
+
+
+def test_materialize_file_readonly_source_metadata_failure_is_best_effort(
+    cache_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = cache_temp_dir / "source.bin"
+    destination = cache_temp_dir / "destination.bin"
+    source.write_bytes(b"read-only source payload")
+    source.chmod(stat.S_IREAD)
+    real_link = io_module.os.link
+
+    def fail_source_link(source_path: object, destination_path: object) -> None:
+        if Path(source_path) == source:
+            raise OSError(errno.EXDEV, "forced source link failure")
+        real_link(source_path, destination_path)
+
+    def fail_mode_metadata(_descriptor: int, _mode: int) -> None:
+        raise OSError("forced mode metadata failure")
+
+    def fail_time_metadata(_path: object, **_kwargs: object) -> None:
+        raise OSError("forced timestamp metadata failure")
+
+    monkeypatch.setattr(io_module.os, "link", fail_source_link)
+    monkeypatch.setattr(io_module.os, "fchmod", fail_mode_metadata)
+    monkeypatch.setattr(io_module.os, "utime", fail_time_metadata)
+
+    try:
+        method = materialize_file(source, destination)
+    finally:
+        source.chmod(stat.S_IREAD | stat.S_IWRITE)
+
+    assert method == "copy"
+    assert destination.read_bytes() == b"read-only source payload"
+    _assert_no_sibling_temps(destination)
+
+
+def test_materialize_file_uses_opened_source_fd_after_path_replacement(
+    cache_temp_dir: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    opened_source = cache_temp_dir / "opened-source.bin"
+    source_path = cache_temp_dir / "source.bin"
+    destination = cache_temp_dir / "destination.bin"
+    opened_source.write_bytes(b"bytes from opened inode")
+    source_path.write_bytes(b"replacement path bytes")
+    opened_mtime_ns = 1_700_000_000_111_222_300
+    replacement_mtime_ns = 1_700_000_100_444_555_600
+    os.utime(opened_source, ns=(opened_mtime_ns, opened_mtime_ns))
+    os.utime(source_path, ns=(replacement_mtime_ns, replacement_mtime_ns))
+    real_open = io_module.os.open
+    real_link = io_module.os.link
+
+    # Windows cannot rename over an open file, so model the equivalent race:
+    # the opened descriptor resolves the old inode while the path resolves its replacement.
+    def open_original_inode(
+        path: object,
+        flags: int,
+        mode: int = 0o777,
+        *,
+        dir_fd: int | None = None,
+    ) -> int:
+        access_mode = flags & (os.O_WRONLY | os.O_RDWR)
+        if Path(path) == source_path and access_mode == os.O_RDONLY:
+            return real_open(opened_source, flags, mode, dir_fd=dir_fd)
+        return real_open(path, flags, mode, dir_fd=dir_fd)
+
+    def fail_source_link(source: object, destination_path: object) -> None:
+        if Path(source) == source_path:
+            raise OSError(errno.EXDEV, "forced source link failure")
+        real_link(source, destination_path)
+
+    monkeypatch.setattr(io_module.os, "open", open_original_inode)
+    monkeypatch.setattr(io_module.os, "link", fail_source_link)
+
+    method = materialize_file(source_path, destination)
+
+    assert method == "copy"
+    assert source_path.read_bytes() == b"replacement path bytes"
+    assert destination.read_bytes() == b"bytes from opened inode"
+    assert destination.stat().st_mtime_ns == opened_source.stat().st_mtime_ns
+    _assert_no_sibling_temps(destination)
 
 
 def test_materialize_file_documents_hardlink_inode_aliasing() -> None:

@@ -3,7 +3,6 @@ from __future__ import annotations
 import errno
 import hashlib
 import os
-import shutil
 import stat
 import tempfile
 import warnings
@@ -72,43 +71,84 @@ def _raise_destination_exists(path: Path) -> None:
     raise FileExistsError(errno.EEXIST, "destination already exists", str(path))
 
 
-def _same_file_identity(path: Path, expected: os.stat_result) -> bool:
+def _copy_fd(source_descriptor: int, destination_descriptor: int) -> None:
+    while chunk := os.read(source_descriptor, 1024 * 1024):
+        remaining = memoryview(chunk)
+        while remaining:
+            written = os.write(destination_descriptor, remaining)
+            if written <= 0:
+                raise OSError(errno.EIO, "copy write made no progress")
+            remaining = remaining[written:]
+
+
+def _apply_private_temp_metadata_best_effort(
+    descriptor: int,
+    path: Path,
+    source_stat: os.stat_result,
+) -> None:
+    source_mode = stat.S_IMODE(source_stat.st_mode)
+    if source_mode & stat.S_IWUSR and hasattr(os, "fchmod"):
+        try:
+            os.fchmod(descriptor, source_mode)
+        except (NotImplementedError, OSError):
+            pass
+
+    timestamps_ns = (source_stat.st_atime_ns, source_stat.st_mtime_ns)
     try:
-        current = path.lstat()
-    except OSError:
-        return False
-    return os.path.samestat(expected, current)
-
-
-def _copy_file_exclusive(source: Path, destination: Path) -> None:
-    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
-    descriptor = os.open(destination, flags, 0o666)
-    owned_identity = os.fstat(descriptor)
-    completed = False
-    try:
-        with source.open("rb") as source_file:
-            with os.fdopen(descriptor, "wb", closefd=False) as destination_file:
-                shutil.copyfileobj(source_file, destination_file)
-                destination_file.flush()
-
-        source_stat = source.stat()
-        if hasattr(os, "fchmod"):
-            os.fchmod(descriptor, stat.S_IMODE(source_stat.st_mode))
-
-        timestamps_ns = (source_stat.st_atime_ns, source_stat.st_mtime_ns)
         if os.utime in os.supports_fd:
             os.utime(descriptor, ns=timestamps_ns)
         else:
-            if not _same_file_identity(destination, owned_identity):
-                _raise_destination_exists(destination)
-            os.utime(destination, ns=timestamps_ns)
-            if not _same_file_identity(destination, owned_identity):
-                _raise_destination_exists(destination)
-        completed = True
+            os.utime(path, ns=timestamps_ns)
+    except (NotImplementedError, OSError):
+        pass
+
+
+def _copy_file_with_atomic_publish(source: Path, destination: Path) -> None:
+    source_descriptor: int | None = None
+    temporary_descriptor: int | None = None
+    temporary_path: Path | None = None
+    try:
+        source_descriptor = os.open(
+            source,
+            os.O_RDONLY | getattr(os, "O_BINARY", 0),
+        )
+        source_stat = os.fstat(source_descriptor)
+        if not stat.S_ISREG(source_stat.st_mode):
+            raise ValueError(f"source must be a regular file: {source}")
+
+        temporary_descriptor, temporary_name = tempfile.mkstemp(
+            prefix=f".{destination.name}.",
+            suffix=".tmp",
+            dir=destination.parent,
+        )
+        temporary_path = Path(temporary_name)
+        _copy_fd(source_descriptor, temporary_descriptor)
+        _apply_private_temp_metadata_best_effort(
+            temporary_descriptor,
+            temporary_path,
+            source_stat,
+        )
+        os.fsync(temporary_descriptor)
+        os.close(temporary_descriptor)
+        temporary_descriptor = None
+
+        try:
+            os.link(temporary_path, destination)
+        except FileExistsError:
+            raise
+        except OSError as error:
+            error_number = error.errno if error.errno is not None else errno.EIO
+            raise OSError(
+                error_number,
+                f"atomic no-clobber publication failed for {destination}",
+            ) from error
     finally:
-        os.close(descriptor)
-        if not completed and _same_file_identity(destination, owned_identity):
-            destination.unlink()
+        if temporary_descriptor is not None:
+            os.close(temporary_descriptor)
+        if source_descriptor is not None:
+            os.close(source_descriptor)
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
 
 
 def materialize_file(
@@ -119,7 +159,9 @@ def materialize_file(
     """Materialize a file without overwriting an existing destination.
 
     A ``hardlink`` result aliases the source inode: modifying either path will
-    affect the same file contents and metadata.
+    affect the same file contents and metadata. The copy fallback publishes a
+    complete private sibling atomically and may skip restrictive mode bits to
+    keep cleanup safe.
     """
     source = Path(src)
     destination = Path(dst)
@@ -138,9 +180,7 @@ def materialize_file(
         except OSError:
             pass
 
-    if _destination_exists(destination):
-        _raise_destination_exists(destination)
-    _copy_file_exclusive(source, destination)
+    _copy_file_with_atomic_publish(source, destination)
     return "copy"
 
 
