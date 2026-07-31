@@ -20,13 +20,14 @@ filesystem path is simpler.
 from __future__ import annotations
 
 import os
+import warnings
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator, Optional
 
 import numpy as np
-import pyarrow as pa
+import pyarrow.feather as feather
 from PIL import Image
 from scipy.spatial.transform import Rotation
 
@@ -48,13 +49,21 @@ def resolve_ring_cameras(explicit: Optional[Iterable[str]] = None) -> tuple[str,
         configured = os.environ.get("W2P_RING_CAMS")
         if configured is None:
             return RING_CAMS_7
-        cameras = tuple(name.strip() for name in configured.split(","))
+        cameras = tuple(configured.split(","))
     else:
+        if isinstance(explicit, (str, bytes)):
+            raise ValueError(
+                "explicit ring cameras must be an iterable of camera names, not str or bytes"
+            )
         cameras = tuple(explicit)
 
     if not cameras:
         raise ValueError("ring camera membership must contain at least one camera")
-    if any(not name or not name.strip() for name in cameras):
+    if any(not isinstance(name, str) for name in cameras):
+        raise ValueError("ring camera names must be strings")
+
+    cameras = tuple(name.strip() for name in cameras)
+    if any(not name for name in cameras):
         raise ValueError("ring camera membership contains an empty camera name")
 
     seen: set[str] = set()
@@ -63,6 +72,17 @@ def resolve_ring_cameras(explicit: Optional[Iterable[str]] = None) -> tuple[str,
             raise ValueError(f"duplicate ring camera name: {name!r}")
         seen.add(name)
     return cameras
+
+
+def _read_feather(path: Path):
+    """Read Feather V1/V2 while containing pyarrow 24's API deprecation warning."""
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message=r"pyarrow\.feather\.read_table is deprecated",
+            category=FutureWarning,
+        )
+        return feather.read_table(str(path)).to_pandas()
 
 
 @dataclass(frozen=True)
@@ -100,7 +120,10 @@ class AV2RingLoader:
 
     # ---- public ----
 
-    def cameras(self) -> tuple[str, ...]:
+    def cameras(self: Optional["AV2RingLoader"] = None) -> tuple[str, ...]:
+        """Return configured cameras, or the AV2 default for a legacy class call."""
+        if self is None:
+            return RING_CAMS_7
         return self._cameras
 
     def num_anchor_frames(self) -> int:
@@ -115,7 +138,7 @@ class AV2RingLoader:
         return self._calibrations[cam]
 
     def load_synced_frame(self, anchor_ts_ns: int) -> FrameSample:
-        """Load one synchronized frame; each cam snaps to its own nearest timestamp."""
+        """Load nearest frames; an exact timestamp tie selects the smaller timestamp."""
         images: dict[str, np.ndarray] = {}
         timestamps: dict[str, int] = {}
         for cam in self._cameras:
@@ -153,10 +176,8 @@ class AV2RingLoader:
         if not extr_path.exists():
             raise FileNotFoundError(f"missing extrinsics: {extr_path}")
 
-        with pa.memory_map(str(intr_path), "r") as intr_source:
-            intr = pa.ipc.open_file(intr_source).read_all().to_pandas()
-        with pa.memory_map(str(extr_path), "r") as extr_source:
-            extr = pa.ipc.open_file(extr_source).read_all().to_pandas()
+        intr = _read_feather(intr_path)
+        extr = _read_feather(extr_path)
 
         out: dict[str, CameraCalibration] = {}
         for cam in self._cameras:
@@ -211,8 +232,18 @@ class AV2RingLoader:
         cams_dir = self.log_dir / "sensors" / "cameras"
         for cam in self._cameras:
             cam_dir = cams_dir / cam
-            paths = sorted(cam_dir.glob("*.jpg"))
+            paths = list(cam_dir.glob("*.jpg"))
             if not paths:
                 raise FileNotFoundError(f"no .jpg files in {cam_dir}")
-            idx[cam] = paths
+            timestamped_paths: list[tuple[int, str, Path]] = []
+            for path in paths:
+                try:
+                    timestamp_ns = int(path.stem)
+                except ValueError as exc:
+                    raise ValueError(
+                        "camera image filename must have an integer timestamp stem; "
+                        f"got {path.name!r} for {cam}"
+                    ) from exc
+                timestamped_paths.append((timestamp_ns, path.name, path))
+            idx[cam] = [path for _, _, path in sorted(timestamped_paths)]
         return idx

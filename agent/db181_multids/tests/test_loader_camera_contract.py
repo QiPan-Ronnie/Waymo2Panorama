@@ -7,7 +7,7 @@ from tempfile import TemporaryDirectory
 
 import numpy as np
 import pandas as pd
-import pyarrow as pa
+import pyarrow.feather as feather
 import pytest
 from PIL import Image
 
@@ -61,6 +61,26 @@ def test_explicit_camera_contract_takes_precedence_over_environment(
     )
 
 
+@pytest.mark.parametrize("explicit", ("front", b"front"))
+def test_camera_contract_rejects_bare_string_or_bytes(explicit: str | bytes) -> None:
+    with pytest.raises(ValueError, match="iterable of camera names"):
+        av2_loader.resolve_ring_cameras(explicit)
+
+
+def test_camera_contract_rejects_non_string_elements() -> None:
+    with pytest.raises(ValueError, match="must be strings"):
+        av2_loader.resolve_ring_cameras(("front", 7))
+
+
+def test_camera_contract_strips_explicit_names_before_duplicate_validation() -> None:
+    with pytest.raises(ValueError, match="duplicate"):
+        av2_loader.resolve_ring_cameras(("front", " front "))
+
+
+def test_camera_contract_returns_trimmed_explicit_names() -> None:
+    assert av2_loader.resolve_ring_cameras((" front ", " rear ")) == ("front", "rear")
+
+
 @pytest.mark.parametrize(
     ("explicit", "environment", "message"),
     [
@@ -85,14 +105,24 @@ def test_camera_contract_rejects_invalid_membership(
         av2_loader.resolve_ring_cameras(explicit)
 
 
-def _write_feather(frame: pd.DataFrame, path: Path) -> None:
-    """Write Feather V2 through its non-deprecated Arrow IPC interface."""
-    table = pa.Table.from_pandas(frame, preserve_index=False)
-    with pa.OSFile(str(path), "wb") as sink, pa.ipc.new_file(sink, table.schema) as writer:
-        writer.write_table(table)
+def _write_feather(frame: pd.DataFrame, path: Path, *, version: int = 2) -> None:
+    """Write an actual Feather V1 or V2 fixture without test-side deprecation noise."""
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message="pyarrow.feather.write_feather is deprecated",
+            category=FutureWarning,
+        )
+        feather.write_feather(frame, path, version=version)
 
 
-def _write_synthetic_pseudo_log(log_dir: Path, cameras: tuple[str, str]) -> None:
+def _write_synthetic_pseudo_log(
+    log_dir: Path,
+    cameras: tuple[str, str],
+    *,
+    feather_version: int = 2,
+    streams: dict[str, tuple[tuple[int | str, int], ...]] | None = None,
+) -> None:
     calibration_dir = log_dir / "calibration"
     calibration_dir.mkdir(parents=True)
 
@@ -133,23 +163,100 @@ def _write_synthetic_pseudo_log(log_dir: Path, cameras: tuple[str, str]) -> None
         )
 
     _write_feather(
-        pd.DataFrame(intrinsics_rows), calibration_dir / "intrinsics.feather"
+        pd.DataFrame(intrinsics_rows),
+        calibration_dir / "intrinsics.feather",
+        version=feather_version,
     )
     _write_feather(
         pd.DataFrame(extrinsics_rows),
         calibration_dir / "egovehicle_SE3_sensor.feather",
+        version=feather_version,
     )
 
-    streams = {
-        cameras[0]: ((300, 30), (100, 10)),
-        cameras[1]: ((250, 25), (90, 9), (320, 32)),
-    }
+    if streams is None:
+        streams = {
+            cameras[0]: ((300, 30), (100, 10)),
+            cameras[1]: ((250, 25), (90, 9), (320, 32)),
+        }
     for cam, frames in streams.items():
         camera_dir = log_dir / "sensors" / "cameras" / cam
         camera_dir.mkdir(parents=True)
         for timestamp_ns, pixel_value in frames:
             pixels = np.full((2, 3, 3), pixel_value, dtype=np.uint8)
             Image.fromarray(pixels).save(camera_dir / f"{timestamp_ns}.jpg")
+
+
+def test_image_index_sorts_variable_width_timestamps_numerically(
+    writable_test_dir: Path,
+) -> None:
+    cameras = ("pseudo_front", "pseudo_rear")
+    streams = {
+        cameras[0]: ((10, 10), (2, 2)),
+        cameras[1]: ((10, 10), (2, 2)),
+    }
+    _write_synthetic_pseudo_log(writable_test_dir, cameras, streams=streams)
+
+    loader = av2_loader.AV2RingLoader(writable_test_dir, cameras=cameras)
+
+    assert loader.anchor_timestamps_ns() == [2, 10]
+
+
+def test_nearest_sync_exact_tie_chooses_smaller_timestamp(writable_test_dir: Path) -> None:
+    cameras = ("pseudo_front", "pseudo_rear")
+    streams = {
+        cameras[0]: ((6, 6),),
+        cameras[1]: ((10, 10), (2, 2)),
+    }
+    _write_synthetic_pseudo_log(writable_test_dir, cameras, streams=streams)
+
+    sample = av2_loader.AV2RingLoader(
+        writable_test_dir,
+        cameras=cameras,
+    ).load_synced_frame(6)
+
+    assert sample.timestamps_ns[cameras[1]] == 2
+
+
+def test_image_index_rejects_non_integer_timestamp_stem(writable_test_dir: Path) -> None:
+    cameras = ("pseudo_front", "pseudo_rear")
+    streams = {
+        cameras[0]: ((6, 6),),
+        cameras[1]: (("not-a-timestamp", 10),),
+    }
+    _write_synthetic_pseudo_log(writable_test_dir, cameras, streams=streams)
+
+    with pytest.raises(ValueError, match="integer timestamp.*not-a-timestamp"):
+        av2_loader.AV2RingLoader(writable_test_dir, cameras=cameras)
+
+
+@pytest.mark.parametrize("feather_version", (1, 2))
+def test_loader_reads_feather_v1_and_v2_without_warnings(
+    writable_test_dir: Path,
+    feather_version: int,
+) -> None:
+    cameras = ("pseudo_front", "pseudo_rear")
+    _write_synthetic_pseudo_log(
+        writable_test_dir,
+        cameras,
+        feather_version=feather_version,
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        loader = av2_loader.AV2RingLoader(writable_test_dir, cameras=cameras)
+
+    assert loader.cameras() == cameras
+    assert loader.calibration(cameras[0]).name == cameras[0]
+
+
+def test_cameras_supports_legacy_class_call_and_configured_instance(
+    writable_test_dir: Path,
+) -> None:
+    cameras = ("pseudo_front", "pseudo_rear")
+    _write_synthetic_pseudo_log(writable_test_dir, cameras)
+
+    assert av2_loader.AV2RingLoader.cameras() == av2_loader.RING_CAMS_7
+    assert av2_loader.AV2RingLoader(writable_test_dir, cameras=cameras).cameras() == cameras
 
 
 def test_two_camera_pseudo_log_uses_instance_contract_exactly(writable_test_dir: Path) -> None:
