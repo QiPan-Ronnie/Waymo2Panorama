@@ -65,6 +65,46 @@ class _LidarInput:
     sweeps: tuple[Path, ...]
 
 
+@dataclass(frozen=True)
+class _SourceSnapshot:
+    path: Path
+    relative_path: str
+    sha256: str
+    size_bytes: int
+
+
+def _snapshot_file(source_scene: Path, path: Path) -> _SourceSnapshot:
+    try:
+        size_before = path.stat().st_size
+        digest = sha256_file(path)
+        size_after = path.stat().st_size
+    except (FileNotFoundError, OSError) as error:
+        raise ValueError(f"source snapshot failed for {path}") from error
+    if size_before != size_after:
+        raise ValueError(f"source changed while snapshotting: {path}")
+    return _SourceSnapshot(
+        path=path,
+        relative_path=path.relative_to(source_scene).as_posix(),
+        sha256=digest,
+        size_bytes=size_after,
+    )
+
+
+def _verify_snapshot(snapshot: _SourceSnapshot) -> None:
+    try:
+        size_before = snapshot.path.stat().st_size
+        digest = sha256_file(snapshot.path)
+        size_after = snapshot.path.stat().st_size
+    except (FileNotFoundError, OSError) as error:
+        raise ValueError(f"source changed after preflight: {snapshot.relative_path}") from error
+    if (
+        size_before != size_after
+        or size_after != snapshot.size_bytes
+        or digest != snapshot.sha256
+    ):
+        raise ValueError(f"source changed after preflight snapshot: {snapshot.relative_path}")
+
+
 def _read_json(path: Path) -> Any:
     try:
         with path.open(encoding="utf-8") as source_file:
@@ -289,11 +329,11 @@ def _static_calibration(
     return make_transform(mean_rotation.as_matrix(), translation)
 
 
-def _artifact(source_scene: Path, path: Path) -> SourceArtifact:
+def _artifact(snapshot: _SourceSnapshot) -> SourceArtifact:
     return SourceArtifact(
-        path=path.relative_to(source_scene).as_posix(),
-        sha256=sha256_file(path),
-        size_bytes=path.stat().st_size,
+        path=snapshot.relative_path,
+        sha256=snapshot.sha256,
+        size_bytes=snapshot.size_bytes,
     )
 
 
@@ -318,7 +358,11 @@ def _table_pose_row(sensor_name: str, transform: np.ndarray) -> dict[str, object
     }
 
 
-def _validate_written_log(staging: Path, manifest: ConversionManifest) -> None:
+def _validate_written_log(
+    staging: Path,
+    manifest: ConversionManifest,
+    expected_camera_hashes: dict[str, str],
+) -> None:
     manifest.validate()
     ConversionManifest.read_json(staging / "conversion_manifest.json")
     paths = [
@@ -333,6 +377,20 @@ def _validate_written_log(staging: Path, manifest: ConversionManifest) -> None:
     for path in paths:
         with pa.memory_map(str(path), "r") as source:
             ipc.open_file(source).read_all()
+    staged_images = tuple((staging / "sensors" / "cameras").glob("**/*.jpg"))
+    staged_by_relative = {
+        path.relative_to(staging).as_posix(): path for path in staged_images
+    }
+    if set(staged_by_relative) != set(expected_camera_hashes):
+        raise ValueError("staged camera image set does not match source snapshots")
+    for relative_path, path in staged_by_relative.items():
+        try:
+            with Image.open(path) as image:
+                image.verify()
+        except Exception as error:
+            raise ValueError(f"invalid staged camera JPEG: {relative_path}") from error
+        if sha256_file(path) != expected_camera_hashes[relative_path]:
+            raise ValueError(f"staged camera image changed from source snapshot: {relative_path}")
     loader = AV2RingLoader(staging, cameras=manifest.cameras)
     loader.load_synced_frame(manifest.frames[0].anchor_timestamp_ns)
 
@@ -380,6 +438,23 @@ def convert_pandaset_scene(
     ):
         raise ValueError("ground_quantile must be finite and between 0 and 1")
 
+    candidate_paths: list[Path] = []
+    for source_name, _ in PANDASET_CAMERA_MAP:
+        camera_dir = source_scene / "camera" / source_name
+        candidate_paths.extend(
+            camera_dir / filename
+            for filename in ("intrinsics.json", "poses.json", "timestamps.json")
+        )
+        candidate_paths.extend(camera_dir.glob("*.jpg"))
+    lidar_dir = source_scene / "lidar"
+    candidate_paths.extend((lidar_dir / "poses.json", lidar_dir / "timestamps.json"))
+    candidate_paths.extend(lidar_dir.glob("*.pkl.gz"))
+    snapshots = {
+        path: _snapshot_file(source_scene, path)
+        for path in candidate_paths
+        if path.is_file()
+    }
+
     cameras = tuple(
         _camera_input(source_scene, source_name, pseudo_name)
         for source_name, pseudo_name in PANDASET_CAMERA_MAP
@@ -398,29 +473,63 @@ def convert_pandaset_scene(
     consumed_lidar_indices = set(lidar_indices)
     if ego_origin == "ground":
         consumed_lidar_indices.add(0)
-    lidar_payloads = {
-        index: _read_lidar_world(lidar.sweeps[index])
-        for index in sorted(consumed_lidar_indices)
-    }
 
     convention = make_transform(rotation_z_deg(90.0), [0.0, 0.0, 0.0])
     ego_poses = tuple(pose @ convention for pose in lidar.poses)
+    metadata_paths = [
+        camera.directory / filename
+        for camera in cameras
+        for filename in ("intrinsics.json", "poses.json", "timestamps.json")
+    ] + [lidar.directory / "poses.json", lidar.directory / "timestamps.json"]
+    selected_camera_paths = [
+        camera.images[index]
+        for camera in cameras
+        for index in camera_indices[camera.pseudo_name]
+    ]
+    consumed_lidar_paths = [
+        lidar.sweeps[index] for index in sorted(consumed_lidar_indices)
+    ]
+    provenance_paths = sorted(
+        set((*metadata_paths, *selected_camera_paths, *consumed_lidar_paths)),
+        key=lambda path: path.relative_to(source_scene).as_posix(),
+    )
+    try:
+        consumed_snapshots = tuple(snapshots[path] for path in provenance_paths)
+    except KeyError as error:
+        raise ValueError(f"source file appeared after snapshot preflight: {error.args[0]}") from None
+    for snapshot in consumed_snapshots:
+        if snapshot.path not in consumed_lidar_paths:
+            _verify_snapshot(snapshot)
+
     derived_artifact: SourceArtifact | None = None
+    ground_shift: float | None = None
+    for index in sorted(consumed_lidar_indices):
+        snapshot = snapshots[lidar.sweeps[index]]
+        _verify_snapshot(snapshot)
+        xyz_world, intensity = _read_lidar_world(lidar.sweeps[index])
+        _verify_snapshot(snapshot)
+        if ego_origin == "ground" and index == 0:
+            first_local = (
+                np.linalg.inv(ego_poses[0])
+                @ np.column_stack([xyz_world, np.ones(len(xyz_world))]).T
+            ).T[:, :3]
+            near = np.hypot(
+                first_local[:, 0],
+                first_local[:, 1],
+            ) <= float(ground_radius_m)
+            if not np.any(near):
+                raise ValueError("ground origin requires at least one near-field lidar point")
+            ground_shift = float(
+                np.quantile(first_local[near, 2], float(ground_quantile))
+            )
+            del first_local
+        del xyz_world, intensity
+
     if ego_origin == "ground":
-        first_xyz, _ = lidar_payloads[0]
-        first_local = (
-            np.linalg.inv(ego_poses[0])
-            @ np.column_stack([first_xyz, np.ones(len(first_xyz))]).T
-        ).T[:, :3]
-        near = np.hypot(
-            first_local[:, 0],
-            first_local[:, 1],
-        ) <= float(ground_radius_m)
-        if not np.any(near):
-            raise ValueError("ground origin requires at least one near-field lidar point")
-        shift = float(np.quantile(first_local[near, 2], float(ground_quantile)))
+        assert ground_shift is not None
         ego_poses = tuple(
-            pose @ make_transform(np.eye(3), [0.0, 0.0, shift]) for pose in ego_poses
+            pose @ make_transform(np.eye(3), [0.0, 0.0, ground_shift])
+            for pose in ego_poses
         )
         source_sweep_path = lidar.sweeps[0].relative_to(source_scene).as_posix()
         descriptor_payload = {
@@ -428,9 +537,9 @@ def convert_pandaset_scene(
             "ground_quantile": float(ground_quantile),
             "ground_radius_m": float(ground_radius_m),
             "near_field_rule": "hypot(x,y)<=ground_radius_m",
-            "shift_m": shift,
+            "shift_m": ground_shift,
             "source_sweep_path": source_sweep_path,
-            "source_sweep_sha256": sha256_file(lidar.sweeps[0]),
+            "source_sweep_sha256": snapshots[lidar.sweeps[0]].sha256,
         }
         descriptor = "derived:ego_ground_shift=" + json.dumps(
             descriptor_payload,
@@ -474,21 +583,7 @@ def convert_pandaset_scene(
             )
         )
 
-    metadata_paths = [
-        camera.directory / filename
-        for camera in cameras
-        for filename in ("intrinsics.json", "poses.json", "timestamps.json")
-    ] + [lidar.directory / "poses.json", lidar.directory / "timestamps.json"]
-    selected_paths = [
-        camera.images[index]
-        for camera in cameras
-        for index in camera_indices[camera.pseudo_name]
-    ] + [lidar.sweeps[index] for index in sorted(consumed_lidar_indices)]
-    provenance_paths = sorted(
-        set((*metadata_paths, *selected_paths)),
-        key=lambda path: path.relative_to(source_scene).as_posix(),
-    )
-    source_artifacts = tuple(_artifact(source_scene, path) for path in provenance_paths)
+    source_artifacts = tuple(_artifact(snapshots[path]) for path in provenance_paths)
     if derived_artifact is not None:
         source_artifacts += (derived_artifact,)
 
@@ -525,14 +620,23 @@ def convert_pandaset_scene(
             calibration_dir / "egovehicle_SE3_sensor.feather",
         )
 
+        expected_camera_hashes: dict[str, str] = {}
         for camera in cameras:
             destination_dir = staging / "sensors" / "cameras" / camera.pseudo_name
             for index in camera_indices[camera.pseudo_name]:
                 timestamp = camera.timestamps_ns[index]
-                materialize_file(camera.images[index], destination_dir / f"{timestamp}.jpg")
+                source_image = camera.images[index]
+                destination = destination_dir / f"{timestamp}.jpg"
+                materialize_file(source_image, destination, prefer_hardlink=False)
+                expected_camera_hashes[destination.relative_to(staging).as_posix()] = (
+                    snapshots[source_image].sha256
+                )
         for index in lidar_indices:
             timestamp = lidar.timestamps_ns[index]
-            xyz_world, intensity = lidar_payloads[index]
+            snapshot = snapshots[lidar.sweeps[index]]
+            _verify_snapshot(snapshot)
+            xyz_world, intensity = _read_lidar_world(lidar.sweeps[index])
+            _verify_snapshot(snapshot)
             xyz_ego = (
                 np.linalg.inv(ego_poses[index])
                 @ np.column_stack([xyz_world, np.ones(len(xyz_world))]).T
@@ -546,6 +650,7 @@ def convert_pandaset_scene(
                 }
             )
             write_feather(lidar_frame, staging / "sensors" / "lidar" / f"{timestamp}.feather")
+            del xyz_world, intensity, xyz_ego, lidar_frame
 
         write_empty_annotations(staging / "annotations.feather")
         used_timestamps = tuple(
@@ -628,7 +733,9 @@ def convert_pandaset_scene(
             created_at=created_at,
         )
         manifest.write_json(staging / "conversion_manifest.json")
-        _validate_written_log(staging, manifest)
+        _validate_written_log(staging, manifest, expected_camera_hashes)
+        for snapshot in consumed_snapshots:
+            _verify_snapshot(snapshot)
         staging.rename(final_output)
         published = True
         return final_output, manifest

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import warnings
+import weakref
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -387,7 +388,7 @@ def test_ground_consumes_unselected_first_sweep_and_uses_euclidean_radius(
     output_dir, manifest = convert_pandaset_scene(
         source_scene,
         writable_test_dir / "output",
-        "panda-ground-unselected",
+        "ground-u",
         ego_origin="ground",
         ground_quantile=0.0,
         ground_radius_m=10.0,
@@ -631,3 +632,168 @@ def test_mid_conversion_write_failure_removes_only_private_staging(
         )
     assert not (output_root / "fault").exists()
     assert not list(output_root.glob(".fault.staging-*"))
+
+
+def test_published_camera_images_are_private_snapshot_copies(
+    writable_test_dir: Path,
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    output_dir, manifest = convert_pandaset_scene(
+        source_scene,
+        writable_test_dir / "output",
+        "private-copy",
+        converter_git_commit="0dcf6795",
+        created_at="2026-07-30T12:00:00Z",
+    )
+    artifact_by_path = {artifact.path: artifact for artifact in manifest.source_artifacts}
+    output_hashes: dict[Path, str] = {}
+    for source_name, pseudo_name in EXPECTED_CAMERA_MAP:
+        camera_dir = source_scene / "camera" / source_name
+        timestamps = _load_json(camera_dir / "timestamps.json")
+        assert isinstance(timestamps, list)
+        for index, timestamp in enumerate(timestamps):
+            source_image = camera_dir / f"{index:02d}.jpg"
+            output_image = (
+                output_dir
+                / "sensors"
+                / "cameras"
+                / pseudo_name
+                / f"{round(timestamp * 1_000_000_000)}.jpg"
+            )
+            source_relative = source_image.relative_to(source_scene).as_posix()
+            output_hashes[output_image] = sha256_file(output_image)
+            assert artifact_by_path[source_relative].sha256 == output_hashes[output_image]
+
+    changed_source = source_scene / "camera" / "front_camera" / "00.jpg"
+    Image.fromarray(np.full((2, 3, 3), 255, dtype=np.uint8)).save(changed_source)
+    assert all(sha256_file(path) == digest for path, digest in output_hashes.items())
+
+
+def test_source_replacement_after_preflight_fails_without_publication(
+    writable_test_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    output_root = writable_test_dir / "output"
+    real_materialize = pandaset_adapter.materialize_file
+    replaced = False
+
+    def replace_before_copy(
+        src: str | Path,
+        dst: str | Path,
+        prefer_hardlink: bool = True,
+    ) -> str:
+        nonlocal replaced
+        source = Path(src)
+        if not replaced and source.name == "01.jpg":
+            replaced = True
+            Image.fromarray(np.full((2, 3, 3), 254, dtype=np.uint8)).save(source)
+        return real_materialize(src, dst, prefer_hardlink=prefer_hardlink)
+
+    monkeypatch.setattr(pandaset_adapter, "materialize_file", replace_before_copy)
+    with pytest.raises(ValueError, match="snapshot|changed"):
+        convert_pandaset_scene(
+            source_scene,
+            output_root,
+            "source-race",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+    assert replaced
+    assert not (output_root / "source-race").exists()
+    assert not list(output_root.glob(".source-race.staging-*"))
+
+
+def test_corrupted_nonfirst_staged_jpeg_cannot_publish(
+    writable_test_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    output_root = writable_test_dir / "output"
+    real_write_annotations = pandaset_adapter.write_empty_annotations
+
+    def corrupt_after_materialization(path: str | Path) -> None:
+        real_write_annotations(path)
+        staging = Path(path).parent
+        images = sorted(
+            (staging / "sensors" / "cameras" / "ring_front_center").glob("*.jpg")
+        )
+        images[1].write_bytes(b"corrupted staged jpeg")
+
+    monkeypatch.setattr(
+        pandaset_adapter,
+        "write_empty_annotations",
+        corrupt_after_materialization,
+    )
+    with pytest.raises((OSError, ValueError)):
+        convert_pandaset_scene(
+            source_scene,
+            output_root,
+            "corrupt-staged",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+    assert not (output_root / "corrupt-staged").exists()
+    assert not list(output_root.glob(".corrupt-staged.staging-*"))
+
+
+def test_lidar_live_payload_peak_is_constant_for_80_frames(
+    writable_test_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_scene = _write_scene(writable_test_dir, frame_count=80)
+    real_read_lidar = pandaset_adapter._read_lidar_world
+    live = 0
+    peak = 0
+
+    def tracked_read(path: Path) -> tuple[np.ndarray, np.ndarray]:
+        nonlocal live, peak
+        xyz, intensity = real_read_lidar(path)
+        live += 1
+        peak = max(peak, live)
+
+        def release() -> None:
+            nonlocal live
+            live -= 1
+
+        weakref.finalize(xyz, release)
+        return xyz, intensity
+
+    monkeypatch.setattr(pandaset_adapter, "_read_lidar_world", tracked_read)
+    convert_pandaset_scene(
+        source_scene,
+        writable_test_dir / "output",
+        "constant-memory",
+        converter_git_commit="0dcf6795",
+        created_at="2026-07-30T12:00:00Z",
+    )
+    assert peak <= 2
+
+
+def test_ground_only_sweep_is_read_once_and_selected_sweeps_are_streamed_twice(
+    writable_test_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    _set_lidar_timeline(
+        source_scene,
+        [0.5, 1.0, 2.0, 4.0],
+        first_local_points=[(0.0, 0.0, -1.0)],
+    )
+    real_read_lidar = pandaset_adapter._read_lidar_world
+    read_counts: dict[str, int] = {}
+
+    def counted_read(path: Path) -> tuple[np.ndarray, np.ndarray]:
+        read_counts[path.name] = read_counts.get(path.name, 0) + 1
+        return real_read_lidar(path)
+
+    monkeypatch.setattr(pandaset_adapter, "_read_lidar_world", counted_read)
+    convert_pandaset_scene(
+        source_scene,
+        writable_test_dir / "output",
+        "ground-streaming",
+        ego_origin="ground",
+        converter_git_commit="0dcf6795",
+        created_at="2026-07-30T12:00:00Z",
+    )
+    assert read_counts == {"00.pkl.gz": 1, "01.pkl.gz": 2, "02.pkl.gz": 2, "03.pkl.gz": 2}
