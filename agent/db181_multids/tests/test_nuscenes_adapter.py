@@ -66,7 +66,11 @@ def _arrow_table(path: Path) -> pa.Table:
         return ipc.open_file(source).read_all()
 
 
-def _write_nuscenes(root: Path) -> tuple[Path, Path]:
+def _write_nuscenes(
+    root: Path,
+    *,
+    asynchronous_12hz_boundary: bool = False,
+) -> tuple[Path, Path]:
     source_root = root / "nuscenes"
     metadata_root = root / "metadata"
     source_root.mkdir()
@@ -99,15 +103,26 @@ def _write_nuscenes(root: Path) -> tuple[Path, Path]:
     ego_by_timestamp: dict[int, str] = {}
     ego_poses: list[dict[str, object]] = []
 
-    camera_times = {
-        "CAM_FRONT": anchor_us,
-        # Anchor 1 is exactly tied and must select 990000 (the lower timestamp).
-        "CAM_FRONT_LEFT": [990_000, 1_010_000, 2_010_000, 3_010_000],
-        "CAM_BACK_LEFT": [997_000, 1_997_000, 2_997_000],
-        "CAM_BACK": [1_004_000, 2_004_000, 3_004_000],
-        "CAM_BACK_RIGHT": [995_000, 1_995_000, 2_995_000],
-        "CAM_FRONT_RIGHT": [1_006_000, 2_006_000, 3_006_000],
-    }
+    if asynchronous_12hz_boundary:
+        camera_anchors = [1_000_000, 1_083_333, 1_166_666, 1_249_999]
+        camera_times = {
+            channel: list(camera_anchors) for channel, _ in EXPECTED_CAMERA_MAP
+        }
+        camera_times["CAM_BACK"] = [
+            1_050_000,
+            1_133_333,
+            1_216_666,
+        ]
+    else:
+        camera_times = {
+            "CAM_FRONT": anchor_us,
+            # Anchor 1 is exactly tied and must select 990000 (the lower timestamp).
+            "CAM_FRONT_LEFT": [990_000, 1_010_000, 2_010_000, 3_010_000],
+            "CAM_BACK_LEFT": [997_000, 1_997_000, 2_997_000],
+            "CAM_BACK": [1_004_000, 2_004_000, 3_004_000],
+            "CAM_BACK_RIGHT": [995_000, 1_995_000, 2_995_000],
+            "CAM_FRONT_RIGHT": [1_006_000, 2_006_000, 3_006_000],
+        }
 
     def ego_token(timestamp: int) -> str:
         existing = ego_by_timestamp.get(timestamp)
@@ -183,14 +198,18 @@ def _write_nuscenes(root: Path) -> tuple[Path, Path]:
             "camera_intrinsic": [],
         }
     )
-    lidar_times = [
-        975_000,
-        1_025_000,
-        1_975_000,
-        2_025_000,
-        2_975_000,
-        3_025_000,
-    ]
+    lidar_times = (
+        list(camera_times["CAM_FRONT"])
+        if asynchronous_12hz_boundary
+        else [
+            975_000,
+            1_025_000,
+            1_975_000,
+            2_025_000,
+            2_975_000,
+            3_025_000,
+        ]
+    )
     lidar_tokens = [f"sd-LIDAR_TOP-{timestamp}" for timestamp in lidar_times]
     for index, (timestamp, token) in enumerate(zip(lidar_times, lidar_tokens)):
         filename = f"sweeps/LIDAR_TOP/{token}.bin"
@@ -379,14 +398,19 @@ def test_three_anchor_scene_writes_reproducible_b_only_pseudo_av2(
     assert annotations.schema.field("category").type == pa.string()
 
     artifacts = {artifact.path: artifact for artifact in manifest.source_artifacts}
-    assert len(artifacts) == 27
+    assert len(artifacts) == 28
     assert {f"metadata/{name}" for name in METADATA_FILES}.issubset(artifacts)
     for relative, artifact in artifacts.items():
         if relative.startswith("metadata/"):
             source = metadata_root / relative.removeprefix("metadata/")
-        else:
-            assert relative.startswith("data/")
+        elif relative.startswith("data/"):
             source = source_root / relative.removeprefix("data/")
+        else:
+            assert relative.startswith("derived:nuscenes_temporal_alignment=")
+            payload = relative.encode("utf-8")
+            assert artifact.sha256 == hashlib.sha256(payload).hexdigest()
+            assert artifact.size_bytes == len(payload)
+            continue
         assert artifact.sha256 == sha256_file(source)
         assert artifact.size_bytes == source.stat().st_size
 
@@ -394,6 +418,91 @@ def test_three_anchor_scene_writes_reproducible_b_only_pseudo_av2(
     for path in sorted((output_dir / "calibration").glob("*.feather"), key=lambda value: value.name):
         calibration_digest.update(path.read_bytes())
     assert manifest.calibration_sha256 == calibration_digest.hexdigest()
+
+
+def test_asynchronous_12hz_boundary_drops_one_anchor_instead_of_reusing_frame(
+    writable_test_dir: Path,
+) -> None:
+    source_root, metadata_root = _write_nuscenes(
+        writable_test_dir,
+        asynchronous_12hz_boundary=True,
+    )
+    output_dir, manifest = convert_nuscenes_scene(
+        source_root,
+        metadata_root,
+        "scene-0001",
+        writable_test_dir / "output",
+        "asynchronous-12hz",
+        converter_git_commit=COMMIT,
+        created_at=CREATED_AT,
+    )
+
+    assert manifest.source_frame_count == 4
+    assert manifest.output_frame_count == 3
+    assert [frame.anchor_timestamp_ns for frame in manifest.frames] == [
+        1_083_333_000,
+        1_166_666_000,
+        1_249_999_000,
+    ]
+    rear_timestamps = [
+        frame.camera_timestamps_ns["ring_rear"] for frame in manifest.frames
+    ]
+    assert rear_timestamps == [1_050_000_000, 1_133_333_000, 1_216_666_000]
+    assert len(rear_timestamps) == len(set(rear_timestamps))
+    for camera in manifest.cameras:
+        timestamps = [frame.camera_timestamps_ns[camera] for frame in manifest.frames]
+        assert all(right > left for left, right in zip(timestamps, timestamps[1:]))
+    lidar_timestamps = [frame.lidar_timestamp_ns for frame in manifest.frames]
+    assert all(
+        right is not None and left is not None and right > left
+        for left, right in zip(lidar_timestamps, lidar_timestamps[1:])
+    )
+    rear_record = next(
+        record for record in manifest.camera_records if record.name == "ring_rear"
+    )
+    assert rear_record.frame_count == 3
+    assert rear_record.max_sync_delta_ns == 33_333_000
+
+    artifacts = {artifact.path: artifact for artifact in manifest.source_artifacts}
+    selected_rear_paths = {
+        "data/samples/CAM_BACK/sd-CAM_BACK-1050000.jpg",
+        "data/samples/CAM_BACK/sd-CAM_BACK-1133333.jpg",
+        "data/samples/CAM_BACK/sd-CAM_BACK-1216666.jpg",
+    }
+    assert selected_rear_paths.issubset(artifacts)
+    assert "data/samples/CAM_FRONT/sd-CAM_FRONT-1000000.jpg" not in artifacts
+    for relative in selected_rear_paths:
+        source = source_root / relative.removeprefix("data/")
+        assert artifacts[relative].sha256 == sha256_file(source)
+        assert artifacts[relative].size_bytes == source.stat().st_size
+    alignment_path = next(
+        path
+        for path in artifacts
+        if path.startswith("derived:nuscenes_temporal_alignment=")
+    )
+    alignment = json.loads(alignment_path.split("=", maxsplit=1)[1])
+    assert alignment == {
+        "adapter_algorithm_version": "nuscenes_ordered_distinct_v2",
+        "anchor_channel": "CAM_FRONT",
+        "dropped_anchor_frame_count": 1,
+        "matching_objective": "minimum_total_absolute_sync_delta_ns",
+        "master_channel": "CAM_BACK",
+        "output_frame_count": 3,
+        "source_anchor_frame_count": 4,
+        "source_channel_frame_counts": {
+            "CAM_BACK": 3,
+            "CAM_BACK_LEFT": 4,
+            "CAM_BACK_RIGHT": 4,
+            "CAM_FRONT": 4,
+            "CAM_FRONT_LEFT": 4,
+            "CAM_FRONT_RIGHT": 4,
+            "LIDAR_TOP": 4,
+        },
+    }
+    assert (
+        ConversionManifest.read_json(output_dir / "conversion_manifest.json")
+        == manifest
+    )
 
 
 def test_scene_token_is_accepted(writable_test_dir: Path) -> None:
@@ -507,7 +616,11 @@ def test_experimental_a_evidence_is_canonical_and_never_claims_validation(
     )
     assert manifest.mode == "A"
     assert manifest.real_mask_pattern == "render/**/*_real_mask.png"
-    artifact = next(value for value in manifest.source_artifacts if value.path.startswith("derived:"))
+    artifact = next(
+        value
+        for value in manifest.source_artifacts
+        if value.path.startswith("derived:nuscenes_experimental_a_evidence=")
+    )
     assert artifact.path == descriptor
     assert artifact.sha256 == hashlib.sha256(descriptor.encode("utf-8")).hexdigest()
     assert artifact.size_bytes == len(descriptor.encode("utf-8"))
@@ -607,10 +720,10 @@ def test_duplicate_channel_timestamp_is_rejected_before_output(writable_test_dir
     _assert_preflight_failure(writable_test_dir, ValueError, "strictly increasing")
 
 
-def test_nearest_sync_rejects_duplicate_reuse_instead_of_padding(
+def test_single_source_frame_reduces_output_instead_of_padding_or_reuse(
     writable_test_dir: Path,
 ) -> None:
-    _, metadata_root = _write_nuscenes(writable_test_dir)
+    source_root, metadata_root = _write_nuscenes(writable_test_dir)
     rows = _load_json(metadata_root / "sample_data.json")
     assert isinstance(rows, list)
     kept_one = False
@@ -624,7 +737,23 @@ def test_nearest_sync_rejects_duplicate_reuse_instead_of_padding(
             filtered.append(row)
             kept_one = True
     _write_json(metadata_root / "sample_data.json", filtered)
-    _assert_preflight_failure(writable_test_dir, ValueError, "duplicate reuse")
+    output_dir, manifest = convert_nuscenes_scene(
+        source_root,
+        metadata_root,
+        "scene-0001",
+        writable_test_dir / "output",
+        "one-shared-frame",
+        converter_git_commit=COMMIT,
+        created_at=CREATED_AT,
+    )
+
+    assert manifest.source_frame_count == 3
+    assert manifest.output_frame_count == 1
+    assert len(manifest.frames) == 1
+    selected_timestamp = manifest.frames[0].camera_timestamps_ns["ring_side_right"]
+    assert selected_timestamp == 995_000_000
+    selected_images = output_dir / "sensors" / "cameras" / "ring_side_right"
+    assert len(list(selected_images.glob("*.jpg"))) == 1
 
 
 def test_bad_selected_jpeg_is_rejected_before_output(writable_test_dir: Path) -> None:

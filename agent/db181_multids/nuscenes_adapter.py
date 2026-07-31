@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import bisect
 import hashlib
 import json
 import math
@@ -193,26 +192,50 @@ def _resolve_data_path(source_root: Path, filename: str, context: str) -> Path:
     return path
 
 
-def _nearest_index(values: tuple[int, ...], query: int) -> int:
-    right = bisect.bisect_left(values, query)
-    candidates: list[int] = []
-    if right < len(values):
-        candidates.append(right)
-    if right > 0:
-        candidates.append(right - 1)
-    return min(candidates, key=lambda index: (abs(values[index] - query), values[index]))
-
-
-def _select_indices(
-    values: tuple[int, ...], anchors: tuple[int, ...], channel: str
+def _match_ordered_distinct_indices(
+    values: tuple[int, ...],
+    queries: tuple[int, ...],
+    channel: str,
 ) -> tuple[int, ...]:
-    indices = tuple(_nearest_index(values, anchor) for anchor in anchors)
-    selected = tuple(values[index] for index in indices)
-    if any(right <= left for left, right in zip(selected, selected[1:])):
+    if len(values) < len(queries):
         raise ValueError(
-            f"{channel} nearest selections must strictly increase without duplicate reuse"
+            f"{channel} has fewer source frames than the common alignment target"
         )
-    return indices
+    if not queries:
+        raise ValueError("common alignment target must contain at least one frame")
+
+    source_count = len(values)
+    query_count = len(queries)
+    parents = [[-1] * source_count for _ in range(query_count)]
+    previous = [abs(value - queries[0]) for value in values]
+    infinity = sum(previous) + sum(values) + sum(queries) + 1
+
+    for query_index in range(1, query_count):
+        current = [infinity] * source_count
+        best_predecessor = query_index - 1
+        best_cost = previous[best_predecessor]
+        for value_index in range(query_index, source_count):
+            predecessor = value_index - 1
+            predecessor_cost = previous[predecessor]
+            if (predecessor_cost, predecessor) < (best_cost, best_predecessor):
+                best_cost = predecessor_cost
+                best_predecessor = predecessor
+            current[value_index] = best_cost + abs(
+                values[value_index] - queries[query_index]
+            )
+            parents[query_index][value_index] = best_predecessor
+        previous = current
+
+    last_index = min(
+        range(query_count - 1, source_count),
+        key=lambda index: (previous[index], index),
+    )
+    selected = [last_index]
+    for query_index in range(query_count - 1, 0, -1):
+        last_index = parents[query_index][last_index]
+        selected.append(last_index)
+    selected.reverse()
+    return tuple(selected)
 
 
 def _read_lidar_bin(path: Path) -> np.ndarray:
@@ -593,17 +616,63 @@ def convert_nuscenes_scene(
                 ):
                     raise ValueError(f"{channel} calibration drift across scene")
 
-    anchors = tuple(datum.timestamp_ns for datum in by_channel["CAM_FRONT"])
+    source_anchors = tuple(datum.timestamp_ns for datum in by_channel["CAM_FRONT"])
+    channel_order = tuple(source for source, _ in NUSCENES_CAMERA_MAP) + (
+        _LIDAR_CHANNEL,
+    )
+    timestamps_by_channel = {
+        channel: tuple(datum.timestamp_ns for datum in by_channel[channel])
+        for channel in channel_order
+    }
+    master_channel = min(
+        channel_order,
+        key=lambda channel: (
+            len(timestamps_by_channel[channel]),
+            channel_order.index(channel),
+        ),
+    )
+    master_timestamps = timestamps_by_channel[master_channel]
+    anchor_indices = _match_ordered_distinct_indices(
+        source_anchors,
+        master_timestamps,
+        "CAM_FRONT",
+    )
+    anchors = tuple(source_anchors[index] for index in anchor_indices)
     selected_indices = {
-        channel: _select_indices(
-            tuple(datum.timestamp_ns for datum in values), anchors, channel
+        channel: _match_ordered_distinct_indices(
+            timestamps_by_channel[channel], anchors, channel
         )
-        for channel, values in by_channel.items()
+        for channel in channel_order
     }
+    selected_indices["CAM_FRONT"] = anchor_indices
     selected = {
-        channel: tuple(values[index] for index in selected_indices[channel])
-        for channel, values in by_channel.items()
+        channel: tuple(by_channel[channel][index] for index in selected_indices[channel])
+        for channel in channel_order
     }
+    alignment_payload = {
+        "adapter_algorithm_version": "nuscenes_ordered_distinct_v2",
+        "anchor_channel": "CAM_FRONT",
+        "dropped_anchor_frame_count": len(source_anchors) - len(anchors),
+        "matching_objective": "minimum_total_absolute_sync_delta_ns",
+        "master_channel": master_channel,
+        "output_frame_count": len(anchors),
+        "source_anchor_frame_count": len(source_anchors),
+        "source_channel_frame_counts": {
+            channel: len(timestamps_by_channel[channel]) for channel in channel_order
+        },
+    }
+    alignment_descriptor = "derived:nuscenes_temporal_alignment=" + json.dumps(
+        alignment_payload,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    alignment_bytes = alignment_descriptor.encode("utf-8")
+    alignment_artifact = SourceArtifact(
+        path=alignment_descriptor,
+        sha256=hashlib.sha256(alignment_bytes).hexdigest(),
+        size_bytes=len(alignment_bytes),
+    )
 
     data_snapshots: dict[Path, _SourceSnapshot] = {}
     artifact_paths = {snapshot.artifact_path for snapshot in metadata_snapshots}
@@ -696,6 +765,7 @@ def convert_nuscenes_scene(
     )
     if derived_artifact is not None:
         source_artifacts += (derived_artifact,)
+    source_artifacts += (alignment_artifact,)
 
     output_root.mkdir(parents=True, exist_ok=True)
     if os.path.lexists(final_output):
@@ -780,7 +850,8 @@ def convert_nuscenes_scene(
             staging / "city_SE3_egovehicle.feather",
         )
 
-        frame_rate = _frame_rate_hz(anchors)
+        source_frame_rate = _frame_rate_hz(source_anchors)
+        output_frame_rate = _frame_rate_hz(anchors)
         manifest = ConversionManifest(
             schema_version="1.0",
             dataset="nuscenes",
@@ -789,10 +860,10 @@ def convert_nuscenes_scene(
             mode=mode,
             cameras=tuple(pseudo for _, pseudo in NUSCENES_CAMERA_MAP),
             anchor_camera=NUSCENES_CAMERA_MAP[0][1],
-            source_frame_count=len(anchors),
+            source_frame_count=len(source_anchors),
             output_frame_count=len(frames),
-            source_frame_rate_hz=frame_rate,
-            output_frame_rate_hz=frame_rate,
+            source_frame_rate_hz=source_frame_rate,
+            output_frame_rate_hz=output_frame_rate,
             camera_records=tuple(
                 CameraRecord(
                     name=pseudo_name,
