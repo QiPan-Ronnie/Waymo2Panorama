@@ -24,7 +24,7 @@ class PairSamples:
     schema_version: str
     rgb_a: np.ndarray
     rgb_b: np.ndarray
-    erp_index: np.ndarray
+    erp_flat_index: np.ndarray
     xy_a: np.ndarray
     xy_b: np.ndarray
     depth_m: np.ndarray
@@ -35,7 +35,7 @@ def collect_pair_samples(
     *,
     rgb_a: np.ndarray,
     rgb_b: np.ndarray,
-    erp_index: np.ndarray,
+    erp_flat_index: np.ndarray,
     xy_a: np.ndarray,
     xy_b: np.ndarray,
     depth_m: np.ndarray,
@@ -46,7 +46,7 @@ def collect_pair_samples(
     arrays = {
         "rgb_a": np.asarray(rgb_a),
         "rgb_b": np.asarray(rgb_b),
-        "erp_index": np.asarray(erp_index),
+        "erp_flat_index": np.asarray(erp_flat_index),
         "xy_a": np.asarray(xy_a),
         "xy_b": np.asarray(xy_b),
         "depth_m": np.asarray(depth_m),
@@ -62,7 +62,7 @@ def collect_pair_samples(
     if arrays["rgb_b"].shape[0] != sample_count:
         raise ValueError("rgb_b length must match rgb_a")
     expected_shapes = {
-        "erp_index": (sample_count,),
+        "erp_flat_index": (sample_count,),
         "xy_a": (sample_count, 2),
         "xy_b": (sample_count, 2),
         "depth_m": (sample_count,),
@@ -71,8 +71,8 @@ def collect_pair_samples(
     for name, shape in expected_shapes.items():
         if arrays[name].shape != shape:
             raise ValueError(f"{name} must have shape {shape}")
-    if not np.issubdtype(arrays["erp_index"].dtype, np.integer):
-        raise ValueError("erp_index must contain integer indices")
+    if not np.issubdtype(arrays["erp_flat_index"].dtype, np.integer):
+        raise ValueError("erp_flat_index must contain integer indices")
     for name, value in arrays.items():
         if not np.isfinite(value).all():
             raise ValueError(f"{name} must contain only finite values")
@@ -81,7 +81,7 @@ def collect_pair_samples(
         schema_version=RAW_PAIR_SCHEMA_VERSION,
         rgb_a=arrays["rgb_a"].copy(),
         rgb_b=arrays["rgb_b"].copy(),
-        erp_index=arrays["erp_index"].copy(),
+        erp_flat_index=arrays["erp_flat_index"].copy(),
         xy_a=arrays["xy_a"].copy(),
         xy_b=arrays["xy_b"].copy(),
         depth_m=arrays["depth_m"].copy(),
@@ -100,7 +100,7 @@ def fixed_brightness_profile(
     sat_hi: float = 245.0,
     max_parallax_deg: float | None = None,
 ) -> dict[str, object]:
-    """Report signed residuals in fixed raw-brightness bins without fitting a curve."""
+    """Report signed residuals in fixed shared-corrected bins without fitting a curve."""
 
     if samples.schema_version != RAW_PAIR_SCHEMA_VERSION:
         raise ValueError(f"unsupported raw pair schema: {samples.schema_version!r}")
@@ -122,8 +122,10 @@ def fixed_brightness_profile(
 
     luma_a = np.maximum(samples.rgb_a.mean(axis=1), 1e-6)
     luma_b = np.maximum(samples.rgb_b.mean(axis=1), 1e-6)
-    log_luma_a = np.log(luma_a)
-    signed_residual = np.log(luma_b) + gain_log_b - log_luma_a - gain_log_a
+    corrected_log_luma_a = np.log(luma_a) + gain_log_a
+    corrected_log_luma_b = np.log(luma_b) + gain_log_b
+    shared_corrected = 0.5 * (corrected_log_luma_a + corrected_log_luma_b)
+    signed_residual = corrected_log_luma_b - corrected_log_luma_a
     saturated = (
         (samples.rgb_a <= sat_lo).any(axis=1)
         | (samples.rgb_a >= sat_hi).any(axis=1)
@@ -134,7 +136,7 @@ def fixed_brightness_profile(
     if max_parallax_deg is not None:
         parallax_ok &= samples.parallax_deg <= max_parallax_deg
     usable = ~saturated & parallax_ok
-    bin_index = np.searchsorted(edges, log_luma_a, side="right") - 1
+    bin_index = np.searchsorted(edges, shared_corrected, side="right") - 1
 
     rows: list[dict[str, object]] = []
     for index in range(len(edges) - 1):
@@ -165,6 +167,7 @@ def fixed_brightness_profile(
     return {
         "schema_version": PROFILE_SCHEMA_VERSION,
         "raw_pair_schema_version": samples.schema_version,
+        "brightness_coordinate": "shared_corrected_log_luma",
         "log_luma_edges": edges.tolist(),
         "gain_log_a": float(gain_log_a),
         "gain_log_b": float(gain_log_b),
