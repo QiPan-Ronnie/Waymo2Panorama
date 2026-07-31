@@ -5,6 +5,19 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-226: 跨 log 固定单调亮度响应 — scene-band 领地色差的最后一个非空间校正假设
+Status: **ACTIVE (2026-07-31；用户已批准方案 A 并要求直接开跑)。这是当前唯一 active direction；先诊断、后候选，held-out 不过则生产像素保持不变。**
+Question: DB-215 已证伪“固定相机空间场”，DB-221 已修复断连 gain graph；剩余 scene-band 明暗领地是否来自各相机固定但非线性的亮度响应，使当前每帧乘性标量只能对齐一个亮度水平、却在暗部/中间调/高光留下方向稳定的残差？
+Expected evidence: 沿本帧真实曲线 ownership boundary，在同一 LiDAR 3D ray 上记录相机对的 raw/corrected `log-luma`、现有 gain、有效/饱和计数和固定绝对亮度 bins。用 scene-stratified logs，训练/held-out **按 log 完全隔离**；先检验 pair residual-vs-brightness 的方向、幅度和 camera graph 可解性是否跨 log 复现。诊断必须同时报告低相关/高视差样本占比，不得把几何错配训练成 response curve。
+Hypothesis: 若每台相机存在稳定 response mismatch，则去掉每帧常数 offset 后，`residual = corrected_logY_b - corrected_logY_a` 随 raw brightness 的低频单调结构会在 held-out logs 保持方向；一组共享的、严格单调的 per-camera 1D 曲线应降低 held-out curved-boundary luma step，而无需混合相机像素或改变色度。
+Candidate if diagnostic passes: 在固定 raw-log-luma knots 上学习每台相机的单调 piecewise-linear luminance map，公共 gauge 固定为 identity/zero-mean；每个像素只做 `RGB' = RGB * Y'/Y`，所以 `R/G`、`B/G` 不变。曲线先于现有 per-frame scalar gain，后者继续吸收曝光 offset。默认 gated off；不允许空间坐标、scene ID、frame ID 或逐通道自由度进入曲线。
+Kill criteria: (1) brightness-residual profile 在 held-out logs 的方向/形状不复现；(2) 只有按帧/按场景重拟合才改善；(3) 多数 held-out curved seams 不改善，或 improvement 只来自低 `rho` / 高视差样本；(4) 任一全分辨率视觉样本出现 hue shift、clip band、人物/车辆 ghost、文字撕裂或真实阴影被抹；(5) 一套冻结参数不能跨至少 3 个 unseen logs。任一触发即归档为 NEG，不叠加参数补救。
+Max scope: 首轮只给现有 diagnostic 增加 fixed-brightness sufficient statistics，并在 AV2 多 log 上跑 train/held-out；只有预注册判据通过才实现一个 gated luminance-only candidate。禁止 feather/multiband、per-channel AWB、2D 空间场、逐帧 tone curve、生成模型和 BMW 特调；不重导旧 555。
+Required vision check: held-out 每 log 看 full ERP + territory overlay，并裁道路/白墙/天空、人物/车辆和文字；曲线启用前后必须验证可见物没有双影/撕裂，非饱和像素 `R/G`、`B/G` 数值不变。数字与眼睛冲突时先查 same-ray/occlusion/parallax 量测。
+Output: `deliverables/db226_monotonic_luma/`；远端与 Drive 同名 result；实现/测试只进 `scripts/phase3/`、`agent/db115_drivers/`。URL/token 永不落盘。
+
+---
+
 # DB-216: Waymo E2E 8-camera 真实 B-only 泛化门
 Status: **PASSED AS A B-ONLY CANDIDATE (2026-07-31) — 真实 shard 的 records 0/100/300/500/700 pilot 为 5/5；后续分层扩量 48/48 也全部成功。每条 record 都是独立单帧 log，raw-sensor ownership，八相机提供完整水平 band。但 camera territory 明暗/色调阶跃和局部接缝高度差仍明显，无 LiDAR/真实 pose/物理 timestamp，故只通过“可生成 B 候选”门，不升级为生产完美 360。**
 Question: camera-only Waymo E2E（8 cameras、无 LiDAR/ego pose/annotations）能否只靠当前 DB-214 scene-band 核心，以显式 B 契约生成 360°、raw-sensor-owned panorama，而不把缺失的几何/运动证据伪装成已有？
