@@ -214,7 +214,7 @@ def photometric_pair_residual_stats(
     xy_a: np.ndarray | None = None,
     xy_b: np.ndarray | None = None,
     bins: int = 4,
-) -> dict[str, float | int | None]:
+) -> dict[str, object]:
     """Summarize same-3D-point photometric residuals for one camera pair.
 
     A global exposure gain can translate the log-luminance residual but cannot
@@ -260,8 +260,15 @@ def photometric_pair_residual_stats(
         ]
     )
     chroma_residual = np.linalg.norm(chroma_b - chroma_a, axis=1)
+    chroma_components = chroma_b - chroma_a
+    saturated = (
+        (a <= 1.0).any(axis=1)
+        | (a >= 254.0).any(axis=1)
+        | (b <= 1.0).any(axis=1)
+        | (b >= 254.0).any(axis=1)
+    )
 
-    def spatial_range(xy: np.ndarray | None) -> float | None:
+    def spatial_grid(xy: np.ndarray | None) -> dict[str, object] | None:
         if xy is None:
             return None
         coords = np.asarray(xy, dtype=np.float64)
@@ -273,14 +280,66 @@ def photometric_pair_residual_stats(
         cells = np.floor(np.clip(coords, 0.0, 1.0 - np.finfo(float).eps) * bins).astype(int)
         codes = cells[:, 1] * bins + cells[:, 0]
         min_count = max(8, int(math.ceil(len(codes) * 0.01)))
+        rows: list[dict[str, object]] = []
+        for code in range(bins * bins):
+            selected = codes == code
+            count = int(selected.sum())
+            reliable = count >= min_count
+            values = corrected_residual[selected]
+            chroma = chroma_components[selected]
+            rows.append(
+                {
+                    "x_index": code % bins,
+                    "y_index": code // bins,
+                    "n": count,
+                    "min_reliable_n": min_count,
+                    "reliable": reliable,
+                    "saturated_n": int(saturated[selected].sum()),
+                    "saturated_fraction": (
+                        float(saturated[selected].mean()) if count else None
+                    ),
+                    "corrected_log_luma_median": (
+                        float(np.median(values)) if reliable else None
+                    ),
+                    "corrected_log_luma_mad": (
+                        float(np.median(np.abs(values - np.median(values))))
+                        if reliable
+                        else None
+                    ),
+                    "corrected_abs_log_luma_p90": (
+                        float(np.quantile(np.abs(values), 0.90))
+                        if reliable
+                        else None
+                    ),
+                    "corrected_chroma_rg_median": (
+                        float(np.median(chroma[:, 0])) if reliable else None
+                    ),
+                    "corrected_chroma_bg_median": (
+                        float(np.median(chroma[:, 1])) if reliable else None
+                    ),
+                    "corrected_chroma_norm_p90": (
+                        float(np.quantile(chroma_residual[selected], 0.90))
+                        if reliable
+                        else None
+                    ),
+                }
+            )
+        return {"bins": bins, "cells": rows}
+
+    def grid_range(grid: dict[str, object] | None) -> float | None:
+        if grid is None:
+            return None
         medians = [
-            float(np.median(corrected_residual[codes == code]))
-            for code in np.unique(codes)
-            if int((codes == code).sum()) >= min_count
+            float(cell["corrected_log_luma_median"])
+            for cell in grid["cells"]
+            if cell["corrected_log_luma_median"] is not None
         ]
         if len(medians) < 2:
             return None
         return float(max(medians) - min(medians))
+
+    grid_a = spatial_grid(xy_a)
+    grid_b = spatial_grid(xy_b)
 
     if raw_luma_a.std() < 1e-9 or raw_luma_b.std() < 1e-9:
         rho = None
@@ -297,6 +356,8 @@ def photometric_pair_residual_stats(
         ),
         "corrected_chroma_logratio_median": float(np.median(chroma_residual)),
         "corrected_chroma_logratio_p90": float(np.quantile(chroma_residual, 0.90)),
-        "camera_a_spatial_median_range": spatial_range(xy_a),
-        "camera_b_spatial_median_range": spatial_range(xy_b),
+        "camera_a_spatial_median_range": grid_range(grid_a),
+        "camera_b_spatial_median_range": grid_range(grid_b),
+        "camera_a_spatial_grid": grid_a,
+        "camera_b_spatial_grid": grid_b,
     }

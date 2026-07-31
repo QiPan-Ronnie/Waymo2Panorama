@@ -19,7 +19,7 @@ Output: remote `/content/db216_waymo_e2e_static_pilot/` + zip，证据复制到 
 ---
 
 # DB-215: scene-band 领地色块第一性诊断 — 全局 exposure 标量是否已到模型上限
-Status: **ACTIVE(2026-07-31；只诊断，不改输出像素)**
+Status: **ACTIVE(2026-07-31；首轮 3 logs × 3 frames 已跑完，只证明全局标量不足和严重尾部多为瞬时 C 型；旧 JSON 只保存无符号 spatial range，无法证明稳定相机场 B。诊断器已补 4×4 有符号 luma/chroma/count/saturation grids，待同范围重跑；仍不改输出像素。)**
 Question: DB-203/208/214 已处理坏相关边、错误 AWB 自由度和硬阈值后，`1842383a` / `e453f164` 仍可见的相机领地明暗块，到底是：(A) 全局曝光标量估错；(B) 单相机坐标中稳定的低频 ISP/渐晕场，说明标量模型太弱；还是 (C) 视差遮挡、镜面反射或真实局部照明，原则上不该被颜色算法抹掉？
 Why now: DB-214 heldout old/new 几乎相同，但 `1842383a a070` 全图仍肉眼可见领地区域。继续调 `GAIN_STRENGTH` 已被 DB-198 跨 log 证伪；直接 feather 会把近场视差重新混成双影。
 Expected evidence: 沿**本 log 自己的曲线领地边界**，对同一 LiDAR 3D ray 同时采相邻两相机，输出 raw / gain 后 `log-luma median/MAD/p90`、`log(R/G,B/G)` 色度残差、相机归一化坐标 4×4 低频分箱范围、`rho_log_luma`，并保存 `territory.png`。至少覆盖 `1842383a a070`、`e453f164 a070`、蓝人 log `00a6ffc1 a100`；再用相邻帧判空间模式是否固定在相机坐标。

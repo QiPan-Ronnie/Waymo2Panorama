@@ -193,6 +193,50 @@ def test_photometric_report_separates_scalar_offset_from_spatial_underfit():
     assert report["corrected_log_luma_mad"] > 0.07
     assert report["camera_a_spatial_median_range"] > 0.20
     assert report["corrected_chroma_logratio_p90"] == pytest.approx(0.0, abs=1e-6)
+    grid = report["camera_a_spatial_grid"]
+    assert grid["bins"] == 4
+    assert len(grid["cells"]) == 16
+    occupied = [cell for cell in grid["cells"] if cell["n"] > 0]
+    assert sum(cell["n"] for cell in occupied) == n
+    signed = [
+        cell["corrected_log_luma_median"]
+        for cell in occupied
+        if cell["corrected_log_luma_median"] is not None
+    ]
+    assert min(signed) < -0.10
+    assert max(signed) > 0.10
+    assert all(cell["corrected_chroma_rg_median"] == pytest.approx(0.0) for cell in occupied)
+    assert all(cell["corrected_chroma_bg_median"] == pytest.approx(0.0) for cell in occupied)
+
+
+def test_photometric_grid_preserves_camera_specific_cell_coordinates():
+    side = 20
+    x, y = np.meshgrid(
+        (np.arange(side) + 0.5) / side,
+        (np.arange(side) + 0.5) / side,
+    )
+    xy_a = np.column_stack([x.ravel(), y.ravel()])
+    xy_b = np.column_stack([1.0 - x.ravel(), y.ravel()])
+    base = np.repeat(np.array([[60.0, 90.0, 120.0]]), side * side, axis=0)
+    residual = 0.4 * (xy_a[:, 0] - 0.5)
+    shifted = base * np.exp(residual)[:, None]
+
+    report = photometric_pair_residual_stats(
+        base,
+        shifted,
+        gain_a=np.zeros(3),
+        gain_b=np.zeros(3),
+        xy_a=xy_a,
+        xy_b=xy_b,
+        bins=4,
+    )
+
+    grid_a = report["camera_a_spatial_grid"]["cells"]
+    grid_b = report["camera_b_spatial_grid"]["cells"]
+    row_a = [grid_a[x_index]["corrected_log_luma_median"] for x_index in range(4)]
+    row_b = [grid_b[x_index]["corrected_log_luma_median"] for x_index in range(4)]
+    assert row_a == sorted(row_a)
+    assert row_b == sorted(row_b, reverse=True)
 
 
 def test_renderer_color_diagnostic_is_gated_and_same_point_based():
