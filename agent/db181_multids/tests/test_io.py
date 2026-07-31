@@ -89,11 +89,11 @@ def test_materialize_file_uses_real_hardlink_when_supported(cache_temp_dir: Path
         hardlinks_supported = True
         probe_destination.unlink()
 
-    method = materialize_file(source, destination)
-
-    assert destination.read_bytes() == source.read_bytes()
     if hardlinks_supported:
+        method = materialize_file(source, destination)
+
         assert method == "hardlink"
+        assert destination.read_bytes() == source.read_bytes()
         source_stat = source.stat()
         destination_stat = destination.stat()
         if source_stat.st_ino and destination_stat.st_ino:
@@ -102,7 +102,11 @@ def test_materialize_file_uses_real_hardlink_when_supported(cache_temp_dir: Path
                 source_stat.st_ino,
             )
     else:
-        assert method == "copy"
+        with pytest.raises(OSError, match="atomic no-clobber publication failed"):
+            materialize_file(source, destination)
+
+        assert not os.path.lexists(destination)
+        _assert_no_sibling_temps(destination)
 
 
 def test_materialize_file_falls_back_to_atomic_copy_on_source_link_error(
