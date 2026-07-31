@@ -297,7 +297,11 @@ def test_three_frame_scene_writes_complete_pseudo_av2_log(writable_test_dir: Pat
     assert annotations.schema.field("category").type == pa.string()
 
     expected_files = sorted(path for path in source_scene.rglob("*") if path.is_file())
-    artifact_by_path = {artifact.path: artifact for artifact in manifest.source_artifacts}
+    artifact_by_path = {
+        artifact.path: artifact
+        for artifact in manifest.source_artifacts
+        if not artifact.path.startswith("derived:")
+    }
     assert set(artifact_by_path) == {
         path.relative_to(source_scene).as_posix() for path in expected_files
     }
@@ -305,6 +309,18 @@ def test_three_frame_scene_writes_complete_pseudo_av2_log(writable_test_dir: Pat
         artifact = artifact_by_path[path.relative_to(source_scene).as_posix()]
         assert artifact.sha256 == sha256_file(path)
         assert artifact.size_bytes == path.stat().st_size
+
+    alignment = [
+        artifact
+        for artifact in manifest.source_artifacts
+        if artifact.path.startswith("derived:pandaset_temporal_alignment=")
+    ]
+    assert len(alignment) == 1
+    assert '"adapter_algorithm_version":"pandaset_cadence_window_v2"' in alignment[0].path
+    assert alignment[0].sha256 == hashlib.sha256(
+        alignment[0].path.encode("utf-8")
+    ).hexdigest()
+    assert alignment[0].size_bytes == len(alignment[0].path.encode("utf-8"))
 
     digest = hashlib.sha256()
     calibration_files = sorted((output_dir / "calibration").glob("*.feather"), key=lambda path: path.name)
@@ -362,7 +378,11 @@ def test_ground_origin_is_shifted_and_recorded_as_derived_provenance(
         radius_m=10.0,
         shift_m=-1.0,
     )
-    artifact = next(value for value in manifest.source_artifacts if value.path.startswith("derived:"))
+    artifact = next(
+        value
+        for value in manifest.source_artifacts
+        if value.path.startswith("derived:ego_ground_shift=")
+    )
     assert artifact.path == descriptor
     assert artifact.sha256 == hashlib.sha256(descriptor.encode("utf-8")).hexdigest()
     assert artifact.size_bytes == len(descriptor.encode("utf-8"))
@@ -527,10 +547,23 @@ def test_camera_pose_query_outside_lidar_range_is_rejected(writable_test_dir: Pa
         )
 
 
-def test_nearest_selection_rejects_duplicate_reuse(writable_test_dir: Path) -> None:
+def test_ordered_distinct_selection_avoids_nearest_duplicate_reuse() -> None:
+    values = (1_000_000_000, 1_599_000_000, 2_599_000_000)
+    anchors = (1_000_000_000, 2_100_000_000, 3_100_000_000)
+
+    assert pandaset_adapter._select_indices(
+        values,
+        anchors,
+        "right_camera",
+    ) == (0, 1, 2)
+
+
+def test_ordered_distinct_selection_rejects_impossible_matching(
+    writable_test_dir: Path,
+) -> None:
     source_scene = _write_scene(writable_test_dir)
     _set_camera_timeline(source_scene, "right_camera", [1.0, 1.01, 3.1])
-    with pytest.raises(ValueError, match="duplicate reuse"):
+    with pytest.raises(ValueError, match="ordered distinct matching"):
         convert_pandaset_scene(
             source_scene,
             writable_test_dir / "output",

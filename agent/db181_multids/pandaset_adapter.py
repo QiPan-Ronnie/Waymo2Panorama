@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import bisect
 import hashlib
 import json
 import math
@@ -29,6 +28,7 @@ from .geometry import (
     rotation_z_deg,
 )
 from .io import materialize_file, sha256_file, write_empty_annotations, write_feather
+from .nuscenes_adapter import _match_ordered_distinct_indices, _nominal_cadence_ns
 
 
 PANDASET_CAMERA_MAP: tuple[tuple[str, str], ...] = (
@@ -265,24 +265,19 @@ def _interpolate_poses(
     }
 
 
-def _nearest_index(values: tuple[int, ...], query: int) -> int:
-    right = bisect.bisect_left(values, query)
-    candidates = []
-    if right < len(values):
-        candidates.append(right)
-    if right > 0:
-        candidates.append(right - 1)
-    return min(candidates, key=lambda index: (abs(values[index] - query), values[index]))
+def _select_indices(
+    values: tuple[int, ...],
+    anchors: tuple[int, ...],
+    stream_name: str,
+) -> tuple[int, ...]:
+    """Select a minimum-delta, ordered, no-reuse synchronization path."""
 
-
-def _select_indices(values: tuple[int, ...], anchors: tuple[int, ...], stream_name: str) -> tuple[int, ...]:
-    indices = tuple(_nearest_index(values, anchor) for anchor in anchors)
-    selected = tuple(values[index] for index in indices)
-    if any(right <= left for left, right in zip(selected, selected[1:])):
-        raise ValueError(
-            f"{stream_name} nearest selections must strictly increase without duplicate reuse"
-        )
-    return indices
+    return _match_ordered_distinct_indices(
+        values,
+        anchors,
+        stream_name,
+        _nominal_cadence_ns(values, stream_name),
+    )
 
 
 def _read_lidar_world(path: Path) -> tuple[np.ndarray, np.ndarray]:
@@ -470,6 +465,58 @@ def convert_pandaset_scene(
         for camera in cameras
     }
     lidar_indices = _select_indices(lidar.timestamps_ns, anchors, "lidar")
+    timestamps_by_stream = {
+        camera.source_name: camera.timestamps_ns for camera in cameras
+    }
+    timestamps_by_stream["lidar"] = lidar.timestamps_ns
+    sync_windows = {
+        stream_name: _nominal_cadence_ns(values, stream_name)
+        for stream_name, values in timestamps_by_stream.items()
+    }
+    selected_by_stream = {
+        camera.source_name: camera_indices[camera.pseudo_name] for camera in cameras
+    }
+    selected_by_stream["lidar"] = lidar_indices
+    alignment_payload = {
+        "adapter_algorithm_version": "pandaset_cadence_window_v2",
+        "anchor_channel": cameras[0].source_name,
+        "common_subsequence_selection": (
+            "minimum_total_absolute_sync_delta_ordered_distinct"
+        ),
+        "matching_objective": (
+            "full_anchor_cardinality_then_minimum_per_stream_total_absolute_"
+            "sync_delta_ns"
+        ),
+        "output_frame_count": len(anchors),
+        "source_anchor_frame_count": len(cameras[0].timestamps_ns),
+        "source_stream_frame_counts": {
+            stream_name: len(values)
+            for stream_name, values in timestamps_by_stream.items()
+        },
+        "sync_window_derivation": (
+            "ceil_median_positive_consecutive_delta_ns_per_stream"
+        ),
+        "sync_window_ns": sync_windows,
+        "max_sync_delta_ns": {
+            stream_name: max(
+                abs(values[index] - anchor)
+                for index, anchor in zip(selected_by_stream[stream_name], anchors)
+            )
+            for stream_name, values in timestamps_by_stream.items()
+        },
+    }
+    alignment_descriptor = "derived:pandaset_temporal_alignment=" + json.dumps(
+        alignment_payload,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    alignment_bytes = alignment_descriptor.encode("utf-8")
+    alignment_artifact = SourceArtifact(
+        path=alignment_descriptor,
+        sha256=hashlib.sha256(alignment_bytes).hexdigest(),
+        size_bytes=len(alignment_bytes),
+    )
     consumed_lidar_indices = set(lidar_indices)
     if ego_origin == "ground":
         consumed_lidar_indices.add(0)
@@ -584,6 +631,7 @@ def convert_pandaset_scene(
         )
 
     source_artifacts = tuple(_artifact(snapshots[path]) for path in provenance_paths)
+    source_artifacts += (alignment_artifact,)
     if derived_artifact is not None:
         source_artifacts += (derived_artifact,)
 
