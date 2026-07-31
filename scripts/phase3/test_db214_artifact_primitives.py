@@ -1,3 +1,4 @@
+import ast
 import math
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -298,3 +299,100 @@ def test_renderer_color_diagnostic_is_gated_and_same_point_based():
     assert "photometric_pair_residual_stats(" in code
     assert "_color_diag.json" in code
     assert "_territory.png" in code
+
+
+def test_renderer_color_diagnostic_emits_versioned_raw_sample_bundle():
+    code = remote_py()
+    before_diag, diag_and_after = code.split("    if COLOR_DIAG:", maxsplit=1)
+    diag_block, _ = diag_and_after.split("    def sample_cam_patch", maxsplit=1)
+
+    assert "import hashlib" in code
+    assert "from db226_luma_response import" in code
+    for imported_name in (
+        "RAW_PAIR_SCHEMA_VERSION",
+        "collect_pair_samples",
+        "fixed_brightness_profile",
+    ):
+        assert imported_name in code
+    for gated_marker in (
+        "_color_diag_samples.npz",
+        "collect_pair_samples(",
+        "fixed_brightness_profile(",
+        "np.savez_compressed(",
+        "hashlib.sha256(",
+        '"gain_applied_to_npz": False',
+    ):
+        assert gated_marker not in before_diag
+        assert gated_marker in diag_block
+
+    for metadata_key in (
+        "schema_version",
+        "dataset",
+        "log_id",
+        "anchor_index",
+        "anchor_timestamp_ns",
+        "camera_order",
+        "luma_definition",
+        "input_encoding",
+        "gain_applied_to_npz",
+        "sat_lo",
+        "sat_hi",
+        "max_samples_per_pair",
+        "sampling",
+        "sample_npz",
+        "sample_sha256",
+        "render_gain_log_rgb",
+    ):
+        assert f'"{metadata_key}"' in diag_block
+    for pair_key in (
+        "sample_prefix",
+        "camera_pair",
+        "boundary_n",
+        "geometry_valid_n",
+        "unpoisoned_n",
+        "unsaturated_n",
+        "emitted_n",
+        "fixed_brightness_profile",
+    ):
+        assert f'"{pair_key}"' in diag_block
+
+
+def test_renderer_raw_bundle_collects_ungained_frame_observations():
+    code = remote_py()
+    tree = ast.parse(code)
+    color_diag = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.If)
+        and isinstance(node.test, ast.Name)
+        and node.test.id == "COLOR_DIAG"
+    )
+    collect_calls = [
+        node
+        for node in ast.walk(color_diag)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "collect_pair_samples"
+    ]
+    assert len(collect_calls) == 1
+    keywords = {keyword.arg: ast.unparse(keyword.value) for keyword in collect_calls[0].keywords}
+    assert keywords["rgb_a"] == "_raw_i_all"
+    assert keywords["rgb_b"] == "_raw_j_all"
+    assert all("gain" not in value and "gimgs" not in value for value in keywords.values())
+
+    diag_source = ast.get_source_segment(code, color_diag)
+    assert diag_source is not None
+    assert "_raw_i_all = bilinear(frame.images[ring_cams[_ci]]" in diag_source
+    assert "_raw_j_all = bilinear(frame.images[ring_cams[_cj]]" in diag_source
+    assert "np.savez_compressed(" in diag_source
+    assert "prefix + \"__rgb_a\"" in diag_source
+    assert "prefix + \"__rgb_b\"" in diag_source
+
+    direct_if_calls = [
+        statement.value.func.attr
+        for statement in color_diag.body
+        if isinstance(statement, ast.Expr)
+        and isinstance(statement.value, ast.Call)
+        and isinstance(statement.value.func, ast.Attribute)
+    ]
+    assert "savez_compressed" in direct_if_calls

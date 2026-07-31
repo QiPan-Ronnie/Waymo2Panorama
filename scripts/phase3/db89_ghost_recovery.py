@@ -45,7 +45,7 @@ CASE_NAMES = ["02a00399_a000_bmw", "9f871fb4_a030_downtown", "fbee355f_a030_crow
 
 def remote_py() -> str:
     code = r'''
-import json, math, pathlib, subprocess, sys, time, traceback
+import hashlib, json, math, pathlib, subprocess, sys, time, traceback
 import warnings as _w
 _w.warn = lambda *a, **k: None  # DB115-PRO fix#1 (2026-07-10): band-off cap is all-NaN -> nanmedian fired 2.28M RuntimeWarns = 233s of a 241s/frame (a filterwarnings-ignore still pays ~10us/call; the no-op is the measured config). Byte-identical output verified (md5, a145).
 import numpy as np
@@ -107,6 +107,8 @@ from db214_artifact_primitives import (angular_overlap_weight, annotation_enable
     load_ego_pose_interpolators, ownership_boundary_indices,
     pair_evidence_weights, photometric_pair_residual_stats, solve_gain_components,
     validate_renderer_capabilities)
+from db226_luma_response import (
+    RAW_PAIR_SCHEMA_VERSION, collect_pair_samples, fixed_brightness_profile)
 
 
 def save_rgb(path, arr):
@@ -778,36 +780,93 @@ def run_case(case_spec, run_name):
             _terr[bestcam == _ci] = _palette[_ci % len(_palette)]
         save_rgb(REMOTE_OUT / f"{run_name}_territory.png", _terr.reshape(H, W, 3))
         _pair_reports = []
-        for (_ci, _cj), _idx0 in ownership_boundary_indices(bestcam.reshape(H, W)).items():
+        _sample_arrays = {}
+        _depth_flat = Zd.reshape(-1)
+        for _pair_number, ((_ci, _cj), _idx0) in enumerate(
+                ownership_boundary_indices(bestcam.reshape(H, W)).items()):
+            _prefix = f"pair_{_pair_number:03d}"
             _boundary_n = int(len(_idx0))
             if len(_idx0) > 50000:
                 _idx0 = _idx0[np.linspace(0, len(_idx0) - 1, 50000, dtype=np.int64)]
             _pi, _pj = proj[_ci], proj[_cj]
-            _same = (_pi["ok"][_idx0] & ~_pi["poison"][_idx0] &
-                     _pj["ok"][_idx0] & ~_pj["poison"][_idx0])
-            _idx = _idx0[_same]
-            if len(_idx) < 32:
-                continue
-            _raw_i = bilinear(frame.images[ring_cams[_ci]], _pi["px"][_idx], _pi["py"][_idx])
-            _raw_j = bilinear(frame.images[ring_cams[_cj]], _pj["px"][_idx], _pj["py"][_idx])
-            _unsat = ((_raw_i.min(1) > SAT_LO) & (_raw_i.max(1) < SAT_HI) &
-                      (_raw_j.min(1) > SAT_LO) & (_raw_j.max(1) < SAT_HI))
-            if int(_unsat.sum()) < 32:
-                continue
-            _idx = _idx[_unsat]; _raw_i = _raw_i[_unsat]; _raw_j = _raw_j[_unsat]
+            _geometry_valid = _pi["ok"][_idx0] & _pj["ok"][_idx0]
+            _unpoisoned = (_geometry_valid & ~_pi["poison"][_idx0] &
+                           ~_pj["poison"][_idx0])
+            _idx_all = _idx0[_unpoisoned]
+            _raw_i_all = bilinear(frame.images[ring_cams[_ci]],
+                                  _pi["px"][_idx_all], _pi["py"][_idx_all])
+            _raw_j_all = bilinear(frame.images[ring_cams[_cj]],
+                                  _pj["px"][_idx_all], _pj["py"][_idx_all])
             _hi, _wi = cals[_ci][1]; _hj, _wj = cals[_cj][1]
-            _xy_i = np.column_stack([_pi["px"][_idx] / max(_wi - 1, 1),
-                                     _pi["py"][_idx] / max(_hi - 1, 1)])
-            _xy_j = np.column_stack([_pj["px"][_idx] / max(_wj - 1, 1),
-                                     _pj["py"][_idx] / max(_hj - 1, 1)])
-            _stats = photometric_pair_residual_stats(
-                _raw_i, _raw_j, gains[_ci], gains[_cj], xy_a=_xy_i, xy_b=_xy_j)
-            _stats.update({"camera_pair": [ring_cams[_ci], ring_cams[_cj]],
+            _xy_i_all = np.column_stack([_pi["px"][_idx_all] / max(_wi - 1, 1),
+                                         _pi["py"][_idx_all] / max(_hi - 1, 1)])
+            _xy_j_all = np.column_stack([_pj["px"][_idx_all] / max(_wj - 1, 1),
+                                         _pj["py"][_idx_all] / max(_hj - 1, 1)])
+            _points = Xf[_idx_all]
+            _view_i = _points - poses_emc[_ci][1][None, :]
+            _view_j = _points - poses_emc[_cj][1][None, :]
+            _view_den = np.maximum(
+                np.linalg.norm(_view_i, axis=1) * np.linalg.norm(_view_j, axis=1), 1e-12)
+            _view_cos = np.sum(_view_i * _view_j, axis=1) / _view_den
+            _parallax_deg = np.degrees(np.arccos(np.clip(_view_cos, -1.0, 1.0)))
+            _samples = collect_pair_samples(
+                rgb_a=_raw_i_all, rgb_b=_raw_j_all, erp_flat_index=_idx_all,
+                xy_a=_xy_i_all, xy_b=_xy_j_all, depth_m=_depth_flat[_idx_all],
+                parallax_deg=_parallax_deg)
+            _sample_arrays[_prefix + "__rgb_a"] = _samples.rgb_a
+            _sample_arrays[_prefix + "__rgb_b"] = _samples.rgb_b
+            _sample_arrays[_prefix + "__erp_flat_index"] = _samples.erp_flat_index
+            _sample_arrays[_prefix + "__xy_a"] = _samples.xy_a
+            _sample_arrays[_prefix + "__xy_b"] = _samples.xy_b
+            _sample_arrays[_prefix + "__depth_m"] = _samples.depth_m
+            _sample_arrays[_prefix + "__parallax_deg"] = _samples.parallax_deg
+
+            _gain_i = np.asarray(gains[_ci], dtype=np.float64)
+            _gain_j = np.asarray(gains[_cj], dtype=np.float64)
+            if (_gain_i.shape != (3,) or _gain_j.shape != (3,) or
+                    not np.isfinite(_gain_i).all() or not np.isfinite(_gain_j).all() or
+                    not np.allclose(_gain_i, _gain_i[0], rtol=0.0, atol=1e-12) or
+                    not np.allclose(_gain_j, _gain_j[0], rtol=0.0, atol=1e-12)):
+                raise ValueError("COLOR_DIAG fixed profile requires one finite scalar RGB gain")
+            _fixed_profile = fixed_brightness_profile(
+                _samples, gain_log_a=float(_gain_i[0]), gain_log_b=float(_gain_j[0]),
+                sat_lo=float(SAT_LO), sat_hi=float(SAT_HI))
+            _unsat = ((_raw_i_all.min(1) > SAT_LO) & (_raw_i_all.max(1) < SAT_HI) &
+                      (_raw_j_all.min(1) > SAT_LO) & (_raw_j_all.max(1) < SAT_HI))
+            _stats = {}
+            if int(_unsat.sum()) >= 32:
+                _raw_i = _raw_i_all[_unsat]; _raw_j = _raw_j_all[_unsat]
+                _xy_i = _xy_i_all[_unsat]; _xy_j = _xy_j_all[_unsat]
+                _stats = photometric_pair_residual_stats(
+                    _raw_i, _raw_j, gains[_ci], gains[_cj], xy_a=_xy_i, xy_b=_xy_j)
+            _stats.update({"sample_prefix": _prefix,
+                           "camera_pair": [ring_cams[_ci], ring_cams[_cj]],
+                           "boundary_n": _boundary_n,
+                           "geometry_valid_n": int(_geometry_valid.sum()),
+                           "unpoisoned_n": int(_unpoisoned.sum()),
+                           "unsaturated_n": int(_unsat.sum()),
+                           "emitted_n": int(len(_samples.rgb_a)),
+                           "fixed_brightness_profile": _fixed_profile,
                            "boundary_pixels": _boundary_n,
-                           "same_point_valid_before_saturation": int(_same.sum())})
+                           "same_point_valid_before_saturation": int(_unpoisoned.sum())})
             _pair_reports.append(_stats)
-        color_diag_report = {"measurement": "same_3d_ray_at_curved_ownership_boundary",
-                             "render_gain_log_rgb": gains.tolist(), "pairs": _pair_reports}
+        _sample_path = REMOTE_OUT / f"{run_name}_color_diag_samples.npz"
+        np.savez_compressed(_sample_path, **_sample_arrays)
+        _sample_sha256 = hashlib.sha256(_sample_path.read_bytes()).hexdigest()
+        color_diag_report = {
+            "schema_version": RAW_PAIR_SCHEMA_VERSION,
+            "measurement": "same_3d_ray_at_curved_ownership_boundary",
+            "dataset": "av2", "log_id": log_dir.name,
+            "anchor_index": int(anchor_idx), "anchor_timestamp_ns": int(ts),
+            "camera_order": list(ring_cams),
+            "luma_definition": "mean_rgb_code_value",
+            "input_encoding": "av2_jpeg_rgb_uint8_bilinear_float64",
+            "gain_applied_to_npz": False,
+            "sat_lo": float(SAT_LO), "sat_hi": float(SAT_HI),
+            "max_samples_per_pair": 50000,
+            "sampling": "deterministic_linspace",
+            "sample_npz": _sample_path.name, "sample_sha256": _sample_sha256,
+            "render_gain_log_rgb": gains.tolist(), "pairs": _pair_reports}
         (REMOTE_OUT / f"{run_name}_color_diag.json").write_text(
             json.dumps(color_diag_report, indent=1), encoding="utf-8")
 
