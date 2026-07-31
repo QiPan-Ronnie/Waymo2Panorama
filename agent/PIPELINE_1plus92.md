@@ -596,3 +596,15 @@ rho 分布:0.70–1.01 占 111/168,0.45 以上共 145/168(86%)。**灰区 0.20�
 前向三对**从不失效**,侧向四对会。与几何一致:侧向重叠区看到的是近处建筑/路缘,且基线更大(side_right 0.378 / front_right 0.357 vs front_center 0.276 m),视差远超"前向能看到远处道路"的情形。**这证明 corr 门抓的是真实物理现象而非噪声**,也说明未来可以按相机对设定不同期望。
 
 **综合判定**:判据第一性、极端案例可靠、灰区影响被先验兜底限制住、通道处理正确。**但"完全根本解决"还差两块:(a) 夜间/雨天样本(AV2 本身以白天为主,可能要靠别的数据集补);(b) 灰区目前靠一个经验阈值,更根本的形式应该是相对判据或直接用 medLog 的可信区间。**
+
+### 11.13 DB-214/215:三类用户可见缺陷的真实状态(续接复核)
+
+**蓝人重影 — 重复身体已从根因删除，原传感器紫边保留。** 根因不是普通几何拼接，而是 band-only 选择性数据曾让 annotation compositor 的输入契约漂移：同一运动人体可由同步 raw sensor 和 annotation-lagged 二次身体同时进入输出。DB-214 把像素所有权显式化为 `ANNOTATION_POLICY`; v15 scene-band 固定 `raw_sensor`，与 `GROUND_MODE` 解耦。蓝人 log `00a6ffc1` 全 157 anchors 已实渲，157/157 `n_objects_composited=0`，a100 眼核为单一身体。残余紫色 fringe 在原始 `ring_side_right` 传感器图已存在；按“真实优先于观感”不伪造消除。完整 157 帧 ROI 视频只差从已完成远端帧组装/拉回，**不需要重渲**。
+
+**文字扭曲 — 已修到当前验证覆盖，不宣称所有文字全域证明。** DB-184 的 fine-depth 只在多相机 overlap 附近使用、单相机内部回到 smooth depth，消除了 LiDAR 深度纹理把字形撕裂的问题。DB-214 把 60px 常数改成 ERP 周期、分辨率不变的 `DEPTH_SEAMRAMP_DEG=10.546875`。`BILL'S BAR` current-vs-ramp0 对照以及 `e453f164` / `1842383a` 各 11 帧 heldout 序列中，店招/建筑文字可读且未见同类撕裂。覆盖边界：未对所有 license plate、夜间小字和四个新数据集逐字检查。
+
+**色差 — 剧烈中毒已修，普通领地明暗块未完全解决。** DB-203/208 已把蓝人 log 的坏边压暗/品红中毒从 `front_right|side_right` seam 70.5 降到约 14，并保留传感器白平衡。DB-214 用 `confidence=max(rho,0)^2` 连续分配 measurement/prior，删除了 0.30 硬阈值 cliff；健康 heldout old/new mean abs 仅 0.62–0.66、p95=2，说明它主要修架构脆弱性，**不会自动消掉普通场景的区域块**。全分辨率 `1842383a a070` 和 `e453f164` 仍见相机 territory 级亮度/色调区域，故不得写“完全解决”。
+
+DB-215 只读诊断已入核但默认关闭：沿**本 log 自己的曲线领地边界**，在同一 LiDAR 3D ray 上同时采两相机，输出 raw/gain 后 `log-luma median/MAD/p90`、`log(R/G,B/G)`、相机坐标低频空间 range、`rho_log_luma` 与 `territory.png`。判据区分：gain 标量估错 / 稳定低频 ISP 场 / 视差与非朗伯真实差异。只有第二类跨帧稳定，才允许研究 luminance-only 低频标定场；禁止回到 feather/multiband，因为它会把视差重新混成双影。
+
+**代码与验证**：隔离分支 `db214-root-artifact-fixes`; commits `da5223b`(三根因修复)、`6694d95`(renderer 遵守 loader 相机契约)、`e3ba41b`(DB-215 同点色残差诊断)。DB-214/215 focused tests 17 passed；多数据集 adapter 在短路径 worktree 254 passed。长路径合并 worktree 的全套 pytest 仍会因 Windows 260-char 临时文件路径失败，这不是算法失败，不能伪报成全绿。
