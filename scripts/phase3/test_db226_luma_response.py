@@ -861,6 +861,112 @@ def _split_manifest(
     return manifest
 
 
+def test_original_preregistered_manifest_derives_acquisition_helper_from_sidecars(
+    db226_tmp_path: Path,
+):
+    from agent.db115_drivers import db226_analyze
+
+    acquisition_sha256 = "5fae29c5" + "3" * 56
+    shape = np.linspace(-0.12, 0.12, 6)
+    for log_id in ("train0", "train1", "heldout"):
+        _write_verified_bundle(
+            db226_tmp_path,
+            _profile_frame(log_id, 0, shape),
+            acquisition_helper_sha256=acquisition_sha256,
+        )
+    original_manifest = {
+        "selected_log_ids": ["train0", "train1", "heldout"],
+        "train_log_ids": ["train0", "train1"],
+        "heldout_log_ids": ["heldout"],
+    }
+
+    rows = db226_analyze.load_verified_sidecars(db226_tmp_path, original_manifest)
+    report = db226_analyze.analyze_rows(rows, original_manifest)
+
+    assert len(rows) == 3
+    assert {
+        row["acquisition_helper_source_sha256"]
+        for row in rows
+    } == {acquisition_sha256}
+    assert report["acquisition_helper_source_sha256"] == acquisition_sha256
+    assert report["analyzer_helper_source_sha256"] == hashlib.sha256(
+        Path(db226_analyze.luma_response.__file__).read_bytes()
+    ).hexdigest()
+    assert report["analyzer_helper_source_sha256"] != acquisition_sha256
+
+
+def test_original_manifest_rejects_mixed_sidecar_helper_sha256(
+    db226_tmp_path: Path,
+):
+    from agent.db115_drivers.db226_analyze import load_verified_sidecars
+
+    shape = np.linspace(-0.12, 0.12, 6)
+    _write_verified_bundle(
+        db226_tmp_path,
+        _profile_frame("heldout", 0, shape),
+        acquisition_helper_sha256="a" * 64,
+    )
+    _write_verified_bundle(
+        db226_tmp_path,
+        _profile_frame("heldout", 1, shape),
+        acquisition_helper_sha256="b" * 64,
+    )
+    original_manifest = {
+        "selected_log_ids": ["train", "heldout"],
+        "train_log_ids": ["train"],
+        "heldout_log_ids": ["heldout"],
+    }
+
+    with pytest.raises(ValueError, match="sidecar helper_source_sha256.*unique"):
+        load_verified_sidecars(
+            db226_tmp_path,
+            original_manifest,
+            require_all_selected_logs=False,
+        )
+
+
+@pytest.mark.parametrize("helper_value", [None, "not-a-64-hex-sha"])
+def test_original_manifest_rejects_missing_or_invalid_sidecar_helper_sha256(
+    db226_tmp_path: Path,
+    helper_value: str | None,
+):
+    from agent.db115_drivers.db226_analyze import load_verified_sidecars
+
+    sidecar_path, _ = _write_verified_bundle(
+        db226_tmp_path,
+        _profile_frame("heldout", 0, np.linspace(-0.12, 0.12, 6)),
+    )
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    if helper_value is None:
+        sidecar.pop("helper_source_sha256")
+    else:
+        sidecar["helper_source_sha256"] = helper_value
+    transaction_binding = json.dumps(
+        {
+            "log_id": sidecar["log_id"],
+            "anchor_index": sidecar["anchor_index"],
+            "sample_sha256": sidecar["sample_sha256"],
+            "helper_source_sha256": sidecar.get("helper_source_sha256"),
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    sidecar["artifact_transaction_id"] = hashlib.sha256(transaction_binding).hexdigest()
+    sidecar_path.write_text(json.dumps(sidecar), encoding="utf-8")
+    original_manifest = {
+        "selected_log_ids": ["train", "heldout"],
+        "train_log_ids": ["train"],
+        "heldout_log_ids": ["heldout"],
+    }
+
+    with pytest.raises(ValueError, match="sidecar helper_source_sha256.*64.*hex"):
+        load_verified_sidecars(
+            db226_tmp_path,
+            original_manifest,
+            require_all_selected_logs=False,
+        )
+
+
 def test_loader_separates_recorded_acquisition_helper_from_analyzer_version(
     db226_tmp_path: Path,
 ):

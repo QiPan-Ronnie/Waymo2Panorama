@@ -52,6 +52,16 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _normalize_sha256(value: object, *, field: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in "0123456789abcdefABCDEF" for character in value)
+    ):
+        raise ValueError(f"{field} must be a legal 64-character hex SHA")
+    return value.lower()
+
+
 def _manifest_log_ids(value: object, *, field: str) -> list[str]:
     if not isinstance(value, list) or not value:
         raise ValueError(f"manifest {field} must be a nonempty list")
@@ -87,19 +97,12 @@ def validate_split_manifest(
             raise ValueError("manifest selected_log_ids must equal the frozen split selected set")
     if expected_log_count is not None and len(selected_ids) != expected_log_count:
         raise ValueError(f"manifest must contain exactly {expected_log_count} selected logs")
-    acquisition_helper_sha256 = manifest.get("helper_source_sha256")
-    if (
-        not isinstance(acquisition_helper_sha256, str)
-        or len(acquisition_helper_sha256) != 64
-        or any(
-            character not in "0123456789abcdefABCDEF"
-            for character in acquisition_helper_sha256
+    acquisition_helper_sha256 = None
+    if "helper_source_sha256" in manifest:
+        acquisition_helper_sha256 = _normalize_sha256(
+            manifest["helper_source_sha256"],
+            field="manifest acquisition helper_source_sha256",
         )
-    ):
-        raise ValueError(
-            "manifest acquisition helper_source_sha256 must be a legal 64-character hex SHA"
-        )
-    acquisition_helper_sha256 = acquisition_helper_sha256.lower()
 
     def normalize_anchors(
         raw_anchors: object,
@@ -203,19 +206,14 @@ def validate_split_manifest(
             "train_log_ids": train_ids,
             "heldout_log_ids": heldout_ids,
             "split_sha256": computed_hash,
-            "helper_source_sha256": acquisition_helper_sha256,
         }
     )
+    if acquisition_helper_sha256 is not None:
+        normalized["helper_source_sha256"] = acquisition_helper_sha256
     if anchors is not None:
         normalized["anchors"] = anchors
         normalized.pop("anchors_by_log", None)
     return normalized
-
-
-def _acquisition_helper_sha256(manifest: Mapping[str, object]) -> str:
-    recorded = manifest["helper_source_sha256"]
-    assert isinstance(recorded, str)
-    return recorded
 
 
 def _load_json_object(path: Path) -> dict[str, object]:
@@ -255,7 +253,7 @@ def _verify_transaction(sidecar: Mapping[str, object], *, path: Path) -> None:
     ).encode("utf-8")
     expected = hashlib.sha256(binding).hexdigest()
     if sidecar.get("artifact_transaction_id") != expected:
-        raise ValueError(f"sidecar artifact transaction hash mismatch: {path}")
+        raise ValueError(f"sidecar helper/sample artifact transaction hash mismatch: {path}")
 
 
 def _load_pair_rows(
@@ -372,13 +370,14 @@ def load_verified_sidecars(
             for log_id, values in anchors.items()
             for anchor in values
         }
-    helper_sha256 = _acquisition_helper_sha256(normalized)
+    recorded_helper_sha256 = normalized.get("helper_source_sha256")
     sidecar_paths = sorted(root.rglob("*_color_diag.json"), key=lambda path: path.as_posix())
     if not sidecar_paths and (expected_identities or require_all_selected_logs):
         raise ValueError("no DB-226 color diagnostic sidecars found")
 
     seen: dict[tuple[str, int], Path] = {}
     rows: list[dict[str, object]] = []
+    sidecar_helper_sha256s: set[str] = set()
     for sidecar_path in sidecar_paths:
         sidecar = _load_json_object(sidecar_path)
         if sidecar.get("artifact_state") != "complete":
@@ -406,8 +405,12 @@ def load_verified_sidecars(
             raise ValueError(f"sidecar saturation bounds are missing or invalid: {sidecar_path}") from exc
         if not math.isfinite(sat_lo) or not math.isfinite(sat_hi) or sat_lo >= sat_hi:
             raise ValueError(f"sidecar saturation bounds must be finite and increasing: {sidecar_path}")
-        if sidecar.get("helper_source_sha256") != helper_sha256:
-            raise ValueError(f"sidecar helper_source_sha256 mismatch: {sidecar_path}")
+        sidecar_helper_sha256s.add(
+            _normalize_sha256(
+                sidecar.get("helper_source_sha256"),
+                field=f"sidecar helper_source_sha256 for {sidecar_path}",
+            )
+        )
         npz_path = _verified_npz_path(sidecar_path, sidecar.get("sample_npz"))
         expected_sample_sha = sidecar.get("sample_sha256")
         if not isinstance(expected_sample_sha, str) or sha256_file(npz_path) != expected_sample_sha:
@@ -416,6 +419,19 @@ def load_verified_sidecars(
         if sidecar.get("measurement") != "same_3d_ray_at_curved_ownership_boundary":
             raise ValueError(f"sidecar measurement contract mismatch: {sidecar_path}")
         rows.extend(_load_pair_rows(sidecar, npz_path, sidecar_path=sidecar_path))
+
+    if len(sidecar_helper_sha256s) != 1:
+        raise ValueError(
+            "sidecar helper_source_sha256 values must resolve to one unique acquisition helper SHA"
+        )
+    acquisition_helper_sha256 = next(iter(sidecar_helper_sha256s))
+    if (
+        recorded_helper_sha256 is not None
+        and acquisition_helper_sha256 != recorded_helper_sha256
+    ):
+        raise ValueError("sidecar helper_source_sha256 mismatch with acquisition manifest")
+    for row in rows:
+        row["acquisition_helper_source_sha256"] = acquisition_helper_sha256
 
     if expected_identities is not None:
         missing = sorted(expected_identities - set(seen))
@@ -446,6 +462,28 @@ def analyze_rows(
     """Run the registered primary evaluation plus the frozen 4x3 sensitivity grid."""
 
     normalized = validate_split_manifest(manifest)
+    recorded_helper_sha256 = normalized.get("helper_source_sha256")
+    provenance_row_n = sum(
+        "acquisition_helper_source_sha256" in row for row in rows
+    )
+    row_helper_sha256s = {
+        _normalize_sha256(
+            row["acquisition_helper_source_sha256"],
+            field="row acquisition_helper_source_sha256",
+        )
+        for row in rows
+        if "acquisition_helper_source_sha256" in row
+    }
+    if recorded_helper_sha256 is None:
+        if not rows or provenance_row_n != len(rows) or len(row_helper_sha256s) != 1:
+            raise ValueError(
+                "original manifest analysis requires one unique row acquisition helper SHA"
+            )
+        acquisition_helper_sha256 = next(iter(row_helper_sha256s))
+    else:
+        acquisition_helper_sha256 = recorded_helper_sha256
+        if row_helper_sha256s and row_helper_sha256s != {recorded_helper_sha256}:
+            raise ValueError("row acquisition helper SHA does not match acquisition manifest")
     sensitivity = []
     for rho_min in SENSITIVITY_RHO:
         for max_parallax_deg in SENSITIVITY_PARALLAX:
@@ -481,7 +519,7 @@ def analyze_rows(
     sensitivity_statuses = [cell["evaluation"]["status"] for cell in sensitivity]
     return {
         "schema_version": "db226.frozen_cross_log_analysis.v1",
-        "acquisition_helper_source_sha256": normalized["helper_source_sha256"],
+        "acquisition_helper_source_sha256": acquisition_helper_sha256,
         "analyzer_helper_source_sha256": sha256_file(
             Path(luma_response.__file__).resolve()
         ),
