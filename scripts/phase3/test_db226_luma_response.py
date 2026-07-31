@@ -615,6 +615,63 @@ def test_low_bin_support_is_unknown_and_never_vacuously_passes_majority():
     assert report["heldout_pair_frames"][0]["status"] == "UNKNOWN"
 
 
+def test_missing_heldout_log_aggregate_forces_registered_unknown():
+    from scripts.phase3.db226_luma_response import evaluate_profile_transfer
+
+    shape = np.linspace(-0.12, 0.12, 6)
+    rows = [
+        _profile_frame("train0", 0, shape),
+        _profile_frame("train1", 0, shape),
+        _profile_frame("heldout_pass", 0, shape),
+    ]
+
+    report = evaluate_profile_transfer(
+        rows,
+        train_log_ids=["train0", "train1"],
+        heldout_log_ids=["heldout_pass", "heldout_missing"],
+    )
+
+    assert report["status"] == "UNKNOWN"
+    assert report["registered_pass"] is False
+    assert report["majority_heldout_pairs_improved"] is False
+    assert report["majority_heldout_logs_improved"] is False
+    logs = {row["log_id"]: row for row in report["heldout_logs"]}
+    assert logs["heldout_pass"]["status"] == "PASS"
+    assert logs["heldout_missing"]["status"] == "UNKNOWN"
+    assert report["coverage"]["expected_pair_log_cell_n"] == 2
+    assert report["coverage"]["missing_pair_log_cell_n"] == 1
+    assert report["coverage"]["unknown_pair_log_cell_n"] == 1
+
+
+def test_missing_expected_pair_aggregate_forces_registered_unknown():
+    from scripts.phase3.db226_luma_response import evaluate_profile_transfer
+
+    shape = np.linspace(-0.12, 0.12, 6)
+    rows = [
+        _profile_frame("train0", 0, shape, camera_pair=("cam_a", "cam_b")),
+        _profile_frame("train1", 0, shape, camera_pair=("cam_a", "cam_b")),
+        _profile_frame("train0", 1, shape, camera_pair=("cam_a", "cam_c")),
+        _profile_frame("train1", 1, shape, camera_pair=("cam_a", "cam_c")),
+        _profile_frame("heldout", 0, shape, camera_pair=("cam_a", "cam_b")),
+    ]
+
+    report = evaluate_profile_transfer(
+        rows,
+        train_log_ids=["train0", "train1"],
+        heldout_log_ids=["heldout"],
+    )
+
+    assert report["status"] == "UNKNOWN"
+    assert report["majority_heldout_pairs_improved"] is False
+    assert report["majority_heldout_logs_improved"] is False
+    pairs = {tuple(row["camera_pair"]): row for row in report["heldout_pairs"]}
+    assert pairs[("cam_a", "cam_b")]["status"] == "PASS"
+    assert pairs[("cam_a", "cam_c")]["status"] == "UNKNOWN"
+    assert report["heldout_logs"][0]["status"] == "PASS"
+    assert report["coverage"]["expected_pair_n"] == 2
+    assert report["coverage"]["missing_pair_log_cell_n"] == 1
+
+
 def test_transfer_report_is_deterministic_native_json():
     from scripts.phase3.db226_luma_response import evaluate_profile_transfer
 
@@ -754,6 +811,75 @@ def test_manifest_validation_preserves_existing_split_and_checks_hash_and_select
         )
 
 
+def test_enriched_cases_define_partitioned_nonempty_anchor_identities():
+    from agent.db115_drivers.db226_analyze import validate_split_manifest
+
+    manifest = _split_manifest(
+        ["train0", "train1"],
+        ["heldout"],
+        include_anchors=False,
+    )
+    manifest.update(
+        {
+            "source_split_sha256": "a" * 64,
+            "cases": [
+                {"log_id": "train0", "anchors": [0, 10, 20], "partition": "train"},
+                {"log_id": "train1", "anchors": [1, 11, 21], "partition": "train"},
+                {"log_id": "heldout", "anchors": [2, 12, 22], "partition": "heldout"},
+            ],
+        }
+    )
+
+    normalized = validate_split_manifest(manifest)
+
+    assert normalized["anchors"] == {
+        "heldout": [2, 12, 22],
+        "train0": [0, 10, 20],
+        "train1": [1, 11, 21],
+    }
+    assert normalized["source_split_sha256"] == "a" * 64
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (lambda cases: cases.append(dict(cases[0])), "duplicate"),
+        (lambda cases: cases.pop(), "cover"),
+        (lambda cases: cases[0].update(partition="heldout"), "partition"),
+        (lambda cases: cases[0].update(anchors=[]), "nonempty"),
+        (lambda cases: cases[0].update(anchors=[0, 0, 1]), "duplicate"),
+    ],
+)
+def test_enriched_cases_fail_closed_on_bad_identity_contract(mutate, message: str):
+    from agent.db115_drivers.db226_analyze import validate_split_manifest
+
+    manifest = _split_manifest(["train"], ["heldout"], include_anchors=False)
+    cases = [
+        {"log_id": "train", "anchors": [0, 1, 2], "partition": "train"},
+        {"log_id": "heldout", "anchors": [0, 1, 2], "partition": "heldout"},
+    ]
+    mutate(cases)
+    manifest["cases"] = cases
+    manifest["source_split_sha256"] = "b" * 64
+
+    with pytest.raises(ValueError, match=message):
+        validate_split_manifest(manifest)
+
+
+def test_cases_and_explicit_anchor_views_must_agree():
+    from agent.db115_drivers.db226_analyze import validate_split_manifest
+
+    manifest = _split_manifest(["train"], ["heldout"])
+    manifest["cases"] = [
+        {"log_id": "train", "anchors": [0], "partition": "train"},
+        {"log_id": "heldout", "anchors": [9], "partition": "heldout"},
+    ]
+    manifest["source_split_sha256"] = "c" * 64
+
+    with pytest.raises(ValueError, match="disagree"):
+        validate_split_manifest(manifest)
+
+
 def test_bundle_loader_verifies_and_canonicalizes_reverse_pair(db226_tmp_path: Path):
     from agent.db115_drivers.db226_analyze import load_verified_sidecars
 
@@ -865,7 +991,44 @@ def test_bundle_loader_requires_every_manifest_anchor(db226_tmp_path: Path):
         load_verified_sidecars(db226_tmp_path, manifest, require_all_selected_logs=False)
 
 
-def test_analysis_reports_registered_primary_and_nine_sensitivity_cells():
+def test_bundle_loader_requires_every_enriched_case_identity(db226_tmp_path: Path):
+    from agent.db115_drivers.db226_analyze import load_verified_sidecars
+
+    _write_verified_bundle(
+        db226_tmp_path,
+        _profile_frame("heldout", 0, np.linspace(-0.12, 0.12, 6)),
+    )
+    manifest = _split_manifest(["train"], ["heldout"], include_anchors=False)
+    manifest["cases"] = [
+        {"log_id": "train", "anchors": [0], "partition": "train"},
+        {"log_id": "heldout", "anchors": [0, 1], "partition": "heldout"},
+    ]
+    manifest["source_split_sha256"] = "d" * 64
+
+    with pytest.raises(ValueError, match="missing expected sidecars"):
+        load_verified_sidecars(db226_tmp_path, manifest, require_all_selected_logs=False)
+
+
+def test_bundle_loader_can_require_exact_identity_count(db226_tmp_path: Path):
+    from agent.db115_drivers.db226_analyze import load_verified_sidecars
+
+    _write_verified_bundle(
+        db226_tmp_path,
+        _profile_frame("heldout", 0, np.linspace(-0.12, 0.12, 6)),
+    )
+    manifest = _split_manifest(["train"], ["heldout"])
+    manifest["anchors"] = {"train": [], "heldout": [0]}
+
+    with pytest.raises(ValueError, match="2 identities"):
+        load_verified_sidecars(
+            db226_tmp_path,
+            manifest,
+            require_all_selected_logs=False,
+            expected_identity_count=2,
+        )
+
+
+def test_analysis_reports_registered_primary_and_twelve_labeled_sensitivity_cells():
     from agent.db115_drivers.db226_analyze import analyze_rows
 
     shape = np.linspace(-0.12, 0.12, 6)
@@ -878,15 +1041,27 @@ def test_analysis_reports_registered_primary_and_nine_sensitivity_cells():
 
     assert report["primary_config"] == {"rho_min": 0.45, "max_parallax_deg": 5.0}
     assert report["primary"]["status"] == "PASS"
-    assert len(report["sensitivity"]) == 9
+    assert len(report["sensitivity"]) == 12
     assert {
         (cell["rho_min"], cell["max_parallax_deg"])
         for cell in report["sensitivity"]
     } == {
         (rho, parallax)
-        for rho in (0.30, 0.45, 0.60)
+        for rho in (None, 0.30, 0.45, 0.60)
         for parallax in (2.0, 5.0, None)
     }
+    assert {cell["rho_filter"] for cell in report["sensitivity"]} == {
+        "all_samples",
+        "rho_gte_0.30",
+        "rho_gte_0.45",
+        "rho_gte_0.60",
+    }
+    assert {cell["parallax_filter"] for cell in report["sensitivity"]} == {
+        "parallax_lte_2deg",
+        "parallax_lte_5deg",
+        "all_parallax",
+    }
+    assert all("evaluation" in cell for cell in report["sensitivity"])
     assert report["primary"]["primary_gate"] == "nonlinear_vs_zero_only"
 
 
@@ -899,11 +1074,20 @@ def test_cli_consumes_exact_frozen_24_log_manifest_and_writes_atomically(
     heldout_ids = [f"heldout{i:02d}" for i in range(8)]
     shape = np.linspace(-0.12, 0.12, 6)
     for log_id in train_ids + heldout_ids:
-        _write_verified_bundle(db226_tmp_path / "inputs", _profile_frame(log_id, 0, shape))
-    manifest = _split_manifest(train_ids, heldout_ids)
-    manifest["split_sha256"] = validate_split_manifest(manifest)["split_sha256"]
+        for anchor_index in (0, 1, 2):
+            _write_verified_bundle(
+                db226_tmp_path / "inputs",
+                _profile_frame(log_id, anchor_index, shape),
+            )
+    manifest = _split_manifest(
+        train_ids,
+        heldout_ids,
+        include_selected=False,
+        include_anchors=False,
+    )
     manifest_path = db226_tmp_path / "split_manifest.json"
     manifest_path.write_text(json.dumps(manifest, sort_keys=True, indent=2), encoding="utf-8")
+    manifest_sha256 = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
     output_path = db226_tmp_path / "report.json"
     argv = [
         "--split-manifest",
@@ -912,6 +1096,8 @@ def test_cli_consumes_exact_frozen_24_log_manifest_and_writes_atomically(
         str(db226_tmp_path / "inputs"),
         "--output",
         str(output_path),
+        "--expected-split-manifest-sha256",
+        manifest_sha256,
     ]
 
     assert main(argv) == 0
@@ -919,11 +1105,11 @@ def test_cli_consumes_exact_frozen_24_log_manifest_and_writes_atomically(
     assert main(argv) == 0
     assert output_path.read_bytes() == first
     report = json.loads(first)
-    assert report["split_assignment_sha256"] == manifest["split_sha256"]
-    assert report["split_manifest_sha256"] == hashlib.sha256(
-        manifest_path.read_bytes()
-    ).hexdigest()
-    assert report["artifact_summary"] == {"log_n": 24, "anchor_n": 24, "pair_frame_n": 24}
+    assert report["split_assignment_sha256"] == validate_split_manifest(manifest)[
+        "split_sha256"
+    ]
+    assert report["split_manifest_sha256"] == manifest_sha256
+    assert report["artifact_summary"] == {"log_n": 24, "anchor_n": 72, "pair_frame_n": 72}
     assert not list(db226_tmp_path.glob("report.json.*.tmp"))
 
 
@@ -933,6 +1119,7 @@ def test_cli_rejects_non_24_log_manifest_before_analysis(db226_tmp_path: Path):
     manifest = _split_manifest([f"train{i}" for i in range(15)], [f"heldout{i}" for i in range(8)])
     manifest_path = db226_tmp_path / "split_manifest.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    manifest_sha256 = hashlib.sha256(manifest_path.read_bytes()).hexdigest()
 
     with pytest.raises(ValueError, match="24 selected logs"):
         main(
@@ -943,11 +1130,13 @@ def test_cli_rejects_non_24_log_manifest_before_analysis(db226_tmp_path: Path):
                 str(db226_tmp_path / "inputs"),
                 "--output",
                 str(db226_tmp_path / "report.json"),
+                "--expected-split-manifest-sha256",
+                manifest_sha256,
             ]
         )
 
 
-def test_cli_requires_recorded_frozen_split_assignment_hash(db226_tmp_path: Path):
+def test_cli_requires_expected_frozen_manifest_file_hash(db226_tmp_path: Path):
     from agent.db115_drivers.db226_analyze import main
 
     manifest = _split_manifest(
@@ -957,7 +1146,7 @@ def test_cli_requires_recorded_frozen_split_assignment_hash(db226_tmp_path: Path
     manifest_path = db226_tmp_path / "split_manifest.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="split_sha256"):
+    with pytest.raises(SystemExit):
         main(
             [
                 "--split-manifest",

@@ -453,6 +453,13 @@ def evaluate_profile_transfer(
     ]
     if len(set(identities)) != len(identities):
         raise ValueError("pair-frame rows must have unique log/anchor/camera_pair identities")
+    expected_pairs = sorted(
+        {
+            tuple(row["camera_pair"])
+            for row in canonical_rows
+            if str(row["log_id"]) in train_ids
+        }
+    )
     profiles = [
         _frame_shape_profile(
             row,
@@ -593,9 +600,8 @@ def evaluate_profile_transfer(
             }
         )
 
-    all_pairs = sorted({tuple(frame["camera_pair"]) for frame in pair_frames})
     pair_reports: list[dict[str, object]] = []
-    for pair in all_pairs:
+    for pair in expected_pairs:
         by_log: dict[str, list[dict[str, object]]] = defaultdict(list)
         for frame in pair_frames:
             if tuple(frame["camera_pair"]) == pair and frame["status"] != "UNKNOWN":
@@ -726,17 +732,44 @@ def evaluate_profile_transfer(
             }
         )
 
-    majority_pairs = _strict_majority(pair_reports)
-    majority_logs = _strict_majority(log_reports)
+    supported_majority_pairs = _strict_majority(pair_reports)
+    supported_majority_logs = _strict_majority(log_reports)
     decided_pairs = sum(report["status"] != "UNKNOWN" for report in pair_reports)
     decided_logs = sum(report["status"] != "UNKNOWN" for report in log_reports)
-    if decided_pairs == 0 or decided_logs == 0:
+    has_unknown_pair = decided_pairs != len(pair_reports)
+    has_unknown_log = decided_logs != len(log_reports)
+    if (
+        decided_pairs == 0
+        or decided_logs == 0
+        or has_unknown_pair
+        or has_unknown_log
+    ):
         status = "UNKNOWN"
-    elif majority_pairs and majority_logs:
+        majority_pairs = False
+        majority_logs = False
+    elif supported_majority_pairs and supported_majority_logs:
         status = "PASS"
+        majority_pairs = True
+        majority_logs = True
     else:
         status = "NEG"
+        majority_pairs = supported_majority_pairs
+        majority_logs = supported_majority_logs
     evaluable_frames = [frame for frame in pair_frames if frame["status"] != "UNKNOWN"]
+    expected_pair_log_cells = {
+        (log_id, pair) for log_id in heldout_ids for pair in expected_pairs
+    }
+    observed_pair_log_cells = {
+        (str(profile["log_id"]), tuple(profile["camera_pair"]))
+        for profile in profiles
+        if profile["log_id"] in heldout_ids
+        and tuple(profile["camera_pair"]) in expected_pairs
+    }
+    evaluable_pair_log_cells = {
+        (str(frame["log_id"]), tuple(frame["camera_pair"]))
+        for frame in evaluable_frames
+        if tuple(frame["camera_pair"]) in expected_pairs
+    }
 
     def win_counts(reports: Sequence[Mapping[str, object]]) -> dict[str, int]:
         counts = {"win_n": 0, "loss_n": 0, "tie_n": 0, "unknown_n": 0}
@@ -779,6 +812,16 @@ def evaluate_profile_transfer(
             "heldout_logs": win_counts(log_reports),
         },
         "coverage": {
+            "expected_pair_n": len(expected_pairs),
+            "expected_pair_log_cell_n": len(expected_pair_log_cells),
+            "observed_pair_log_cell_n": len(observed_pair_log_cells),
+            "evaluable_pair_log_cell_n": len(evaluable_pair_log_cells),
+            "missing_pair_log_cell_n": len(
+                expected_pair_log_cells - observed_pair_log_cells
+            ),
+            "unknown_pair_log_cell_n": len(
+                expected_pair_log_cells - evaluable_pair_log_cells
+            ),
             "heldout_pair_frame_n": len(pair_frames),
             "evaluable_pair_frame_n": len(evaluable_frames),
             "unknown_pair_frame_n": len(pair_frames) - len(evaluable_frames),

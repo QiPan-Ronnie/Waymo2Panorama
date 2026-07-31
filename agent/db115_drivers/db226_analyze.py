@@ -40,7 +40,7 @@ PAIR_ARRAY_SUFFIXES = (
     "parallax_deg",
 )
 PRIMARY_CONFIG = {"rho_min": 0.45, "max_parallax_deg": 5.0}
-SENSITIVITY_RHO = (0.30, 0.45, 0.60)
+SENSITIVITY_RHO = (None, 0.30, 0.45, 0.60)
 SENSITIVITY_PARALLAX = (2.0, 5.0, None)
 
 
@@ -88,31 +88,96 @@ def validate_split_manifest(
     if expected_log_count is not None and len(selected_ids) != expected_log_count:
         raise ValueError(f"manifest must contain exactly {expected_log_count} selected logs")
 
-    anchors_value = manifest.get("anchors")
-    anchors_by_log_value = manifest.get("anchors_by_log")
-    if anchors_value is not None and anchors_by_log_value is not None:
-        if anchors_value != anchors_by_log_value:
-            raise ValueError("manifest anchors and anchors_by_log disagree")
-    raw_anchors = anchors_value if anchors_value is not None else anchors_by_log_value
-    anchors: dict[str, list[int]] | None = None
-    if raw_anchors is not None:
+    def normalize_anchors(
+        raw_anchors: object,
+        *,
+        source: str,
+        require_nonempty: bool,
+    ) -> dict[str, list[int]]:
         if not isinstance(raw_anchors, Mapping):
-            raise ValueError("manifest anchors must map log IDs to anchor lists")
+            raise ValueError(f"manifest {source} must map log IDs to anchor lists")
         if set(raw_anchors) != set(selected_ids):
-            raise ValueError("manifest anchors must cover exactly the selected log set")
-        anchors = {}
+            raise ValueError(f"manifest {source} must cover exactly the selected log set")
+        result: dict[str, list[int]] = {}
         for log_id in selected_ids:
             values = raw_anchors[log_id]
             if not isinstance(values, list):
-                raise ValueError(f"manifest anchors for {log_id} must be a list")
+                raise ValueError(f"manifest {source} for {log_id} must be a list")
+            if require_nonempty and not values:
+                raise ValueError(f"manifest {source} for {log_id} must be nonempty")
             if any(
                 not isinstance(value, int) or isinstance(value, bool) or value < 0
                 for value in values
             ):
-                raise ValueError(f"manifest anchors for {log_id} must be nonnegative integers")
+                raise ValueError(
+                    f"manifest {source} for {log_id} must contain nonnegative integers"
+                )
             if len(set(values)) != len(values):
-                raise ValueError(f"manifest anchors for {log_id} must not contain duplicates")
-            anchors[log_id] = sorted(values)
+                raise ValueError(f"manifest {source} for {log_id} has duplicate identities")
+            result[log_id] = sorted(values)
+        return result
+
+    anchor_views: list[tuple[str, dict[str, list[int]]]] = []
+    if manifest.get("anchors") is not None:
+        anchor_views.append(
+            (
+                "anchors",
+                normalize_anchors(
+                    manifest["anchors"], source="anchors", require_nonempty=False
+                ),
+            )
+        )
+    if manifest.get("anchors_by_log") is not None:
+        anchor_views.append(
+            (
+                "anchors_by_log",
+                normalize_anchors(
+                    manifest["anchors_by_log"],
+                    source="anchors_by_log",
+                    require_nonempty=False,
+                ),
+            )
+        )
+
+    cases_value = manifest.get("cases")
+    if cases_value is not None:
+        if not isinstance(cases_value, list) or not cases_value:
+            raise ValueError("manifest cases must be a nonempty list")
+        case_anchors: dict[str, list[int]] = {}
+        for case in cases_value:
+            if not isinstance(case, Mapping):
+                raise ValueError("manifest cases entries must be objects")
+            log_id = case.get("log_id")
+            if not isinstance(log_id, str) or log_id not in selected_ids:
+                raise ValueError("manifest cases must cover only the selected log set")
+            if log_id in case_anchors:
+                raise ValueError(f"manifest cases contain duplicate log/case for {log_id}")
+            expected_partition = "train" if log_id in train_ids else "heldout"
+            if case.get("partition") != expected_partition:
+                raise ValueError(
+                    f"manifest cases partition for {log_id} must be {expected_partition}"
+                )
+            case_anchors[log_id] = case.get("anchors")
+        case_anchors = normalize_anchors(
+            case_anchors,
+            source="cases anchors",
+            require_nonempty=True,
+        )
+        source_split_sha256 = manifest.get("source_split_sha256")
+        if (
+            not isinstance(source_split_sha256, str)
+            or len(source_split_sha256) != 64
+            or any(character not in "0123456789abcdef" for character in source_split_sha256)
+        ):
+            raise ValueError("enriched manifest source_split_sha256 must be lowercase SHA-256")
+        anchor_views.append(("cases", case_anchors))
+
+    anchors: dict[str, list[int]] | None = None
+    if anchor_views:
+        first_source, anchors = anchor_views[0]
+        for source, view in anchor_views[1:]:
+            if view != anchors:
+                raise ValueError(f"manifest {first_source} and {source} anchor views disagree")
 
     computed_hash = split_assignment_sha256(selected_ids, train_ids, heldout_ids)
     recorded_hash = manifest.get("split_sha256")
@@ -278,6 +343,7 @@ def load_verified_sidecars(
     manifest: Mapping[str, object],
     *,
     require_all_selected_logs: bool = True,
+    expected_identity_count: int | None = None,
 ) -> list[dict[str, object]]:
     """Load every frozen sidecar/NPZ or raise; malformed bundles are never skipped."""
 
@@ -347,6 +413,10 @@ def load_verified_sidecars(
         missing_logs = sorted(selected_ids - {log_id for log_id, _ in seen})
         if missing_logs:
             raise ValueError(f"missing expected sidecars for selected logs: {missing_logs}")
+    if expected_identity_count is not None and len(seen) != expected_identity_count:
+        raise ValueError(
+            f"expected exactly {expected_identity_count} identities, found {len(seen)}"
+        )
     return sorted(
         rows,
         key=lambda row: (
@@ -361,28 +431,42 @@ def analyze_rows(
     rows: Sequence[Mapping[str, object]],
     manifest: Mapping[str, object],
 ) -> dict[str, object]:
-    """Run the registered primary evaluation plus the frozen 3x3 sensitivity grid."""
+    """Run the registered primary evaluation plus the frozen 4x3 sensitivity grid."""
 
     normalized = validate_split_manifest(manifest)
-    evaluations = []
+    sensitivity = []
     for rho_min in SENSITIVITY_RHO:
         for max_parallax_deg in SENSITIVITY_PARALLAX:
-            evaluations.append(
-                evaluate_profile_transfer(
+            evaluation = evaluate_profile_transfer(
                     rows,
                     train_log_ids=normalized["train_log_ids"],
                     heldout_log_ids=normalized["heldout_log_ids"],
                     rho_min=rho_min,
                     max_parallax_deg=max_parallax_deg,
                 )
+            sensitivity.append(
+                {
+                    "rho_filter": (
+                        "all_samples" if rho_min is None else f"rho_gte_{rho_min:.2f}"
+                    ),
+                    "rho_min": rho_min,
+                    "parallax_filter": (
+                        "all_parallax"
+                        if max_parallax_deg is None
+                        else f"parallax_lte_{max_parallax_deg:g}deg"
+                    ),
+                    "max_parallax_deg": max_parallax_deg,
+                    "evaluation": evaluation,
+                }
             )
-    primary = next(
-        evaluation
-        for evaluation in evaluations
-        if evaluation["rho_min"] == PRIMARY_CONFIG["rho_min"]
-        and evaluation["max_parallax_deg"] == PRIMARY_CONFIG["max_parallax_deg"]
+    primary_cell = next(
+        cell
+        for cell in sensitivity
+        if cell["rho_min"] == PRIMARY_CONFIG["rho_min"]
+        and cell["max_parallax_deg"] == PRIMARY_CONFIG["max_parallax_deg"]
     )
-    sensitivity_statuses = [evaluation["status"] for evaluation in evaluations]
+    primary = primary_cell["evaluation"]
+    sensitivity_statuses = [cell["evaluation"]["status"] for cell in sensitivity]
     return {
         "schema_version": "db226.frozen_cross_log_analysis.v1",
         "decision_rule": (
@@ -391,7 +475,7 @@ def analyze_rows(
         ),
         "primary_config": dict(PRIMARY_CONFIG),
         "primary": primary,
-        "sensitivity": evaluations,
+        "sensitivity": sensitivity,
         "sensitivity_stable": len(set(sensitivity_statuses)) == 1,
         "split_assignment_sha256": normalized["split_sha256"],
     }
@@ -426,7 +510,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--split-manifest", required=True, type=Path)
     parser.add_argument("--input-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--expected-split-manifest-sha256")
+    parser.add_argument("--expected-split-manifest-sha256", required=True)
     return parser.parse_args(argv)
 
 
@@ -435,19 +519,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     manifest_path = args.split_manifest.resolve()
     manifest_bytes = manifest_path.read_bytes()
     manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
-    if (
-        args.expected_split_manifest_sha256 is not None
-        and args.expected_split_manifest_sha256 != manifest_sha256
-    ):
+    if args.expected_split_manifest_sha256 != manifest_sha256:
         raise ValueError("split manifest file SHA-256 does not match the frozen expected hash")
     try:
         manifest_value = json.loads(manifest_bytes.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError(f"invalid split manifest JSON: {manifest_path}") from exc
     normalized = validate_split_manifest(manifest_value, expected_log_count=24)
-    if "split_sha256" not in manifest_value:
-        raise ValueError("frozen split manifest must record split_sha256")
-    rows = load_verified_sidecars(args.input_root, normalized, require_all_selected_logs=True)
+    rows = load_verified_sidecars(
+        args.input_root,
+        normalized,
+        require_all_selected_logs=True,
+        expected_identity_count=72,
+    )
     report = analyze_rows(rows, normalized)
     identities = {(str(row["log_id"]), int(row["anchor_index"])) for row in rows}
     report.update(
