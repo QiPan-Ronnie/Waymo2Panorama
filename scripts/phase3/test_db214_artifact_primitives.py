@@ -12,6 +12,7 @@ from scripts.phase3.db214_artifact_primitives import (
     ownership_boundary_indices,
     pair_evidence_weights,
     photometric_pair_residual_stats,
+    solve_gain_components,
     validate_renderer_capabilities,
 )
 from scripts.phase3.db89_ghost_recovery import remote_py
@@ -60,6 +61,57 @@ def test_healthy_pair_is_measurement_dominated():
     measurement, prior, confidence = pair_evidence_weights(0.9, 1000, 0.05)
     assert confidence == pytest.approx(0.81)
     assert measurement / prior > 80.0
+
+
+def _gain_edge(
+    matrix: np.ndarray,
+    rhs: np.ndarray,
+    first: int,
+    second: int,
+    weight: float,
+    log_difference: float,
+) -> None:
+    matrix[first, first] += weight
+    matrix[second, second] += weight
+    matrix[first, second] -= weight
+    matrix[second, first] -= weight
+    rhs[first] += weight * log_difference
+    rhs[second] -= weight * log_difference
+
+
+def test_gain_component_solver_matches_legacy_connected_solution():
+    matrix = np.zeros((4, 4), dtype=np.float64)
+    rhs = np.zeros(4, dtype=np.float64)
+    edges = ((0, 1), (1, 2), (2, 3), (3, 0))
+    for (first, second), difference in zip(edges, (0.2, -0.1, 0.3, -0.4)):
+        _gain_edge(matrix, rhs, first, second, 100.0, difference)
+
+    expected = np.linalg.solve(matrix + np.ones_like(matrix), rhs)
+    actual = solve_gain_components(matrix, rhs, edges)
+
+    np.testing.assert_allclose(actual, expected, atol=1e-12)
+
+
+def test_gain_component_solver_returns_identity_for_disconnected_cameras():
+    matrix = np.zeros((6, 6), dtype=np.float64)
+    rhs = np.zeros(6, dtype=np.float64)
+    edges = ((0, 5), (3, 4), (4, 5))
+    _gain_edge(matrix, rhs, 0, 5, 388.0, -0.14)
+    _gain_edge(matrix, rhs, 3, 4, 432.0, 0.01)
+    _gain_edge(matrix, rhs, 4, 5, 111.0, -0.02)
+
+    gains = solve_gain_components(matrix, rhs, edges)
+
+    assert np.isfinite(gains).all()
+    assert gains[1] == 0.0
+    assert gains[2] == 0.0
+    assert gains[[0, 3, 4, 5]].mean() == pytest.approx(0.0, abs=1e-12)
+    np.testing.assert_allclose(
+        matrix[np.ix_([0, 3, 4, 5], [0, 3, 4, 5])]
+        @ gains[[0, 3, 4, 5]],
+        rhs[[0, 3, 4, 5]],
+        atol=1e-10,
+    )
 
 
 def test_angular_overlap_ramp_is_resolution_invariant():

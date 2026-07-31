@@ -139,6 +139,71 @@ def pair_evidence_weights(
     return measurement_weight, prior_weight, confidence
 
 
+def solve_gain_components(
+    laplacian: np.ndarray,
+    rhs: np.ndarray,
+    edges: tuple[tuple[int, int], ...] | set[tuple[int, int]],
+) -> np.ndarray:
+    """Solve relative log gains without inventing offsets between components.
+
+    Pairwise exposure evidence defines a weighted graph Laplacian.  A connected
+    graph has one additive gauge, but sparse cross-dataset overlap can leave
+    several connected components and therefore several independent gauges.
+    Each component is solved with its own zero-mean gauge; an isolated camera
+    has no relative evidence and honestly falls back to identity gain.
+    """
+
+    matrix = np.asarray(laplacian, dtype=np.float64)
+    vector = np.asarray(rhs, dtype=np.float64)
+    if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]:
+        raise ValueError("gain laplacian must be square")
+    camera_count = matrix.shape[0]
+    if vector.shape != (camera_count,):
+        raise ValueError("gain rhs must match the laplacian size")
+    if not np.isfinite(matrix).all() or not np.isfinite(vector).all():
+        raise ValueError("gain system must be finite")
+
+    neighbours: list[set[int]] = [set() for _ in range(camera_count)]
+    for raw_first, raw_second in edges:
+        first, second = int(raw_first), int(raw_second)
+        if not (0 <= first < camera_count and 0 <= second < camera_count):
+            raise ValueError("gain edge camera index is out of range")
+        if first == second:
+            raise ValueError("gain edge cannot be a self-loop")
+        neighbours[first].add(second)
+        neighbours[second].add(first)
+
+    gains = np.zeros(camera_count, dtype=np.float64)
+    unseen = set(range(camera_count))
+    while unseen:
+        seed = min(unseen)
+        component: list[int] = []
+        frontier = [seed]
+        unseen.remove(seed)
+        while frontier:
+            camera = frontier.pop()
+            component.append(camera)
+            for neighbour in sorted(neighbours[camera]):
+                if neighbour in unseen:
+                    unseen.remove(neighbour)
+                    frontier.append(neighbour)
+        indices = np.asarray(sorted(component), dtype=np.int64)
+        if len(indices) == 1 and not neighbours[int(indices[0])]:
+            continue
+        submatrix = matrix[np.ix_(indices, indices)]
+        subrhs = vector[indices]
+        gauged = submatrix + np.ones_like(submatrix)
+        try:
+            solution = np.linalg.solve(gauged, subrhs)
+        except np.linalg.LinAlgError as error:
+            raise ValueError(
+                f"gain component remains singular: cameras={indices.tolist()}"
+            ) from error
+        solution -= solution.mean()
+        gains[indices] = solution
+    return gains
+
+
 def angular_overlap_weight(overlap: np.ndarray, ramp_angle_rad: float) -> np.ndarray:
     """Fine-depth weight from angular distance to overlap on a periodic ERP."""
 

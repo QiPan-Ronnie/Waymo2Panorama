@@ -105,7 +105,7 @@ OUT = {"phase": "db89_ghost_recovery", "started_utc": time.strftime("%Y-%m-%dT%H
 sys.path.insert(0, "/content/waymo2panorama/scripts/phase3"); sys.path.insert(0, "/content/waymo2panorama/code")
 from db214_artifact_primitives import (angular_overlap_weight, annotation_enabled,
     load_ego_pose_interpolators, ownership_boundary_indices,
-    pair_evidence_weights, photometric_pair_residual_stats,
+    pair_evidence_weights, photometric_pair_residual_stats, solve_gain_components,
     validate_renderer_capabilities)
 
 
@@ -260,6 +260,7 @@ def solve_gains_for(frame, ring_cams, lidar, C):
     gains = np.zeros((nc, 3))
     for ch in ([0, 1, 2] if GAIN_PER_CHANNEL else [None]):
         A = np.zeros((nc, nc)); b = np.zeros(nc)
+        pair_edges = set()
         for i in range(nc):
             for j in range(i + 1, nc):
                 both = obs[i][0] & obs[j][0]
@@ -269,14 +270,19 @@ def solve_gains_for(frame, ring_cams, lidar, C):
                 else:
                     li = np.log(np.maximum(obs[i][1][both, ch], 1.0)); lj = np.log(np.maximum(obs[j][1][both, ch], 1.0))
                 wgt, wp, _ = pair_evidence_weights(pair_rho[(i, j)], int(both.sum()), GAIN_PRIOR_W)
+                if wgt + wp > 0:
+                    pair_edges.add((i, j))
                 if wp > 0:
                     A[i, i] += wp; A[j, j] += wp; A[i, j] -= wp; A[j, i] -= wp
                 if wgt > 0:
                     dm = float(np.median(lj - li))
                     A[i, i] += wgt; A[j, j] += wgt; A[i, j] -= wgt; A[j, i] -= wgt
                     b[i] += wgt * dm; b[j] -= wgt * dm
-        A += np.ones((nc, nc))
-        c = np.linalg.solve(A, b)
+        # Each connected component has its own additive gauge.  A single global
+        # ones-matrix only fixes a connected graph; sparse nuScenes overlap left
+        # isolated cameras and made this system singular.  No cross-component
+        # evidence means identity relative offset, not an invented bridge.
+        c = solve_gain_components(A, b, pair_edges)
         if ch is None:
             gains[:, 0] = gains[:, 1] = gains[:, 2] = c - c.mean()
         else:
