@@ -3,8 +3,107 @@
 from __future__ import annotations
 
 import math
+import json
+from pathlib import Path
+from typing import Callable
 
 import numpy as np
+
+
+def validate_renderer_capabilities(log_dir: Path, ground_mode: str) -> None:
+    """Fail closed when a requested renderer mode needs absent source evidence."""
+
+    manifest_path = Path(log_dir) / "conversion_manifest.json"
+    if not manifest_path.exists():
+        return
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"invalid conversion manifest: {manifest_path}") from error
+    has_lidar = manifest.get("has_lidar") is True
+    has_ego_pose = manifest.get("has_ego_pose") is True
+    if ground_mode != "off" and (not has_lidar or not has_ego_pose):
+        raise ValueError(
+            "camera-only conversion requires GROUND_MODE='off'; ground/temporal "
+            "fill needs real LiDAR and ego-pose evidence"
+        )
+
+
+def load_ego_pose_interpolators(
+    log_dir: Path,
+) -> tuple[
+    Callable[[int], tuple[np.ndarray, np.ndarray]],
+    Callable[[np.ndarray], np.ndarray],
+]:
+    """Load ego-pose interpolation, or expose an explicit static-rig fallback.
+
+    Mode-B camera-only datasets do not contain an ego trajectory.  Treating the
+    rig as static preserves same-record camera geometry without inventing motion.
+    The caller can still report ``has_ego_pose=false`` in its conversion manifest.
+    """
+
+    pose_path = Path(log_dir) / "city_SE3_egovehicle.feather"
+    if not pose_path.exists():
+        identity = np.eye(3, dtype=np.float64)
+        origin = np.zeros(3, dtype=np.float64)
+
+        def static_cte(_timestamp_ns: int) -> tuple[np.ndarray, np.ndarray]:
+            return identity.copy(), origin.copy()
+
+        def static_tri(timestamps_ns: np.ndarray) -> np.ndarray:
+            timestamps = np.asarray(timestamps_ns)
+            return np.zeros(timestamps.shape + (3,), dtype=np.float64)
+
+        return static_cte, static_tri
+
+    import pandas as pd
+    from scipy.spatial.transform import Rotation, Slerp
+
+    poses = (
+        pd.read_feather(pose_path)
+        .sort_values("timestamp_ns")
+        .drop_duplicates("timestamp_ns")
+        .reset_index(drop=True)
+    )
+    timestamps = poses["timestamp_ns"].to_numpy(np.int64)
+    if len(timestamps) == 0:
+        raise ValueError(f"ego pose table is empty: {pose_path}")
+    origin_ns = int(timestamps[0])
+    relative = (timestamps - origin_ns).astype(np.float64)
+    quaternions = poses[["qx", "qy", "qz", "qw"]].to_numpy(np.float64)
+    translations = poses[["tx_m", "ty_m", "tz_m"]].to_numpy(np.float64)
+    keep = np.concatenate([[True], np.diff(relative) > 0])
+    relative = relative[keep]
+    quaternions = quaternions[keep]
+    translations = translations[keep]
+    lower = float(relative.min())
+    upper = float(relative.max())
+    slerp = Slerp(relative, Rotation.from_quat(quaternions)) if len(relative) > 1 else None
+
+    def cte(timestamp_ns: int) -> tuple[np.ndarray, np.ndarray]:
+        query = float(np.clip(float(int(timestamp_ns) - origin_ns), lower, upper))
+        rotation = (
+            slerp(query).as_matrix()
+            if slerp is not None
+            else Rotation.from_quat(quaternions[0]).as_matrix()
+        )
+        translation = np.array(
+            [np.interp(query, relative, translations[:, axis]) for axis in range(3)]
+        )
+        return rotation, translation
+
+    def tri(timestamps_ns: np.ndarray) -> np.ndarray:
+        query = np.clip(
+            (np.asarray(timestamps_ns, dtype=np.int64) - origin_ns).astype(np.float64),
+            lower,
+            upper,
+        )
+        return np.stack(
+            [np.interp(query, relative, translations[:, axis]) for axis in range(3)],
+            axis=-1,
+        )
+
+    return cte, tri
 
 
 def annotation_enabled(policy: str, has_annotations: bool) -> bool:

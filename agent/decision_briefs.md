@@ -5,6 +5,19 @@ RESULTS GO IN `deliverables/` — not `agent/` (agent/ is working/evidence scrat
 
 ---
 
+# DB-216: Waymo E2E 8-camera 真实 B-only 泛化门
+Status: **IN PROGRESS (2026-07-31) — 本地 RED→GREEN 已完成；24/24 focused tests pass；真实 shard A100 pilot 等新 Cloudflare tunnel。**
+Question: camera-only Waymo E2E（8 cameras、无 LiDAR/ego pose/annotations）能否只靠当前 DB-214 scene-band 核心，以显式 B 契约生成 360°、raw-sensor-owned panorama，而不把缺失的几何/运动证据伪装成已有？
+Expected evidence: (1) 原始 TFRecord 全记录转换为 8-camera pseudo-AV2，manifest 必须 `mode=B`, `has_lidar=false`, `has_ego_pose=false`, `has_annotations=false`, `supported_azimuth=360°`; (2) renderer 在 `GROUND_MODE=off` 下真正到达 plane-depth/identity-gain fallback；(3) 5 个跨 shard 位置的真实 anchors，输出和 worker manifest 全部存在、无吞异常；(4) 全分辨率眼核 moving objects、文字、八条 camera territory、黑区/coverage。
+Hypothesis: 8-camera 几何和 full-azimuth band 可泛化；无 LiDAR 时不做 color-gain solve、无 pose 时不做 EMC，因此快速运动物的 shutter offset 仍可能是诚实限制；旧 L1 的低频相机领地色块不会被 multiband 根治，DB-215 的颜色结论仍适用。
+Plan: adapter 逐 record 解 protobuf，保留各 camera exposure timestamp，Waymo camera convention→OpenCV，按标定去畸变；只写 calibration + JPG，不写假 LiDAR/pose/box。Renderer 对缺 pose 使用 static-rig only for B band、空 LiDAR 返回 empty cloud；若 camera-only manifest 请求任何 ground/temporal fill 则 fail closed。真实 pilot 在 A100 上 5 worker 并行，逐 manifest + artifact 验证后再视觉判定。
+Kill criteria: 任一 camera 缺失/标定漂移/时间不单调/转换非原子；renderer 需要伪造 LiDAR 或 pose 才能运行；5-anchor 中 recurring 文字撕裂或 moving-object 双身；360 coverage 不成立；或任何修复需要 Waymo-scene-specific 参数。触发即保留 B 候选/abstain，不宣称生产泛化。
+Max scope: 一个已授权的 1.7 GB test shard；先 5 anchors，不扩量、不重写旧 3000+ 候选；不做 ground、生成、multiband、per-channel AWB。算法改动只允许 dataset-capability fallback 与 loader/adapter 层。
+Required vision check: 5 张 full ERP + 逐 camera territory，至少裁 moving vehicle/person、可读文字、rear seam；与旧 `deliverables/xihan/l1_on_waymo` 同类缺陷对照。数字只证明运行/coverage，不替代眼核。
+Output: remote `/content/db213_waymo_e2e_pilot/` + zip；通过后才拉回 `deliverables/db213_waymo_e2e_pilot/` 并更新结论。
+
+---
+
 # DB-215: scene-band 领地色块第一性诊断 — 全局 exposure 标量是否已到模型上限
 Status: **ACTIVE(2026-07-31；只诊断，不改输出像素)**
 Question: DB-203/208/214 已处理坏相关边、错误 AWB 自由度和硬阈值后，`1842383a` / `e453f164` 仍可见的相机领地明暗块，到底是：(A) 全局曝光标量估错；(B) 单相机坐标中稳定的低频 ISP/渐晕场，说明标量模型太弱；还是 (C) 视差遮挡、镜面反射或真实局部照明，原则上不该被颜色算法抹掉？

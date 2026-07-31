@@ -1,5 +1,6 @@
 import math
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import numpy as np
 import pytest
@@ -7,9 +8,11 @@ import pytest
 from scripts.phase3.db214_artifact_primitives import (
     angular_overlap_weight,
     annotation_enabled,
+    load_ego_pose_interpolators,
     ownership_boundary_indices,
     pair_evidence_weights,
     photometric_pair_residual_stats,
+    validate_renderer_capabilities,
 )
 from scripts.phase3.db89_ghost_recovery import remote_py
 
@@ -120,6 +123,40 @@ def test_renderer_uses_loader_camera_contract_for_multidataset_rings():
     assert "ring_cams = list(loader.cameras())" in code
     assert "for cam in RING_CAMS_7" not in code
     assert "list(RING_CAMS_7)" not in code
+
+
+def test_missing_pose_file_uses_explicit_static_ego_fallback():
+    scratch_root = Path(__file__).resolve().parents[2] / ".pytest_cache" / "db213_pose"
+    scratch_root.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix="case-", dir=scratch_root) as temp_dir:
+        cte, tri = load_ego_pose_interpolators(Path(temp_dir))
+
+        rotation, translation = cte(123)
+        np.testing.assert_array_equal(rotation, np.eye(3))
+        np.testing.assert_array_equal(translation, np.zeros(3))
+        np.testing.assert_array_equal(tri(np.array([100, 200])), np.zeros((2, 3)))
+
+
+def test_camera_only_manifest_fails_closed_if_ground_fill_is_requested():
+    scratch_root = Path(__file__).resolve().parents[2] / ".pytest_cache" / "db213_caps"
+    scratch_root.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix="case-", dir=scratch_root) as temp_dir:
+        log_dir = Path(temp_dir)
+        (log_dir / "conversion_manifest.json").write_text(
+            '{"mode":"B","has_lidar":false,"has_ego_pose":false}',
+            encoding="utf-8",
+        )
+
+        validate_renderer_capabilities(log_dir, "off")
+        with pytest.raises(ValueError, match="GROUND_MODE='off'"):
+            validate_renderer_capabilities(log_dir, "fill")
+
+
+def test_renderer_handles_empty_lidar_directory_before_argmin():
+    code = remote_py()
+    assert "if not sweeps:" in code
+    assert "load_ego_pose_interpolators(log_dir)" in code
+    assert "validate_renderer_capabilities(log_dir, GROUND_MODE)" in code
 
 
 def test_ownership_boundaries_include_both_sides_and_wrap_erp():

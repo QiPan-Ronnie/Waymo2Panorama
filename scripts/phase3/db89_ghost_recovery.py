@@ -104,7 +104,9 @@ OUT = {"phase": "db89_ghost_recovery", "started_utc": time.strftime("%Y-%m-%dT%H
 
 sys.path.insert(0, "/content/waymo2panorama/scripts/phase3"); sys.path.insert(0, "/content/waymo2panorama/code")
 from db214_artifact_primitives import (angular_overlap_weight, annotation_enabled,
-    ownership_boundary_indices, pair_evidence_weights, photometric_pair_residual_stats)
+    load_ego_pose_interpolators, ownership_boundary_indices,
+    pair_evidence_weights, photometric_pair_residual_stats,
+    validate_renderer_capabilities)
 
 
 def save_rgb(path, arr):
@@ -126,19 +128,11 @@ def load_all(case_spec):
     from depth_visibility_seam_probe import _parse_case
     from waymo2panorama.data_io.av2_loader import AV2RingLoader
     import pandas as pd
-    from scipy.spatial.transform import Rotation, Slerp
     short, log_dir, anchor_idx, tag = _parse_case(case_spec, DATA_ROOT)
+    validate_renderer_capabilities(log_dir, GROUND_MODE)
     loader = AV2RingLoader(log_dir); ring_cams = list(loader.cameras()); all_ts = loader.anchor_timestamps_ns()
     ts = all_ts[anchor_idx]; frame = loader.load_synced_frame(ts)
-    p = pd.read_feather(log_dir / "city_SE3_egovehicle.feather").sort_values("timestamp_ns").drop_duplicates("timestamp_ns").reset_index(drop=True)
-    ti = p["timestamp_ns"].to_numpy(np.int64); t0 = int(ti[0]); tss = (ti - t0).astype(np.float64)
-    quat = p[["qx", "qy", "qz", "qw"]].to_numpy(); tx = p[["tx_m", "ty_m", "tz_m"]].to_numpy(np.float64)
-    keep = np.concatenate([[True], np.diff(tss) > 0]); tss, quat, tx = tss[keep], quat[keep], tx[keep]
-    slerp = Slerp(tss, Rotation.from_quat(quat)); lo, hi = tss.min(), tss.max()
-    def cte(t):
-        tc = float(np.clip(float(int(t) - t0), lo, hi)); return slerp(tc).as_matrix(), np.array([np.interp(tc, tss, tx[:, i]) for i in range(3)])
-    def tri(ta):
-        tc = np.clip((np.asarray(ta, np.int64) - t0).astype(np.float64), lo, hi); return np.stack([np.interp(tc, tss, tx[:, i]) for i in range(3)], 1)
+    cte, tri = load_ego_pose_interpolators(log_dir)
     ann_path = log_dir / "annotations.feather"
     ann = pd.read_feather(ann_path) if annotation_enabled(ANNOTATION_POLICY, ann_path.exists()) else None
     cam_ts = {}
@@ -192,6 +186,8 @@ def accumulate_lidar(log_dir, anchor_ts, cte, tri, ann):
     # removal, city->anchor transform) run per call. Same output.
     import pandas as pd
     sweeps = sorted((log_dir / "sensors" / "lidar").glob("*.feather"))
+    if not sweeps:
+        return np.zeros((0, 3), dtype=np.float64), cte(anchor_ts), set()
     stss = np.array([int(p.stem) for p in sweeps], np.int64); ai = int(np.argmin(np.abs(stss - anchor_ts)))
     t_lo, t_hi = int(stss[max(0, ai - WINDOW)]), int(stss[min(len(stss) - 1, ai + WINDOW)])
     moving = moving_tracks(ann, t_lo, t_hi)
