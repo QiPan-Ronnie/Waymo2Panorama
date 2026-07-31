@@ -1,0 +1,247 @@
+import inspect
+
+import numpy as np
+import pytest
+
+
+def test_collect_pair_samples_preserves_versioned_raw_contract():
+    from scripts.phase3.db226_luma_response import (
+        RAW_PAIR_SCHEMA_VERSION,
+        collect_pair_samples,
+    )
+
+    rgb_a = np.array([[12.5, 24.0, 48.25], [64.0, 80.5, 96.0]], dtype=np.float32)
+    rgb_b = np.array([[15.0, 30.0, 60.0], [72.0, 90.0, 108.0]], dtype=np.float32)
+    rgb_a_before = rgb_a.copy()
+    rgb_b_before = rgb_b.copy()
+    erp_index = np.array([7, 19])
+    xy_a = np.array([[0.1, 0.2], [0.3, 0.4]])
+    xy_b = np.array([[0.8, 0.2], [0.6, 0.4]])
+    depth_m = np.array([8.0, 16.0])
+    parallax_deg = np.array([0.5, 1.25])
+
+    samples = collect_pair_samples(
+        rgb_a=rgb_a,
+        rgb_b=rgb_b,
+        erp_index=erp_index,
+        xy_a=xy_a,
+        xy_b=xy_b,
+        depth_m=depth_m,
+        parallax_deg=parallax_deg,
+    )
+
+    assert samples.schema_version == RAW_PAIR_SCHEMA_VERSION
+    np.testing.assert_array_equal(samples.rgb_a, rgb_a_before)
+    np.testing.assert_array_equal(samples.rgb_b, rgb_b_before)
+    np.testing.assert_array_equal(samples.erp_index, erp_index)
+    np.testing.assert_array_equal(samples.xy_a, xy_a)
+    np.testing.assert_array_equal(samples.xy_b, xy_b)
+    np.testing.assert_array_equal(samples.depth_m, depth_m)
+    np.testing.assert_array_equal(samples.parallax_deg, parallax_deg)
+    np.testing.assert_array_equal(rgb_a, rgb_a_before)
+    np.testing.assert_array_equal(rgb_b, rgb_b_before)
+    assert not np.shares_memory(samples.rgb_a, rgb_a)
+    assert not np.shares_memory(samples.rgb_b, rgb_b)
+    assert all("gain" not in name for name in inspect.signature(collect_pair_samples).parameters)
+
+
+def _valid_pair_inputs() -> dict[str, np.ndarray]:
+    return {
+        "rgb_a": np.full((2, 3), 40.0, dtype=np.float32),
+        "rgb_b": np.full((2, 3), 50.0, dtype=np.float32),
+        "erp_index": np.array([3, 9]),
+        "xy_a": np.array([[0.1, 0.2], [0.3, 0.4]]),
+        "xy_b": np.array([[0.8, 0.2], [0.6, 0.4]]),
+        "depth_m": np.array([5.0, 10.0]),
+        "parallax_deg": np.array([0.5, 1.0]),
+    }
+
+
+@pytest.mark.parametrize(
+    ("field", "bad_value", "message"),
+    [
+        ("rgb_a", np.ones((2, 2), dtype=np.float32), "rgb_a"),
+        ("rgb_b", np.ones((1, 3), dtype=np.float32), "rgb_b"),
+        ("rgb_a", np.ones((2, 3), dtype=np.uint8), "floating"),
+        ("erp_index", np.array([[3], [9]]), "erp_index"),
+        ("erp_index", np.array([3.0, 9.0]), "integer"),
+        ("xy_a", np.ones((2, 3)), "xy_a"),
+        ("xy_b", np.ones((1, 2)), "xy_b"),
+        ("depth_m", np.array([5.0]), "depth_m"),
+        ("parallax_deg", np.array([0.5, np.nan]), "finite"),
+    ],
+)
+def test_collect_pair_samples_rejects_invalid_shape_length_or_values(
+    field: str,
+    bad_value: np.ndarray,
+    message: str,
+):
+    from scripts.phase3.db226_luma_response import collect_pair_samples
+
+    inputs = _valid_pair_inputs()
+    inputs[field] = bad_value
+
+    with pytest.raises(ValueError, match=message):
+        collect_pair_samples(**inputs)
+
+
+def test_default_log_luma_edges_are_fixed_absolute_code_values():
+    from scripts.phase3.db226_luma_response import DEFAULT_LOG_LUMA_EDGES
+
+    expected_code_values = np.array([1, 4, 8, 16, 32, 64, 96, 128, 160, 192, 224, 256])
+
+    np.testing.assert_allclose(DEFAULT_LOG_LUMA_EDGES, np.log(expected_code_values))
+
+
+def _synthetic_samples(
+    luma_a: np.ndarray,
+    signed_residual: np.ndarray,
+    *,
+    parallax_deg: np.ndarray | None = None,
+):
+    from scripts.phase3.db226_luma_response import collect_pair_samples
+
+    luma_a = np.asarray(luma_a, dtype=np.float64)
+    residual = np.asarray(signed_residual, dtype=np.float64)
+    rgb_a = np.repeat(luma_a[:, None], 3, axis=1)
+    rgb_b = rgb_a * np.exp(residual[:, None])
+    sample_count = len(luma_a)
+    return collect_pair_samples(
+        rgb_a=rgb_a,
+        rgb_b=rgb_b,
+        erp_index=np.arange(sample_count),
+        xy_a=np.column_stack([np.linspace(0.1, 0.9, sample_count), np.full(sample_count, 0.4)]),
+        xy_b=np.column_stack([np.linspace(0.9, 0.1, sample_count), np.full(sample_count, 0.6)]),
+        depth_m=np.full(sample_count, 20.0),
+        parallax_deg=(
+            np.full(sample_count, 1.0)
+            if parallax_deg is None
+            else np.asarray(parallax_deg, dtype=np.float64)
+        ),
+    )
+
+
+def test_fixed_brightness_profile_preserves_signed_brightness_trend():
+    from scripts.phase3.db226_luma_response import fixed_brightness_profile
+
+    samples = _synthetic_samples(
+        np.array([20, 24, 28, 40, 48, 56, 80, 96, 112], dtype=float),
+        np.array([-0.2] * 3 + [0.0] * 3 + [0.2] * 3),
+    )
+
+    report = fixed_brightness_profile(
+        samples,
+        log_luma_edges=np.log([16, 32, 64, 128]),
+        min_usable_n=3,
+        sat_lo=0.0,
+        sat_hi=255.0,
+    )
+
+    assert [row["n"] for row in report["bins"]] == [3, 3, 3]
+    assert [row["usable_n"] for row in report["bins"]] == [3, 3, 3]
+    assert [row["reliable"] for row in report["bins"]] == [True, True, True]
+    assert [row["signed_log_luma_median"] for row in report["bins"]] == pytest.approx(
+        [-0.2, 0.0, 0.2]
+    )
+    assert [row["signed_log_luma_mad"] for row in report["bins"]] == pytest.approx(
+        [0.0, 0.0, 0.0]
+    )
+    assert [row["abs_log_luma_p90"] for row in report["bins"]] == pytest.approx(
+        [0.2, 0.0, 0.2]
+    )
+
+
+def test_fixed_brightness_profile_marks_low_support_bins_unsupported():
+    from scripts.phase3.db226_luma_response import fixed_brightness_profile
+
+    samples = _synthetic_samples(np.array([20.0, 24.0, 48.0]), np.zeros(3))
+
+    report = fixed_brightness_profile(
+        samples,
+        log_luma_edges=np.log([16, 32, 64, 128]),
+        min_usable_n=2,
+        sat_lo=0.0,
+        sat_hi=255.0,
+    )
+
+    assert [row["n"] for row in report["bins"]] == [2, 1, 0]
+    assert report["bins"][0]["reliable"] is True
+    for row in report["bins"][1:]:
+        assert row["reliable"] is False
+        assert row["signed_log_luma_median"] is None
+        assert row["signed_log_luma_mad"] is None
+        assert row["abs_log_luma_p90"] is None
+
+
+def test_fixed_brightness_profile_excludes_saturation_and_large_parallax():
+    from scripts.phase3.db226_luma_response import collect_pair_samples, fixed_brightness_profile
+
+    rgb_a = np.array(
+        [[100.0, 100.0, 100.0], [100.0, 100.0, 100.0], [250.0, 25.0, 25.0], [100.0, 100.0, 100.0]]
+    )
+    rgb_b = rgb_a * np.exp(0.1)
+    samples = collect_pair_samples(
+        rgb_a=rgb_a,
+        rgb_b=rgb_b,
+        erp_index=np.arange(4),
+        xy_a=np.full((4, 2), 0.25),
+        xy_b=np.full((4, 2), 0.75),
+        depth_m=np.full(4, 20.0),
+        parallax_deg=np.array([1.0, 2.0, 1.0, 8.0]),
+    )
+
+    report = fixed_brightness_profile(
+        samples,
+        log_luma_edges=np.log([64, 128]),
+        min_usable_n=2,
+        sat_lo=10.0,
+        sat_hi=245.0,
+        max_parallax_deg=5.0,
+    )
+
+    row = report["bins"][0]
+    assert row["n"] == 4
+    assert row["saturated_n"] == 1
+    assert row["usable_n"] == 2
+    assert row["reliable"] is True
+    assert row["signed_log_luma_median"] == pytest.approx(0.1)
+
+
+def test_equal_report_gains_do_not_change_signed_residual():
+    from scripts.phase3.db226_luma_response import fixed_brightness_profile
+
+    samples = _synthetic_samples(np.array([40.0, 50.0, 60.0]), np.array([-0.1, 0.0, 0.1]))
+    kwargs = {
+        "log_luma_edges": np.log([32, 80]),
+        "min_usable_n": 3,
+        "sat_lo": 0.0,
+        "sat_hi": 255.0,
+    }
+
+    raw = fixed_brightness_profile(samples, **kwargs)
+    equal_gain = fixed_brightness_profile(samples, gain_log_a=0.4, gain_log_b=0.4, **kwargs)
+
+    assert equal_gain["bins"][0]["signed_log_luma_median"] == pytest.approx(
+        raw["bins"][0]["signed_log_luma_median"]
+    )
+    assert equal_gain["bins"][0]["signed_log_luma_mad"] == pytest.approx(
+        raw["bins"][0]["signed_log_luma_mad"]
+    )
+
+
+def test_differential_report_gain_translates_signed_residual():
+    from scripts.phase3.db226_luma_response import fixed_brightness_profile
+
+    samples = _synthetic_samples(np.array([40.0, 50.0, 60.0]), np.zeros(3))
+
+    report = fixed_brightness_profile(
+        samples,
+        gain_log_a=0.1,
+        gain_log_b=0.35,
+        log_luma_edges=np.log([32, 80]),
+        min_usable_n=3,
+        sat_lo=0.0,
+        sat_hi=255.0,
+    )
+
+    assert report["bins"][0]["signed_log_luma_median"] == pytest.approx(0.25)
