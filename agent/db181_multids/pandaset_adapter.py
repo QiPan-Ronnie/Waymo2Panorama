@@ -389,26 +389,55 @@ def convert_pandaset_scene(
         raise ValueError("all six cameras must have the same positive frame count")
     lidar = _lidar_input(source_scene)
 
+    anchors = cameras[0].timestamps_ns
+    camera_indices = {
+        camera.pseudo_name: _select_indices(camera.timestamps_ns, anchors, camera.source_name)
+        for camera in cameras
+    }
+    lidar_indices = _select_indices(lidar.timestamps_ns, anchors, "lidar")
+    consumed_lidar_indices = set(lidar_indices)
+    if ego_origin == "ground":
+        consumed_lidar_indices.add(0)
+    lidar_payloads = {
+        index: _read_lidar_world(lidar.sweeps[index])
+        for index in sorted(consumed_lidar_indices)
+    }
+
     convention = make_transform(rotation_z_deg(90.0), [0.0, 0.0, 0.0])
     ego_poses = tuple(pose @ convention for pose in lidar.poses)
     derived_artifact: SourceArtifact | None = None
     if ego_origin == "ground":
-        first_xyz, _ = _read_lidar_world(lidar.sweeps[0])
+        first_xyz, _ = lidar_payloads[0]
         first_local = (
             np.linalg.inv(ego_poses[0])
             @ np.column_stack([first_xyz, np.ones(len(first_xyz))]).T
         ).T[:, :3]
-        near = (
-            (np.abs(first_local[:, 0]) < float(ground_radius_m))
-            & (np.abs(first_local[:, 1]) < float(ground_radius_m))
-        )
+        near = np.hypot(
+            first_local[:, 0],
+            first_local[:, 1],
+        ) <= float(ground_radius_m)
         if not np.any(near):
             raise ValueError("ground origin requires at least one near-field lidar point")
         shift = float(np.quantile(first_local[near, 2], float(ground_quantile)))
         ego_poses = tuple(
             pose @ make_transform(np.eye(3), [0.0, 0.0, shift]) for pose in ego_poses
         )
-        descriptor = f"derived:ego_ground_shift_m={shift:.17g}"
+        source_sweep_path = lidar.sweeps[0].relative_to(source_scene).as_posix()
+        descriptor_payload = {
+            "algorithm_version": "pandaset_ground_origin_v1",
+            "ground_quantile": float(ground_quantile),
+            "ground_radius_m": float(ground_radius_m),
+            "near_field_rule": "hypot(x,y)<=ground_radius_m",
+            "shift_m": shift,
+            "source_sweep_path": source_sweep_path,
+            "source_sweep_sha256": sha256_file(lidar.sweeps[0]),
+        }
+        descriptor = "derived:ego_ground_shift=" + json.dumps(
+            descriptor_payload,
+            allow_nan=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
         payload = descriptor.encode("utf-8")
         derived_artifact = SourceArtifact(
             path=descriptor,
@@ -428,12 +457,6 @@ def convert_pandaset_scene(
         camera.pseudo_name: _static_calibration(camera, interpolated_ego)
         for camera in cameras
     }
-    anchors = cameras[0].timestamps_ns
-    camera_indices = {
-        camera.pseudo_name: _select_indices(camera.timestamps_ns, anchors, camera.source_name)
-        for camera in cameras
-    }
-    lidar_indices = _select_indices(lidar.timestamps_ns, anchors, "lidar")
 
     frames: list[FrameRecord] = []
     for frame_index, anchor in enumerate(anchors):
@@ -460,7 +483,7 @@ def convert_pandaset_scene(
         camera.images[index]
         for camera in cameras
         for index in camera_indices[camera.pseudo_name]
-    ] + [lidar.sweeps[index] for index in lidar_indices]
+    ] + [lidar.sweeps[index] for index in sorted(consumed_lidar_indices)]
     provenance_paths = sorted(
         set((*metadata_paths, *selected_paths)),
         key=lambda path: path.relative_to(source_scene).as_posix(),
@@ -509,7 +532,7 @@ def convert_pandaset_scene(
                 materialize_file(camera.images[index], destination_dir / f"{timestamp}.jpg")
         for index in lidar_indices:
             timestamp = lidar.timestamps_ns[index]
-            xyz_world, intensity = _read_lidar_world(lidar.sweeps[index])
+            xyz_world, intensity = lidar_payloads[index]
             xyz_ego = (
                 np.linalg.inv(ego_poses[index])
                 @ np.column_stack([xyz_world, np.ones(len(xyz_world))]).T

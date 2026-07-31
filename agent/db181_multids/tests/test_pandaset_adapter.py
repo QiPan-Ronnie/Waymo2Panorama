@@ -139,6 +139,63 @@ def _set_camera_timeline(scene: Path, source_name: str, timestamps: list[float])
     _write_json(camera_dir / "poses.json", poses)
 
 
+def _set_lidar_timeline(
+    scene: Path,
+    timestamps: list[float],
+    *,
+    first_local_points: list[tuple[float, float, float]] | None = None,
+) -> None:
+    lidar_dir = scene / "lidar"
+    poses = [
+        make_transform(np.eye(3), [0.0, 2.0 * (timestamp - 1.0), 1.0])
+        for timestamp in timestamps
+    ]
+    _write_json(lidar_dir / "timestamps.json", timestamps)
+    _write_json(lidar_dir / "poses.json", [_pose(value) for value in poses])
+    normalized_rotation = rotation_z_deg(90.0)
+    for index, transform in enumerate(poses):
+        local_points = (
+            first_local_points
+            if index == 0 and first_local_points is not None
+            else [(1.0, 2.0, -1.0)]
+        )
+        local = np.asarray(local_points, dtype=np.float64)
+        world = transform[:3, 3] + (normalized_rotation @ local.T).T
+        pd.DataFrame(
+            {
+                "x": world[:, 0],
+                "y": world[:, 1],
+                "z": world[:, 2],
+                "i": np.arange(len(world), dtype=np.float64) + 0.25,
+            }
+        ).to_pickle(lidar_dir / f"{index:02d}.pkl.gz", compression="gzip")
+
+
+def _expected_ground_descriptor(
+    source_scene: Path,
+    *,
+    quantile: float,
+    radius_m: float,
+    shift_m: float,
+) -> str:
+    sweep_path = source_scene / "lidar" / "00.pkl.gz"
+    payload = {
+        "algorithm_version": "pandaset_ground_origin_v1",
+        "ground_quantile": quantile,
+        "ground_radius_m": radius_m,
+        "near_field_rule": "hypot(x,y)<=ground_radius_m",
+        "shift_m": shift_m,
+        "source_sweep_path": "lidar/00.pkl.gz",
+        "source_sweep_sha256": sha256_file(sweep_path),
+    }
+    return "derived:ego_ground_shift=" + json.dumps(
+        payload,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+
+
 def test_three_frame_scene_writes_complete_pseudo_av2_log(writable_test_dir: Path) -> None:
     source_scene = _write_scene(writable_test_dir)
 
@@ -298,7 +355,12 @@ def test_ground_origin_is_shifted_and_recorded_as_derived_provenance(
         created_at="2026-07-30T12:00:00Z",
     )
 
-    descriptor = "derived:ego_ground_shift_m=-1"
+    descriptor = _expected_ground_descriptor(
+        source_scene,
+        quantile=0.05,
+        radius_m=10.0,
+        shift_m=-1.0,
+    )
     artifact = next(value for value in manifest.source_artifacts if value.path.startswith("derived:"))
     assert artifact.path == descriptor
     assert artifact.sha256 == hashlib.sha256(descriptor.encode("utf-8")).hexdigest()
@@ -309,6 +371,49 @@ def test_ground_origin_is_shifted_and_recorded_as_derived_provenance(
         output_dir / "sensors" / "lidar" / "1000000000.feather"
     ).to_pandas()
     assert float(lidar.iloc[0].z) == pytest.approx(0.0)
+
+
+def test_ground_consumes_unselected_first_sweep_and_uses_euclidean_radius(
+    writable_test_dir: Path,
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    _set_lidar_timeline(
+        source_scene,
+        [0.5, 1.0, 2.0, 4.0],
+        first_local_points=[(0.0, 0.0, -1.0), (9.0, 9.0, -5.0)],
+    )
+    first_sweep = source_scene / "lidar" / "00.pkl.gz"
+
+    output_dir, manifest = convert_pandaset_scene(
+        source_scene,
+        writable_test_dir / "output",
+        "panda-ground-unselected",
+        ego_origin="ground",
+        ground_quantile=0.0,
+        ground_radius_m=10.0,
+        converter_git_commit="0dcf6795",
+        created_at="2026-07-30T12:00:00Z",
+    )
+
+    assert [frame.lidar_timestamp_ns for frame in manifest.frames] == [
+        1_000_000_000,
+        2_000_000_000,
+        4_000_000_000,
+    ]
+    assert not (output_dir / "sensors" / "lidar" / "500000000.feather").exists()
+    artifact_by_path = {artifact.path: artifact for artifact in manifest.source_artifacts}
+    assert artifact_by_path["lidar/00.pkl.gz"].sha256 == sha256_file(first_sweep)
+    descriptor = _expected_ground_descriptor(
+        source_scene,
+        quantile=0.0,
+        radius_m=10.0,
+        shift_m=-1.0,
+    )
+    derived = artifact_by_path[descriptor]
+    assert derived.sha256 == hashlib.sha256(descriptor.encode("utf-8")).hexdigest()
+    assert derived.size_bytes == len(descriptor.encode("utf-8"))
+    city = _arrow_table(output_dir / "city_SE3_egovehicle.feather").to_pandas()
+    np.testing.assert_allclose(city["tz_m"], 0.0, atol=1e-9)
 
 
 def test_preflight_rejects_camera_count_mismatch_before_staging(writable_test_dir: Path) -> None:
@@ -323,6 +428,73 @@ def test_preflight_rejects_camera_count_mismatch_before_staging(writable_test_di
             converter_git_commit="0dcf6795",
             created_at="2026-07-30T12:00:00Z",
         )
+    assert not output_root.exists()
+
+
+@pytest.mark.parametrize("bad_sweep", ["unreadable", "missing_columns", "nonfinite"])
+def test_lidar_sweep_validation_happens_before_any_output_is_created(
+    writable_test_dir: Path,
+    bad_sweep: str,
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    sweep = source_scene / "lidar" / "01.pkl.gz"
+    if bad_sweep == "unreadable":
+        sweep.write_bytes(b"not a gzip pickle")
+    elif bad_sweep == "missing_columns":
+        pd.DataFrame({"x": [0.0], "y": [0.0], "z": [0.0]}).to_pickle(
+            sweep,
+            compression="gzip",
+        )
+    else:
+        pd.DataFrame(
+            {"x": [float("nan")], "y": [0.0], "z": [0.0], "i": [1.0]}
+        ).to_pickle(sweep, compression="gzip")
+    output_root = writable_test_dir / "output"
+
+    with pytest.raises((OSError, ValueError, EOFError)):
+        convert_pandaset_scene(
+            source_scene,
+            output_root,
+            f"bad-sweep-{bad_sweep}",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+
+    assert not output_root.exists()
+
+
+@pytest.mark.parametrize(
+    ("stream", "timestamps"),
+    [
+        ("front_camera", [1.1, 1.1, 3.1]),
+        ("front_camera", [1.1, 1.0, 3.1]),
+        ("lidar", [1.0, 1.0, 4.0]),
+        ("lidar", [1.0, 0.9, 4.0]),
+    ],
+)
+def test_duplicate_or_nonincreasing_source_timestamps_fail_before_output(
+    writable_test_dir: Path,
+    stream: str,
+    timestamps: list[float],
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    timestamp_path = (
+        source_scene / "lidar" / "timestamps.json"
+        if stream == "lidar"
+        else source_scene / "camera" / stream / "timestamps.json"
+    )
+    _write_json(timestamp_path, timestamps)
+    output_root = writable_test_dir / "output"
+
+    with pytest.raises(ValueError, match="strictly increasing"):
+        convert_pandaset_scene(
+            source_scene,
+            output_root,
+            f"bad-timestamps-{stream}",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+
     assert not output_root.exists()
 
 
