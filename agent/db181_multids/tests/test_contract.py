@@ -189,6 +189,8 @@ def test_camera_record_order_must_exactly_match_cameras() -> None:
     [
         CameraRecord("ring_front_center", "", 3, 0),
         CameraRecord("ring_front_center", "FRONT", 2, 0),
+        CameraRecord("ring_front_center", "FRONT", 3.0, 0),
+        CameraRecord("ring_front_center", "FRONT", True, 0),
         CameraRecord("ring_front_center", "FRONT", 3, -1),
     ],
 )
@@ -199,6 +201,20 @@ def test_camera_record_fields_are_valid(record: CameraRecord) -> None:
         replace(manifest, camera_records=records).validate()
 
 
+def test_camera_record_frame_count_rejects_bool_equal_to_output_count() -> None:
+    manifest = _manifest(
+        source_frame_count=1,
+        output_frame_count=1,
+        camera_records=(
+            CameraRecord("ring_front_center", "FRONT", True, 0),
+            CameraRecord("ring_front_left", "FRONT_LEFT", True, 0),
+        ),
+        frames=_frames(count=1),
+    )
+    with pytest.raises(ValueError, match="camera_records"):
+        manifest.validate()
+
+
 def test_frame_count_must_match_output_count() -> None:
     with pytest.raises(ValueError, match="frames length"):
         replace(_manifest(), frames=_manifest().frames[:-1]).validate()
@@ -206,6 +222,18 @@ def test_frame_count_must_match_output_count() -> None:
 
 def test_frame_indices_must_be_exactly_ordered() -> None:
     manifest = _replace_frame(_manifest(), 1, index=2)
+    with pytest.raises(ValueError, match="indices"):
+        manifest.validate()
+
+
+@pytest.mark.parametrize(
+    ("frame_position", "index"),
+    [(0, False), (1, True)],
+)
+def test_frame_indices_must_be_real_integers(
+    frame_position: int, index: bool
+) -> None:
+    manifest = _replace_frame(_manifest(), frame_position, index=index)
     with pytest.raises(ValueError, match="indices"):
         manifest.validate()
 
@@ -293,6 +321,27 @@ def test_lidar_timestamp_is_forbidden_when_manifest_has_no_lidar() -> None:
 def test_manifest_core_fields_are_validated(changes: dict[str, object]) -> None:
     with pytest.raises(ValueError):
         replace(_manifest(), **changes).validate()
+
+
+@pytest.mark.parametrize(
+    ("field_name", "invalid_value"),
+    [
+        ("has_lidar", 1),
+        ("has_lidar", "true"),
+        ("has_ego_pose", 0),
+        ("has_ego_pose", "false"),
+        ("has_annotations", 1),
+        ("has_annotations", "true"),
+    ],
+)
+def test_boolean_flags_from_json_must_be_actual_booleans(
+    field_name: str, invalid_value: object
+) -> None:
+    data = _manifest().to_dict()
+    data[field_name] = invalid_value
+
+    with pytest.raises(ValueError, match=field_name):
+        ConversionManifest.from_dict(data)
 
 
 @pytest.mark.parametrize(
@@ -394,7 +443,92 @@ def test_read_json_reconstructs_tuples_then_validates() -> None:
             ConversionManifest.read_json(path)
 
 
-def test_public_dataclasses_are_frozen() -> None:
-    artifact = SourceArtifact("source.bin", SHA_A, 1)
+def test_valid_pandaset_six_camera_manifest_preserves_all_80_frames() -> None:
+    cameras = (
+        "ring_front_center",
+        "ring_front_left",
+        "ring_side_left",
+        "ring_rear",
+        "ring_side_right",
+        "ring_front_right",
+    )
+    source_names = (
+        "front_camera",
+        "front_left_camera",
+        "left_camera",
+        "back_camera",
+        "right_camera",
+        "front_right_camera",
+    )
+    manifest = ConversionManifest(
+        schema_version="1.0",
+        dataset="pandaset",
+        source_scene_id="pandaset-001",
+        output_log_id="pseudo-av2-pandaset-001",
+        mode="A",
+        cameras=cameras,
+        anchor_camera=cameras[0],
+        source_frame_count=80,
+        output_frame_count=80,
+        source_frame_rate_hz=10.0,
+        output_frame_rate_hz=10.0,
+        camera_records=tuple(
+            CameraRecord(camera, source_name, 80, 0)
+            for camera, source_name in zip(cameras, source_names, strict=True)
+        ),
+        frames=tuple(
+            FrameRecord(
+                index=index,
+                anchor_timestamp_ns=1_000_000_000 + index * 100_000_000,
+                camera_timestamps_ns={
+                    camera: 1_000_000_000 + index * 100_000_000
+                    for camera in cameras
+                },
+                lidar_timestamp_ns=1_000_000_001 + index * 100_000_000,
+            )
+            for index in range(80)
+        ),
+        calibration_sha256=SHA_A,
+        source_artifacts=(SourceArtifact("pandaset/001.pkl.gz", SHA_B, 456),),
+        has_lidar=True,
+        has_ego_pose=True,
+        has_annotations=True,
+        real_mask_pattern="masks/real/{index:06d}.png",
+        faithfill_mask_pattern=None,
+        honest_black_mask_pattern=None,
+        supported_azimuth_deg=((0.0, 360.0),),
+        honest_black_azimuth_deg=(),
+        coordinate_convention_transform=(
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        converter_git_commit="926136993f482c9fb720caff6f2209bf3001b8e2",
+        created_at="2026-07-30T20:00:00-07:00",
+    )
+
+    manifest.validate()
+    assert manifest.dataset == "pandaset"
+    assert len(manifest.cameras) == 6
+    assert manifest.frame_contract == "1+79"
+
+
+@pytest.mark.parametrize(
+    ("instance", "field_name", "new_value"),
+    [
+        (SourceArtifact("source.bin", SHA_A, 1), "path", "other.bin"),
+        (CameraRecord("camera", "source", 1, 0), "name", "other"),
+        (
+            FrameRecord(0, 1, {"camera": 1}, None),
+            "anchor_timestamp_ns",
+            2,
+        ),
+        (_manifest(), "dataset", "other"),
+    ],
+)
+def test_public_dataclasses_are_frozen(
+    instance: object, field_name: str, new_value: object
+) -> None:
     with pytest.raises(FrozenInstanceError):
-        artifact.path = "other.bin"  # type: ignore[misc]
+        setattr(instance, field_name, new_value)

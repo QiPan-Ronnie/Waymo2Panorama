@@ -107,6 +107,10 @@ class ConversionManifest:
         _validate_positive_rate("source_frame_rate_hz", self.source_frame_rate_hz)
         _validate_positive_rate("output_frame_rate_hz", self.output_frame_rate_hz)
 
+        for name in ("has_lidar", "has_ego_pose", "has_annotations"):
+            if not isinstance(getattr(self, name), bool):
+                raise ValueError(f"{name} must be a boolean")
+
         if self.mode == "A" and not self.has_lidar:
             raise ValueError("A mode requires LiDAR")
         if self.mode == "A" and not _is_nonempty_string(self.real_mask_pattern):
@@ -119,13 +123,20 @@ class ConversionManifest:
                 raise ValueError("camera_records entries must be CameraRecord objects")
             if not _is_nonempty_string(record.source_name):
                 raise ValueError("camera_records source_name must be nonempty")
-            if record.frame_count != self.output_frame_count:
-                raise ValueError("camera_records frame_count must equal output_frame_count")
+            if (
+                not _is_int(record.frame_count)
+                or record.frame_count != self.output_frame_count
+            ):
+                raise ValueError(
+                    "camera_records frame_count must be an integer equal to output_frame_count"
+                )
             if not _is_int(record.max_sync_delta_ns) or record.max_sync_delta_ns < 0:
                 raise ValueError("camera_records max_sync_delta_ns must be a nonnegative integer")
 
         if len(self.frames) != self.output_frame_count:
             raise ValueError("frames length must equal output_frame_count")
+        if any(not _is_int(frame.index) for frame in self.frames):
+            raise ValueError("frame indices must be integers")
         expected_indices = tuple(range(self.output_frame_count))
         if tuple(frame.index for frame in self.frames) != expected_indices:
             raise ValueError("frame indices must be exactly 0..output_frame_count-1")
