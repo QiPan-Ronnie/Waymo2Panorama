@@ -1,4 +1,6 @@
 import ast
+import base64
+import hashlib
 import math
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -303,11 +305,25 @@ def test_renderer_color_diagnostic_is_gated_and_same_point_based():
 
 def test_renderer_color_diagnostic_emits_versioned_raw_sample_bundle():
     code = remote_py()
-    before_diag, diag_and_after = code.split("    if COLOR_DIAG:", maxsplit=1)
-    diag_block, _ = diag_and_after.split("    def sample_cam_patch", maxsplit=1)
+    tree = ast.parse(code)
+    color_diag = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.If)
+        and isinstance(node.test, ast.Name)
+        and node.test.id == "COLOR_DIAG"
+        and any(
+            isinstance(child, ast.Call)
+            and isinstance(child.func, ast.Name)
+            and child.func.id == "collect_pair_samples"
+            for child in ast.walk(node)
+        )
+    )
+    diag_block = ast.get_source_segment(code, color_diag)
+    assert diag_block is not None
 
-    assert "import hashlib" in code
-    assert "from db226_luma_response import" in code
+    assert "hashlib" in code
+    assert "from db226_luma_response import" not in code
     for imported_name in (
         "RAW_PAIR_SCHEMA_VERSION",
         "collect_pair_samples",
@@ -322,7 +338,6 @@ def test_renderer_color_diagnostic_emits_versioned_raw_sample_bundle():
         "hashlib.sha256(",
         '"gain_applied_to_npz": False',
     ):
-        assert gated_marker not in before_diag
         assert gated_marker in diag_block
 
     for metadata_key in (
@@ -348,6 +363,7 @@ def test_renderer_color_diagnostic_emits_versioned_raw_sample_bundle():
         "sample_prefix",
         "camera_pair",
         "boundary_n",
+        "sampled_boundary_n",
         "geometry_valid_n",
         "unpoisoned_n",
         "unsaturated_n",
@@ -366,6 +382,12 @@ def test_renderer_raw_bundle_collects_ungained_frame_observations():
         if isinstance(node, ast.If)
         and isinstance(node.test, ast.Name)
         and node.test.id == "COLOR_DIAG"
+        and any(
+            isinstance(child, ast.Call)
+            and isinstance(child.func, ast.Name)
+            and child.func.id == "collect_pair_samples"
+            for child in ast.walk(node)
+        )
     )
     collect_calls = [
         node
@@ -388,11 +410,172 @@ def test_renderer_raw_bundle_collects_ungained_frame_observations():
     assert "prefix + \"__rgb_a\"" in diag_source
     assert "prefix + \"__rgb_b\"" in diag_source
 
-    direct_if_calls = [
-        statement.value.func.attr
-        for statement in color_diag.body
-        if isinstance(statement, ast.Expr)
-        and isinstance(statement.value, ast.Call)
-        and isinstance(statement.value.func, ast.Attribute)
+    assert any(
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "savez_compressed"
+        for node in ast.walk(color_diag)
+    )
+
+
+def test_remote_payload_embeds_and_gates_db226_helper_source():
+    code = remote_py()
+    compile(code, "<db89_remote>", "exec")
+    tree = ast.parse(code)
+    assert not any(
+        isinstance(node, ast.ImportFrom)
+        and node.module == "db226_luma_response"
+        for node in ast.walk(tree)
+    )
+
+    color_diag = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.If)
+        and isinstance(node.test, ast.Name)
+        and node.test.id == "COLOR_DIAG"
+        and any(
+            isinstance(child, ast.Call)
+            and isinstance(child.func, ast.Name)
+            and child.func.id == "compile"
+            for child in ast.walk(node)
+        )
+    )
+    gated_nodes = set(ast.walk(color_diag))
+    for function_name in ("compile", "exec"):
+        calls = [
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == function_name
+        ]
+        assert calls
+        assert all(call in gated_nodes for call in calls)
+
+    diag_source = ast.get_source_segment(code, color_diag)
+    assert diag_source is not None
+    assert "types.ModuleType(" in diag_source
+    assert "sys.modules[" in diag_source
+    for helper_name in (
+        "RAW_PAIR_SCHEMA_VERSION",
+        "collect_pair_samples",
+        "fixed_brightness_profile",
+    ):
+        assert f"_helper_module.{helper_name}" in diag_source
+
+    constants = {
+        target.id: node.value.value
+        for node in ast.walk(color_diag)
+        if isinstance(node, ast.Assign)
+        and len(node.targets) == 1
+        and isinstance(node.targets[0], ast.Name)
+        and isinstance(node.value, ast.Constant)
+        and isinstance(node.value.value, str)
+        for target in node.targets
+    }
+    assert {"_helper_source_b64", "_helper_source_sha256"} <= constants.keys()
+    helper_bytes = Path(__file__).with_name("db226_luma_response.py").read_bytes()
+    assert base64.b64decode(constants["_helper_source_b64"]) == helper_bytes
+    assert constants["_helper_source_sha256"] == hashlib.sha256(helper_bytes).hexdigest()
+
+
+def test_boundary_report_preserves_pre_cap_and_sampled_counts():
+    code = remote_py()
+    tree = ast.parse(code)
+    color_diag = next(
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.If)
+        and isinstance(node.test, ast.Name)
+        and node.test.id == "COLOR_DIAG"
+        and any(
+            isinstance(child, ast.Call)
+            and isinstance(child.func, ast.Name)
+            and child.func.id == "collect_pair_samples"
+            for child in ast.walk(node)
+        )
+    )
+    diag_source = ast.get_source_segment(code, color_diag)
+    assert diag_source is not None
+
+    pre_cap = diag_source.index("_boundary_n = int(len(_idx0))")
+    cap = diag_source.index("if len(_idx0) > 50000:")
+    sampled = diag_source.index("_sampled_boundary_n = int(len(_idx0))")
+    report = diag_source.index('"sampled_boundary_n": _sampled_boundary_n')
+    assert pre_cap < cap < sampled < report
+
+
+def test_color_diag_publication_is_fail_closed_and_atomic():
+    code = remote_py()
+    tree = ast.parse(code)
+    run_case = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name == "run_case"
+    )
+    load_all_call = next(
+        node
+        for node in ast.walk(run_case)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "load_all"
+    )
+    start_gate = next(
+        node
+        for node in run_case.body
+        if isinstance(node, ast.If)
+        and isinstance(node.test, ast.Name)
+        and node.test.id == "COLOR_DIAG"
+        and node.lineno < load_all_call.lineno
+    )
+    unlink_calls = [
+        node
+        for node in ast.walk(start_gate)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "unlink"
     ]
-    assert "savez_compressed" in direct_if_calls
+    assert unlink_calls
+    assert all(call.lineno < load_all_call.lineno for call in unlink_calls)
+
+    color_diag = next(
+        node
+        for node in run_case.body
+        if isinstance(node, ast.If)
+        and isinstance(node.test, ast.Name)
+        and node.test.id == "COLOR_DIAG"
+        and node.lineno > load_all_call.lineno
+    )
+    diag_source = ast.get_source_segment(code, color_diag)
+    assert diag_source is not None
+    assert diag_source.count("tempfile.NamedTemporaryFile(") == 2
+    assert diag_source.count("os.fsync(") == 2
+    assert "np.load(_sample_temp_path, allow_pickle=False)" in diag_source
+    assert '"artifact_state": "complete"' in diag_source
+    assert '"artifact_transaction_id": _artifact_transaction_id' in diag_source
+    assert '"helper_source_sha256": _helper_source_sha256' in diag_source
+    assert ".write_text(" not in diag_source
+
+    savez_call = next(
+        node
+        for node in ast.walk(color_diag)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "savez_compressed"
+    )
+    assert ast.unparse(savez_call.args[0]) == "_sample_handle"
+
+    sample_replace = diag_source.index("_sample_temp_path.replace(_sample_path)")
+    final_hash = diag_source.index("_sample_sha256 = hashlib.sha256(_sample_path.read_bytes())")
+    json_replace = diag_source.index("_json_temp_path.replace(_color_diag_json_path)")
+    assert sample_replace < final_hash < json_replace
+    for transaction_field in (
+        '"log_id": log_dir.name',
+        '"anchor_index": int(anchor_idx)',
+        '"sample_sha256": _sample_sha256',
+        '"helper_source_sha256": _helper_source_sha256',
+    ):
+        assert transaction_field in diag_source
+    assert "finally:" in diag_source
+    assert "_temp_path.unlink(missing_ok=True)" in diag_source

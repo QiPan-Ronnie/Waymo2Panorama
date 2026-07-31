@@ -29,7 +29,7 @@ Sanity asserts closing DB-88 v7's infra failure: (a) skip cameras with |cam_ts-a
 (b) skip per-object box regions wider than 2x their expected angular size.
 """
 from __future__ import annotations
-import base64, json, time, urllib.parse
+import base64, hashlib, json, time, urllib.parse
 from pathlib import Path
 from typing import Any
 from db64_ltr_v0_phase4b_z_visibility_cause import ColabClient, sanitize, secret_hits
@@ -44,8 +44,11 @@ CASE_NAMES = ["02a00399_a000_bmw", "9f871fb4_a030_downtown", "fbee355f_a030_crow
 
 
 def remote_py() -> str:
+    helper_source = Path(__file__).with_name("db226_luma_response.py").read_bytes()
+    helper_source_b64 = base64.b64encode(helper_source).decode("ascii")
+    helper_source_sha256 = hashlib.sha256(helper_source).hexdigest()
     code = r'''
-import hashlib, json, math, pathlib, subprocess, sys, time, traceback
+import base64, hashlib, json, math, os, pathlib, subprocess, sys, tempfile, time, traceback, types
 import warnings as _w
 _w.warn = lambda *a, **k: None  # DB115-PRO fix#1 (2026-07-10): band-off cap is all-NaN -> nanmedian fired 2.28M RuntimeWarns = 233s of a 241s/frame (a filterwarnings-ignore still pays ~10us/call; the no-op is the measured config). Byte-identical output verified (md5, a145).
 import numpy as np
@@ -107,8 +110,6 @@ from db214_artifact_primitives import (angular_overlap_weight, annotation_enable
     load_ego_pose_interpolators, ownership_boundary_indices,
     pair_evidence_weights, photometric_pair_residual_stats, solve_gain_components,
     validate_renderer_capabilities)
-from db226_luma_response import (
-    RAW_PAIR_SCHEMA_VERSION, collect_pair_samples, fixed_brightness_profile)
 
 
 def save_rgb(path, arr):
@@ -439,6 +440,9 @@ def iou(a, b):
 def run_case(case_spec, run_name):
     from PIL import Image, ImageDraw, ImageFont
     import cv2
+    if COLOR_DIAG:
+        _color_diag_json_path = REMOTE_OUT / f"{run_name}_color_diag.json"
+        _color_diag_json_path.unlink(missing_ok=True)
     loader, log_dir, all_ts, anchor_idx, ts, frame, ring_cams, cte, tri, ann, cam_ts = load_all(case_spec)
     Ra, ta = cte(ts)
     lidar, _, moving = accumulate_lidar(log_dir, ts, cte, tri, ann)
@@ -772,6 +776,21 @@ def run_case(case_spec, run_name):
              for ci_, cam in enumerate(ring_cams)]
     color_diag_report = None
     if COLOR_DIAG:
+        _helper_source_b64 = "__DB226_HELPER_B64__"
+        _helper_source_sha256 = "__DB226_HELPER_SHA256__"
+        _helper_source = base64.b64decode(_helper_source_b64)
+        if hashlib.sha256(_helper_source).hexdigest() != _helper_source_sha256:
+            raise RuntimeError("embedded DB-226 helper source hash mismatch")
+        _helper_module_name = "_db226_luma_response_embedded"
+        _helper_module = types.ModuleType(_helper_module_name)
+        _helper_module.__file__ = "<db226_luma_response_embedded>"
+        sys.modules[_helper_module_name] = _helper_module
+        exec(compile(_helper_source, _helper_module.__file__, "exec"),
+             _helper_module.__dict__)
+        RAW_PAIR_SCHEMA_VERSION = _helper_module.RAW_PAIR_SCHEMA_VERSION
+        collect_pair_samples = _helper_module.collect_pair_samples
+        fixed_brightness_profile = _helper_module.fixed_brightness_profile
+
         _palette = np.asarray([[230, 75, 75], [60, 180, 75], [255, 225, 25],
                                [0, 130, 200], [245, 130, 48], [145, 30, 180],
                                [70, 240, 240], [240, 50, 230]], np.uint8)
@@ -788,6 +807,7 @@ def run_case(case_spec, run_name):
             _boundary_n = int(len(_idx0))
             if len(_idx0) > 50000:
                 _idx0 = _idx0[np.linspace(0, len(_idx0) - 1, 50000, dtype=np.int64)]
+            _sampled_boundary_n = int(len(_idx0))
             _pi, _pj = proj[_ci], proj[_cj]
             _geometry_valid = _pi["ok"][_idx0] & _pj["ok"][_idx0]
             _unpoisoned = (_geometry_valid & ~_pi["poison"][_idx0] &
@@ -842,6 +862,7 @@ def run_case(case_spec, run_name):
             _stats.update({"sample_prefix": _prefix,
                            "camera_pair": [ring_cams[_ci], ring_cams[_cj]],
                            "boundary_n": _boundary_n,
+                           "sampled_boundary_n": _sampled_boundary_n,
                            "geometry_valid_n": int(_geometry_valid.sum()),
                            "unpoisoned_n": int(_unpoisoned.sum()),
                            "unsaturated_n": int(_unsat.sum()),
@@ -851,24 +872,64 @@ def run_case(case_spec, run_name):
                            "same_point_valid_before_saturation": int(_unpoisoned.sum())})
             _pair_reports.append(_stats)
         _sample_path = REMOTE_OUT / f"{run_name}_color_diag_samples.npz"
-        np.savez_compressed(_sample_path, **_sample_arrays)
-        _sample_sha256 = hashlib.sha256(_sample_path.read_bytes()).hexdigest()
-        color_diag_report = {
-            "schema_version": RAW_PAIR_SCHEMA_VERSION,
-            "measurement": "same_3d_ray_at_curved_ownership_boundary",
-            "dataset": "av2", "log_id": log_dir.name,
-            "anchor_index": int(anchor_idx), "anchor_timestamp_ns": int(ts),
-            "camera_order": list(ring_cams),
-            "luma_definition": "mean_rgb_code_value",
-            "input_encoding": "av2_jpeg_rgb_uint8_bilinear_float64",
-            "gain_applied_to_npz": False,
-            "sat_lo": float(SAT_LO), "sat_hi": float(SAT_HI),
-            "max_samples_per_pair": 50000,
-            "sampling": "deterministic_linspace",
-            "sample_npz": _sample_path.name, "sample_sha256": _sample_sha256,
-            "render_gain_log_rgb": gains.tolist(), "pairs": _pair_reports}
-        (REMOTE_OUT / f"{run_name}_color_diag.json").write_text(
-            json.dumps(color_diag_report, indent=1), encoding="utf-8")
+        _sample_temp_path = None
+        _json_temp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                    mode="w+b", dir=_sample_path.parent,
+                    prefix=_sample_path.name + ".", suffix=".tmp", delete=False) as _sample_handle:
+                _sample_temp_path = pathlib.Path(_sample_handle.name)
+                np.savez_compressed(_sample_handle, **_sample_arrays)
+                _sample_handle.flush()
+                os.fsync(_sample_handle.fileno())
+            with np.load(_sample_temp_path, allow_pickle=False) as _sample_archive:
+                if set(_sample_archive.files) != set(_sample_arrays):
+                    raise RuntimeError("COLOR_DIAG NPZ key verification failed")
+                for _sample_key, _expected in _sample_arrays.items():
+                    if _sample_archive[_sample_key].shape != _expected.shape:
+                        raise RuntimeError(
+                            f"COLOR_DIAG NPZ shape verification failed for {_sample_key}")
+            _sample_temp_path.replace(_sample_path)
+            _sample_temp_path = None
+            _sample_sha256 = hashlib.sha256(_sample_path.read_bytes()).hexdigest()
+            _transaction_binding = json.dumps({
+                "log_id": log_dir.name,
+                "anchor_index": int(anchor_idx),
+                "sample_sha256": _sample_sha256,
+                "helper_source_sha256": _helper_source_sha256,
+            }, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            _artifact_transaction_id = hashlib.sha256(_transaction_binding).hexdigest()
+            color_diag_report = {
+                "schema_version": RAW_PAIR_SCHEMA_VERSION,
+                "measurement": "same_3d_ray_at_curved_ownership_boundary",
+                "artifact_state": "complete",
+                "artifact_transaction_id": _artifact_transaction_id,
+                "helper_source_sha256": _helper_source_sha256,
+                "dataset": "av2", "log_id": log_dir.name,
+                "anchor_index": int(anchor_idx), "anchor_timestamp_ns": int(ts),
+                "camera_order": list(ring_cams),
+                "luma_definition": "mean_rgb_code_value",
+                "input_encoding": "av2_jpeg_rgb_uint8_bilinear_float64",
+                "gain_applied_to_npz": False,
+                "sat_lo": float(SAT_LO), "sat_hi": float(SAT_HI),
+                "max_samples_per_pair": 50000,
+                "sampling": "deterministic_linspace",
+                "sample_npz": _sample_path.name, "sample_sha256": _sample_sha256,
+                "render_gain_log_rgb": gains.tolist(), "pairs": _pair_reports}
+            with tempfile.NamedTemporaryFile(
+                    mode="w", encoding="utf-8", dir=_color_diag_json_path.parent,
+                    prefix=_color_diag_json_path.name + ".", suffix=".tmp",
+                    delete=False) as _json_handle:
+                _json_temp_path = pathlib.Path(_json_handle.name)
+                json.dump(color_diag_report, _json_handle, indent=1)
+                _json_handle.flush()
+                os.fsync(_json_handle.fileno())
+            _json_temp_path.replace(_color_diag_json_path)
+            _json_temp_path = None
+        finally:
+            for _temp_path in (_sample_temp_path, _json_temp_path):
+                if _temp_path is not None:
+                    _temp_path.unlink(missing_ok=True)
 
     def sample_cam_patch(ci_s, dist_s, rows_s, cols_s, shift=(0, 0)):
         """ERP patch (rows x cols grid at uniform distance) rendered from one camera.
@@ -2611,7 +2672,10 @@ finally:
     REMOTE_RESULT.write_text(json.dumps(OUT, indent=2), encoding="utf-8")
     print("DB89_JSON_BEGIN"); print(json.dumps(OUT, separators=(",", ":"))); print("DB89_JSON_END")
 '''
-    return code.replace("__REMOTE_OUT__", REMOTE_OUT).replace("__RESULT__", RESULT)
+    return (code.replace("__REMOTE_OUT__", REMOTE_OUT)
+            .replace("__RESULT__", RESULT)
+            .replace("__DB226_HELPER_B64__", helper_source_b64)
+            .replace("__DB226_HELPER_SHA256__", helper_source_sha256))
 
 
 def remote_bash(py: str) -> str:
