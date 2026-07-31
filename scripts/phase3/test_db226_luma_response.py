@@ -712,11 +712,71 @@ def test_cross_sparse_pass_marginals_remain_unknown_in_every_sensitivity_cell():
         assert evaluation["registered_completeness_gate"]["complete"] is False
 
 
+def test_heldout_only_observed_pair_forces_unknown_in_every_sensitivity_cell():
+    from agent.db115_drivers.db226_analyze import analyze_rows
+
+    shape = np.linspace(-0.12, 0.12, 6)
+    rows = [
+        _profile_frame("train0", 0, shape, camera_pair=("cam_a", "cam_b")),
+        _profile_frame("train1", 0, shape, camera_pair=("cam_a", "cam_b")),
+        *[
+            _profile_frame(log_id, 0, shape, camera_pair=pair)
+            for log_id in ("heldout0", "heldout1")
+            for pair in (("cam_a", "cam_b"), ("cam_c", "cam_d"))
+        ],
+    ]
+
+    report = analyze_rows(
+        rows,
+        _split_manifest(["train0", "train1"], ["heldout0", "heldout1"]),
+    )
+
+    primary = report["primary"]
+    assert primary["status"] == "UNKNOWN"
+    assert primary["majority_heldout_pairs_improved"] is False
+    assert primary["majority_heldout_logs_improved"] is False
+    assert {
+        tuple(pair["camera_pair"]): pair["status"]
+        for pair in primary["heldout_pairs"]
+    } == {
+        ("cam_a", "cam_b"): "PASS",
+        ("cam_c", "cam_d"): "UNKNOWN",
+    }
+    assert {
+        tuple(shape_row["camera_pair"])
+        for shape_row in primary["training_shapes"]
+    } == {("cam_a", "cam_b")}
+    heldout_only_frames = [
+        frame
+        for frame in primary["heldout_pair_frames"]
+        if frame["camera_pair"] == ["cam_c", "cam_d"]
+    ]
+    assert len(heldout_only_frames) == 2
+    assert all(frame["reason"] == "no_train_shape" for frame in heldout_only_frames)
+    assert primary["registered_completeness_gate"] == {
+        "unit": "heldout_log_x_expected_canonical_pair",
+        "expected_cell_n": 4,
+        "evaluable_cell_n": 2,
+        "unknown_cell_n": 2,
+        "complete": False,
+        "unknown_cells": [
+            {"log_id": "heldout0", "camera_pair": ["cam_c", "cam_d"]},
+            {"log_id": "heldout1", "camera_pair": ["cam_c", "cam_d"]},
+        ],
+    }
+    assert primary["coverage"]["expected_pair_n"] == 2
+    for cell in report["sensitivity"]:
+        evaluation = cell["evaluation"]
+        assert evaluation["status"] == "UNKNOWN"
+        assert evaluation["coverage"]["expected_pair_n"] == 2
+        assert evaluation["registered_completeness_gate"]["complete"] is False
+
+
 def test_complete_heldout_log_pair_matrix_can_register_pass():
     from scripts.phase3.db226_luma_response import evaluate_profile_transfer
 
     shape = np.linspace(-0.12, 0.12, 6)
-    pairs = [("cam_a", "cam_b"), ("cam_a", "cam_c")]
+    pairs = [("cam_a", f"cam_{suffix}") for suffix in "bcdefgh"]
     rows = [
         *[
             _profile_frame(train_log, pair_index, shape, camera_pair=pair)
@@ -740,8 +800,9 @@ def test_complete_heldout_log_pair_matrix_can_register_pass():
     assert report["registered_pass"] is True
     assert report["registered_completeness_gate"]["complete"] is True
     assert report["registered_completeness_gate"]["unknown_cells"] == []
-    assert report["coverage"]["expected_pair_log_cell_n"] == 4
-    assert report["coverage"]["evaluable_pair_log_cell_n"] == 4
+    assert report["coverage"]["expected_pair_n"] == 7
+    assert report["coverage"]["expected_pair_log_cell_n"] == 14
+    assert report["coverage"]["evaluable_pair_log_cell_n"] == 14
     assert report["coverage"]["unknown_pair_log_cell_n"] == 0
 
 

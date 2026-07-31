@@ -454,11 +454,7 @@ def evaluate_profile_transfer(
     if len(set(identities)) != len(identities):
         raise ValueError("pair-frame rows must have unique log/anchor/camera_pair identities")
     expected_pairs = sorted(
-        {
-            tuple(row["camera_pair"])
-            for row in canonical_rows
-            if str(row["log_id"]) in train_ids
-        }
+        {tuple(row["camera_pair"]) for row in canonical_rows}
     )
     profiles = [
         _frame_shape_profile(
