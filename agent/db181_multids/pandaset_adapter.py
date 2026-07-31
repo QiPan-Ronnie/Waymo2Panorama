@@ -28,7 +28,11 @@ from .geometry import (
     rotation_z_deg,
 )
 from .io import materialize_file, sha256_file, write_empty_annotations, write_feather
-from .nuscenes_adapter import _match_ordered_distinct_indices, _nominal_cadence_ns
+from .nuscenes_adapter import (
+    _match_ordered_distinct_indices,
+    _maximum_common_anchor_indices,
+    _nominal_cadence_ns,
+)
 
 
 PANDASET_CAMERA_MAP: tuple[tuple[str, str], ...] = (
@@ -294,11 +298,15 @@ def _read_lidar_world(path: Path) -> tuple[np.ndarray, np.ndarray]:
 
 def _static_calibration(
     camera: _CameraInput,
+    selected_indices: tuple[int, ...],
     interpolated_ego: dict[int, np.ndarray],
 ) -> np.ndarray:
     candidates = tuple(
-        relative_transform(interpolated_ego[timestamp], world_camera)
-        for timestamp, world_camera in zip(camera.timestamps_ns, camera.poses)
+        relative_transform(
+            interpolated_ego[camera.timestamps_ns[index]],
+            camera.poses[index],
+        )
+        for index in selected_indices
     )
     rotations = Rotation.from_matrix(np.stack([value[:3, :3] for value in candidates]))
     mean_rotation = rotations.mean()
@@ -459,12 +467,6 @@ def convert_pandaset_scene(
         raise ValueError("all six cameras must have the same positive frame count")
     lidar = _lidar_input(source_scene)
 
-    anchors = cameras[0].timestamps_ns
-    camera_indices = {
-        camera.pseudo_name: _select_indices(camera.timestamps_ns, anchors, camera.source_name)
-        for camera in cameras
-    }
-    lidar_indices = _select_indices(lidar.timestamps_ns, anchors, "lidar")
     timestamps_by_stream = {
         camera.source_name: camera.timestamps_ns for camera in cameras
     }
@@ -473,21 +475,84 @@ def convert_pandaset_scene(
         stream_name: _nominal_cadence_ns(values, stream_name)
         for stream_name, values in timestamps_by_stream.items()
     }
+    lidar_pose_start_ns = lidar.timestamps_ns[0]
+    lidar_pose_end_ns = lidar.timestamps_ns[-1]
+    pose_supported_indices = {
+        camera.source_name: tuple(
+            index
+            for index, timestamp in enumerate(camera.timestamps_ns)
+            if lidar_pose_start_ns <= timestamp <= lidar_pose_end_ns
+        )
+        for camera in cameras
+    }
+    if any(not indices for indices in pose_supported_indices.values()):
+        missing = [
+            camera.source_name
+            for camera in cameras
+            if not pose_supported_indices[camera.source_name]
+        ]
+        raise ValueError(
+            "camera streams have no timestamps inside lidar pose support: "
+            + ", ".join(missing)
+        )
+    pose_supported_timestamps = {
+        camera.source_name: tuple(
+            camera.timestamps_ns[index]
+            for index in pose_supported_indices[camera.source_name]
+        )
+        for camera in cameras
+    }
+    pose_supported_timestamps["lidar"] = lidar.timestamps_ns
+    anchor_stream = cameras[0].source_name
+    common_anchor_indices = _maximum_common_anchor_indices(
+        pose_supported_timestamps,
+        sync_windows,
+        anchor_stream,
+    )
+    anchors = tuple(
+        pose_supported_timestamps[anchor_stream][index]
+        for index in common_anchor_indices
+    )
+    camera_indices = {}
+    for camera in cameras:
+        supported_matches = _match_ordered_distinct_indices(
+            pose_supported_timestamps[camera.source_name],
+            anchors,
+            camera.source_name,
+            sync_windows[camera.source_name],
+        )
+        camera_indices[camera.pseudo_name] = tuple(
+            pose_supported_indices[camera.source_name][index]
+            for index in supported_matches
+        )
+    lidar_indices = _match_ordered_distinct_indices(
+        lidar.timestamps_ns,
+        anchors,
+        "lidar",
+        sync_windows["lidar"],
+    )
     selected_by_stream = {
         camera.source_name: camera_indices[camera.pseudo_name] for camera in cameras
     }
     selected_by_stream["lidar"] = lidar_indices
     alignment_payload = {
-        "adapter_algorithm_version": "pandaset_cadence_window_v2",
-        "anchor_channel": cameras[0].source_name,
+        "adapter_algorithm_version": "pandaset_cadence_window_v3",
+        "anchor_channel": anchor_stream,
         "common_subsequence_selection": (
-            "minimum_total_absolute_sync_delta_ordered_distinct"
+            "maximum_pose_supported_cardinality_then_minimum_total_"
+            "absolute_sync_delta_ordered_distinct"
         ),
+        "dropped_anchor_frame_count": len(cameras[0].timestamps_ns) - len(anchors),
+        "lidar_pose_support_ns": [lidar_pose_start_ns, lidar_pose_end_ns],
         "matching_objective": (
-            "full_anchor_cardinality_then_minimum_per_stream_total_absolute_"
-            "sync_delta_ns"
+            "maximum_common_anchor_cardinality_without_pose_extrapolation_"
+            "then_minimum_per_stream_total_absolute_sync_delta_ns"
         ),
         "output_frame_count": len(anchors),
+        "pose_supported_source_frame_counts": {
+            stream_name: len(indices)
+            for stream_name, indices in pose_supported_indices.items()
+        },
         "source_anchor_frame_count": len(cameras[0].timestamps_ns),
         "source_stream_frame_counts": {
             stream_name: len(values)
@@ -601,16 +666,26 @@ def convert_pandaset_scene(
             size_bytes=len(payload),
         )
 
-    all_camera_timestamps = tuple(
-        sorted({timestamp for camera in cameras for timestamp in camera.timestamps_ns})
+    selected_camera_timestamps = tuple(
+        sorted(
+            {
+                camera.timestamps_ns[index]
+                for camera in cameras
+                for index in camera_indices[camera.pseudo_name]
+            }
+        )
     )
     interpolated_ego = _interpolate_poses(
         lidar.timestamps_ns,
         ego_poses,
-        all_camera_timestamps,
+        selected_camera_timestamps,
     )
     calibrations = {
-        camera.pseudo_name: _static_calibration(camera, interpolated_ego)
+        camera.pseudo_name: _static_calibration(
+            camera,
+            camera_indices[camera.pseudo_name],
+            interpolated_ego,
+        )
         for camera in cameras
     }
 

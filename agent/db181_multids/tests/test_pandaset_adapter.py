@@ -316,7 +316,7 @@ def test_three_frame_scene_writes_complete_pseudo_av2_log(writable_test_dir: Pat
         if artifact.path.startswith("derived:pandaset_temporal_alignment=")
     ]
     assert len(alignment) == 1
-    assert '"adapter_algorithm_version":"pandaset_cadence_window_v2"' in alignment[0].path
+    assert '"adapter_algorithm_version":"pandaset_cadence_window_v3"' in alignment[0].path
     assert alignment[0].sha256 == hashlib.sha256(
         alignment[0].path.encode("utf-8")
     ).hexdigest()
@@ -534,16 +534,15 @@ def test_preflight_rejects_inconsistent_image_dimensions(writable_test_dir: Path
         )
 
 
-def test_camera_pose_query_outside_lidar_range_is_rejected(writable_test_dir: Path) -> None:
-    source_scene = _write_scene(writable_test_dir)
-    _set_camera_timeline(source_scene, "front_right_camera", [0.9, 2.1, 3.1])
+def test_pose_interpolation_outside_lidar_range_is_rejected() -> None:
+    timestamps = (1_000_000_000, 2_000_000_000, 4_000_000_000)
+    poses = tuple(np.eye(4) for _ in timestamps)
+
     with pytest.raises(ValueError, match="outside lidar pose time range"):
-        convert_pandaset_scene(
-            source_scene,
-            writable_test_dir / "output",
-            "out-of-range",
-            converter_git_commit="0dcf6795",
-            created_at="2026-07-30T12:00:00Z",
+        pandaset_adapter._interpolate_poses(
+            timestamps,
+            poses,
+            (900_000_000,),
         )
 
 
@@ -558,19 +557,47 @@ def test_ordered_distinct_selection_avoids_nearest_duplicate_reuse() -> None:
     ) == (0, 1, 2)
 
 
-def test_ordered_distinct_selection_rejects_impossible_matching(
+def test_camera_anchor_before_lidar_pose_support_is_dropped(
     writable_test_dir: Path,
 ) -> None:
     source_scene = _write_scene(writable_test_dir)
-    _set_camera_timeline(source_scene, "right_camera", [1.0, 1.01, 3.1])
+    for source_name, _ in EXPECTED_CAMERA_MAP:
+        _set_camera_timeline(source_scene, source_name, [1.1, 2.1, 3.1])
+    _set_lidar_timeline(source_scene, [1.15, 2.0, 4.0])
+
+    _, manifest = convert_pandaset_scene(
+        source_scene,
+        writable_test_dir / "output",
+        "pose-supported",
+        converter_git_commit="0dcf6795",
+        created_at="2026-07-30T12:00:00Z",
+    )
+
+    assert manifest.source_frame_count == 3
+    assert manifest.output_frame_count == 2
+    assert [frame.anchor_timestamp_ns for frame in manifest.frames] == [
+        2_100_000_000,
+        3_100_000_000,
+    ]
+    alignment = next(
+        json.loads(artifact.path.split("=", 1)[1])
+        for artifact in manifest.source_artifacts
+        if artifact.path.startswith("derived:pandaset_temporal_alignment=")
+    )
+    assert alignment["adapter_algorithm_version"] == "pandaset_cadence_window_v3"
+    assert alignment["dropped_anchor_frame_count"] == 1
+    assert alignment["lidar_pose_support_ns"] == [1_150_000_000, 4_000_000_000]
+    assert alignment["pose_supported_source_frame_counts"] == {
+        source_name: 2 for source_name, _ in EXPECTED_CAMERA_MAP
+    }
+
+
+def test_ordered_distinct_selection_rejects_impossible_matching() -> None:
+    values = (1_000_000_000, 1_010_000_000, 3_100_000_000)
+    anchors = (1_100_000_000, 2_100_000_000, 3_100_000_000)
+
     with pytest.raises(ValueError, match="ordered distinct matching"):
-        convert_pandaset_scene(
-            source_scene,
-            writable_test_dir / "output",
-            "duplicate",
-            converter_git_commit="0dcf6795",
-            created_at="2026-07-30T12:00:00Z",
-        )
+        pandaset_adapter._select_indices(values, anchors, "right_camera")
 
 
 def test_static_calibration_drift_reports_camera_and_residuals(writable_test_dir: Path) -> None:
