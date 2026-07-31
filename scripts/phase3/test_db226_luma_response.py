@@ -1,4 +1,5 @@
 import inspect
+import json
 
 import numpy as np
 import pytest
@@ -57,6 +58,17 @@ def _valid_pair_inputs() -> dict[str, np.ndarray]:
     }
 
 
+def _direct_pair_samples(**changes: object):
+    from scripts.phase3.db226_luma_response import PairSamples, RAW_PAIR_SCHEMA_VERSION
+
+    inputs: dict[str, object] = _valid_pair_inputs()
+    inputs.update({name: value for name, value in changes.items() if name != "schema_version"})
+    return PairSamples(
+        schema_version=str(changes.get("schema_version", RAW_PAIR_SCHEMA_VERSION)),
+        **inputs,
+    )
+
+
 @pytest.mark.parametrize(
     ("field", "bad_value", "message"),
     [
@@ -83,6 +95,42 @@ def test_collect_pair_samples_rejects_invalid_shape_length_or_values(
 
     with pytest.raises(ValueError, match=message):
         collect_pair_samples(**inputs)
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"schema_version": "db226.raw_same_ray.v0"}, "schema"),
+        ({"rgb_a": np.ones((2, 2), dtype=float)}, "rgb_a"),
+        ({"rgb_b": np.array([[40.0, 40.0, np.nan], [40.0, 40.0, 40.0]])}, "finite"),
+        ({"rgb_a": np.ones((2, 3), dtype=np.uint8)}, "floating"),
+        ({"rgb_a": np.full((2, 3), -0.1)}, "code-value"),
+        ({"rgb_b": np.full((2, 3), 256.0)}, "code-value"),
+        ({"erp_flat_index": np.array([-1, 2])}, "nonnegative"),
+        ({"erp_flat_index": np.array([1.0, 2.0])}, "integer"),
+        ({"xy_a": np.array([[-0.1, 0.5], [0.5, 0.5]])}, r"\[0, 1\]"),
+        ({"xy_b": np.array([[0.5, 1.1], [0.5, 0.5]])}, r"\[0, 1\]"),
+        ({"depth_m": np.array([0.0, 1.0])}, "positive"),
+        ({"parallax_deg": np.array([-0.1, 1.0])}, "nonnegative"),
+    ],
+)
+def test_direct_pair_samples_rejects_malformed_contract(changes: dict[str, object], message: str):
+    with pytest.raises(ValueError, match=message):
+        _direct_pair_samples(**changes)
+
+
+def test_direct_pair_samples_owns_read_only_array_copies():
+    inputs = _valid_pair_inputs()
+
+    samples = _direct_pair_samples(**inputs)
+
+    for name, source in inputs.items():
+        stored = getattr(samples, name)
+        np.testing.assert_array_equal(stored, source)
+        assert not np.shares_memory(stored, source)
+        assert stored.flags.writeable is False
+        with pytest.raises(ValueError, match="read-only"):
+            stored.flat[0] = stored.flat[0]
 
 
 def test_default_log_luma_edges_are_fixed_absolute_code_values():
@@ -173,11 +221,42 @@ def test_fixed_brightness_profile_marks_low_support_bins_unsupported():
         assert row["abs_log_luma_p90"] is None
 
 
+def test_fixed_brightness_profile_accounts_for_every_input_sample():
+    from scripts.phase3.db226_luma_response import fixed_brightness_profile
+
+    samples = _synthetic_samples(
+        np.array([5.0, 10.0, 20.0, 99.0, 100.0, 150.0]),
+        np.zeros(6),
+    )
+
+    report = fixed_brightness_profile(
+        samples,
+        log_luma_edges=np.log([10, 100]),
+        min_usable_n=1,
+        sat_lo=0.0,
+        sat_hi=255.0,
+    )
+
+    for field in ("input_n", "in_range_n", "underflow_n", "overflow_n"):
+        assert type(report[field]) is int
+    assert report["input_n"] == 6
+    assert report["in_range_n"] == 3
+    assert report["underflow_n"] == 1
+    assert report["overflow_n"] == 2
+    assert sum(row["n"] for row in report["bins"]) == report["in_range_n"]
+    assert (
+        sum(row["n"] for row in report["bins"])
+        + report["underflow_n"]
+        + report["overflow_n"]
+        == report["input_n"]
+    )
+
+
 def test_fixed_brightness_profile_excludes_saturation_and_large_parallax():
     from scripts.phase3.db226_luma_response import collect_pair_samples, fixed_brightness_profile
 
     rgb_a = np.array(
-        [[100.0, 100.0, 100.0], [100.0, 100.0, 100.0], [250.0, 25.0, 25.0], [100.0, 100.0, 100.0]]
+        [[100.0, 100.0, 100.0], [100.0, 100.0, 100.0], [230.0, 35.0, 35.0], [100.0, 100.0, 100.0]]
     )
     rgb_b = rgb_a * np.exp(0.1)
     samples = collect_pair_samples(
@@ -205,6 +284,27 @@ def test_fixed_brightness_profile_excludes_saturation_and_large_parallax():
     assert row["usable_n"] == 2
     assert row["reliable"] is True
     assert row["signed_log_luma_median"] == pytest.approx(0.1)
+    assert report["saturated_n"] == 1
+    assert report["parallax_rejected_n"] == 1
+
+
+def test_fixed_brightness_profile_is_json_serializable_with_numpy_parallax_limit():
+    from scripts.phase3.db226_luma_response import fixed_brightness_profile
+
+    samples = _synthetic_samples(np.array([40.0]), np.array([0.1]))
+    report = fixed_brightness_profile(
+        samples,
+        log_luma_edges=np.log([32, 64]),
+        min_usable_n=1,
+        sat_lo=0.0,
+        sat_hi=255.0,
+        max_parallax_deg=np.float32(5.0),
+    )
+
+    decoded = json.loads(json.dumps(report))
+
+    assert type(decoded["max_parallax_deg"]) is float
+    assert decoded["max_parallax_deg"] == 5.0
 
 
 def test_equal_report_gains_do_not_change_signed_residual():
