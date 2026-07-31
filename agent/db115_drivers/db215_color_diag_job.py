@@ -14,7 +14,11 @@ import subprocess
 import time
 
 
-ROOT = "/content/db215_color_rootcause"
+ROOT = "/content/db215_color_rootcause_v2"
+DRIVE_ROOT = (
+    "/content/drive/MyDrive/koi_waymo2pano_colab/results/"
+    "db215_color_rootcause_v2"
+)
 CASES = [
     (
         "1842383a-1577-3b7a-90db-41a9a6668ee2",
@@ -105,11 +109,15 @@ def main() -> None:
     with open(summary_path, "w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=1)
     archive = shutil.make_archive(ROOT, "zip", ROOT)
+    os.makedirs(DRIVE_ROOT, exist_ok=True)
+    shutil.copy2(summary_path, os.path.join(DRIVE_ROOT, "db215_summary.json"))
+    shutil.copy2(archive, os.path.join(DRIVE_ROOT, os.path.basename(archive)))
     print(
-        "DB215_DONE",
+        "DB215_GRID_DONE",
         json.dumps(
             {
                 "archive": archive,
+                "drive_root": DRIVE_ROOT,
                 "return_codes": return_codes,
                 "pair_counts": {
                     tag: [len(item["pairs"]) for item in row["anchors"]]
