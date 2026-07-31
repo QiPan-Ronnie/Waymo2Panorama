@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import bisect
 import hashlib
 import json
 import math
@@ -196,6 +197,7 @@ def _match_ordered_distinct_indices(
     values: tuple[int, ...],
     queries: tuple[int, ...],
     channel: str,
+    max_delta_ns: int,
 ) -> tuple[int, ...]:
     if len(values) < len(queries):
         raise ValueError(
@@ -207,11 +209,13 @@ def _match_ordered_distinct_indices(
     source_count = len(values)
     query_count = len(queries)
     parents = [[-1] * source_count for _ in range(query_count)]
-    previous = [abs(value - queries[0]) for value in values]
-    infinity = sum(previous) + sum(values) + sum(queries) + 1
+    previous = [
+        delta if (delta := abs(value - queries[0])) <= max_delta_ns else math.inf
+        for value in values
+    ]
 
     for query_index in range(1, query_count):
-        current = [infinity] * source_count
+        current = [math.inf] * source_count
         best_predecessor = query_index - 1
         best_cost = previous[best_predecessor]
         for value_index in range(query_index, source_count):
@@ -220,22 +224,80 @@ def _match_ordered_distinct_indices(
             if (predecessor_cost, predecessor) < (best_cost, best_predecessor):
                 best_cost = predecessor_cost
                 best_predecessor = predecessor
-            current[value_index] = best_cost + abs(
-                values[value_index] - queries[query_index]
-            )
-            parents[query_index][value_index] = best_predecessor
+            delta = abs(values[value_index] - queries[query_index])
+            if best_cost < math.inf and delta <= max_delta_ns:
+                current[value_index] = best_cost + delta
+                parents[query_index][value_index] = best_predecessor
         previous = current
 
     last_index = min(
         range(query_count - 1, source_count),
         key=lambda index: (previous[index], index),
     )
+    if previous[last_index] == math.inf:
+        raise ValueError(
+            f"{channel} cannot satisfy ordered distinct matching within nominal cadence"
+        )
     selected = [last_index]
     for query_index in range(query_count - 1, 0, -1):
         last_index = parents[query_index][last_index]
         selected.append(last_index)
     selected.reverse()
     return tuple(selected)
+
+
+def _nominal_cadence_ns(values: tuple[int, ...], channel: str) -> int:
+    if len(values) < 2:
+        raise ValueError(
+            f"{channel} needs at least two timestamps to derive nominal cadence"
+        )
+    deltas = sorted(right - left for left, right in zip(values, values[1:]))
+    if any(delta <= 0 for delta in deltas):
+        raise ValueError(f"{channel} timestamps must be strictly increasing")
+    midpoint = len(deltas) // 2
+    if len(deltas) % 2:
+        return deltas[midpoint]
+    return (deltas[midpoint - 1] + deltas[midpoint] + 1) // 2
+
+
+def _maximum_common_anchor_indices(
+    timestamps_by_channel: dict[str, tuple[int, ...]],
+    sync_window_ns: dict[str, int],
+    anchor_channel: str,
+) -> tuple[int, ...]:
+    """Select a maximum-cardinality common subsequence without source reuse.
+
+    With sorted timestamps and fixed per-channel windows, choosing the earliest
+    feasible source index for the earliest feasible anchor cannot reduce any
+    later match. This exchange property makes the forward selection maximal.
+    """
+    source_anchors = timestamps_by_channel[anchor_channel]
+    last_selected = {channel: -1 for channel in timestamps_by_channel}
+    selected_anchors: list[int] = []
+
+    for anchor_index, anchor in enumerate(source_anchors):
+        candidates: dict[str, int] = {anchor_channel: anchor_index}
+        for channel, values in timestamps_by_channel.items():
+            if channel == anchor_channel:
+                continue
+            window = sync_window_ns[channel]
+            candidate = bisect.bisect_left(
+                values,
+                anchor - window,
+                lo=last_selected[channel] + 1,
+            )
+            if candidate == len(values) or values[candidate] > anchor + window:
+                break
+            candidates[channel] = candidate
+        else:
+            selected_anchors.append(anchor_index)
+            last_selected.update(candidates)
+
+    if not selected_anchors:
+        raise ValueError(
+            "no common anchors satisfy cadence-derived ordered distinct matching"
+        )
+    return tuple(selected_anchors)
 
 
 def _read_lidar_bin(path: Path) -> np.ndarray:
@@ -624,25 +686,25 @@ def convert_nuscenes_scene(
         channel: tuple(datum.timestamp_ns for datum in by_channel[channel])
         for channel in channel_order
     }
-    master_channel = min(
-        channel_order,
-        key=lambda channel: (
-            len(timestamps_by_channel[channel]),
-            channel_order.index(channel),
-        ),
-    )
-    master_timestamps = timestamps_by_channel[master_channel]
-    anchor_indices = _match_ordered_distinct_indices(
-        source_anchors,
-        master_timestamps,
+    sync_window_ns = {
+        channel: _nominal_cadence_ns(timestamps_by_channel[channel], channel)
+        for channel in channel_order
+    }
+    anchor_indices = _maximum_common_anchor_indices(
+        timestamps_by_channel,
+        sync_window_ns,
         "CAM_FRONT",
     )
     anchors = tuple(source_anchors[index] for index in anchor_indices)
     selected_indices = {
         channel: _match_ordered_distinct_indices(
-            timestamps_by_channel[channel], anchors, channel
+            timestamps_by_channel[channel],
+            anchors,
+            channel,
+            sync_window_ns[channel],
         )
         for channel in channel_order
+        if channel != "CAM_FRONT"
     }
     selected_indices["CAM_FRONT"] = anchor_indices
     selected = {
@@ -650,16 +712,24 @@ def convert_nuscenes_scene(
         for channel in channel_order
     }
     alignment_payload = {
-        "adapter_algorithm_version": "nuscenes_ordered_distinct_v2",
+        "adapter_algorithm_version": "nuscenes_cadence_window_v3",
         "anchor_channel": "CAM_FRONT",
+        "common_subsequence_selection": (
+            "earliest_feasible_anchor_and_source_indices"
+        ),
         "dropped_anchor_frame_count": len(source_anchors) - len(anchors),
-        "matching_objective": "minimum_total_absolute_sync_delta_ns",
-        "master_channel": master_channel,
+        "matching_objective": (
+            "maximum_cardinality_then_minimum_per_channel_total_absolute_sync_delta_ns"
+        ),
         "output_frame_count": len(anchors),
         "source_anchor_frame_count": len(source_anchors),
         "source_channel_frame_counts": {
             channel: len(timestamps_by_channel[channel]) for channel in channel_order
         },
+        "sync_window_derivation": (
+            "ceil_median_positive_consecutive_delta_ns_per_channel"
+        ),
+        "sync_window_ns": sync_window_ns,
     }
     alignment_descriptor = "derived:nuscenes_temporal_alignment=" + json.dumps(
         alignment_payload,
