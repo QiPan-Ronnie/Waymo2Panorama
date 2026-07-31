@@ -1,0 +1,461 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import warnings
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+import numpy as np
+import pandas as pd
+import pyarrow as pa
+import pyarrow.ipc as ipc
+import pytest
+from PIL import Image
+
+import agent.db181_multids.pandaset_adapter as pandaset_adapter
+from agent.db181_multids.contract import ConversionManifest
+from agent.db181_multids.geometry import (
+    make_transform,
+    matrix_to_quaternion_wxyz,
+    quaternion_wxyz_to_matrix,
+    rotation_z_deg,
+)
+from agent.db181_multids.io import sha256_file
+from agent.db181_multids.pandaset_adapter import PANDASET_CAMERA_MAP, convert_pandaset_scene
+from waymo2panorama.data_io.av2_loader import AV2RingLoader
+
+
+EXPECTED_CAMERA_MAP = (
+    ("front_camera", "ring_front_center"),
+    ("front_left_camera", "ring_front_left"),
+    ("left_camera", "ring_side_left"),
+    ("back_camera", "ring_rear"),
+    ("right_camera", "ring_side_right"),
+    ("front_right_camera", "ring_front_right"),
+)
+
+
+def _pose(transform: np.ndarray) -> dict[str, dict[str, float]]:
+    qw, qx, qy, qz = matrix_to_quaternion_wxyz(transform[:3, :3])
+    return {
+        "heading": {"w": qw, "x": qx, "y": qy, "z": qz},
+        "position": {
+            "x": float(transform[0, 3]),
+            "y": float(transform[1, 3]),
+            "z": float(transform[2, 3]),
+        },
+    }
+
+
+def _write_json(path: Path, value: object) -> None:
+    path.write_text(json.dumps(value), encoding="utf-8")
+
+
+def _write_scene(root: Path, *, frame_count: int = 3) -> Path:
+    scene = root / "019"
+    if frame_count == 3:
+        anchor_times = [1.1, 2.1, 3.1]
+        lidar_times = [1.0, 2.0, 4.0]
+    else:
+        anchor_times = [10.0 + index * 0.1 for index in range(frame_count)]
+        lidar_times = list(anchor_times)
+    lidar_poses = [
+        make_transform(np.eye(3), [0.0, 2.0 * (timestamp - lidar_times[0]), 1.0])
+        for timestamp in lidar_times
+    ]
+    lidar_dir = scene / "lidar"
+    lidar_dir.mkdir(parents=True)
+    _write_json(lidar_dir / "timestamps.json", lidar_times)
+    _write_json(lidar_dir / "poses.json", [_pose(value) for value in lidar_poses])
+    normalized_rotation = rotation_z_deg(90.0)
+    for index, transform in enumerate(lidar_poses):
+        local = np.array([1.0, 2.0, -1.0])
+        world = transform[:3, 3] + normalized_rotation @ local
+        pd.DataFrame(
+            {"x": [world[0]], "y": [world[1]], "z": [world[2]], "i": [0.25 + index]}
+        ).to_pickle(lidar_dir / f"{index:02d}.pkl.gz", compression="gzip")
+
+    for camera_index, (source_name, _) in enumerate(EXPECTED_CAMERA_MAP):
+        camera_dir = scene / "camera" / source_name
+        camera_dir.mkdir(parents=True)
+        _write_json(
+            camera_dir / "intrinsics.json",
+            {"fx": 100.0 + camera_index, "fy": 110.0, "cx": 1.0, "cy": 0.5},
+        )
+        camera_times = list(anchor_times)
+        if frame_count == 3 and source_name == "left_camera":
+            camera_times = [1.09, 1.11, 3.11]
+        elif frame_count == 3 and source_name != "front_camera":
+            offset = 0.01 * ((camera_index % 3) - 1)
+            camera_times = [timestamp + offset for timestamp in anchor_times]
+        _write_json(camera_dir / "timestamps.json", camera_times)
+        extrinsic = make_transform(np.eye(3), [camera_index + 1.0, 0.25, 0.5])
+        camera_poses = []
+        for timestamp in camera_times:
+            world_ego = make_transform(
+                normalized_rotation,
+                [0.0, 2.0 * (timestamp - lidar_times[0]), 1.0],
+            )
+            camera_poses.append(_pose(world_ego @ extrinsic))
+        _write_json(camera_dir / "poses.json", camera_poses)
+        for frame_index in range(frame_count):
+            shape = (1, 1, 3) if frame_count == 80 else (2, 3, 3)
+            pixels = np.full(shape, 20 + camera_index + frame_index, dtype=np.uint8)
+            Image.fromarray(pixels).save(camera_dir / f"{frame_index:02d}.jpg")
+    return scene
+
+
+@pytest.fixture
+def writable_test_dir() -> Path:
+    repo_root = Path(__file__).resolve().parents[3]
+    scratch_root = repo_root / ".pytest_cache" / "db212_pandaset_adapter"
+    scratch_root.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix="case-", dir=scratch_root) as temp_dir:
+        yield Path(temp_dir)
+
+
+def _arrow_table(path: Path) -> pa.Table:
+    with pa.memory_map(str(path), "r") as source:
+        return ipc.open_file(source).read_all()
+
+
+def _load_json(path: Path) -> object:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _set_camera_timeline(scene: Path, source_name: str, timestamps: list[float]) -> None:
+    camera_dir = scene / "camera" / source_name
+    _write_json(camera_dir / "timestamps.json", timestamps)
+    camera_index = [name for name, _ in EXPECTED_CAMERA_MAP].index(source_name)
+    extrinsic = make_transform(np.eye(3), [camera_index + 1.0, 0.25, 0.5])
+    poses = []
+    for timestamp in timestamps:
+        world_ego = make_transform(
+            rotation_z_deg(90.0),
+            [0.0, 2.0 * (timestamp - 1.0), 1.0],
+        )
+        poses.append(_pose(world_ego @ extrinsic))
+    _write_json(camera_dir / "poses.json", poses)
+
+
+def test_three_frame_scene_writes_complete_pseudo_av2_log(writable_test_dir: Path) -> None:
+    source_scene = _write_scene(writable_test_dir)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        output_dir, manifest = convert_pandaset_scene(
+            source_scene,
+            writable_test_dir / "output",
+            "panda-019",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+
+    assert PANDASET_CAMERA_MAP == EXPECTED_CAMERA_MAP
+    assert manifest.cameras == tuple(pseudo for _, pseudo in EXPECTED_CAMERA_MAP)
+    assert manifest.dataset == "pandaset"
+    assert manifest.source_scene_id == "019"
+    assert manifest.output_frame_count == manifest.source_frame_count == 3
+    assert manifest.frame_contract == "1+2"
+    assert manifest.mode == "A"
+    assert manifest.real_mask_pattern == "render/**/*_real_mask.png"
+    assert manifest.faithfill_mask_pattern is None
+    assert manifest.honest_black_mask_pattern is None
+    assert manifest.has_lidar and manifest.has_ego_pose
+    assert not manifest.has_annotations
+    assert manifest.supported_azimuth_deg == ((0.0, 360.0),)
+    assert manifest.honest_black_azimuth_deg == ()
+    assert manifest.source_frame_rate_hz == pytest.approx(1.0)
+    assert manifest.output_frame_rate_hz == pytest.approx(1.0)
+    assert output_dir.name == "panda-019"
+    assert (output_dir / "conversion_manifest.json").is_file()
+    assert ConversionManifest.read_json(output_dir / "conversion_manifest.json") == manifest
+    for camera in manifest.cameras:
+        assert len(list((output_dir / "sensors" / "cameras" / camera).glob("*.jpg"))) == 3
+
+    transform = np.asarray(manifest.coordinate_convention_transform)
+    np.testing.assert_allclose(transform[:3, :3], rotation_z_deg(90.0), atol=1e-12)
+    np.testing.assert_allclose(transform[:3, 3], 0.0, atol=0.0)
+    assert [frame.anchor_timestamp_ns for frame in manifest.frames] == [
+        1_100_000_000,
+        2_100_000_000,
+        3_100_000_000,
+    ]
+    assert [frame.camera_timestamps_ns["ring_side_left"] for frame in manifest.frames] == [
+        1_090_000_000,
+        1_110_000_000,
+        3_110_000_000,
+    ]
+    assert [frame.lidar_timestamp_ns for frame in manifest.frames] == [
+        1_000_000_000,
+        2_000_000_000,
+        4_000_000_000,
+    ]
+    records = {record.name: record for record in manifest.camera_records}
+    assert records["ring_side_left"].max_sync_delta_ns == 990_000_000
+
+    city = _arrow_table(output_dir / "city_SE3_egovehicle.feather").to_pandas()
+    assert city["timestamp_ns"].tolist() == sorted(city["timestamp_ns"].tolist())
+    row = city.loc[city["timestamp_ns"] == 2_100_000_000].iloc[0]
+    np.testing.assert_allclose([row.tx_m, row.ty_m, row.tz_m], [0.0, 2.2, 1.0], atol=1e-9)
+    np.testing.assert_allclose(
+        quaternion_wxyz_to_matrix([row.qw, row.qx, row.qy, row.qz]),
+        rotation_z_deg(90.0),
+        atol=1e-9,
+    )
+
+    loader = AV2RingLoader(output_dir, cameras=manifest.cameras)
+    assert loader.num_anchor_frames() == 3
+    sample = loader.load_synced_frame(manifest.frames[0].anchor_timestamp_ns)
+    assert tuple(sample.images) == manifest.cameras
+    for camera_index, (_, pseudo_name) in enumerate(EXPECTED_CAMERA_MAP):
+        np.testing.assert_allclose(
+            loader.calibration(pseudo_name).T_ego_cam,
+            make_transform(np.eye(3), [camera_index + 1.0, 0.25, 0.5]),
+            atol=1e-9,
+        )
+
+    extrinsics = _arrow_table(
+        output_dir / "calibration" / "egovehicle_SE3_sensor.feather"
+    ).to_pandas()
+    lidar_calibration = extrinsics.loc[extrinsics["sensor_name"] == "up_lidar"].iloc[0]
+    np.testing.assert_allclose(
+        [lidar_calibration.qw, lidar_calibration.qx, lidar_calibration.qy, lidar_calibration.qz],
+        [1.0, 0.0, 0.0, 0.0],
+    )
+    np.testing.assert_allclose([lidar_calibration.tx_m, lidar_calibration.ty_m, lidar_calibration.tz_m], 0.0)
+
+    lidar = _arrow_table(
+        output_dir / "sensors" / "lidar" / "1000000000.feather"
+    ).to_pandas()
+    assert list(lidar.columns) == ["x", "y", "z", "intensity"]
+    assert all(dtype == np.dtype("float32") for dtype in lidar.dtypes)
+    np.testing.assert_allclose(lidar.iloc[0].to_numpy(), [1.0, 2.0, -1.0, 0.25], atol=1e-6)
+
+    annotations = _arrow_table(output_dir / "annotations.feather")
+    assert annotations.num_rows == 0
+    assert annotations.schema.field("track_uuid").type == pa.string()
+    assert annotations.schema.field("category").type == pa.string()
+
+    expected_files = sorted(path for path in source_scene.rglob("*") if path.is_file())
+    artifact_by_path = {artifact.path: artifact for artifact in manifest.source_artifacts}
+    assert set(artifact_by_path) == {
+        path.relative_to(source_scene).as_posix() for path in expected_files
+    }
+    for path in expected_files:
+        artifact = artifact_by_path[path.relative_to(source_scene).as_posix()]
+        assert artifact.sha256 == sha256_file(path)
+        assert artifact.size_bytes == path.stat().st_size
+
+    digest = hashlib.sha256()
+    calibration_files = sorted((output_dir / "calibration").glob("*.feather"), key=lambda path: path.name)
+    for path in calibration_files:
+        digest.update(path.read_bytes())
+    assert manifest.calibration_sha256 == digest.hexdigest()
+
+
+def test_b_mode_allows_no_real_mask_pattern(writable_test_dir: Path) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    _, manifest = convert_pandaset_scene(
+        source_scene,
+        writable_test_dir / "output",
+        "panda-b",
+        mode="B",
+        real_mask_pattern=None,
+        converter_git_commit="0dcf6795",
+        created_at="2026-07-30T12:00:00Z",
+    )
+    assert manifest.mode == "B"
+    assert manifest.real_mask_pattern is None
+
+
+def test_full_80_frame_scene_is_exactly_1_plus_79(writable_test_dir: Path) -> None:
+    source_scene = _write_scene(writable_test_dir, frame_count=80)
+    _, manifest = convert_pandaset_scene(
+        source_scene,
+        writable_test_dir / "output",
+        "panda-80",
+        converter_git_commit="0dcf6795",
+        created_at="2026-07-30T12:00:00Z",
+    )
+    assert manifest.output_frame_count == 80
+    assert manifest.frame_contract == "1+79"
+
+
+def test_ground_origin_is_shifted_and_recorded_as_derived_provenance(
+    writable_test_dir: Path,
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    output_dir, manifest = convert_pandaset_scene(
+        source_scene,
+        writable_test_dir / "output",
+        "panda-ground",
+        ego_origin="ground",
+        ground_quantile=0.05,
+        ground_radius_m=10.0,
+        converter_git_commit="0dcf6795",
+        created_at="2026-07-30T12:00:00Z",
+    )
+
+    descriptor = "derived:ego_ground_shift_m=-1"
+    artifact = next(value for value in manifest.source_artifacts if value.path.startswith("derived:"))
+    assert artifact.path == descriptor
+    assert artifact.sha256 == hashlib.sha256(descriptor.encode("utf-8")).hexdigest()
+    assert artifact.size_bytes == len(descriptor.encode("utf-8"))
+    city = _arrow_table(output_dir / "city_SE3_egovehicle.feather").to_pandas()
+    np.testing.assert_allclose(city["tz_m"], 0.0, atol=1e-9)
+    lidar = _arrow_table(
+        output_dir / "sensors" / "lidar" / "1000000000.feather"
+    ).to_pandas()
+    assert float(lidar.iloc[0].z) == pytest.approx(0.0)
+
+
+def test_preflight_rejects_camera_count_mismatch_before_staging(writable_test_dir: Path) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    (source_scene / "camera" / "right_camera" / "02.jpg").unlink()
+    output_root = writable_test_dir / "output"
+    with pytest.raises(ValueError, match="count mismatch"):
+        convert_pandaset_scene(
+            source_scene,
+            output_root,
+            "bad-count",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+    assert not output_root.exists()
+
+
+def test_preflight_rejects_inconsistent_image_dimensions(writable_test_dir: Path) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    Image.fromarray(np.zeros((3, 4, 3), dtype=np.uint8)).save(
+        source_scene / "camera" / "back_camera" / "01.jpg"
+    )
+    with pytest.raises(ValueError, match="dimensions"):
+        convert_pandaset_scene(
+            source_scene,
+            writable_test_dir / "output",
+            "bad-dimensions",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+
+
+def test_camera_pose_query_outside_lidar_range_is_rejected(writable_test_dir: Path) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    _set_camera_timeline(source_scene, "front_right_camera", [0.9, 2.1, 3.1])
+    with pytest.raises(ValueError, match="outside lidar pose time range"):
+        convert_pandaset_scene(
+            source_scene,
+            writable_test_dir / "output",
+            "out-of-range",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+
+
+def test_nearest_selection_rejects_duplicate_reuse(writable_test_dir: Path) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    _set_camera_timeline(source_scene, "right_camera", [1.0, 1.01, 3.1])
+    with pytest.raises(ValueError, match="duplicate reuse"):
+        convert_pandaset_scene(
+            source_scene,
+            writable_test_dir / "output",
+            "duplicate",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+
+
+def test_static_calibration_drift_reports_camera_and_residuals(writable_test_dir: Path) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    pose_path = source_scene / "camera" / "left_camera" / "poses.json"
+    poses = _load_json(pose_path)
+    assert isinstance(poses, list)
+    poses[1]["position"]["x"] += 0.1
+    _write_json(pose_path, poses)
+    with pytest.raises(
+        ValueError,
+        match=r"left_camera.*rotation residual.*translation residual",
+    ):
+        convert_pandaset_scene(
+            source_scene,
+            writable_test_dir / "output",
+            "drift",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"ego_origin": "roof"}, "ego_origin"),
+        ({"ground_radius_m": 0.0}, "ground_radius_m"),
+        ({"ground_radius_m": float("nan")}, "ground_radius_m"),
+        ({"ground_quantile": -0.01}, "ground_quantile"),
+        ({"ground_quantile": 1.01}, "ground_quantile"),
+    ],
+)
+def test_bad_origin_or_ground_parameters_are_rejected(
+    writable_test_dir: Path,
+    kwargs: dict[str, object],
+    message: str,
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    with pytest.raises(ValueError, match=message):
+        convert_pandaset_scene(
+            source_scene,
+            writable_test_dir / "output",
+            "bad-ground",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+            **kwargs,
+        )
+
+
+def test_existing_final_is_preserved_untouched(writable_test_dir: Path) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    final = writable_test_dir / "output" / "exists"
+    final.mkdir(parents=True)
+    marker = final / "keep.txt"
+    marker.write_text("original", encoding="utf-8")
+    with pytest.raises(FileExistsError, match="already exists"):
+        convert_pandaset_scene(
+            source_scene,
+            final.parent,
+            final.name,
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+    assert marker.read_text(encoding="utf-8") == "original"
+    assert [path.name for path in final.iterdir()] == ["keep.txt"]
+
+
+def test_mid_conversion_write_failure_removes_only_private_staging(
+    writable_test_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source_scene = _write_scene(writable_test_dir)
+    output_root = writable_test_dir / "output"
+    real_write_feather = pandaset_adapter.write_feather
+    calls = 0
+
+    def fail_second_write(frame: pd.DataFrame, path: str | Path) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise OSError("injected write fault")
+        real_write_feather(frame, path)
+
+    monkeypatch.setattr(pandaset_adapter, "write_feather", fail_second_write)
+    with pytest.raises(OSError, match="injected write fault"):
+        convert_pandaset_scene(
+            source_scene,
+            output_root,
+            "fault",
+            converter_git_commit="0dcf6795",
+            created_at="2026-07-30T12:00:00Z",
+        )
+    assert not (output_root / "fault").exists()
+    assert not list(output_root.glob(".fault.staging-*"))
