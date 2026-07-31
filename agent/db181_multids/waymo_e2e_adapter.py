@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
+import re
 import shutil
 import struct
 import tempfile
@@ -50,6 +52,7 @@ class E2ECameraFrame:
     image_jpeg: bytes
     intrinsic: tuple[float, ...]
     transform_ego_waymo_camera: tuple[float, ...]
+    transform_world_ego: tuple[float, ...]
     width_px: int
     height_px: int
 
@@ -141,6 +144,9 @@ def _decode_waymo_record(payload: bytes, record_index: int) -> E2EFrame:
                 intrinsic=tuple(float(value) for value in calibration.intrinsic),
                 transform_ego_waymo_camera=tuple(
                     float(value) for value in calibration.extrinsic.transform
+                ),
+                transform_world_ego=tuple(
+                    float(value) for value in image.pose.transform
                 ),
                 width_px=int(calibration.width),
                 height_px=int(calibration.height),
@@ -271,6 +277,21 @@ def _pose_row(calibration: _Calibration) -> dict[str, object]:
     }
 
 
+def _validate_placeholder_camera_pose(camera: E2ECameraFrame) -> None:
+    try:
+        transform = np.asarray(
+            camera.transform_world_ego, dtype=np.float64
+        ).reshape(4, 4)
+    except ValueError as error:
+        raise ValueError("CameraImage.pose must contain a flattened 4x4 transform") from error
+    transform = validate_rigid_transform(transform)
+    if not np.allclose(transform, np.eye(4), rtol=0.0, atol=1e-12):
+        raise ValueError(
+            f"{camera.source_name} CameraImage.pose is non-placeholder; "
+            "its semantics must be verified before use"
+        )
+
+
 def _calibration_hash(calibration_dir: Path) -> str:
     digest = hashlib.sha256()
     for path in sorted(calibration_dir.glob("*.feather"), key=lambda value: value.name):
@@ -297,6 +318,271 @@ def _same_calibration(first: _Calibration, current: _Calibration) -> bool:
             atol=1e-9,
         )
     )
+
+
+def _record_output_id(prefix: str, record_index: int, context_name: str) -> str:
+    if not prefix or prefix in (".", "..") or Path(prefix).name != prefix:
+        raise ValueError("output_log_prefix must be one nonempty path component")
+    slug = re.sub(r"[^A-Za-z0-9._-]+", "_", context_name).strip("._-")
+    if not slug:
+        slug = "context"
+    return f"{prefix}_r{record_index:06d}_{slug[:64]}"
+
+
+def _stage_independent_record(
+    *,
+    frame: E2EFrame,
+    record_index: int,
+    output_root: Path,
+    output_log_prefix: str,
+    source_path: Path,
+    source_sha256: str,
+    source_size: int,
+    converter_git_commit: str,
+    created_at: str,
+) -> tuple[Path, Path, ConversionManifest]:
+    """Stage one source record as one honest pose-aware Mode-B log."""
+
+    if not frame.source_scene_id:
+        raise ValueError(f"record {record_index} has an empty source scene id")
+    output_log_id = _record_output_id(
+        output_log_prefix, record_index, frame.source_scene_id
+    )
+    final_output = output_root / output_log_id
+    if os.path.lexists(final_output):
+        raise FileExistsError(f"output log already exists: {final_output}")
+    staging = Path(
+        tempfile.mkdtemp(prefix=f".{output_log_id}.staging-", dir=output_root)
+    )
+    surrogate_timestamp_ns = 1
+    cameras = tuple(pseudo for _, pseudo in WAYMO_E2E_CAMERA_MAP)
+    by_source = _camera_map(frame, record_index)
+    calibrations: dict[str, _Calibration] = {}
+    camera_timestamps = {camera: surrogate_timestamp_ns for camera in cameras}
+    expected_image_hashes: dict[str, str] = {}
+
+    try:
+        if frame.anchor_timestamp_ns != 0:
+            raise ValueError(
+                f"record {record_index} has an unexpected physical anchor timestamp"
+            )
+        for source_name, pseudo_name in WAYMO_E2E_CAMERA_MAP:
+            camera = by_source[source_name]
+            if camera.timestamp_ns != 0:
+                raise ValueError(
+                    f"record {record_index} {source_name} has an unexpected "
+                    "physical timestamp"
+                )
+            _validate_placeholder_camera_pose(camera)
+            calibration = _calibration(camera)
+            calibrations[source_name] = calibration
+            output_payload = _undistorted_jpeg(camera, calibration)
+            destination = (
+                staging
+                / "sensors"
+                / "cameras"
+                / pseudo_name
+                / f"{surrogate_timestamp_ns}.jpg"
+            )
+            _write_bytes(destination, output_payload)
+            relative = destination.relative_to(staging).as_posix()
+            expected_image_hashes[relative] = hashlib.sha256(output_payload).hexdigest()
+
+        calibration_dir = staging / "calibration"
+        intrinsics_rows = []
+        extrinsics_rows = []
+        for source_name, _ in WAYMO_E2E_CAMERA_MAP:
+            calibration = calibrations[source_name]
+            fx, fy, cx, cy = calibration.intrinsic[:4]
+            intrinsics_rows.append(
+                {
+                    "sensor_name": calibration.pseudo_name,
+                    "fx_px": fx,
+                    "fy_px": fy,
+                    "cx_px": cx,
+                    "cy_px": cy,
+                    "width_px": calibration.width_px,
+                    "height_px": calibration.height_px,
+                    "k1": 0.0,
+                    "k2": 0.0,
+                    "k3": 0.0,
+                    "p1": 0.0,
+                    "p2": 0.0,
+                }
+            )
+            extrinsics_rows.append(_pose_row(calibration))
+        write_feather(pd.DataFrame(intrinsics_rows), calibration_dir / "intrinsics.feather")
+        write_feather(
+            pd.DataFrame(extrinsics_rows),
+            calibration_dir / "egovehicle_SE3_sensor.feather",
+        )
+        frame_record = FrameRecord(
+            index=0,
+            anchor_timestamp_ns=surrogate_timestamp_ns,
+            camera_timestamps_ns=camera_timestamps,
+            lidar_timestamp_ns=None,
+        )
+        manifest = ConversionManifest(
+            schema_version="1.0",
+            dataset="waymo_e2e",
+            source_scene_id=frame.source_scene_id,
+            output_log_id=output_log_id,
+            mode="B",
+            cameras=cameras,
+            anchor_camera=cameras[0],
+            source_frame_count=1,
+            output_frame_count=1,
+            # The generic v1 manifest requires positive rates.  These values
+            # describe only a single-record container; provenance below makes
+            # explicit that no physical cadence or timestamp exists.
+            source_frame_rate_hz=1.0,
+            output_frame_rate_hz=1.0,
+            camera_records=tuple(
+                CameraRecord(pseudo, source, 1, 0)
+                for source, pseudo in WAYMO_E2E_CAMERA_MAP
+            ),
+            frames=(frame_record,),
+            calibration_sha256=_calibration_hash(calibration_dir),
+            source_artifacts=(
+                SourceArtifact(source_path.name, source_sha256, source_size),
+            ),
+            has_lidar=False,
+            has_ego_pose=False,
+            has_annotations=False,
+            real_mask_pattern=None,
+            faithfill_mask_pattern=None,
+            honest_black_mask_pattern=None,
+            supported_azimuth_deg=((0.0, 360.0),),
+            honest_black_azimuth_deg=(),
+            coordinate_convention_transform=(
+                (0.0, 0.0, 1.0, 0.0),
+                (-1.0, 0.0, 0.0, 0.0),
+                (0.0, -1.0, 0.0, 0.0),
+                (0.0, 0.0, 0.0, 1.0),
+            ),
+            converter_git_commit=converter_git_commit,
+            created_at=created_at,
+        )
+        manifest.write_json(staging / "conversion_manifest.json")
+        (staging / "waymo_e2e_provenance.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "1.0",
+                    "source_shard": source_path.name,
+                    "source_record_index": record_index,
+                    "source_context_name": frame.source_scene_id,
+                    "physical_timestamps_available": False,
+                    "record_is_independent_scene": True,
+                    "surrogate_timestamp_ns": surrogate_timestamp_ns,
+                    "manifest_rate_hz_is_single_record_placeholder": True,
+                    "camera_pose_available": False,
+                    "camera_pose_field_status": "placeholder_identity",
+                },
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        written = {
+            path.relative_to(staging).as_posix(): path
+            for path in (staging / "sensors" / "cameras").glob("*/*.jpg")
+        }
+        if set(written) != set(expected_image_hashes):
+            raise ValueError("staged camera image set does not match decoded record")
+        for relative, path in written.items():
+            if sha256_file(path) != expected_image_hashes[relative]:
+                raise ValueError(f"staged camera JPEG hash mismatch: {relative}")
+        reloaded = ConversionManifest.read_json(staging / "conversion_manifest.json")
+        if reloaded != manifest:
+            raise ValueError("written conversion manifest does not round-trip")
+        AV2RingLoader(staging, cameras=manifest.cameras).load_synced_frame(
+            surrogate_timestamp_ns
+        )
+        return staging, final_output, manifest
+    except Exception:
+        if staging.exists():
+            shutil.rmtree(staging)
+        raise
+
+
+def convert_waymo_e2e_records(
+    tfrecord_path: Path,
+    output_root: Path,
+    output_log_prefix: str,
+    *,
+    record_indices: tuple[int, ...],
+    record_decoder: RecordDecoder | None = None,
+    converter_git_commit: str,
+    created_at: str,
+) -> tuple[tuple[Path, ConversionManifest], ...]:
+    """Convert selected independent E2E records without inventing a timeline."""
+
+    tfrecord_path = Path(tfrecord_path)
+    output_root = Path(output_root)
+    if not tfrecord_path.is_file():
+        raise ValueError(f"tfrecord_path must be a file: {tfrecord_path}")
+    if (
+        not record_indices
+        or any(isinstance(index, bool) or not isinstance(index, int) or index < 0 for index in record_indices)
+        or tuple(sorted(set(record_indices))) != record_indices
+    ):
+        raise ValueError("record_indices must be nonempty, unique, and strictly increasing")
+    _record_output_id(output_log_prefix, 0, "validation")
+    decoder = record_decoder or _decode_waymo_record
+    source_size = tfrecord_path.stat().st_size
+    source_sha256 = sha256_file(tfrecord_path)
+    if tfrecord_path.stat().st_size != source_size:
+        raise ValueError("source TFRecord changed while snapshotting")
+    output_root.mkdir(parents=True, exist_ok=True)
+    wanted = set(record_indices)
+    staged: list[tuple[Path, Path, ConversionManifest]] = []
+    found_indices: list[int] = []
+    try:
+        for record_index, payload in enumerate(_iter_tfrecord_payloads(tfrecord_path)):
+            if record_index not in wanted:
+                if record_index > record_indices[-1]:
+                    break
+                continue
+            frame = decoder(payload, record_index)
+            if not isinstance(frame, E2EFrame):
+                raise TypeError("record_decoder must return E2EFrame")
+            staged.append(
+                _stage_independent_record(
+                    frame=frame,
+                    record_index=record_index,
+                    output_root=output_root,
+                    output_log_prefix=output_log_prefix,
+                    source_path=tfrecord_path,
+                    source_sha256=source_sha256,
+                    source_size=source_size,
+                    converter_git_commit=converter_git_commit,
+                    created_at=created_at,
+                )
+            )
+            found_indices.append(record_index)
+            if len(staged) == len(record_indices):
+                break
+        found = tuple(found_indices)
+        if found != record_indices:
+            raise ValueError(
+                f"TFRecord is missing selected record indices: "
+                f"{sorted(wanted - set(found))}"
+            )
+        if tfrecord_path.stat().st_size != source_size or sha256_file(tfrecord_path) != source_sha256:
+            raise ValueError("source TFRecord changed after conversion")
+        results: list[tuple[Path, ConversionManifest]] = []
+        for staging, final_output, manifest in staged:
+            if os.path.lexists(final_output):
+                raise FileExistsError(f"output log already exists: {final_output}")
+            staging.rename(final_output)
+            results.append((final_output, manifest))
+        return tuple(results)
+    finally:
+        for staging, _, _ in staged:
+            if staging.exists():
+                shutil.rmtree(staging)
 
 
 def convert_waymo_e2e_tfrecord(

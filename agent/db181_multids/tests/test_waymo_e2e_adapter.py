@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import struct
+from dataclasses import replace
 from io import BytesIO
 from pathlib import Path
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, gettempdir
 
 import numpy as np
 import pandas as pd
@@ -14,6 +15,7 @@ from agent.db181_multids.waymo_e2e_adapter import (
     WAYMO_E2E_CAMERA_MAP,
     E2ECameraFrame,
     E2EFrame,
+    convert_waymo_e2e_records,
     convert_waymo_e2e_tfrecord,
 )
 from waymo2panorama.data_io.av2_loader import AV2RingLoader
@@ -25,8 +27,7 @@ CREATED_AT = "2026-07-31T12:00:00-07:00"
 
 @pytest.fixture
 def writable_test_dir() -> Path:
-    repo_root = Path(__file__).resolve().parents[3]
-    scratch_root = repo_root / ".pytest_cache" / "db213_waymo_e2e_adapter"
+    scratch_root = Path(gettempdir()) / "w2p_db216_e2e"
     scratch_root.mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(prefix="case-", dir=scratch_root) as temp_dir:
         yield Path(temp_dir)
@@ -47,6 +48,11 @@ def _transform(camera_index: int) -> tuple[float, ...]:
     return tuple(transform.reshape(-1))
 
 
+def _world_pose(camera_index: int, frame_index: int) -> tuple[float, ...]:
+    del camera_index, frame_index
+    return tuple(np.eye(4, dtype=np.float64).reshape(-1))
+
+
 def _frame(
     index: int,
     *,
@@ -65,6 +71,7 @@ def _frame(
                 image_jpeg=_jpeg(20 + camera_index + index),
                 intrinsic=(100.0, 110.0, 2.0, 1.5, 0.0, 0.0, 0.0, 0.0, 0.0),
                 transform_ego_waymo_camera=_transform(camera_index),
+                transform_world_ego=_world_pose(camera_index, index),
                 width_px=4,
                 height_px=3,
             )
@@ -197,3 +204,102 @@ def test_shard_may_contain_distinct_per_record_context_names(
     )
 
     assert manifest.source_scene_id == source.name
+
+
+def test_selected_e2e_records_become_independent_honest_static_single_frame_logs(
+    writable_test_dir: Path,
+) -> None:
+    source = writable_test_dir / "source.tfrecord"
+    _write_tfrecord(source, (b"record-0", b"record-1", b"record-2"))
+    decoded = {
+        b"record-0": _frame(0, source_scene_id="context-000"),
+        b"record-1": _frame(1, source_scene_id="context-001"),
+        b"record-2": _frame(2, source_scene_id="context-002"),
+    }
+    # Real E2E shards expose no physical capture timestamps.  The converter must
+    # not join unrelated contexts into a fake temporal sequence.
+    decoded = {
+        payload: E2EFrame(
+            source_scene_id=frame.source_scene_id,
+            anchor_timestamp_ns=0,
+            cameras=tuple(
+                E2ECameraFrame(
+                    **{
+                        **camera.__dict__,
+                        "timestamp_ns": 0,
+                    }
+                )
+                for camera in frame.cameras
+            ),
+        )
+        for payload, frame in decoded.items()
+    }
+
+    converted = convert_waymo_e2e_records(
+        source,
+        writable_test_dir / "output",
+        "waymo-e2e",
+        record_indices=(0, 2),
+        record_decoder=lambda payload, _: decoded[payload],
+        converter_git_commit=COMMIT,
+        created_at=CREATED_AT,
+    )
+
+    assert len(converted) == 2
+    for selected_index, (output_dir, manifest) in zip((0, 2), converted):
+        assert output_dir.name.startswith(f"waymo-e2e_r{selected_index:06d}_")
+        assert manifest.source_scene_id == f"context-{selected_index:03d}"
+        assert manifest.source_frame_count == 1
+        assert manifest.output_frame_count == 1
+        assert manifest.has_ego_pose is False
+        assert manifest.frames[0].anchor_timestamp_ns == 1
+        assert set(manifest.frames[0].camera_timestamps_ns.values()) == {1}
+        assert all(record.max_sync_delta_ns == 0 for record in manifest.camera_records)
+
+        assert not (output_dir / "camera_capture_poses.feather").exists()
+        assert not (output_dir / "city_SE3_egovehicle.feather").exists()
+
+        provenance = __import__("json").loads(
+            (output_dir / "waymo_e2e_provenance.json").read_text(encoding="utf-8")
+        )
+        assert provenance["physical_timestamps_available"] is False
+        assert provenance["record_is_independent_scene"] is True
+        assert provenance["surrogate_timestamp_ns"] == 1
+        assert provenance["camera_pose_available"] is False
+        assert provenance["camera_pose_field_status"] == "placeholder_identity"
+
+
+def test_unverified_nonplaceholder_e2e_pose_fails_closed(
+    writable_test_dir: Path,
+) -> None:
+    source = writable_test_dir / "source.tfrecord"
+    _write_tfrecord(source, (b"record",))
+    frame = _frame(0)
+    translated = np.eye(4, dtype=np.float64)
+    translated[0, 3] = 1.0
+    cameras = list(frame.cameras)
+    cameras[0] = replace(
+        cameras[0],
+        timestamp_ns=0,
+        transform_world_ego=tuple(translated.reshape(-1)),
+    )
+    frame = replace(
+        frame,
+        anchor_timestamp_ns=0,
+        cameras=tuple(replace(camera, timestamp_ns=0) for camera in cameras),
+    )
+    output_root = writable_test_dir / "output"
+
+    with pytest.raises(ValueError, match="semantics must be verified"):
+        convert_waymo_e2e_records(
+            source,
+            output_root,
+            "waymo-e2e",
+            record_indices=(0,),
+            record_decoder=lambda _payload, _index: frame,
+            converter_git_commit=COMMIT,
+            created_at=CREATED_AT,
+        )
+
+    assert not list(output_root.glob("waymo-e2e*"))
+    assert not list(output_root.glob(".waymo-e2e*.staging-*"))
