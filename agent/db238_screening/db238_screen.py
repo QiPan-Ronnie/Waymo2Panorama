@@ -137,13 +137,20 @@ def fetch_anchor(uuid, split, anchor_idx, dest, n_lidar=2):
 
 # ------------------------------------------------------------- calibration/io
 
-def load_calibration(dest):
+def load_calibration(dest, cameras=None):
+    """Load per-camera K/R/t.
+
+    `cameras` defaults to AV2's seven, but a converted dataset names its ring
+    differently - nuScenes emits `ring_rear`, which is not an AV2 name - so the
+    caller can pass the cameras actually present.  Demanding AV2's exact seven
+    turns "this rig is shaped differently" into a crash on a correct log.
+    """
     import pandas as pd
     from scipy.spatial.transform import Rotation
     intr = pd.read_feather(os.path.join(dest, "calibration", "intrinsics.feather"))
     extr = pd.read_feather(os.path.join(dest, "calibration", "egovehicle_SE3_sensor.feather"))
     cal = {}
-    for cam in CAMERAS:
+    for cam in (cameras if cameras is not None else CAMERAS):
         ri = intr[intr["sensor_name"] == cam]
         re = extr[extr["sensor_name"] == cam]
         if ri.empty or re.empty:
@@ -354,8 +361,19 @@ def cached_log_dir(uuid):
     return None
 
 
-def manifest_from_dir(log_dir, anchor_idx, n_lidar):
-    """Pick the anchor frame and nearest lidar sweeps from an already-local log."""
+def manifest_from_dir(log_dir, anchor_idx, n_lidar, cameras=None):
+    """Pick the anchor frame and nearest lidar sweeps from an already-local log.
+
+    Two things are optional here that used to be mandatory, because both were
+    AV2 facts rather than pipeline requirements:
+
+    `cameras` - a converted dataset's ring may not use AV2's seven names
+    (nuScenes emits `ring_rear`), so the caller passes what is actually present.
+
+    LiDAR - pass `n_lidar=0` for a camera-only log.  The rule-mask / B-route path
+    never reads a sweep, and Waymo E2E ships no LiDAR at all, so hard-requiring
+    one would reject a dataset that is otherwise perfectly usable.
+    """
     def _stems(sub, suffix):
         out = []
         for p in glob.glob(os.path.join(log_dir, sub, f"*{suffix}")):
@@ -364,23 +382,28 @@ def manifest_from_dir(log_dir, anchor_idx, n_lidar):
                 out.append(int(s))
         return sorted(out)
 
-    ref = _stems(os.path.join("sensors", "cameras", "ring_front_center"), ".jpg")
+    cams = list(cameras) if cameras is not None else list(CAMERAS)
+    ref_cam = "ring_front_center" if "ring_front_center" in cams else cams[0]
+    ref = _stems(os.path.join("sensors", "cameras", ref_cam), ".jpg")
     if not ref:
-        raise RuntimeError("cached log has no front_center frames")
+        raise RuntimeError(f"cached log has no {ref_cam} frames")
     idx = int(np.clip(anchor_idx, 0, len(ref) - 1))
     t_anchor = ref[idx]
     man = {"frame_count": len(ref), "anchor_idx": idx, "anchor_ts": t_anchor,
            "cam_ts": {}, "source": "drive_cache"}
-    for cam in CAMERAS:
-        ts = ref if cam == "ring_front_center" else _stems(
+    for cam in cams:
+        ts = ref if cam == ref_cam else _stems(
             os.path.join("sensors", "cameras", cam), ".jpg")
         if not ts:
             raise RuntimeError(f"cached log missing {cam}")
         man["cam_ts"][cam] = min(ts, key=lambda v: abs(v - t_anchor))
     lts = _stems(os.path.join("sensors", "lidar"), ".feather")
     if not lts:
-        raise RuntimeError("cached log has no lidar")
-    man["lidar_ts"] = sorted(lts, key=lambda v: abs(v - t_anchor))[:max(1, n_lidar)]
+        if n_lidar:
+            raise RuntimeError("cached log has no lidar")
+        man["lidar_ts"] = []
+    else:
+        man["lidar_ts"] = sorted(lts, key=lambda v: abs(v - t_anchor))[:max(1, n_lidar)]
     return man
 
 

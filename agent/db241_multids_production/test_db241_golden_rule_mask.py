@@ -54,7 +54,7 @@ def _install_manifest_shim(meta):
     mans = meta["manifests"]
     original = SC.manifest_from_dir
 
-    def shim(log_dir, anchor_idx, n_lidar):
+    def shim(log_dir, anchor_idx, n_lidar=0, cameras=None):
         m = mans[str(anchor_idx)]
         return {"anchor_ts": m["anchor_ts"], "cam_ts": dict(m["cam_ts"])}
 

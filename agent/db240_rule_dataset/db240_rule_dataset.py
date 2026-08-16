@@ -46,10 +46,22 @@ SKIRT_PX = 4
 
 
 def present_cameras(log_dir):
-    """Cameras this scene actually has - datasets differ (5/6/7/8 rings)."""
+    """Cameras this scene actually has, discovered from disk - not from a list.
+
+    Filtering against AV2's seven hard-coded names silently drops any camera a
+    converted dataset names differently: nuScenes maps its six to
+    ring_front_center/front_left/front_right/side_left/side_right/`ring_rear`,
+    and `ring_rear` is not an AV2 name.  Losing it would not raise - it would
+    quietly produce a five-camera rig with a fake closed ring and a seam strip
+    painted across the unrendered rear.
+    """
+    root = os.path.join(log_dir, "sensors", "cameras")
+    if not os.path.isdir(root):
+        return []
     out = []
-    for cam in SC.CAMERAS:
-        if glob.glob(os.path.join(log_dir, "sensors", "cameras", cam, "*.jpg")):
+    for cam in sorted(os.listdir(root)):
+        if glob.glob(os.path.join(root, cam, "*.jpg")) or \
+           glob.glob(os.path.join(root, cam, "*.png")):
             out.append(cam)
     return out
 
@@ -99,7 +111,7 @@ def rule_mask(log_dir, cal, cte, cams, pairs, domain_band, n=93,
     """
     acc = {"%s|%s" % (a, b): np.zeros((H, W), bool) for a, b in pairs}
     for k in range(0, n, stride):
-        man = SC.manifest_from_dir(log_dir, k, 1)
+        man = SC.manifest_from_dir(log_dir, k, 0, cams)
         cam_ts = {c: man["cam_ts"][c] for c in cams}
         pose = SM.emc_poses({c: cal[c] for c in cams}, cam_ts, man["anchor_ts"], cte)
         sup = SM.camera_support_emc(pose)
@@ -140,7 +152,7 @@ def render_frame(log_dir, k, cal, cte, cams, elev_domain):
     the thing the mask contract exists to prevent - so the mask has to be built
     from what was sampled, not from what was claimed.
     """
-    man = SC.manifest_from_dir(log_dir, k, 1)
+    man = SC.manifest_from_dir(log_dir, k, 0, cams)
     cam_ts = {c: man["cam_ts"][c] for c in cams}
     imgs = SC.load_images(log_dir, cam_ts)
     pose = SM.emc_poses({c: cal[c] for c in cams}, cam_ts, man["anchor_ts"], cte)
@@ -172,9 +184,9 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
     from PIL import Image
     os.makedirs(os.path.join(out_dir, "frames"), exist_ok=True)
     os.makedirs(os.path.join(out_dir, "masks"), exist_ok=True)
-    cal = SC.load_calibration(log_dir)
-    cte = SM.load_ego_interp(log_dir)
     cams = present_cameras(log_dir)
+    cal = SC.load_calibration(log_dir, cams)
+    cte = SM.load_ego_interp(log_dir)
     if len(cams) < 4:
         raise RuntimeError("only %d ring cameras present: %s" % (len(cams), cams))
     elev = np.degrees(np.arcsin(np.clip(SC.DIRS[:, :, 2], -1, 1)))
