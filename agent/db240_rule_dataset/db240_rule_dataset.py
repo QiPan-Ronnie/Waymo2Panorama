@@ -92,11 +92,82 @@ def adjacent_pairs(cams, pose, sup=None):
     return ring
 
 
+def uniform_time_indices(log_dir, cams, start, n):
+    """Frame indices sampled on a uniform TIME grid, not by file order.
+
+    Taking the k-th file assumes the source captures at a constant rate.  AV2
+    (20 Hz), Waymo Perception (10 Hz) and E2E (synthetic 10 Hz) do; nuScenes does
+    not.  Its camera stream runs at 10 Hz with a LiDAR-synced keyframe inserted
+    every ~250 ms, so the real spacing cycles 50 / 100 / 100 ms.  Played back at a
+    constant frame rate that is visible stutter - the scene lurches forward twice
+    as far between some frames as between others - and a video model trained on it
+    would be learning inconsistent motion.
+
+    The grid step is the median inter-frame gap, so a uniform source is a no-op:
+    every target lands exactly on its own frame and the indices come back as
+    start..start+n-1.
+
+    Returns None when the window cannot be covered, so the caller can fall back
+    rather than silently emitting a short or repeating clip.
+    """
+    ref_cam = "ring_front_center" if "ring_front_center" in cams else cams[0]
+    stems = sorted(
+        int(os.path.basename(p)[:-4])
+        for p in glob.glob(os.path.join(log_dir, "sensors", "cameras", ref_cam, "*.jpg"))
+        if os.path.basename(p)[:-4].isdigit())
+    if len(stems) < n:
+        return None
+    ts = np.asarray(stems, dtype=np.int64)
+    med = int(np.median(np.diff(ts)))
+    if med <= 0:
+        return None
+    t0 = ts[min(start, len(ts) - 1)]
+
+    def sample(step):
+        targets = t0 + step * np.arange(n, dtype=np.int64)
+        if targets[-1] > ts[-1]:
+            return None
+        idx = np.searchsorted(ts, targets)
+        idx = np.clip(idx, 1, len(ts) - 1)
+        idx = np.where(np.abs(ts[idx - 1] - targets) <= np.abs(ts[idx] - targets),
+                       idx - 1, idx)
+        # force strictly increasing: a tie can round two targets onto one frame
+        out = []
+        for i in idx.tolist():
+            if out and i <= out[-1]:
+                i = out[-1] + 1
+            if i >= len(ts):
+                return None
+            out.append(int(i))
+        d = np.diff(ts[out]).astype(float)
+        return out, float(d.std() / d.mean()) if d.mean() else (out, 9.9)
+
+    # Search the step rather than assuming the median. nuScenes' capture period is
+    # 250 ms holding three frames at offsets 0/50/150, so NO step yields uniform
+    # spacing - the median step scores cv 0.289 (mostly 100 ms with sudden 50 ms
+    # hitches) while 125 ms scores 0.218 (a regular 100/150 alternation, which
+    # reads far smoother). On a genuinely uniform source the median wins with
+    # cv = 0 and the search is a no-op.
+    cands = []
+    for mult in (0.5, 2.0 / 3, 0.75, 1.0, 1.25, 4.0 / 3, 1.5, 2.0, 2.5, 3.0):
+        step = int(round(med * mult))
+        got = sample(step)
+        if got:
+            cands.append((got[1], step, got[0]))
+    if not cands:
+        return None
+    # Lowest jitter wins, but near-ties go to the shorter step: a longer step
+    # covers more seconds in the same 93 frames, so each frame moves further and
+    # the clip drifts away from the per-frame motion the other rigs deliver.
+    floor = min(c[0] for c in cands)
+    return min((c for c in cands if c[0] <= floor + 0.02), key=lambda c: c[1])[2]
+
+
 WEDGE_STRIDE = 4          # koi-approved sampling: union over range(0, n, 4)
 
 
 def rule_mask(log_dir, cal, cte, cams, pairs, domain_band, n=93,
-              stride=WEDGE_STRIDE):
+              stride=WEDGE_STRIDE, indices=None):
     """Blanket rectangular strip over each adjacent pair's overlap wedge.
 
     Rectangular by intent: koi asked for the simple, no-confidence-value mask.
@@ -110,7 +181,8 @@ def rule_mask(log_dir, cal, cte, cams, pairs, domain_band, n=93,
     original and that A/B.
     """
     acc = {"%s|%s" % (a, b): np.zeros((H, W), bool) for a, b in pairs}
-    for k in range(0, n, stride):
+    grid = indices if indices is not None else list(range(n))
+    for k in grid[::stride]:
         man = SC.manifest_from_dir(log_dir, k, 0, cams)
         cam_ts = {c: man["cam_ts"][c] for c in cams}
         pose = SM.emc_poses({c: cal[c] for c in cams}, cam_ts, man["anchor_ts"], cte)
@@ -192,13 +264,23 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
     elev = np.degrees(np.arcsin(np.clip(SC.DIRS[:, :, 2], -1, 1)))
     elev_domain = np.abs(elev) < ELEV_DEG
 
+    # Frames are chosen on a uniform time grid. On a constant-rate source this is
+    # exactly start..start+n-1; on nuScenes it drops the LiDAR-synced extra frames
+    # that make playback stutter. Falls back to file order if the grid cannot be
+    # laid down, rather than emitting a short clip.
+    indices = uniform_time_indices(log_dir, cams, start, n)
+    grid_uniform = indices is not None
+    if indices is None:
+        indices = [start + i for i in range(n)]
+
     # the rule mask is frozen for the window - zero flicker by construction -
     # but it is derived from the whole window's wedge union, not one frame
-    _, dom0, pose0 = render_frame(log_dir, start, cal, cte, cams, elev_domain)
+    _, dom0, pose0 = render_frame(log_dir, indices[0], cal, cte, cams, elev_domain)
     sup0 = SM.camera_support_emc(pose0)
     pairs = adjacent_pairs(cams, pose0, sup0)
     ring_closed = len(pairs) == len(cams)
-    rect, pair_stats = rule_mask(log_dir, cal, cte, cams, pairs, elev_domain, n=n)
+    rect, pair_stats = rule_mask(log_dir, cal, cte, cams, pairs, elev_domain, n=n,
+                                 indices=indices)
     rect &= elev_domain
 
     # koi asked for two hood variants split across scenes.  That only exists if a
@@ -216,7 +298,7 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
     keep_not_written = 0        # the invariant: must be 0 (I3)
     keep_dark = 0               # informational: real pixels that happen to be black
     for i in range(n):
-        erp, written, _ = render_frame(log_dir, start + i, cal, cte, cams, elev_domain)
+        erp, written, _ = render_frame(log_dir, indices[i], cal, cte, cams, elev_domain)
         kill = rect | (hood if hood is not None else False)
         out = erp.copy()
         out[kill] = 0
@@ -234,7 +316,8 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
         os.path.join(out_dir, "rule_mask.png"))
 
     man = {"schema": "db240.rulemask.v2", "dataset": dataset, "scene_id": scene_id,
-           "window": [start, start + n - 1], "frames": n,
+           "window": [indices[0], indices[-1]], "frames": n,
+           "frame_indices_uniform_in_time": grid_uniform,
            "cameras": cams, "n_cameras": len(cams),
            "hood_variant": hood_effective,
            "hood_variant_requested": hood_variant,

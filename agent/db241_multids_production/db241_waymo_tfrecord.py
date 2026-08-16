@@ -188,6 +188,21 @@ def _undistort_maps(K, dist, w, h):
     return newK, m1, m2
 
 
+def _segment_of(ctx, e2e):
+    """Segment identity of a record.
+
+    Perception names every record in a segment with the same context, so the
+    context IS the segment.  E2E appends the frame number - `<hash>-058` - so
+    every record in a segment has a DIFFERENT context, and matching on the whole
+    string keeps exactly one frame and silently drops the other 92.  That is what
+    made every E2E clip a freeze-frame: 93 identical PNGs, all rendered from the
+    one source frame that survived.
+    """
+    if e2e and ctx and "-" in ctx:
+        return ctx.rsplit("-", 1)[0]
+    return ctx
+
+
 def convert(tfrecord, out_dir, e2e=False, max_frames=None, context_filter=None,
             undistort=True):
     """Write one pseudo-AV2 log.  Returns a small report dict."""
@@ -204,10 +219,11 @@ def convert(tfrecord, out_dir, e2e=False, max_frames=None, context_filter=None,
         fr = parse_frame(payload, e2e)
         if fr is None or not fr["cams"]:
             continue
-        if context_filter and fr["context"] != context_filter:
+        seg = _segment_of(fr["context"], e2e)
+        if context_filter and seg != context_filter:
             continue
         if ctx_seen is None:
-            ctx_seen = fr["context"]
+            ctx_seen = seg
             for cid, c in sorted(fr["calib"].items()):
                 k = c["intr"]
                 w, h = c["wh"]
@@ -230,7 +246,7 @@ def convert(tfrecord, out_dir, e2e=False, max_frames=None, context_filter=None,
                 extr_rows.append({"sensor_name": name,
                                   "qw": q[3], "qx": q[0], "qy": q[1], "qz": q[2],
                                   "tx_m": E[0, 3], "ty_m": E[1, 3], "tz_m": E[2, 3]})
-        elif fr["context"] != ctx_seen:
+        elif seg != ctx_seen:
             continue
 
         # per-camera timestamp: trigger time if real, else the frame stamp
