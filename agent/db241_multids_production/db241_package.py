@@ -29,6 +29,32 @@ PKG = r"E:/w2p_data/db241_delivery"
 TRAIN_FRAC = 0.8
 
 
+def _link_tree(src, dst):
+    """Mirror a sample into the package with hardlinks, falling back to copy.
+
+    A sample is ~66 MB and the package holds every one of them, so copying means
+    the dataset exists twice on the same volume: at 2000 samples that is 131 GB
+    duplicated for no benefit, on a disk with less than that free. Hardlinks give
+    the same directory tree at zero extra bytes because the package never mutates
+    a sample - it only arranges them into train/test/held_out_ood.
+
+    Falls back to copying per file, so a cross-volume package or a filesystem
+    without hardlinks still works rather than failing late.
+    """
+    for root, _dirs, files in os.walk(src):
+        rel = os.path.relpath(root, src)
+        out = os.path.join(dst, rel) if rel != "." else dst
+        os.makedirs(out, exist_ok=True)
+        for f in files:
+            s, d = os.path.join(root, f), os.path.join(out, f)
+            if os.path.exists(d):
+                continue
+            try:
+                os.link(s, d)
+            except OSError:
+                shutil.copyfile(s, d)
+
+
 def load_samples(out_root=OUT):
     found = {}
     if not os.path.isdir(out_root):
@@ -99,7 +125,7 @@ def build(out_root=OUT, pkg_root=PKG, copy=True):
                     sub = "train" if m["scene_id"] in plan["sources"][ds]["train"] else "test"
                 dst = os.path.join(pkg_root, sub, ds, str(m["scene_id"]))
                 if not os.path.isdir(dst):
-                    shutil.copytree(m["_path"], dst)
+                    _link_tree(m["_path"], dst)
         with open(os.path.join(pkg_root, "split.json"), "w", encoding="utf-8") as fh:
             json.dump(plan, fh, indent=1)
         with open(os.path.join(pkg_root, "README.md"), "w", encoding="utf-8") as fh:
