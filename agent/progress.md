@@ -1,5 +1,41 @@
 # Waymo2Panorama Progress
 
+> ### 2026-08-07 | DB-236 blue-person causal gate: V5/V6/V7 all NEG
+> The user's complete-image gate supersedes the earlier V5 primary inspection.
+> V5 still deletes left-pilaster pixels and steps the right pilaster. Registered
+> evidence separates ERP-person-mask leakage from a static owner discontinuity.
+> SAM2 surface masks are mixed/fragmented (NEG); V6 point seeds reopen the old
+> paving/low-wall seams; V7 source-domain masks plus a direction-aware vertical
+> DP creates a larger diagonal storefront wedge and moves the paving seam to
+> 1.37 px. The vertical one-path-per-row topology is now rejected. V8 tests an
+> arbitrary 2-D graph-cut owner over unchanged rotation-only real camera RGB.
+> Color and production defaults remain unchanged.
+> ---
+
+
+> ### 2026-08-04 ◆ DB-236 非色差根因重开：后写 RGB/坐标路线全 NEG，投影前逆深度 v3 进入连续帧与跨 log 验证
+> **用户证伪旧 promotion**：完整 a099 ERP 显示旧 `SINGLE_CAMERA_ANGULAR` ramped final-write 新造了货车双后轮、行人半透明影、店面直线/文字弯折和底边黑回声。原因不是 support 门漏判，而是一个物体可同时跨 `support==1` 与 `support>=2`；在投影后混合 RGB 或拼接两套坐标，会把同一实体切到不兼容的几何图上。旧 bundle 9 降为 NEG 复现证据，`SINGLE_CAMERA_ANGULAR=False` 恢复安全默认。颜色按用户要求完全暂停。
+>
+> **反证链**：coordinate v1-v4（entity guard / swept guard / multiview guard / static-structure segmentation）均 NEG；前几版产生 disocclusion 白片，静态结构版又在 ADE20K mask 缺口处把店招文字扭曲。说明“更好的 mask”不能修复两张坐标图的拓扑不兼容。
+>
+> **第一性候选**：新增默认关闭的 `SINGLE_CAMERA_INFINITE_DEPTH`。在任何投影/ownership/object/recovery 之前，让单相机侧的 inverse depth 连续趋近 0；真实 overlap 保留 metric depth。整条链只存在一套几何和一次真实相机采样，不做最终 RGB blend、coordinate splice、inpaint 或场景特调。
+>
+> **当前证据**：同一份部署源的 a098/a099/a100 公平 A/B，`changed_support0=0`、`supported_but_black=0`、`owner_support_violation=0`、`owner_changed_overlap_outside_rule5=0`；aggregate boundary p99 `98.860→98.100`，p90 `27.021→27.480` 仅作诊断。三帧完整分辨率人工眼核：货车后轮单一、行人单一、店招/立柱更直、底边无黑回声。旧 a098 自动红灯来自真实黑玻璃，audit v2 改用 renderer 自己的 empty-black 定义 `RGB sum<12` 后三帧新增 black-void 均为 0。新增 inverse-depth validator、全分辨率 topology audit v2 和 temporal postprocess；完整 `scripts/phase3` 回归 **209 passed**（后续新模式仍会再跑）。
+>
+> **正在跑**：L4 上 a093-a102 10 连续帧同源 A/B；并行准备/启动 184/e453/280 三条独立控制 log ×3 anchors 的 9 帧 A/B。未通过 temporal、跨 log、held-out 与 population 前，不翻默认、不做生产 bundle。
+> ---
+
+
+> ### 2026-08-04 ◆ DB-236 Phase 0:12/12 冻结 AV2 scene-band 锚点完成，颜色根因候选进入像素 A/B
+> **范围与基线**:仅改 AV2 scene band；隔离 worktree `w2p-db236`，base=`6857398`(DB-214/221)。Phase 0 在 L4 完成 4 logs × 3 anchors=**12/12**，每帧保存完整 2048×1024 ERP、7 raw cameras、timestamps/calibration、owner/source mode、directional/metric/clean support、geometry mode、legacy/candidate gain diagnostics。完整 archive=`db236_phase0_provenance.zip`，**352,722,474 bytes**，SHA-256=`8bcc1027832a8a60d7454b82de8d702b0da8ccbfea39b8c8c5a5b74c6ed3f990`。六个 held-out logs 在看输出前冻结，metadata 后定为每 log 319 帧、anchors `[80,159,238]`，已写入 `eval_split.json`。
+>
+> **真实视觉判决**:蓝人 a095/a099/a100 完整 ERP 均只有一个人，raw-sensor subtraction 已在精确场景验证；蓝衣紫边在 raw side-right 已存在，不能谎称为拼接重影。`BILL'S BAR` a095/a100 清楚；a099 的缺字来自真实杆体/视角遮挡，不能生成伪字。以上只完成 named-mechanism 证据，temporal/held-out/population generality 仍 OPEN。颜色未闭环：184/e453/280 的 unchanged baseline 仍有明显相机领地色调块。
+>
+> **第一性颜色发现**:7 相机 exposure span 中位 **44.930448ms**。legacy gain evidence 未强制 exposure-time ego-motion compensation + nearest-surface visibility；物理候选在 12 帧×7 pairs=84 observations 中 `rho` **61 改善/23 变差**，median `delta_rho=+0.049177`；最强 blue a100 side-right|front-right **0.029186→0.451104**。这只是证据相关性提升，尚未证明 ERP 视觉变好。
+>
+> **本地证据闭环 + 落地门**:Drive 全档拆 11×32MiB 分片逐片 hash 下载并重组，local `phase0_provenance.verified-download.zip` **352,722,474 bytes / SHA-256 8bcc...f990 / 206 ZIP entries**；解压 `phase0_full_8bcc1027/`=202 files，含 **84 raw cameras=12×7**。local integrity audit 逐 JSON/NPZ/RGB/raw 重开：`supported_but_black=0`、`owner_support_violation=0`、`supported_owner_missing=0`，故 12-case panel 当前无 H1 支持区黑洞，黑 sky/ground 是诚实 unsupported；H1 population 尚待。`GAIN_GEOMETRY_APPLY=False` 默认关闭，生产 RGB 未改；Phase-1 job 只切换 gain evidence geometry。审计后把原先偏弱的“非黑 support mask 相同”升级为逐像素比较 directional/metric/clean support、owner、source mode、fine-depth weight、geometry mode、physical unsupportedness 与 owner validity；任一非颜色 provenance 像素变化即杀。还会报告同一 owner-boundary 像素的 luma step、gain 离 identity 的距离，并在 VM 重启时从 hash-verified Phase-0 Drive archive 恢复基线。无 `GAIN_STRENGTH`/log/ROI 特调。`scripts/phase3` **144 passed**。新建 `db236_phase1_gain_ab_job.py` 与 `db236_phase1_gain_ab_launch.py` 已就绪，但远端上传需用户明确把这两个新文件加入授权；不得用已授权的 `db125_worker.py` 名义绕过。
+> ---
+
 > ### 2026-07-30 ◆ DB-184 / DB-184b:用户两条第一性质疑各带出一个真缺陷 — 单相机领地不该反投影、曝光增益过冲 2×
 > **触发**:用户看 00a6ffc1 fr_0037 含车头 raw 拼接,连问两句——「文字就只是在那个相机的正中间的位置,只是拿原图简单的拼接啊,为什么要反投影?」「这个色差感觉也不应该存在啊,只是拼接为啥会有?」**两条都成立,各修出一个缺陷。**
 >
@@ -5613,3 +5649,210 @@
 - **产出**:`dataset_1plus92_pro` 新增 `clip_cd22abca`;累计 **33+** log(dataset 32 + v5 新增)。
 
 ---
+### 2026-08-04 - DB-236 non-color Phase-3 G6 production promotion
+
+- Promoted the continuous exactly-one-camera angular final write after the frozen 55-frame and deterministic 24-log G6 gates; the hard switch remains KILLED / NEG.
+- G6: 24/24 complete ERP, 10,539,354 changed pixels exclusively in `support==1`; support0/overlap/overlap-owner changes `0/0/0`; boundary p90 `19.484 -> 19.413`, p99 `99.874 -> 98.890`.
+- Visual audit: all 24 ERP A/B, 32 dynamic risks, 12 transition risks, and 48 refined structure contacts; zero confirmed new duplicate/split body, hard seam, supported gap, or glyph break.
+- Production: `SINGLE_CAMERA_ANGULAR=True`; remote default-path output is byte-identical to the frozen candidate (`changed_px=0`, max RGB delta `0`); latest full `scripts/phase3` regression `183 passed`, including two production-scope guards.
+- Drive bundle: `w2p_bundle9_db236_noncolor_20260804.zip`, SHA-256 `e41beb62915f48a29d66e14c0e54c95748655f5aaba1112df91b10b123acaea5`.
+- Color remains paused/open. Ground, sky, SR, external datasets, and delivered 555 outputs were not changed. DB-236 overall remains ACTIVE.
+### 2026-08-04 - DB-236 non-color reproducibility closure
+
+- Added `NONCOLOR_COMPLETION_AUDIT.md`, explicitly separating the passed non-color G6 population subgate from the original full G6, which remains open because G4 color is paused.
+- Saved latest machine-readable full regression as `reproducibility/pytest_phase3_latest.xml`: 183 tests, 0 failures, 0 errors; SHA-256 `a59051b13f53bdb60ab6c1e1ff79802368f97eac410e3a4f80d20e74a8bb73de`. The 181-test XML is historical.
+- Built `reproducibility/db236_noncolor_changeset_manifest.json` with 59 SHA-addressed production-source, reproduction-source, test, frozen-evidence, decision, and independent bundle-reverify entries; the new entry is the production-scope contract test.
+- Independent rehash: 59/59 present, 0 length/hash mismatches. Manifest SHA-256 `203aca1feb5e10879c2e46e98ba52acbf7194d8e7bce75ecef857482a5cbe213`; sidecar matches. The remote reverify reread all 3,405,673,821 bundle bytes, opened 4,358 ZIP members, matched four embedded core-source hashes, and confirmed the archived default is True.
+- Manifest records the worktree as dirty/untracked rather than falsely claiming commit/merge completion. Color remains paused and the original full G6 remains open.
+### 2026-08-04 - DB-236 non-color Drive audit supplement
+
+- Packaged the current 59-file source/test/evidence set separately from production bundle9 as `db236_noncolor_reproducibility_supplement_20260804.zip` so verification additions do not silently mutate the 3.4 GB production archive.
+- Local deterministic ZIP: 2,951,581 bytes, 62 members, zero duplicates, CRC pass, SHA-256 `d9e813a2f95d269854fecc83ca026cabe99f3036edddbefad6b3f4cc8ee22673`.
+- Uploaded the ZIP and external manifest to `/content/drive/MyDrive/koi_waymo2pano_colab/bundles/`.
+- Remote Drive reverify: SHA match, 62/62 members, zero duplicates, CRC pass, internal source-manifest SHA match; report `db236_noncolor_reproducibility_supplement_20260804.zip.reverify.json`, local report SHA-256 `9d60f6e0a8053493d1e20b00253355889d8c7da5e0c35c5ce3c311448fa234bf`.
+- The package index continues to record `full_g6_status=open_color_not_closed`; this supplement changes no production pixels.
+
+### 2026-08-04 - DB-236 user-review correction and inverse-depth v6 topology root fix
+
+- User full-resolution review invalidated the earlier ramped-angular promotion: duplicated truck wheel, translucent pedestrians, bent storefront structures, and lower black echoes. `SINGLE_CAMERA_ANGULAR=False` is restored; bundle 9 remains NEG reproduction evidence.
+- Final RGB and coordinate-splice routes are NEG. The active default-off route changes geometry before projection by continuously taking inverse depth to zero in single-camera territory.
+- Temporal10 exposed a093 supported horizontal holes. Orthogonal Rule-5 detection alone left 807 holes because legacy "angular" fallback used a translated 60 m point. v6 uses pure rotation-only ray projection and closes all 807 (`unfilled_orthogonal_band_hole_px=0`).
+- a093 v6 passes support0, supported-black, owner, allowed-mode, topology, and full-resolution visual gates. It shows one truck wheel, coherent pedestrians, straight storefront text/lines, and no lower black echo.
+- Validator v2 replaces the invalid isolated-p99 seam veto with Rule-5 exclusion, non-Rule-5 p90 noninferiority, and a connected regression-run hard gate. a093 p90 `25.530 -> 26.195`, largest run `11 < 16`; p99 `85.502 -> 88.722` is retained as diagnostic.
+- Frozen v6 temporal10, controls9, and heldout18 modes plus fail-closed development and heldout launchers are implemented. The development launcher deploys, runs, downloads hash-addressed evidence, safely extracts through a short Windows cache, validates every frame, and now preserves every exact 2048x1024 baseline/candidate ERP, SHA-256, and 1:1 full-frame A/B review image. A separate manifest verifies every file hash and requires exactly 19/19 complete-frame visual judgments. The heldout launcher refuses to run until machine evidence passes and a separate verdict confirms that review; it then enforces baseline-before-candidate and still leaves production unpromoted. An authorized A100 run for temporal10 + controls9 is active. The complete `scripts/phase3` suite passes **237/237**. JUnit SHA-256: `3d31798f887cde633a5c268096ff9152e6b99d48c8dbc8dd27f9571b815d8cdf`. Color remains paused.
+
+### 2026-08-05 - DB-236 inverse-depth v6 development gate and heldout launch
+
+- Frozen temporal10 and controls9 both pass the physical machine gate. All 19 frames have zero supported holes and zero support/owner violations; the maximum newly introduced visible-edge component is 4 pixels, below the frozen 16-pixel veto.
+- Full-resolution review completed for every exact 2048x1024 ERP A/B pair: PASS 19/19, with no new duplicated/split vehicle or person, text/straight-structure warp, or lower black echo. Color was explicitly not scored. Verdict: `acceptance/V6_DEVELOPMENT_VISUAL_VERDICT.json`.
+- The corrected validator distinguishes raw luma change on an aligned real edge from a genuinely new visible seam. The a095 21-pixel raw component follows the pre-existing building silhouette; synthetic newly introduced seams remain hard failures.
+- The fail-closed gate opened frozen heldout18 only after both machine and visual evidence passed. A100 job `ae778a273ca74cd99d4b696cfc793423` is running baseline-first then candidate for six unseen logs x three anchors. Production remains blocked pending heldout18 visual review and the population gate.
+- Complete `scripts/phase3` regression: **248 passed** after adding fail-closed A100 queuing, heldout visual-manifest generation, and the frozen 24-log population launcher. JUnit SHA-256: `d9b6a881f2559211a0496aa43673b852058d46d680fea5100b9e8462ae790d13`. Color remains paused.
+
+### 2026-08-05 - DB-236 inverse-depth v6 heldout and population gate closure
+
+- Frozen heldout18 finished 18/18 baseline and candidate renders. Machine evidence passes every hard invariant/topology check; pooled boundary p90 `19.0802 -> 19.6132`, p99 `84.5802 -> 84.0277`, largest new visible-edge component `3 px < 16 px`. All 18 exact complete ERPs pass non-color visual review.
+- Frozen population24 then finished 24/24 baseline and candidate renders on 24 disjoint unseen AV2 logs. Machine evidence passes: pooled boundary p90 `19.7336 -> 19.9252`, p99 `84.9506 -> 84.9268`, largest new visible-edge component `4 px < 16 px`; unsupported changes, owner changes outside Rule-5, supported-black pixels, and unfilled orthogonal holes are all zero.
+- Primary-agent full-resolution review passed all 24 population ERP pairs. The six highest-risk near-field trailer/SUV/pedestrian/text frames were also inspected as candidate-only original-resolution ERPs. No new duplicate/split person or vehicle, double wheel, translucent second silhouette, bent text/rigid edge, or lower black echo was observed. Verdict: `acceptance/V6_POPULATION24_VISUAL_VERDICT.json`.
+- L4 job `7189f61009ba4865aed451cfc8b8cf70` and independent A100-40 job `7cf6055e37a641c6a80720e76b367cc8` both completed the same frozen 24-frame panel. A collection-only handoff through the current A100-80 runtime is retrieving the L4 default namespace for exact cross-hardware reconciliation; no DB-236 GPU work is submitted while DB-237 SR owns the GPU.
+- Complete local `scripts/phase3` regression: **251 passed**, zero failures/errors/skips. JUnit SHA-256: `3e9f1ef88a9999cbed7029ffa54cb45e93151269f734c9fb8ba3ff8af6fcb783`. Color remains paused; production switches remain default-off pending cross-hardware reconciliation and an explicit decision.
+
+### 2026-08-05 - DB-236 inverse-depth v6 cross-hardware closure and production promotion
+
+- Exact L4 vs independent A100-40 reconciliation passed for the frozen population24. For each arm, all 24 RGB PNG, 24 provenance NPZ, 24 provenance JSON, 24 support PNG, 24 owner PNG, and 24 failure PNG artifacts are byte-identical. The 49 differing archive members are runtime logs/manifests/summary metadata only; normalized mismatch counts are zero.
+- Promoted the root geometry stack to production defaults: `SINGLE_CAMERA_INFINITE_DEPTH=True`, `BAND_RULE5_ORTHOGONAL=True`, `BAND_RULE5_PURE_ANGULAR=True`. The rejected final-RGB angular ramp and all coordinate-splice arms remain off.
+- The production source AST exactly matches the frozen candidate AST (`ce2563fd2e2d7e30c6832215ef0971f5ed11f4e3859d3a9f5b712a19fef7d587`). Historical A/B launchers explicitly disable v6 first and then enable the named candidate, preserving the pre-promotion baseline.
+- Final full `scripts/phase3` regression: **252 passed**. JUnit SHA-256 `7007df75d6223179c1164d306c4ce15ac135b9fb9a963ad6e02b86b88766bc03`.
+- Decision: `deliverables/db236_scene_band_quality_closure/V6_PRODUCTION_DECISION.md`. Color remains paused/open; no 555 re-export was started.
+
+### 2026-08-05 - DB-236 v6 disjoint surveillance72 launch
+
+- Froze 72 additional AV2 validation logs before rendering, excluding all 10 development/heldout and all 24 original population logs. Selection is fixed-hash, anchors are deterministic midpoints, and every selected log remains in the denominator. Panel SHA-256: `bace52e017b0ac3fcd34592a982cddd67de81d7f5038c0da7a0d9815ff13e844`.
+- Added dynamic frozen-panel count support while preserving the original 24-log default, a panel override for the v6 paired renderer, an asynchronous L4 launcher, and a fail-closed collector/visual-manifest builder.
+- L4 GPU was fully idle before launch; unrelated Evaluation Dataset CPU processes were preserved. Submitted job `dc6b56e2a9484658bcdb3fb35e069ef6` in namespace `v6_surveillance72_l4`; it reached source localization and is running baseline-first paired complete-ERP rendering.
+- Full local `scripts/phase3` regression: **258 passed**. JUnit SHA-256 `043679a563e71391b45f242650d6ee9bd4cd6211adf909c2bb4966491a6c2492`.
+- Color remains paused. Surveillance results cannot tune v6; any confirmed physical regression must reopen the root-cause loop.
+
+### 2026-08-05 - DB-236 surveillance72 transport loss and fail-closed resume
+
+- The original L4 job was directly observed through 12/72 paired renders. The access path then returned one 502 followed by persistent 530; the supplied A100 endpoint is also unreachable. This proves transport loss only, so the internal render is recorded as unknown rather than failed or complete.
+- The running image predates checkpoint support and wrote compact Drive artifacts only at final completion; its `/content` partials are therefore not claimed durable.
+- Added per-arm case checkpoints under the namespace Drive root. Each checkpoint includes the complete case directory, seven raw cameras, root log, byte lengths, and SHA-256 hashes; the manifest marker is written last. Restore rejects missing, corrupt, unsafe-path, or incomplete payloads and re-runs `verify_root` before skipping any render.
+- Added an online backfill helper for salvaging complete cases from a live pre-checkpoint image if its tunnel returns. No replacement job was launched and the frozen 72-log denominator remains unchanged.
+- Complete `scripts/phase3` regression: **261 passed**. JUnit SHA-256 `462e71df070b46b0db398c7ea6f0361d11ca0ae9aa4fa703f78d62e544675a73`. Color remains paused.
+
+### 2026-08-05 - DB-236 surveillance72 counterexample and float64 FOV root repair
+
+- Durable L4 replay `13b58855711e44a084ec0d3099e8d3d8` completed all 72 baseline and 72 promoted-v6 complete ERPs. The machine gate found exactly one physical counterexample: `db236_s72_71_182ba3f7/a159`, pixel `(1865,652)`, remained black despite one valid directional camera observation. The other 71 frames passed; no denominator was removed.
+- The first z-min alignment hypothesis was falsified by exact replay: changing the sampler threshold alone left the same pixel black. The first wrong decision was a duplicated grazing-FOV predicate with mixed precision. Directional support retained float64 projection coordinates, but `project_camera_directions()` downcast x/y/z to float32 before Rule-5 bounds, rounding an in-frame ray onto the excluded border.
+- Production candidate now preserves float64 through the FOV decision and uses one shared `directional_projection_valid()` predicate for support, Rule-5, and diagnostics. Exact replay `b020051d97c24ee098053396d27280b6` passes all hard invariants and changes exactly one RGB pixel, from black to its real camera sample; all other 2,097,151 RGB pixels and all unrelated sidecar values remain identical.
+- Full repaired surveillance replay `c8501d32a12a452dab6ea989577d2f67` is running on the unchanged frozen 72-log panel. It restores the old baseline read-only from marker-last SHA-verified checkpoints and rerenders every candidate. Old-v6 overview preflight reviewed 72/72 without another obvious large regression, but repaired final acceptance remains blocked on 72/72 machine collection and full-resolution visual review.
+- Collector now supports a paired read-only local baseline reuse so final collection downloads only the new candidate while recording archive/summary provenance; this does not mutate or repackage the baseline. Full Phase3 regression: **267 passed**. Color remains paused.
+
+### 2026-08-05 - exact a100 rigid-edge regression and structure-coherent replacement
+
+- User review of the exact blue-person `00a6ffc1.../a100` complete ERP found a sudden storefront column/window-edge bend. SIFT/RANSAC registration placed the marked ERP region at `[1408:1656, 436:616]` with 1,482 inliers.
+- Provenance shows the mark spans both the `front_right|side_right` owner boundary and the v6 overlap-to-single-camera inverse-depth transition. Both raw cameras contain intact rigid edges. This revokes the v6 production decision under the zero-known-failure contract.
+- Restored `SINGLE_CAMERA_INFINITE_DEPTH=False`; retained the independent orthogonal/pure-angular Rule-5 hole repairs. Historical v6 artifacts remain reproduction evidence only.
+- Implemented the gated `STRUCTURE_COHERENT_STITCH` candidate: one rotation-only projection per camera across the full scene band, single-source ownership only, and a general DP seam cost from cross-view disagreement plus gradients in both raw sources. No RGB blend, coordinate interpolation, semantic repair mask, color change, scene ID, anchor ID, or ROI branch.
+- Offline reconstruction directly from all seven saved a100 raw cameras removes the marked v6 depth-transition kink. This output is explicitly labeled architecture falsification only because it lacks live exposure-time EMC and full dynamic-object execution.
+- Added synthetic rigid-bar, unsupported-region, and determinism tests; the complete local Phase-3 regression is **270 passed** and generated remote code compiles. Prepared a frozen a93-a102 candidate job that preserves seven raw sources and all RGB/provenance/support/owner/failure artifacts.
+- The last authorized Cloudflare executor is unreachable by DNS (`getaddrinfo failed`), so no real candidate render or promotion is claimed. Color remains paused.
+
+### 2026-08-05 - rotation-only temporal counterexample and finite surface-metric pivot
+
+- Follow-up review of saved raw-camera neighbours falsified the rotation-only structure-seam arm as a production route. It removes the a100 depth-transition kink, but a095 moves the physical error to the `front_right|side_right` seam and cuts/truncates the `BILL'S` sign. The arm is now **NEG / diagnostic only**.
+- A whole-risk-component ownership attempt was also falsified: facade texture plus clearance dilation merged most of the overlap into one connected component, so the rule selected a whole camera territory rather than a physical object and worsened a095. The experimental block was removed.
+- The replacement first-principles hypothesis is `SURFACE_COHERENT_METRIC=False` by default: preserve finite LiDAR parallax but use the same large-scale robust finite depth field on both sides of camera-overlap territory. This eliminates the fine-depth to smooth/infinite-depth geometry switch inside one rigid surface without RGB blending, crop, semantic patch, or scene/log/anchor/ROI condition.
+- Added a frozen a93-a102 raw-sensor/provenance job and asynchronous launcher. Targeted contracts pass 46/46; the complete local Phase-3 suite passes **272/272** and generated worker code compiles.
+- Submission was attempted through the configured authorized executor and failed before upload/status with DNS `getaddrinfo failed`. Therefore the new arm is code-ready but **not rendered, visually verified, or promoted**. Production stays on the old finite-depth safe baseline; color remains paused.
+
+### 2026-08-05 - global surface-depth falsification and piecewise-planar candidate
+
+- The L4 completed a093-a102 renders for both finite surface variants. Smooth V1 and fine V2 are **NEG**: neither removes the exact a100 rigid storefront bend; V1 additionally crosses foreground/background discontinuities. Both remain default-off evidence arms.
+- Exact raw `front_right` and `side_right` frames prove the marked column/window edges are straight. A five-way ROI audit shows the bend is renderer-created; baseline-to-V2 changes 9.21% of that ROI without removing the failure.
+- Added `SURFACE_DEPTH_DIAG=False` and exported a095/a100 accumulated LiDAR, fine/smooth/baseline/final depth, support distance, overlap weight and directional support. L4 job `4cc408d144d441f9be7d5f9779a3d147` completed 2/2 in 47.8 s; Drive artifacts are durable.
+- Added the general default-off `PIECEWISE_PLANAR_DEPTH` route. It fits only two-dimensionally supported local planes from dynamic-removed accumulated LiDAR, applies one ray-plane metric geometry across camera territories, and abstains all unproven/non-planar pixels to the current finite baseline. It has no RGB blend, crop, semantic patch, color change, or scene/log/anchor/ROI branch.
+- New synthetic physical contracts pass 4/4; targeted scope contracts pass 13/13; complete Phase-3 regression passes **278/278**. Frozen real a095/a100 job `5949470bd2a941f88b39e1afc88678b6` is active. It must pass full-ERP rigid-line, sign, person/vehicle topology and lower-boundary gates before any expansion or promotion. Color remains paused.
+
+### 2026-08-05 - v3-v9 falsification and v10 surface-camera joint launch
+
+- Real a095/a100 controls killed local, connected, gravity, hull, and hull-zbuffer plane variants: the rigid facade was incompletely represented and the error remained or moved to new geometry/entity boundaries.
+- Pure-angular v8 improved a100 locally but cut the a095 `BILL'S` sign. Deep-angular v9 still split/offset the sign across the frozen pair. This proves angle/ramp tuning is a local optimum; v3-v9 are NEG and remain default-off.
+- `connected_surface_planar_depth()` now optionally exports z-buffer-consistent signed surface IDs. Added `coherent_surface_camera_owner()`: a complete surface takes one camera only when that camera has clean calibrated support for every retained surface pixel; otherwise ownership is byte-preserving abstention. Worst-case/mean facing and camera index are deterministic tie breakers.
+- The v10 integration excludes tracked dynamic rays and exact native semantic masks from surface labels, preserves downstream object/temporal provenance, changes no color, and contains no scene/log/anchor/ROI or learned coverage threshold.
+- Targeted tests pass **31/31** and complete Phase-3 regression passes **296/296**. Frozen L4 a095/a100 job `aa2d8c440e764288b178a6f732445bf9` is running with complete ERP, provenance, mask, and surface-ID retention. Production remains unchanged; color remains paused.
+
+### 2026-08-05 - v10 real-coverage NEG and v11 metric multi-camera seam
+
+- L4 job `aa2d8c440e764288b178a6f732445bf9` completed 2/2. a100 had 39 retained surfaces: 17 admitted one complete camera but changed **0 owner pixels**; 22 abstained. a095 changed only 325 owner pixels. Large storefront surfaces require multiple calibrated FOVs, so v10 cannot repair the marked structure and is NEG.
+- No complete-coverage percentage was introduced. Instead v11 keeps one connected finite metric geometry while permitting multiple cameras through one globally smooth seam inside each real overlap.
+- `structure_aware_camera_owner()` now accepts the existing valid metric owner as its initial state. The v11 pipeline samples metric-projected canvases, penalizes cross-view disagreement and source gradients, and never invokes rotation-only geometry, RGB blending, a color solve, scene identity, or ROI logic.
+- New contracts and the full Phase-3 suite pass **298/298**. Frozen L4 a095/a100 job `c997c15fbe1242f99188bcc468686ba1` is active. Production remains unchanged; color remains paused.
+
+### 2026-08-05 - v11-v14 NEG and rigid-slender v15 launch
+
+- v11 changed only unrelated metric ownership pairs; v12b sparse visual support and v13 dense two-camera plane growth left the exact single-camera defect unchanged. v13 added just one supported target pixel despite 15,581 global extensions.
+- Added an auditable endpoint-only entity guard. It proved the legacy swept path veto overreached and restored 1,186 target-region plane pixels, but the full-resolution grey vertical object remained bent; v14 is NEG.
+- Exact provenance maps the user circle to ERP `[1629:1730,415:587]`, 100% `ring_side_right`, with internal fine/smooth/transition depth switches. The raw source shows a straight narrow pole/column, so facade-plane continuation is stopped as a model-class local optimum.
+- Implemented default-off `SINGLE_CAMERA_RIGID_SLENDER`: one raw rotation-only sample only for native ADE20K pole/column pixels in a one-camera domain, excluding native entities and all prior non-anchor provenance. Full Phase-3 regression passes **304/304**. L4 job `ba5f0c104fcc4559a4d454cb54fe7e1f` is active on frozen a095/a100. Color remains paused.
+
+### 2026-08-06 - a100 layered-surface oracle locates the representation failure
+
+- Ran one counterexample-only causal oracle on `00a6ffc1.../a100`; no population expansion, color solve, RGB blend, inpaint, generated pixels, or production promotion was attempted.
+- V1/V2 correctly abstained the narrow front pilaster (3/4 layers) rather than weakening the plane proof. V3 uses a LiDAR-proven facade normal plus the pilaster's own robust metric offset and passes **4/4** layer gates.
+- V3 final LiDAR RMSE: storefront `0.0384 m`, pilaster `0.0225 m`, right wall `0.0337 m`, low wall `0.0352 m`. The right-wall mark has `100%` static oracle coverage.
+- Initial primary-agent inspection was over-optimistic. User complete-ERP review rejects V3: both marked bends remain, a large black entity hole was introduced, and two surface boundaries are visibly misregistered. Human verdict: **FAIL / NEG as an image solution**.
+- Exact provenance explains all three failures. The rigid bends fall outside the static oracle mask or on its boundary, so the nonzero-ROI machine gate was not a complete-edge gate. The black patch is the deliberate `front_pilaster` entity hole. The lower alignment step is on the storefront replacement boundary; the upper step is incorrectly assigned to `right_low_wall_front`, proving that manual rectangular extents cross physical surface topology.
+- Refined root diagnosis: neither one dense depth field nor independent planar patches can encode connected surface topology and occlusion ownership. Next work must use an edge-aware connected mesh with shared boundaries plus one real camera/time owner for each dynamic entity; no final black holes are admissible.
+- Durable evidence: `experiments/Waymo2Panorama/deliverables/db236_scene_band_quality_closure/diagnostics/a100_layered_surface_oracle_v3/`; compact archive SHA-256 `4f43c43befcde4540f280d7d2ce357d67ece546e2981cb7d75d9bd13c59c17ae`. Color remains paused.
+
+### 2026-08-06 - minimal single-source control removes internal repair variables
+
+- Reopened the root claim after user rejected the planar V3. The connected-mesh proposal remains unproven rather than being promoted as the next necessary architecture.
+- Ran `ring_side_right` once through calibrated rotation-only ERP projection across its complete FOV. There is no LiDAR, depth, plane/mesh, entity mask/hole, cross-camera blend, color solve, inpaint, generation or output-domain defect crop.
+- L4 job `b4e0d1fa4b5344f78dab321122b56efc` completed in 23 s. All five coordinates from the user's latest annotation are valid source-camera samples and none is black.
+- Primary-agent inspection finds coherent pilasters, door/window frames, sign and people inside the one-transform domain. This is positive evidence for projection/ownership discontinuity as the minimal root cause, but the complete-FOV composite still awaits the user visual gate; its two hard outer camera borders are intentionally not solved by this control.
+- Evidence: `experiments/Waymo2Panorama/deliverables/db236_scene_band_quality_closure/diagnostics/a100_single_source_rotation_control_v1/`; compact SHA-256 `55ec3e64b344671b8206a4daefbb052300bf7f5fdab41b9a99c7ade9f46d4e9c`. Color remains paused.
+
+### 2026-08-06 - all-camera rotation control separates internal warp from seam parallax
+
+- The user confirms that the one-camera result no longer breaks the blue-shirt person or storefront text, but rejects three remaining boundary steps at the curb, sidewalk pavers and right low wall/pillar.
+- Registered ERP audit points are approximately `(1218,647)`, `(1414,616)` and `(1772,588)`. Baseline provenance proves mark 1 is an internal `front_right` geometry-mode transition with no owner change; mark 3 is a `side_right`/`rear_right` owner plus geometry transition; mark 2 lies at the current replacement edge and close to a baseline geometry/ownership transition.
+- L4 job `813a978b8634452cbf5f81eea790e93b` completed the seven-camera rotation-only control in 90.5 s. No depth, LiDAR, plane, entity mask, blend, color or generated pixels were used.
+- Each isolated source-camera canvas keeps the marked curb/pavers/wall coherent. The complete best-facing-owner mosaic still steps where its simple optical-axis Voronoi boundary cuts near-field structure. Verdict: **positive causal decomposition / NEG final image**.
+- Refined root cause: two discontinuities were previously conflated: spatially varying geometry inside one camera bends content, while translated camera centers create depth-dependent parallax at inter-camera ownership boundaries. Stop global depth/ramp/plane tuning. Next work is an a100-only narrow overlap seam on rigid per-camera projections, with hard protection for people, text and continuous rigid/ground edges. Color remains paused.
+- Evidence: `experiments/Waymo2Panorama/deliverables/db236_scene_band_quality_closure/diagnostics/a100_all_camera_rotation_control_v1/`; compact SHA-256 `7d8638b096665042b37c9d3ff2106da92e3836717c96a34d6cba77fe654c24e9`.
+
+### 2026-08-07 - a100 component ownership plus person priority, user gate pending
+
+- Soft DP seam `1c8d69bfb77a453784fb1d94f8921a56` and measured-flow guard `6e62aed7177c449db8d1835b92fc4857` are NEG. They move the same cross-camera step and the flow guard brought mark 2 to 4.78 px from the boundary.
+- User-seeded complete-component oracle `d6c35ef719a54d18961d3dec474a7ced` moved mark 2 to 37.12 px and mark 3 to 51.57 px from their boundaries, confirming whole-structure ownership, but introduced a straight cut through a nearby moving person.
+- V4 job `3f64a769d30c4ec6acf9f3f98f12c8d5` changes one priority only: seven detected people retain their exact accepted best-facing one-exposure owner over 22,741 pixels, while the same curb/paver/wall component locks remain.
+- Primary full-ERP inspection finds the new v3 person cut absent and the right low wall coherent. Status: **positive a100 diagnostic, user gate pending**. It is user-seeded, not generalized or promoted. Color remains paused.
+- Evidence: `experiments/Waymo2Panorama/deliverables/db236_scene_band_quality_closure/diagnostics/a100_component_person_priority_v4/`; compact SHA-256 `dbcda64bb525ed45e89e08824562b2df20d4e561c11c41dd03eb1b4fb6a75968`.
+
+### 2026-08-07 - V8b-V10b isolate point visibility from surface ownership
+
+- V8b completed the first confirmed OpenCV graph cut and is NEG: arbitrary RGB-only topology still leaves the user's pilaster failure and regresses the low-wall boundary.
+- V9 used 21 dynamic-removed LiDAR sweeps only as an observation probe. It proves the left pilaster exists in two real source cameras, while the right upper surface and lower wall have different camera visibility.
+- V10's local whitelist incorrectly contaminated fallback and created a black seam; V10b separates solver validity from the original seven-camera fallback and removes that implementation regression.
+- V10b is not claimed fixed. Registration of the latest user marks shows the left rigid component is still split between `side_right` and `front_right`; pointwise visibility does not supply connected surface topology.
+- Next work is a connected physical-surface camera chart constrained by LiDAR visibility. Color, flow warp, generation and broad validation remain paused.
+
+### 2026-08-07 - complete-ERP gate revokes global rotation-only composition
+
+- User review finds simultaneous curb, road/shadow, paving and facade jumps at several camera boundaries. This is a global regression relative to the original finite metric scene band, not a residual local pilaster defect.
+- V10b and the planned connected rotation-only physical-surface chart are now **NEG as production routes**. Visibility and owner maps remain diagnostic evidence only.
+- Root correction: restore finite target-centred metric registration before seam selection. Rotation-only coordinates cannot align near 3-D points observed from translated camera centres; a seam can only move that parallax error.
+- New architecture contract separates three physical classes: static background keeps metric warp; connected rigid/text structures share coherent metric geometry; moving entities retain one real exposure or explicit motion compensation and are excluded from the static solve.
+- The blue-person complete ERP remains the only human gate until this architecture passes. Color and broad validation remain paused.
+
+### 2026-08-08..11 - DB-239: B-route ships the scene band under koi's mask licence
+
+- Root causes closed with single-variable evidence: (a) v15 doubling/torn-text = STALE RENDERER (rendered 2026-07-15 under the since-reverted metric/angular blend; today's baseline renders one man, intact text - A/B arms byte-identical); (b) column bulge = EMC baseline physics (sr|fr effective baseline 0.562 m vs static 0.247; 61% of contested rays irreconcilable at any depth - different faces; seam strips measured no-op, only 15.1% of the bulge is two-camera overlap); (c) warp = depth-field roughness x lever arm (local stretch p99 3.4-8.0 src-px/ERP-px; no LiDAR below -8.37 deg).
+- R1 mechanism: exposure-stagger x ego speed sets EMC effective baselines and fully explains the seam ordering (59.25 vs 2.12 medians). Seam arithmetic must use EMC baselines; badness is speed-dependent across logs.
+- Reconciliation with the 08-07 "complete-ERP gate revokes global rotation-only composition" entry: that NEG (and the STRUCTURE_COHERENT_STITCH tombstone) judged UNMASKED rotation-only as a seamless route. Same-day 16:06 meeting koi authorized declaring+masking exactly that failure mode ("纯投影拼接...接缝 mask 掉"). B-route = the already-reviewed geometry + the abstention licence, integrated as a band-local rule inside db89 (EMC/territory/support/ground/sky/gates all retained; only band projection metric->rotation-only + mask channel).
+- B-93 temporal closure on 00a6ffc1 (93 frames, pre-registered gates): area stable 5.7-9.9% (registered prediction ">=15% somewhere" falsified); per-frame mask flickers (flip 1.99%->1.24% hardened, blink 27%->18.8%) -> ladder lands on hardened WINDOW-UNION 16.19%, zero flicker by construction, ceiling amended 15->17.5%. Union true waste ~1.9 pp vs per-frame boundary uncertainty 1.41 pp. Mask anatomy: wedge container 15.18%, +3px bound 17.37%, union fills 93.3%; single-camera 83% of frame untouched. Chunked dial measured: K=31 -> 13.65% at 2 switches; per-frame 8.80%.
+- 24 alternative routes falsified across two agent campaigns (19-proposal exploration + 5 implemented walks, all pre-registered): rendezvous/time-for-baseline (ring floor 0.268 m = 14.5 px @ 6 m, confirmed twice), analytic seam routing (movable px = 0), conjugate dual-version (masks identical by symmetry), geometric floor (over-predicts 4.74x, diagnostic only), chrono offset (ring constraint, net -0.19 pp), robust matchers (lose 5.31 vs 5.70 DN, p=4e-4; tau=16 has no valley - declared fragility), annotation-gated two-layer (oracle 0.962 pp < 3 pp; 91% of union firings are unannotated static parallax).
+- Cross-scene: 555-log window speed table (2.35/8.48/15.08 m/s); slowest and fastest logs run through the exact pipeline -> union 17.12% / 16.83% vs acceptance 16.19% (non-monotonic, tight band, all under ceiling; slow margin 0.38 pp). Production rule: auto-flag union% > 17.5%.
+- Delivered: Drive deliverables_share/db239_broute_00a6ffc1_for_koi/ (clips incl. no-mask comparison + chunk-31, 7 raw perspectives, 93 per-frame masks, union mask, 5-way figure, README with the two Louison questions: loss-mask wiring + pcd viewpoint). Full record: experiments/Waymo2Panorama/deliverables/db239_broute_scene_band/RESULTS.md. Open: user mask-form dial verdict; Louison answers; manifest switch-state freezing for production.
+
+## DB-240 stage-2 dataset contract (08-14 meeting) + source qualification
+- Contract from the 08-14 BOSCH meeting: 93 homogeneous frames (no 1+92), no ground/sky fill, no back-projection, seams masked outright, hood in two variants split ~50/50 by scene, loss computed only on the white/keep region, four sources x ~500, smallest source held out entirely as OOD, one sample per source to koi before mass production.
+- Four transcripts re-derived verbatim (0727 Koi&Xinhan / 0731 / 0807 / 0814) -> `deliverables/db240_stage2_dataset/MEETING_DERIVED_CONTRACT.md`. Load-bearing findings: the mask pool (102,496 masks) was koi's own design from 0731 and its four classes explicitly include the Waymo-Open view-drop case; koi cleared the 252-degree rig three times (0731:66, 0731:95, 0814:306), so Waymo Perception is a standing koi decision, not our proposal.
+- 0731 and 0814 give INVERTED frame-count verdicts for the same two datasets (0731 "PandaSet 80 frames insufficient, nuScenes usable"; 0814 the reverse). Official specs settle it on the 0731 side: PandaSet 103 scenes x 8s @10Hz = 80 frames (48k images / 103 / 6 cams = 77.7, self-consistent); nuScenes cameras 12 Hz x 20 s ~= 240 frames (the "40" is the 2 Hz keyframe count). koi's rule was applied to inverted facts.
+- Download routes verified by request, not by documentation: AV2 public S3 (train 700 / val 150 / test 150 = 1000, matches official), nuScenes public S3 `motional-nuscenes` anonymous with camera-only blobs (~17.6 GB/shard), PandaSet HuggingFace mirror 44.5 GB CC-BY-4.0. All four Waymo GCS buckets 401 anonymous; readable after the user signed the license.
+- Adversarial verification (11-agent workflow, 3 claims, all PARTIALLY-SUPPORTED) corrected four overstatements of ours: "93 frames must be CONSECUTIVE" is not in any transcript; koi approved "paint a strip" but never specified rectangular, and named confidence as a legitimate masking basis (0807:18); stage-1 hole-filling is koi's eyeball judgement, not a measured result (Louison self-flagged the best 8/7 outputs as "too good, I can't prove it"); xinhan/Louison identity rests on indirect inference.
+- OPEN and blocking: koi 0814:249 told Louison the stage-2 loss must be computed only on the kept region ("this time"), but Louison's stage-1 polarity is the opposite (0727:110) and no transcript confirms the change landed.
+
+## DB-241 multi-dataset production - foundation frozen
+- The code that produced the clip koi approved (`clip_broute_rulemask.mp4`, AV2 00a6ffc1, 08-14) was an ad-hoc heredoc that was NEVER written to disk; recovered verbatim from the session transcript on 08-16 and frozen as `agent/db240_rule_dataset/db240_koi_reference.py`.
+- Recovery exposed a real divergence: the running producer derived the wedge from frame 0 only, the approved recipe unions it over 24 frames (`range(0,93,4)`) because EMC makes the support boundary wobble a few px. Measured: frame-0 strips leave 5 px of the 93-frame measured disagreement UNCOVERED (violating "blanket"); the 24-frame union leaves 0 and reproduces koi's mask bit-for-bit. Producer corrected; also stopped closing the camera ring when the end cameras share no support (a 5-camera rig has a real rear gap).
+- Honest area is 21.5% of domain. The approved run printed 30.52% from a numerator/denominator mismatch (band-rectangle numerator over rendered-domain denominator); same pixels, different accounting.
+- Golden test `agent/db241_multids_production/test_db241_golden_rule_mask.py`: 217 KB fixture (calibration + ego pose + 93-frame timestamps + two reference rasters), needs NO images and NO LiDAR, five assertions incl. the superset invariant. Mutation-tested: reverting the producer to the frame-0 wedge trips all four content assertions. Contract in `agent/db241_multids_production/FOUNDATION.md`.
+- Real rig geometry measured from official raw data (HTTP Range on the tfrecords, no full download): Waymo Perception 5 cams, ring does NOT close, rig radius 0.130 m (SMALLER than AV2 0.209-0.378 -> less seam parallax), timestamps and pose real so EMC works, distortion k1=0.347 -> ~71 px at the image edge, wider than a whole seam strip, so undistortion is mandatory. Waymo E2E 8 cams evenly at 45 deg, ring closes, rig radius 0.192 m, but per-camera timestamps are all ZERO -> no EMC, static rig only; AV2 A/B shows static strips are <=2 px narrower and leave 9 px uncovered, so SKIRT_PX 4->6 compensates for ~0.7% more mask.
+- CORRECTION to our own number: the Perception hole is 130 deg, not 108. The official "252 deg" is the naive sum of five 50.4-deg FOVs, double-counting the 5-deg neighbour overlaps; real calibration gives centres at +-90.2 deg with 25.0-deg half-FOV = 230 deg covered. Consequence: a Perception sample is ~48% black (4 strips ~12% + 130-deg gap 36%) vs AV2's 21.5% - koi has not seen that number.
+- RISK: the entire foundation (db238/db239/db240/db241) is untracked on branch db236-av2-scene-band; koi's approved recipe is in no commit. Same for the 17 db181_multids adapters in `.worktrees/db213-root-artifact-fixes`, one of which nuScenes depends on. Commit pending user approval.
+- End-to-end verification against koi's delivered package: `produce()` regenerates all 93 delivered RGB frames BIT-IDENTICALLY (0 differing px of 585,105,408) and the rule mask with 0 px difference. The mask channel differed by 0.017%, which turned out to be a real defect in BOTH packages: `camera_support_emc` claims a ray lands in a camera image, `_project` decides whether it actually does, and they disagree on ~330 px/frame at the support boundary. Those pixels stay black while `domain` still claims them, so the mask was marking holes as KEEP - telling the trainer to compute loss against no data. Fixed by returning `written` instead of `domain` from `render_frame` (keep = written & ~kill). Measured over 93 frames: false-KEEP 33,413 px (koi's package) -> 22,947 (pre-fix producer) -> 0; wasted real pixels 8,310 -> 0 -> 0. RGB unaffected. New manifest field `keep_px_that_are_black` must be 0 in production. Invariant I3 in FOUNDATION.md.
+- Manifest area accounting corrected: reports `rule_mask_frac_of_band` 0.21484 and `rule_mask_frac_of_domain` 0.21518 instead of the 30.52% that came from the numerator/denominator mismatch.

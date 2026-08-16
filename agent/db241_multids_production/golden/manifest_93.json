@@ -1,0 +1,1134 @@
+{
+ "dataset": "argoverse2",
+ "scene_id": "00a6ffc1-6ce9-3bc3-a060-6006e9893a1a",
+ "split": "val",
+ "cameras": [
+  "ring_front_center",
+  "ring_front_left",
+  "ring_front_right",
+  "ring_side_left",
+  "ring_side_right",
+  "ring_rear_left",
+  "ring_rear_right"
+ ],
+ "frames": 93,
+ "provenance": "the window koi signed off on 2026-08-14 (clip_broute_rulemask.mp4); recipe recovered from session transcript line 2588, 2026-08-14T10:01:29Z",
+ "manifests": {
+  "0": {
+   "anchor_ts": 315967380049927220,
+   "cam_ts": {
+    "ring_front_center": 315967380049927220,
+    "ring_front_left": 315967380037425436,
+    "ring_front_right": 315967380062451249,
+    "ring_side_left": 315967380072412940,
+    "ring_side_right": 315967380027482488,
+    "ring_rear_left": 315967380057428271,
+    "ring_rear_right": 315967380042441187
+   }
+  },
+  "1": {
+   "anchor_ts": 315967380099927223,
+   "cam_ts": {
+    "ring_front_center": 315967380099927223,
+    "ring_front_left": 315967380087425444,
+    "ring_front_right": 315967380112451243,
+    "ring_side_left": 315967380122412936,
+    "ring_side_right": 315967380077482498,
+    "ring_rear_left": 315967380107428275,
+    "ring_rear_right": 315967380092441195
+   }
+  },
+  "2": {
+   "anchor_ts": 315967380149927217,
+   "cam_ts": {
+    "ring_front_center": 315967380149927217,
+    "ring_front_left": 315967380137425435,
+    "ring_front_right": 315967380162451242,
+    "ring_side_left": 315967380172412940,
+    "ring_side_right": 315967380127482493,
+    "ring_rear_left": 315967380157428279,
+    "ring_rear_right": 315967380142441191
+   }
+  },
+  "3": {
+   "anchor_ts": 315967380199927220,
+   "cam_ts": {
+    "ring_front_center": 315967380199927220,
+    "ring_front_left": 315967380187425443,
+    "ring_front_right": 315967380212451244,
+    "ring_side_left": 315967380222412935,
+    "ring_side_right": 315967380177482491,
+    "ring_rear_left": 315967380207428275,
+    "ring_rear_right": 315967380192441194
+   }
+  },
+  "4": {
+   "anchor_ts": 315967380249927222,
+   "cam_ts": {
+    "ring_front_center": 315967380249927222,
+    "ring_front_left": 315967380237425439,
+    "ring_front_right": 315967380262451243,
+    "ring_side_left": 315967380272412939,
+    "ring_side_right": 315967380227482494,
+    "ring_rear_left": 315967380257428271,
+    "ring_rear_right": 315967380242441186
+   }
+  },
+  "5": {
+   "anchor_ts": 315967380299927209,
+   "cam_ts": {
+    "ring_front_center": 315967380299927209,
+    "ring_front_left": 315967380287425439,
+    "ring_front_right": 315967380312451241,
+    "ring_side_left": 315967380322412943,
+    "ring_side_right": 315967380277482492,
+    "ring_rear_left": 315967380307428271,
+    "ring_rear_right": 315967380292441194
+   }
+  },
+  "6": {
+   "anchor_ts": 315967380349927220,
+   "cam_ts": {
+    "ring_front_center": 315967380349927220,
+    "ring_front_left": 315967380337425439,
+    "ring_front_right": 315967380362451244,
+    "ring_side_left": 315967380372412939,
+    "ring_side_right": 315967380327482487,
+    "ring_rear_left": 315967380357428278,
+    "ring_rear_right": 315967380342441186
+   }
+  },
+  "7": {
+   "anchor_ts": 315967380399927222,
+   "cam_ts": {
+    "ring_front_center": 315967380399927222,
+    "ring_front_left": 315967380387425435,
+    "ring_front_right": 315967380412451246,
+    "ring_side_left": 315967380422412943,
+    "ring_side_right": 315967380377482489,
+    "ring_rear_left": 315967380407428266,
+    "ring_rear_right": 315967380392441189
+   }
+  },
+  "8": {
+   "anchor_ts": 315967380449927212,
+   "cam_ts": {
+    "ring_front_center": 315967380449927212,
+    "ring_front_left": 315967380437425434,
+    "ring_front_right": 315967380462451241,
+    "ring_side_left": 315967380472412946,
+    "ring_side_right": 315967380427482496,
+    "ring_rear_left": 315967380457428278,
+    "ring_rear_right": 315967380442441185
+   }
+  },
+  "9": {
+   "anchor_ts": 315967380499927211,
+   "cam_ts": {
+    "ring_front_center": 315967380499927211,
+    "ring_front_left": 315967380487425442,
+    "ring_front_right": 315967380512451244,
+    "ring_side_left": 315967380522412942,
+    "ring_side_right": 315967380477482498,
+    "ring_rear_left": 315967380507428266,
+    "ring_rear_right": 315967380492441193
+   }
+  },
+  "10": {
+   "anchor_ts": 315967380549927222,
+   "cam_ts": {
+    "ring_front_center": 315967380549927222,
+    "ring_front_left": 315967380537425438,
+    "ring_front_right": 315967380562451246,
+    "ring_side_left": 315967380572412938,
+    "ring_side_right": 315967380527482489,
+    "ring_rear_left": 315967380557428273,
+    "ring_rear_right": 315967380542441185
+   }
+  },
+  "11": {
+   "anchor_ts": 315967380599927208,
+   "cam_ts": {
+    "ring_front_center": 315967380599927208,
+    "ring_front_left": 315967380587425438,
+    "ring_front_right": 315967380612451240,
+    "ring_side_left": 315967380622412938,
+    "ring_side_right": 315967380577482495,
+    "ring_rear_left": 315967380607428265,
+    "ring_rear_right": 315967380592441193
+   }
+  },
+  "12": {
+   "anchor_ts": 315967380649927210,
+   "cam_ts": {
+    "ring_front_center": 315967380649927210,
+    "ring_front_left": 315967380637425441,
+    "ring_front_right": 315967380662451243,
+    "ring_side_left": 315967380672412945,
+    "ring_side_right": 315967380627482494,
+    "ring_rear_left": 315967380657428277,
+    "ring_rear_right": 315967380642441189
+   }
+  },
+  "13": {
+   "anchor_ts": 315967380699927221,
+   "cam_ts": {
+    "ring_front_center": 315967380699927221,
+    "ring_front_left": 315967380687425437,
+    "ring_front_right": 315967380712451246,
+    "ring_side_left": 315967380722412933,
+    "ring_side_right": 315967380677482496,
+    "ring_rear_left": 315967380707428265,
+    "ring_rear_right": 315967380692441188
+   }
+  },
+  "14": {
+   "anchor_ts": 315967380749927216,
+   "cam_ts": {
+    "ring_front_center": 315967380749927216,
+    "ring_front_left": 315967380737425441,
+    "ring_front_right": 315967380762451244,
+    "ring_side_left": 315967380772412945,
+    "ring_side_right": 315967380727482499,
+    "ring_rear_left": 315967380757428269,
+    "ring_rear_right": 315967380742441184
+   }
+  },
+  "15": {
+   "anchor_ts": 315967380799927222,
+   "cam_ts": {
+    "ring_front_center": 315967380799927222,
+    "ring_front_left": 315967380787425433,
+    "ring_front_right": 315967380812451243,
+    "ring_side_left": 315967380822412939,
+    "ring_side_right": 315967380777482493,
+    "ring_rear_left": 315967380807428267,
+    "ring_rear_right": 315967380792441192
+   }
+  },
+  "16": {
+   "anchor_ts": 315967380849927218,
+   "cam_ts": {
+    "ring_front_center": 315967380849927218,
+    "ring_front_left": 315967380837425437,
+    "ring_front_right": 315967380862451243,
+    "ring_side_left": 315967380872412940,
+    "ring_side_right": 315967380827482491,
+    "ring_rear_left": 315967380857428277,
+    "ring_rear_right": 315967380842441185
+   }
+  },
+  "17": {
+   "anchor_ts": 315967380899927213,
+   "cam_ts": {
+    "ring_front_center": 315967380899927213,
+    "ring_front_left": 315967380887425443,
+    "ring_front_right": 315967380912451246,
+    "ring_side_left": 315967380922412941,
+    "ring_side_right": 315967380877482495,
+    "ring_rear_left": 315967380907428265,
+    "ring_rear_right": 315967380892441191
+   }
+  },
+  "18": {
+   "anchor_ts": 315967380949927217,
+   "cam_ts": {
+    "ring_front_center": 315967380949927217,
+    "ring_front_left": 315967380937425439,
+    "ring_front_right": 315967380962451242,
+    "ring_side_left": 315967380972412946,
+    "ring_side_right": 315967380927482498,
+    "ring_rear_left": 315967380957428279,
+    "ring_rear_right": 315967380942441187
+   }
+  },
+  "19": {
+   "anchor_ts": 315967380999927213,
+   "cam_ts": {
+    "ring_front_center": 315967380999927213,
+    "ring_front_left": 315967380987425437,
+    "ring_front_right": 315967381012451246,
+    "ring_side_left": 315967381022412939,
+    "ring_side_right": 315967380977482494,
+    "ring_rear_left": 315967381007428275,
+    "ring_rear_right": 315967380992441185
+   }
+  },
+  "20": {
+   "anchor_ts": 315967381049927217,
+   "cam_ts": {
+    "ring_front_center": 315967381049927217,
+    "ring_front_left": 315967381037425433,
+    "ring_front_right": 315967381062451241,
+    "ring_side_left": 315967381072412940,
+    "ring_side_right": 315967381027482497,
+    "ring_rear_left": 315967381057428269,
+    "ring_rear_right": 315967381042441189
+   }
+  },
+  "21": {
+   "anchor_ts": 315967381099927217,
+   "cam_ts": {
+    "ring_front_center": 315967381099927217,
+    "ring_front_left": 315967381087425439,
+    "ring_front_right": 315967381112451245,
+    "ring_side_left": 315967381122412937,
+    "ring_side_right": 315967381077482493,
+    "ring_rear_left": 315967381107428269,
+    "ring_rear_right": 315967381092441187
+   }
+  },
+  "22": {
+   "anchor_ts": 315967381149927217,
+   "cam_ts": {
+    "ring_front_center": 315967381149927217,
+    "ring_front_left": 315967381137425435,
+    "ring_front_right": 315967381162451241,
+    "ring_side_left": 315967381172412942,
+    "ring_side_right": 315967381127482493,
+    "ring_rear_left": 315967381157428275,
+    "ring_rear_right": 315967381142441191
+   }
+  },
+  "23": {
+   "anchor_ts": 315967381199927212,
+   "cam_ts": {
+    "ring_front_center": 315967381199927212,
+    "ring_front_left": 315967381187425445,
+    "ring_front_right": 315967381212451249,
+    "ring_side_left": 315967381222412939,
+    "ring_side_right": 315967381177482489,
+    "ring_rear_left": 315967381207428272,
+    "ring_rear_right": 315967381192441193
+   }
+  },
+  "24": {
+   "anchor_ts": 315967381249927208,
+   "cam_ts": {
+    "ring_front_center": 315967381249927208,
+    "ring_front_left": 315967381237425433,
+    "ring_front_right": 315967381262451245,
+    "ring_side_left": 315967381272412945,
+    "ring_side_right": 315967381227482493,
+    "ring_rear_left": 315967381257428277,
+    "ring_rear_right": 315967381242441185
+   }
+  },
+  "25": {
+   "anchor_ts": 315967381299927212,
+   "cam_ts": {
+    "ring_front_center": 315967381299927212,
+    "ring_front_left": 315967381287425443,
+    "ring_front_right": 315967381312451245,
+    "ring_side_left": 315967381322412933,
+    "ring_side_right": 315967381277482493,
+    "ring_rear_left": 315967381307428266,
+    "ring_rear_right": 315967381292441191
+   }
+  },
+  "26": {
+   "anchor_ts": 315967381349927208,
+   "cam_ts": {
+    "ring_front_center": 315967381349927208,
+    "ring_front_left": 315967381337425443,
+    "ring_front_right": 315967381362451240,
+    "ring_side_left": 315967381372412943,
+    "ring_side_right": 315967381327482489,
+    "ring_rear_left": 315967381357428279,
+    "ring_rear_right": 315967381342441187
+   }
+  },
+  "27": {
+   "anchor_ts": 315967381399927215,
+   "cam_ts": {
+    "ring_front_center": 315967381399927215,
+    "ring_front_left": 315967381387425433,
+    "ring_front_right": 315967381412451248,
+    "ring_side_left": 315967381422412939,
+    "ring_side_right": 315967381377482492,
+    "ring_rear_left": 315967381407428268,
+    "ring_rear_right": 315967381392441185
+   }
+  },
+  "28": {
+   "anchor_ts": 315967381449927223,
+   "cam_ts": {
+    "ring_front_center": 315967381449927223,
+    "ring_front_left": 315967381437425442,
+    "ring_front_right": 315967381462451240,
+    "ring_side_left": 315967381472412933,
+    "ring_side_right": 315967381427482496,
+    "ring_rear_left": 315967381457428265,
+    "ring_rear_right": 315967381442441194
+   }
+  },
+  "29": {
+   "anchor_ts": 315967381499927219,
+   "cam_ts": {
+    "ring_front_center": 315967381499927219,
+    "ring_front_left": 315967381487425435,
+    "ring_front_right": 315967381512451247,
+    "ring_side_left": 315967381522412945,
+    "ring_side_right": 315967381477482492,
+    "ring_rear_left": 315967381507428278,
+    "ring_rear_right": 315967381492441187
+   }
+  },
+  "30": {
+   "anchor_ts": 315967381549927223,
+   "cam_ts": {
+    "ring_front_center": 315967381549927223,
+    "ring_front_left": 315967381537425432,
+    "ring_front_right": 315967381562451243,
+    "ring_side_left": 315967381572412943,
+    "ring_side_right": 315967381527482499,
+    "ring_rear_left": 315967381557428267,
+    "ring_rear_right": 315967381542441192
+   }
+  },
+  "31": {
+   "anchor_ts": 315967381599927215,
+   "cam_ts": {
+    "ring_front_center": 315967381599927215,
+    "ring_front_left": 315967381587425441,
+    "ring_front_right": 315967381612451243,
+    "ring_side_left": 315967381622412931,
+    "ring_side_right": 315967381577482491,
+    "ring_rear_left": 315967381607428273,
+    "ring_rear_right": 315967381592441189
+   }
+  },
+  "32": {
+   "anchor_ts": 315967381649927222,
+   "cam_ts": {
+    "ring_front_center": 315967381649927222,
+    "ring_front_left": 315967381637425438,
+    "ring_front_right": 315967381662451243,
+    "ring_side_left": 315967381672412945,
+    "ring_side_right": 315967381627482495,
+    "ring_rear_left": 315967381657428269,
+    "ring_rear_right": 315967381642441186
+   }
+  },
+  "33": {
+   "anchor_ts": 315967381699927214,
+   "cam_ts": {
+    "ring_front_center": 315967381699927214,
+    "ring_front_left": 315967381687425435,
+    "ring_front_right": 315967381712451247,
+    "ring_side_left": 315967381722412933,
+    "ring_side_right": 315967381677482491,
+    "ring_rear_left": 315967381707428275,
+    "ring_rear_right": 315967381692441191
+   }
+  },
+  "34": {
+   "anchor_ts": 315967381749927218,
+   "cam_ts": {
+    "ring_front_center": 315967381749927218,
+    "ring_front_left": 315967381737425440,
+    "ring_front_right": 315967381762451243,
+    "ring_side_left": 315967381772412939,
+    "ring_side_right": 315967381727482495,
+    "ring_rear_left": 315967381757428275,
+    "ring_rear_right": 315967381742441192
+   }
+  },
+  "35": {
+   "anchor_ts": 315967381799927218,
+   "cam_ts": {
+    "ring_front_center": 315967381799927218,
+    "ring_front_left": 315967381787425437,
+    "ring_front_right": 315967381812451247,
+    "ring_side_left": 315967381822412944,
+    "ring_side_right": 315967381777482495,
+    "ring_rear_left": 315967381807428273,
+    "ring_rear_right": 315967381792441185
+   }
+  },
+  "36": {
+   "anchor_ts": 315967381849927221,
+   "cam_ts": {
+    "ring_front_center": 315967381849927221,
+    "ring_front_left": 315967381837425443,
+    "ring_front_right": 315967381862451246,
+    "ring_side_left": 315967381872412941,
+    "ring_side_right": 315967381827482495,
+    "ring_rear_left": 315967381857428265,
+    "ring_rear_right": 315967381842441190
+   }
+  },
+  "37": {
+   "anchor_ts": 315967381899927217,
+   "cam_ts": {
+    "ring_front_center": 315967381899927217,
+    "ring_front_left": 315967381887425435,
+    "ring_front_right": 315967381912451246,
+    "ring_side_left": 315967381922412941,
+    "ring_side_right": 315967381877482490,
+    "ring_rear_left": 315967381907428273,
+    "ring_rear_right": 315967381892441188
+   }
+  },
+  "38": {
+   "anchor_ts": 315967381949927213,
+   "cam_ts": {
+    "ring_front_center": 315967381949927213,
+    "ring_front_left": 315967381937425445,
+    "ring_front_right": 315967381962451245,
+    "ring_side_left": 315967381972412941,
+    "ring_side_right": 315967381927482498,
+    "ring_rear_left": 315967381957428268,
+    "ring_rear_right": 315967381942441192
+   }
+  },
+  "39": {
+   "anchor_ts": 315967381999927209,
+   "cam_ts": {
+    "ring_front_center": 315967381999927209,
+    "ring_front_left": 315967381987425441,
+    "ring_front_right": 315967382012451241,
+    "ring_side_left": 315967382022412941,
+    "ring_side_right": 315967381977482493,
+    "ring_rear_left": 315967382007428272,
+    "ring_rear_right": 315967381992441188
+   }
+  },
+  "40": {
+   "anchor_ts": 315967382049927217,
+   "cam_ts": {
+    "ring_front_center": 315967382049927217,
+    "ring_front_left": 315967382037425435,
+    "ring_front_right": 315967382062451249,
+    "ring_side_left": 315967382072412945,
+    "ring_side_right": 315967382027482493,
+    "ring_rear_left": 315967382057428272,
+    "ring_rear_right": 315967382042441191
+   }
+  },
+  "41": {
+   "anchor_ts": 315967382099927216,
+   "cam_ts": {
+    "ring_front_center": 315967382099927216,
+    "ring_front_left": 315967382087425439,
+    "ring_front_right": 315967382112451249,
+    "ring_side_left": 315967382122412932,
+    "ring_side_right": 315967382077482493,
+    "ring_rear_left": 315967382107428268,
+    "ring_rear_right": 315967382092441187
+   }
+  },
+  "42": {
+   "anchor_ts": 315967382149927212,
+   "cam_ts": {
+    "ring_front_center": 315967382149927212,
+    "ring_front_left": 315967382137425437,
+    "ring_front_right": 315967382162451241,
+    "ring_side_left": 315967382172412936,
+    "ring_side_right": 315967382127482497,
+    "ring_rear_left": 315967382157428271,
+    "ring_rear_right": 315967382142441191
+   }
+  },
+  "43": {
+   "anchor_ts": 315967382199927216,
+   "cam_ts": {
+    "ring_front_center": 315967382199927216,
+    "ring_front_left": 315967382187425441,
+    "ring_front_right": 315967382212451245,
+    "ring_side_left": 315967382222412936,
+    "ring_side_right": 315967382177482493,
+    "ring_rear_left": 315967382207428271,
+    "ring_rear_right": 315967382192441187
+   }
+  },
+  "44": {
+   "anchor_ts": 315967382249927212,
+   "cam_ts": {
+    "ring_front_center": 315967382249927212,
+    "ring_front_left": 315967382237425435,
+    "ring_front_right": 315967382262451241,
+    "ring_side_left": 315967382272412939,
+    "ring_side_right": 315967382227482497,
+    "ring_rear_left": 315967382257428275,
+    "ring_rear_right": 315967382242441191
+   }
+  },
+  "45": {
+   "anchor_ts": 315967382299927208,
+   "cam_ts": {
+    "ring_front_center": 315967382299927208,
+    "ring_front_left": 315967382287425435,
+    "ring_front_right": 315967382312451245,
+    "ring_side_left": 315967382322412935,
+    "ring_side_right": 315967382277482497,
+    "ring_rear_left": 315967382307428279,
+    "ring_rear_right": 315967382292441186
+   }
+  },
+  "46": {
+   "anchor_ts": 315967382349927219,
+   "cam_ts": {
+    "ring_front_center": 315967382349927219,
+    "ring_front_left": 315967382337425437,
+    "ring_front_right": 315967382362451240,
+    "ring_side_left": 315967382372412939,
+    "ring_side_right": 315967382327482497,
+    "ring_rear_left": 315967382357428275,
+    "ring_rear_right": 315967382342441190
+   }
+  },
+  "47": {
+   "anchor_ts": 315967382399927215,
+   "cam_ts": {
+    "ring_front_center": 315967382399927215,
+    "ring_front_left": 315967382387425437,
+    "ring_front_right": 315967382412451244,
+    "ring_side_left": 315967382422412939,
+    "ring_side_right": 315967382377482493,
+    "ring_rear_left": 315967382407428279,
+    "ring_rear_right": 315967382392441186
+   }
+  },
+  "48": {
+   "anchor_ts": 315967382449927215,
+   "cam_ts": {
+    "ring_front_center": 315967382449927215,
+    "ring_front_left": 315967382437425439,
+    "ring_front_right": 315967382462451243,
+    "ring_side_left": 315967382472412943,
+    "ring_side_right": 315967382427482491,
+    "ring_rear_left": 315967382457428274,
+    "ring_rear_right": 315967382442441190
+   }
+  },
+  "49": {
+   "anchor_ts": 315967382499927215,
+   "cam_ts": {
+    "ring_front_center": 315967382499927215,
+    "ring_front_left": 315967382487425443,
+    "ring_front_right": 315967382512451243,
+    "ring_side_left": 315967382522412943,
+    "ring_side_right": 315967382477482491,
+    "ring_rear_left": 315967382507428278,
+    "ring_rear_right": 315967382492441185
+   }
+  },
+  "50": {
+   "anchor_ts": 315967382549927211,
+   "cam_ts": {
+    "ring_front_center": 315967382549927211,
+    "ring_front_left": 315967382537425441,
+    "ring_front_right": 315967382562451243,
+    "ring_side_left": 315967382572412938,
+    "ring_side_right": 315967382527482495,
+    "ring_rear_left": 315967382557428274,
+    "ring_rear_right": 315967382542441189
+   }
+  },
+  "51": {
+   "anchor_ts": 315967382599927222,
+   "cam_ts": {
+    "ring_front_center": 315967382599927222,
+    "ring_front_left": 315967382587425442,
+    "ring_front_right": 315967382612451243,
+    "ring_side_left": 315967382622412938,
+    "ring_side_right": 315967382577482491,
+    "ring_rear_left": 315967382607428278,
+    "ring_rear_right": 315967382592441189
+   }
+  },
+  "52": {
+   "anchor_ts": 315967382649927218,
+   "cam_ts": {
+    "ring_front_center": 315967382649927218,
+    "ring_front_left": 315967382637425443,
+    "ring_front_right": 315967382662451243,
+    "ring_side_left": 315967382672412938,
+    "ring_side_right": 315967382627482491,
+    "ring_rear_left": 315967382657428265,
+    "ring_rear_right": 315967382642441189
+   }
+  },
+  "53": {
+   "anchor_ts": 315967382699927222,
+   "cam_ts": {
+    "ring_front_center": 315967382699927222,
+    "ring_front_left": 315967382687425440,
+    "ring_front_right": 315967382712451247,
+    "ring_side_left": 315967382722412938,
+    "ring_side_right": 315967382677482495,
+    "ring_rear_left": 315967382707428269,
+    "ring_rear_right": 315967382692441185
+   }
+  },
+  "54": {
+   "anchor_ts": 315967382749927210,
+   "cam_ts": {
+    "ring_front_center": 315967382749927210,
+    "ring_front_left": 315967382737425441,
+    "ring_front_right": 315967382762451243,
+    "ring_side_left": 315967382772412937,
+    "ring_side_right": 315967382727482494,
+    "ring_rear_left": 315967382757428265,
+    "ring_rear_right": 315967382742441189
+   }
+  },
+  "55": {
+   "anchor_ts": 315967382799927213,
+   "cam_ts": {
+    "ring_front_center": 315967382799927213,
+    "ring_front_left": 315967382787425442,
+    "ring_front_right": 315967382812451242,
+    "ring_side_left": 315967382822412937,
+    "ring_side_right": 315967382777482494,
+    "ring_rear_left": 315967382807428269,
+    "ring_rear_right": 315967382792441192
+   }
+  },
+  "56": {
+   "anchor_ts": 315967382849927217,
+   "cam_ts": {
+    "ring_front_center": 315967382849927217,
+    "ring_front_left": 315967382837425439,
+    "ring_front_right": 315967382862451242,
+    "ring_side_left": 315967382872412941,
+    "ring_side_right": 315967382827482498,
+    "ring_rear_left": 315967382857428265,
+    "ring_rear_right": 315967382842441188
+   }
+  },
+  "57": {
+   "anchor_ts": 315967382899927221,
+   "cam_ts": {
+    "ring_front_center": 315967382899927221,
+    "ring_front_left": 315967382887425440,
+    "ring_front_right": 315967382912451237,
+    "ring_side_left": 315967382922412941,
+    "ring_side_right": 315967382877482498,
+    "ring_rear_left": 315967382907428268,
+    "ring_rear_right": 315967382892441184
+   }
+  },
+  "58": {
+   "anchor_ts": 315967382949927217,
+   "cam_ts": {
+    "ring_front_center": 315967382949927217,
+    "ring_front_left": 315967382937425442,
+    "ring_front_right": 315967382962451245,
+    "ring_side_left": 315967382972412937,
+    "ring_side_right": 315967382927482498,
+    "ring_rear_left": 315967382957428272,
+    "ring_rear_right": 315967382942441188
+   }
+  },
+  "59": {
+   "anchor_ts": 315967382999927217,
+   "cam_ts": {
+    "ring_front_center": 315967382999927217,
+    "ring_front_left": 315967382987425438,
+    "ring_front_right": 315967383012451245,
+    "ring_side_left": 315967383022412937,
+    "ring_side_right": 315967382977482498,
+    "ring_rear_left": 315967383007428268,
+    "ring_rear_right": 315967382992441191
+   }
+  },
+  "60": {
+   "anchor_ts": 315967383049927216,
+   "cam_ts": {
+    "ring_front_center": 315967383049927216,
+    "ring_front_left": 315967383037425440,
+    "ring_front_right": 315967383062451245,
+    "ring_side_left": 315967383072412940,
+    "ring_side_right": 315967383027482494,
+    "ring_rear_left": 315967383057428264,
+    "ring_rear_right": 315967383042441191
+   }
+  },
+  "61": {
+   "anchor_ts": 315967383099927220,
+   "cam_ts": {
+    "ring_front_center": 315967383099927220,
+    "ring_front_left": 315967383087425436,
+    "ring_front_right": 315967383112451241,
+    "ring_side_left": 315967383122412944,
+    "ring_side_right": 315967383077482494,
+    "ring_rear_left": 315967383107428275,
+    "ring_rear_right": 315967383092441191
+   }
+  },
+  "62": {
+   "anchor_ts": 315967383149927216,
+   "cam_ts": {
+    "ring_front_center": 315967383149927216,
+    "ring_front_left": 315967383137425440,
+    "ring_front_right": 315967383162451241,
+    "ring_side_left": 315967383172412939,
+    "ring_side_right": 315967383127482496,
+    "ring_rear_left": 315967383157428279,
+    "ring_rear_right": 315967383142441187
+   }
+  },
+  "63": {
+   "anchor_ts": 315967383199927220,
+   "cam_ts": {
+    "ring_front_center": 315967383199927220,
+    "ring_front_left": 315967383187425440,
+    "ring_front_right": 315967383212451240,
+    "ring_side_left": 315967383222412939,
+    "ring_side_right": 315967383177482496,
+    "ring_rear_left": 315967383207428267,
+    "ring_rear_right": 315967383192441195
+   }
+  },
+  "64": {
+   "anchor_ts": 315967383249927211,
+   "cam_ts": {
+    "ring_front_center": 315967383249927211,
+    "ring_front_left": 315967383237425443,
+    "ring_front_right": 315967383262451244,
+    "ring_side_left": 315967383272412943,
+    "ring_side_right": 315967383227482492,
+    "ring_rear_left": 315967383257428279,
+    "ring_rear_right": 315967383242441186
+   }
+  },
+  "65": {
+   "anchor_ts": 315967383299927219,
+   "cam_ts": {
+    "ring_front_center": 315967383299927219,
+    "ring_front_left": 315967383287425439,
+    "ring_front_right": 315967383312451240,
+    "ring_side_left": 315967383322412943,
+    "ring_side_right": 315967383277482492,
+    "ring_rear_left": 315967383307428275,
+    "ring_rear_right": 315967383292441194
+   }
+  },
+  "66": {
+   "anchor_ts": 315967383349927223,
+   "cam_ts": {
+    "ring_front_center": 315967383349927223,
+    "ring_front_left": 315967383337425442,
+    "ring_front_right": 315967383362451244,
+    "ring_side_left": 315967383372412943,
+    "ring_side_right": 315967383327482492,
+    "ring_rear_left": 315967383357428279,
+    "ring_rear_right": 315967383342441186
+   }
+  },
+  "67": {
+   "anchor_ts": 315967383399927215,
+   "cam_ts": {
+    "ring_front_center": 315967383399927215,
+    "ring_front_left": 315967383387425442,
+    "ring_front_right": 315967383412451248,
+    "ring_side_left": 315967383422412943,
+    "ring_side_right": 315967383377482500,
+    "ring_rear_left": 315967383407428266,
+    "ring_rear_right": 315967383392441190
+   }
+  },
+  "68": {
+   "anchor_ts": 315967383449927215,
+   "cam_ts": {
+    "ring_front_center": 315967383449927215,
+    "ring_front_left": 315967383437425442,
+    "ring_front_right": 315967383462451244,
+    "ring_side_left": 315967383472412935,
+    "ring_side_right": 315967383427482492,
+    "ring_rear_left": 315967383457428270,
+    "ring_rear_right": 315967383442441189
+   }
+  },
+  "69": {
+   "anchor_ts": 315967383499927215,
+   "cam_ts": {
+    "ring_front_center": 315967383499927215,
+    "ring_front_left": 315967383487425442,
+    "ring_front_right": 315967383512451248,
+    "ring_side_left": 315967383522412943,
+    "ring_side_right": 315967383477482496,
+    "ring_rear_left": 315967383507428270,
+    "ring_rear_right": 315967383492441189
+   }
+  },
+  "70": {
+   "anchor_ts": 315967383549927215,
+   "cam_ts": {
+    "ring_front_center": 315967383549927215,
+    "ring_front_left": 315967383537425437,
+    "ring_front_right": 315967383562451247,
+    "ring_side_left": 315967383572412942,
+    "ring_side_right": 315967383527482492,
+    "ring_rear_left": 315967383557428278,
+    "ring_rear_right": 315967383542441185
+   }
+  },
+  "71": {
+   "anchor_ts": 315967383599927223,
+   "cam_ts": {
+    "ring_front_center": 315967383599927223,
+    "ring_front_left": 315967383587425441,
+    "ring_front_right": 315967383612451243,
+    "ring_side_left": 315967383622412942,
+    "ring_side_right": 315967383577482495,
+    "ring_rear_left": 315967383607428273,
+    "ring_rear_right": 315967383592441189
+   }
+  },
+  "72": {
+   "anchor_ts": 315967383649927217,
+   "cam_ts": {
+    "ring_front_center": 315967383649927217,
+    "ring_front_left": 315967383637425437,
+    "ring_front_right": 315967383662451242,
+    "ring_side_left": 315967383672412942,
+    "ring_side_right": 315967383627482498,
+    "ring_rear_left": 315967383657428277,
+    "ring_rear_right": 315967383642441189
+   }
+  },
+  "73": {
+   "anchor_ts": 315967383699927217,
+   "cam_ts": {
+    "ring_front_center": 315967383699927217,
+    "ring_front_left": 315967383687425441,
+    "ring_front_right": 315967383712451242,
+    "ring_side_left": 315967383722412938,
+    "ring_side_right": 315967383677482494,
+    "ring_rear_left": 315967383707428273,
+    "ring_rear_right": 315967383692441189
+   }
+  },
+  "74": {
+   "anchor_ts": 315967383749927213,
+   "cam_ts": {
+    "ring_front_center": 315967383749927213,
+    "ring_front_left": 315967383737425437,
+    "ring_front_right": 315967383762451246,
+    "ring_side_left": 315967383772412937,
+    "ring_side_right": 315967383727482498,
+    "ring_rear_left": 315967383757428269,
+    "ring_rear_right": 315967383742441192
+   }
+  },
+  "75": {
+   "anchor_ts": 315967383799927217,
+   "cam_ts": {
+    "ring_front_center": 315967383799927217,
+    "ring_front_left": 315967383787425445,
+    "ring_front_right": 315967383812451246,
+    "ring_side_left": 315967383822412937,
+    "ring_side_right": 315967383777482494,
+    "ring_rear_left": 315967383807428265,
+    "ring_rear_right": 315967383792441188
+   }
+  },
+  "76": {
+   "anchor_ts": 315967383849927213,
+   "cam_ts": {
+    "ring_front_center": 315967383849927213,
+    "ring_front_left": 315967383837425441,
+    "ring_front_right": 315967383862451245,
+    "ring_side_left": 315967383872412940,
+    "ring_side_right": 315967383827482490,
+    "ring_rear_left": 315967383857428276,
+    "ring_rear_right": 315967383842441184
+   }
+  },
+  "77": {
+   "anchor_ts": 315967383899927217,
+   "cam_ts": {
+    "ring_front_center": 315967383899927217,
+    "ring_front_left": 315967383887425441,
+    "ring_front_right": 315967383912451249,
+    "ring_side_left": 315967383922412944,
+    "ring_side_right": 315967383877482494,
+    "ring_rear_left": 315967383907428272,
+    "ring_rear_right": 315967383892441191
+   }
+  },
+  "78": {
+   "anchor_ts": 315967383949927217,
+   "cam_ts": {
+    "ring_front_center": 315967383949927217,
+    "ring_front_left": 315967383937425440,
+    "ring_front_right": 315967383962451241,
+    "ring_side_left": 315967383972412936,
+    "ring_side_right": 315967383927482489,
+    "ring_rear_left": 315967383957428276,
+    "ring_rear_right": 315967383942441191
+   }
+  },
+  "79": {
+   "anchor_ts": 315967383999927217,
+   "cam_ts": {
+    "ring_front_center": 315967383999927217,
+    "ring_front_left": 315967383987425439,
+    "ring_front_right": 315967384012451241,
+    "ring_side_left": 315967384022412936,
+    "ring_side_right": 315967383977482493,
+    "ring_rear_left": 315967384007428272,
+    "ring_rear_right": 315967383992441191
+   }
+  },
+  "80": {
+   "anchor_ts": 315967384049927221,
+   "cam_ts": {
+    "ring_front_center": 315967384049927221,
+    "ring_front_left": 315967384037425435,
+    "ring_front_right": 315967384062451245,
+    "ring_side_left": 315967384072412940,
+    "ring_side_right": 315967384027482497,
+    "ring_rear_left": 315967384057428267,
+    "ring_rear_right": 315967384042441191
+   }
+  },
+  "81": {
+   "anchor_ts": 315967384099927216,
+   "cam_ts": {
+    "ring_front_center": 315967384099927216,
+    "ring_front_left": 315967384087425443,
+    "ring_front_right": 315967384112451249,
+    "ring_side_left": 315967384122412941,
+    "ring_side_right": 315967384077482493,
+    "ring_rear_left": 315967384107428269,
+    "ring_rear_right": 315967384092441186
+   }
+  },
+  "82": {
+   "anchor_ts": 315967384149927211,
+   "cam_ts": {
+    "ring_front_center": 315967384149927211,
+    "ring_front_left": 315967384137425435,
+    "ring_front_right": 315967384162451245,
+    "ring_side_left": 315967384172412945,
+    "ring_side_right": 315967384127482489,
+    "ring_rear_left": 315967384157428275,
+    "ring_rear_right": 315967384142441195
+   }
+  },
+  "83": {
+   "anchor_ts": 315967384199927219,
+   "cam_ts": {
+    "ring_front_center": 315967384199927219,
+    "ring_front_left": 315967384187425439,
+    "ring_front_right": 315967384212451245,
+    "ring_side_left": 315967384222412935,
+    "ring_side_right": 315967384177482497,
+    "ring_rear_left": 315967384207428275,
+    "ring_rear_right": 315967384192441188
+   }
+  },
+  "84": {
+   "anchor_ts": 315967384249927211,
+   "cam_ts": {
+    "ring_front_center": 315967384249927211,
+    "ring_front_left": 315967384237425435,
+    "ring_front_right": 315967384262451244,
+    "ring_side_left": 315967384272412944,
+    "ring_side_right": 315967384227482492,
+    "ring_rear_left": 315967384257428277,
+    "ring_rear_right": 315967384242441185
+   }
+  },
+  "85": {
+   "anchor_ts": 315967384299927219,
+   "cam_ts": {
+    "ring_front_center": 315967384299927219,
+    "ring_front_left": 315967384287425439,
+    "ring_front_right": 315967384312451243,
+    "ring_side_left": 315967384322412937,
+    "ring_side_right": 315967384277482488,
+    "ring_rear_left": 315967384307428273,
+    "ring_rear_right": 315967384292441194
+   }
+  },
+  "86": {
+   "anchor_ts": 315967384349927219,
+   "cam_ts": {
+    "ring_front_center": 315967384349927219,
+    "ring_front_left": 315967384337425439,
+    "ring_front_right": 315967384362451243,
+    "ring_side_left": 315967384372412938,
+    "ring_side_right": 315967384327482495,
+    "ring_rear_left": 315967384357428275,
+    "ring_rear_right": 315967384342441187
+   }
+  },
+  "87": {
+   "anchor_ts": 315967384399927219,
+   "cam_ts": {
+    "ring_front_center": 315967384399927219,
+    "ring_front_left": 315967384387425439,
+    "ring_front_right": 315967384412451243,
+    "ring_side_left": 315967384422412939,
+    "ring_side_right": 315967384377482495,
+    "ring_rear_left": 315967384407428267,
+    "ring_rear_right": 315967384392441193
+   }
+  },
+  "88": {
+   "anchor_ts": 315967384449927215,
+   "cam_ts": {
+    "ring_front_center": 315967384449927215,
+    "ring_front_left": 315967384437425442,
+    "ring_front_right": 315967384462451243,
+    "ring_side_left": 315967384472412936,
+    "ring_side_right": 315967384427482491,
+    "ring_rear_left": 315967384457428269,
+    "ring_rear_right": 315967384442441189
+   }
+  },
+  "89": {
+   "anchor_ts": 315967384499927215,
+   "cam_ts": {
+    "ring_front_center": 315967384499927215,
+    "ring_front_left": 315967384487425437,
+    "ring_front_right": 315967384512451251,
+    "ring_side_left": 315967384522412941,
+    "ring_side_right": 315967384477482499,
+    "ring_rear_left": 315967384507428269,
+    "ring_rear_right": 315967384492441187
+   }
+  },
+  "90": {
+   "anchor_ts": 315967384549927215,
+   "cam_ts": {
+    "ring_front_center": 315967384549927215,
+    "ring_front_left": 315967384537425441,
+    "ring_front_right": 315967384562451243,
+    "ring_side_left": 315967384572412942,
+    "ring_side_right": 315967384527482495,
+    "ring_rear_left": 315967384557428275,
+    "ring_rear_right": 315967384542441191
+   }
+  },
+  "91": {
+   "anchor_ts": 315967384599927213,
+   "cam_ts": {
+    "ring_front_center": 315967384599927213,
+    "ring_front_left": 315967384587425437,
+    "ring_front_right": 315967384612451246,
+    "ring_side_left": 315967384622412939,
+    "ring_side_right": 315967384577482494,
+    "ring_rear_left": 315967384607428267,
+    "ring_rear_right": 315967384592441193
+   }
+  },
+  "92": {
+   "anchor_ts": 315967384649927213,
+   "cam_ts": {
+    "ring_front_center": 315967384649927213,
+    "ring_front_left": 315967384637425441,
+    "ring_front_right": 315967384662451242,
+    "ring_side_left": 315967384672412936,
+    "ring_side_right": 315967384627482494,
+    "ring_rear_left": 315967384657428273,
+    "ring_rear_right": 315967384642441185
+   }
+  }
+ }
+}

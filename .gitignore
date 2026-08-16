@@ -100,3 +100,8 @@ paper_reading/
 
 # Colab fetch archives — keep the extracted dirs (browsable), ignore the .zip duplicates — 2026-06-12
 deliverables/**/*.zip
+
+# DB-241 golden-test fixture: 173 KB of calibration + ego pose, the minimum
+# needed to reproduce the mask koi approved without shipping 651 JPEGs.
+# Deliberate exception to the *.feather data rule - this is a test fixture.
+!agent/db241_multids_production/golden/**/*.feather
