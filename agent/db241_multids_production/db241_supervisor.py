@@ -60,6 +60,13 @@ def main():
     procs, fetch_proc, fetch_round = {}, None, 0
     while True:
         gb = free_gb()
+        if gb < MIN_FREE_GB * 2:
+            # Reclaim before refusing to run: source logs whose sample is already
+            # finished are pure ballast, and at the production target they weigh
+            # more than the dataset. Only then decide whether to stop.
+            subprocess.run([sys.executable, os.path.join(AGENT, "db241_reclaim.py"),
+                            "--apply"], capture_output=True)
+            gb = free_gb()
         if gb < MIN_FREE_GB:
             print("[supervisor] only %.0f GB free - stopping producers" % gb, flush=True)
             for p in procs.values():
