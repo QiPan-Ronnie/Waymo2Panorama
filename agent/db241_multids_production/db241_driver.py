@@ -21,8 +21,13 @@ Mask contract, identical to v15 section 3:
     Black   (0) = no trustworthy real pixel  - the generative model's territory
 
 "strictly real" is enforced, not asserted: `keep = written & ~kill`, where
-`written` is where a projection actually landed.  `manifest["keep_px_that_are_black"]`
+`written` is where a projection actually landed.  `manifest["keep_px_not_written"]`
 must be 0 or the sample is rejected - see FOUNDATION.md invariant I3.
+
+`keep_px_dark_scene` is reported alongside it and is NOT a defect: a night scene
+has genuinely black pixels, and gating on colour would reject good night data -
+the exact confusion v15 warns about when it says the mask channel, not the pixel
+value, is what separates "missing" from "dark".
 """
 from __future__ import annotations
 
@@ -125,9 +130,9 @@ def build_sample(log_dir, out_root, dataset, sample_id, start=0, n=93,
 
     # Gates.  A sample that trips one is written but flagged, never silently shipped.
     gates = []
-    if man["keep_px_that_are_black"] != 0:
-        gates.append("I3 VIOLATED: %d KEEP pixels are black - white is not 100%% real"
-                     % man["keep_px_that_are_black"])
+    if man["keep_px_not_written"] != 0:
+        gates.append("I3 VIOLATED: %d KEEP pixels had no projection land on them"
+                     % man["keep_px_not_written"])
     if not man["ring_closed"]:
         gates.append("ring does not close - a coverage gap is left black by design "
                      "(expected for waymo_perception)")
@@ -151,12 +156,12 @@ def build_sample(log_dir, out_root, dataset, sample_id, start=0, n=93,
 
 def summarise(man):
     return ("%-18s %-14s cams=%d ring=%-5s strips=%s mask=%.1f%% of band  "
-            "falseKEEP=%d  %s"
+            "unwritten=%d  %s"
             % (man["dataset"], man["scene_id"][:14], man["n_cameras"],
                man["ring_closed"],
                sorted(v.get("strip_w", 0) for v in man["pairs"].values()),
                100 * man["rule_mask_frac_of_band"],
-               man["keep_px_that_are_black"],
+               man["keep_px_not_written"],
                "ACCEPTED" if man["accepted"] else "FLAGGED: " + "; ".join(man["gates"])))
 
 

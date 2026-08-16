@@ -206,14 +206,19 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
         hood = np.asarray(Image.open(hood_mask_path).convert("L")) > 127
 
     dom_px = int(dom0.sum())
-    unwritten_total = 0
+    keep_not_written = 0        # the invariant: must be 0 (I3)
+    keep_dark = 0               # informational: real pixels that happen to be black
     for i in range(n):
         erp, written, _ = render_frame(log_dir, start + i, cal, cte, cams, elev_domain)
         kill = rect | (hood if hood is not None else False)
         out = erp.copy()
         out[kill] = 0
         keep = written & ~kill        # KEEP means "a real sensor pixel landed here"
-        unwritten_total += int((keep & (out.sum(2) == 0)).sum())
+        keep_not_written += int((keep & ~written).sum())
+        # NOT a defect: a night scene has genuinely black pixels, and v15's own
+        # contract warns "black is a valid image colour - the mask channel is what
+        # disambiguates missing from dark". Counted only so the number is visible.
+        keep_dark += int((keep & (out.sum(2) == 0)).sum())
         Image.fromarray(np.clip(out, 0, 255).astype(np.uint8)).save(
             os.path.join(out_dir, "frames", "fr_%04d.png" % i))
         Image.fromarray((keep * 255).astype(np.uint8)).save(
@@ -235,7 +240,8 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
            "rule_mask_px": int(rect.sum()),
            "rule_mask_frac_of_band": round(float(rect.sum()) / max(int(elev_domain.sum()), 1), 5),
            "rule_mask_frac_of_domain": round(float((rect & dom0).sum()) / max(dom_px, 1), 5),
-           "keep_px_that_are_black": unwritten_total,
+           "keep_px_not_written": keep_not_written,
+           "keep_px_dark_scene": keep_dark,
            "pairs": pair_stats,
            "contract": {"255": "KEEP - real sensor pixel, compute loss here",
                         "0": "RECONSTRUCT - no loss"}}
