@@ -103,7 +103,24 @@ def index_shard(obj):
 
 
 def build_index(shards, out_json, workers=24):
-    idx, done = {}, [0]
+    """Index shards in parallel, resuming from and tolerating partial results.
+
+    One shard failing must not take the run down with it.  `ex.map` re-raises in
+    submission order, so a single transient GCS error after 24 good shards kills
+    the whole pass and throws away 24 x 200 s of work; `submit` + per-future
+    try/except keeps the rest.  Shards already in `out_json` are skipped, so a
+    rerun costs only what is missing.
+    """
+    idx = {}
+    if os.path.isfile(out_json):
+        try:
+            with open(out_json) as fh:
+                idx = json.load(fh)
+            print("  resuming: %d shards already indexed" % len(idx), flush=True)
+        except Exception:
+            idx = {}
+    todo = [s for s in shards if s not in idx]
+    done, failed = [len(idx)], []
     lock = threading.Lock()
 
     def one(obj):
@@ -113,11 +130,21 @@ def build_index(shards, out_json, workers=24):
             done[0] += 1
             print("  [%d/%d] %s  %d records" % (done[0], len(shards), obj[-22:],
                                                 len(rows)), flush=True)
-            with open(out_json, "w") as fh:
+            tmp = out_json + ".tmp"
+            with open(tmp, "w") as fh:
                 json.dump(idx, fh)
+            os.replace(tmp, out_json)          # never leave a half-written index
 
     with cf.ThreadPoolExecutor(workers) as ex:
-        list(ex.map(one, shards))
+        futs = {ex.submit(one, s): s for s in todo}
+        for f in cf.as_completed(futs):
+            try:
+                f.result()
+            except Exception as exc:           # noqa: BLE001
+                failed.append(futs[f])
+                print("  FAILED %s: %s" % (futs[f][-22:], str(exc)[:110]), flush=True)
+    if failed:
+        print("  %d shards failed; rerun to pick them up" % len(failed), flush=True)
     return idx
 
 
