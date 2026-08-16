@@ -35,10 +35,33 @@ HEAD = 6144                      # enough for the length + context of any record
 _local = threading.local()
 
 
+TOKEN_FILE = os.environ.get("W2P_GCS_TOKEN_FILE", "")
+_tok_cache = {"v": "", "mtime": 0.0}
+
+
 def _tok():
+    """Access token, re-read from a file so a long run survives expiry.
+
+    A gcloud access token lasts ~1 h.  Indexing 93 shards takes longer than that,
+    and capturing the token once meant 61 shards died on HTTP 401 after the first
+    32 - the failure looked like a network problem and was really a clock.  Point
+    W2P_GCS_TOKEN_FILE at a file some other process keeps fresh and this picks up
+    the new value without restarting.
+    """
+    if TOKEN_FILE and os.path.isfile(TOKEN_FILE):
+        try:
+            m = os.path.getmtime(TOKEN_FILE)
+            if m != _tok_cache["mtime"]:
+                with open(TOKEN_FILE) as fh:
+                    _tok_cache["v"] = fh.read().strip()
+                _tok_cache["mtime"] = m
+            if _tok_cache["v"]:
+                return _tok_cache["v"]
+        except Exception:
+            pass
     t = os.environ.get("W2P_GCS_TOKEN")
     if not t:
-        raise RuntimeError("set W2P_GCS_TOKEN (gcloud auth print-access-token)")
+        raise RuntimeError("set W2P_GCS_TOKEN or W2P_GCS_TOKEN_FILE")
     return t
 
 
