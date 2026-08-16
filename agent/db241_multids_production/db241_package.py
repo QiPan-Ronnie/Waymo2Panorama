@@ -71,7 +71,8 @@ def build(out_root=OUT, pkg_root=PKG, copy=True):
     # source there is nothing to hold out; say so rather than emptying the pack.
     ood = min(live, key=lambda ds: len(live[ds])) if len(live) > 1 else None
 
-    plan, os.makedirs(pkg_root, exist_ok=True) if copy else None
+    if copy:
+        os.makedirs(pkg_root, exist_ok=True)
     plan = {"schema": "db241.delivery.v1", "train_frac": TRAIN_FRAC,
             "ood_holdout": ood, "sources": {}}
     for ds, rows in live.items():
