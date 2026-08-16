@@ -117,14 +117,16 @@ def readme(plan, live):
     A("scenes rather than within a scene.\n")
     A("## Mask contract\n")
     A("Identical to `av2_1plus92_v15` section 3, single-channel PNG:\n")
-    A("> **White (255) = strictly real camera pixel** — trustworthy supervision.  ")
-    A("> **Black (0) = no trustworthy real pixel** — the generative model's territory.\n")
+    A("> **White (255) = strictly real camera pixel** - trustworthy supervision.  ")
+    A("> **Black (0) = no trustworthy real pixel** - the generative model's territory.\n")
     A("\"Strictly real\" is enforced rather than asserted: the mask is built from where")
     A("a projection actually landed, not from where a camera claims coverage, and every")
-    A("packaged sample carries `keep_px_that_are_black: 0` in its manifest. Black arises")
-    A("from three sources only — the rig's own blind spots (sky top, nadir, and any")
+    A("packaged sample carries `keep_px_not_written: 0` in its manifest. Black arises")
+    A("from three sources only - the rig's own blind spots (sky top, nadir, and any")
     A("uncovered azimuth on a rig whose ring does not close), the seam strips, and the")
     A("hood on `hood_variant: black` scenes.\n")
+    A("`keep_px_dark_scene` also appears and is **not** a defect: night scenes have")
+    A("genuinely black pixels. Gating on colour would throw away good night data.\n")
     A("**Do not threshold the frames to recover the mask.** Black is a valid image")
     A("colour; the mask channel is what separates \"missing\" from \"a dark object\".\n")
     A("## Loss\n")
@@ -147,7 +149,7 @@ def readme(plan, live):
         A("set. It is packaged here under `held_out_ood/` for our own evaluation and")
         A("must not be handed over.\n")
     else:
-        A("No OOD holdout yet — only one source has accepted samples, so there is")
+        A("No OOD holdout yet - only one source has accepted samples, so there is")
         A("nothing to hold out. This must be revisited before delivery.\n")
     A("Train/test split is %d:%d, deterministic by sorted scene id, so it is"
       % (round(TRAIN_FRAC * 10), 10 - round(TRAIN_FRAC * 10)))
@@ -158,7 +160,7 @@ def readme(plan, live):
         A("|---|---|---|")
         for ds, rows in sorted(plan["rejected"].items()):
             for r in rows:
-                A("| %s | %s | %s |" % (ds, r["scene_id"], "; ".join(r["gates"]) or "—"))
+                A("| %s | %s | %s |" % (ds, r["scene_id"], "; ".join(r["gates"]) or "-"))
         A("")
     A("## Layout\n")
     A("```")
@@ -168,7 +170,7 @@ def readme(plan, live):
     A("                         manifest.json              provenance + gate numbers")
     A("                         clip.mp4                   10 fps preview")
     A("test/<source>/<scene>/   same")
-    A("held_out_ood/<source>/<scene>/  same — NOT for training")
+    A("held_out_ood/<source>/<scene>/  same - NOT for training")
     A("```\n")
     A("## Per-rig facts worth knowing before training\n")
     A("| source | cameras | ring closes | seam strip px | mask %% of band |")
@@ -176,13 +178,13 @@ def readme(plan, live):
     for ds, rows in sorted(live.items()):
         m = rows[0]
         w = sorted(v.get("strip_w", 0) for v in m["pairs"].values())
-        A("| %s | %d | %s | %d–%d | %.1f%% |"
+        A("| %s | %d | %s | %d-%d | %.1f%% |"
           % (ds, m["n_cameras"], "yes" if m["ring_closed"] else "**no**",
              min(w), max(w), 100 * m["rule_mask_frac_of_band"]))
     A("")
     A("A rig whose ring does not close has a real angular gap with no camera in it")
     A("(Waymo Perception has no rear camera). That gap is black in the frame and 0 in")
-    A("the mask, exactly like any other blind spot — it is not a seam and is not")
+    A("the mask, exactly like any other blind spot - it is not a seam and is not")
     A("strip-masked.\n")
     return "\n".join(L)
 
