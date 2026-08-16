@@ -201,9 +201,16 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
     rect, pair_stats = rule_mask(log_dir, cal, cte, cams, pairs, elev_domain, n=n)
     rect &= elev_domain
 
+    # koi asked for two hood variants split across scenes.  That only exists if a
+    # hood mask is actually supplied: without one, "black" and "keep" produce
+    # byte-identical data under two different labels, which is worse than having
+    # one variant because the manifest would claim a contrast that is not there.
+    # So the manifest records what was applied, not what was requested.
     hood = None
     if hood_variant == "black" and hood_mask_path and os.path.isfile(hood_mask_path):
         hood = np.asarray(Image.open(hood_mask_path).convert("L")) > 127
+    hood_applied = hood is not None
+    hood_effective = "black" if hood_applied else "keep"
 
     dom_px = int(dom0.sum())
     keep_not_written = 0        # the invariant: must be 0 (I3)
@@ -229,7 +236,12 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
     man = {"schema": "db240.rulemask.v2", "dataset": dataset, "scene_id": scene_id,
            "window": [start, start + n - 1], "frames": n,
            "cameras": cams, "n_cameras": len(cams),
-           "hood_variant": hood_variant,
+           "hood_variant": hood_effective,
+           "hood_variant_requested": hood_variant,
+           "hood_mask_applied": hood_applied,
+           "hood_note": None if hood_applied else
+               "no hood mask supplied for this rig - this sample is the "
+               "keep variant regardless of what was requested",
            "projection": "rotation_only",
            "mask_rule": "blanket rectangular strip per adjacent-pair overlap wedge, "
                         "+%d px skirt, wedge unioned every %d frames" % (SKIRT_PX, WEDGE_STRIDE),
