@@ -272,6 +272,13 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
     grid_uniform = indices is not None
     if indices is None:
         indices = [start + i for i in range(n)]
+    # Record what the frame spacing actually came out as. A clip whose gaps vary
+    # teaches the model inconsistent motion, and it is not visible in any
+    # per-frame check - it only shows up on playback, which is how it was missed.
+    _gaps = np.diff([SC.manifest_from_dir(log_dir, k, 0, cams)["anchor_ts"]
+                     for k in indices]).astype(float)
+    frame_gap_cv = float(_gaps.std() / _gaps.mean()) if _gaps.size and _gaps.mean() else 0.0
+    frame_gap_ms = float(np.median(_gaps) / 1e6) if _gaps.size else 0.0
 
     # the rule mask is frozen for the window - zero flicker by construction -
     # but it is derived from the whole window's wedge union, not one frame
@@ -318,6 +325,8 @@ def produce(log_dir, out_dir, dataset, scene_id, start=0, n=93,
     man = {"schema": "db240.rulemask.v2", "dataset": dataset, "scene_id": scene_id,
            "window": [indices[0], indices[-1]], "frames": n,
            "frame_indices_uniform_in_time": grid_uniform,
+           "frame_gap_ms": round(frame_gap_ms, 2),
+           "frame_gap_cv": round(frame_gap_cv, 4),
            "cameras": cams, "n_cameras": len(cams),
            "hood_variant": hood_effective,
            "hood_variant_requested": hood_variant,

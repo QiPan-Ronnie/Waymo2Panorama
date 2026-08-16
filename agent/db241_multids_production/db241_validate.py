@@ -34,7 +34,7 @@ def check_sample(d):
     bad = []
     mp = os.path.join(d, "manifest.json")
     if not os.path.isfile(mp):
-        return False, ["no manifest.json"]
+        return False, ["no manifest.json"], 0.0
     with open(mp, encoding="utf-8") as fh:
         man = json.load(fh)
 
@@ -47,7 +47,7 @@ def check_sample(d):
     if not os.path.isfile(os.path.join(d, "rule_mask.png")):
         bad.append("no rule_mask.png")
     if len(frames) != len(masks):
-        return False, bad
+        return False, bad, 0.0
 
     from PIL import Image
     # spot-check first / middle / last rather than all 93: the failure modes here
@@ -75,6 +75,21 @@ def check_sample(d):
     if white_total == 0:
         bad.append("mask is entirely black - no supervision signal")
 
+    # Does the clip actually move?  A freeze-frame passed every other check here:
+    # 93 files, valid binary masks, clean manifest, and all 93 PNGs identical.
+    #
+    # Only *identical* frames are a defect. A clip that merely changes little is
+    # a stopped vehicle - Waymo Perception has many - and failing those would
+    # repeat the mistake the colour-based KEEP gate made: rejecting data for
+    # looking like exactly what it is. The motion figure is returned for
+    # reporting instead.
+    a = np.asarray(Image.open(frames[0]).convert("L")).astype(np.int16)
+    mid = np.asarray(Image.open(frames[FRAMES // 2]).convert("L")).astype(np.int16)
+    end = np.asarray(Image.open(frames[-1]).convert("L")).astype(np.int16)
+    motion = float(np.abs(a - end).mean())
+    if np.array_equal(a, end) and np.array_equal(a, mid):
+        bad.append("clip is a freeze-frame: first, middle and last frames identical")
+
     for f in ("dataset", "scene_id", "frames", "cameras", "hood_variant"):
         if f not in man:
             bad.append("manifest missing %s" % f)
@@ -91,7 +106,7 @@ def check_sample(d):
         bad.append("stale manifest schema (pre-gate-fix) - re-produce this sample")
     else:
         bad.append("manifest has no KEEP-integrity field")
-    return not bad, bad
+    return not bad, bad, motion
 
 
 def duplicates(dirs):
@@ -116,15 +131,44 @@ def duplicates(dirs):
     return [v for v in by.values() if len(v) > 1]
 
 
+def jitter(dirs):
+    """Per-source spread of the inter-frame time gap, from the manifests.
+
+    A uniform source reports 0. nuScenes cannot reach 0 - its capture period holds
+    three frames at 0/50/150 ms - so this is here to show the number rather than
+    to pass or fail on it. It is the second thing the user caught that no check
+    was looking at.
+    """
+    from collections import defaultdict
+    out = defaultdict(list)
+    for d in dirs:
+        mp = os.path.join(d, "manifest.json")
+        if not os.path.isfile(mp):
+            continue
+        try:
+            with open(mp, encoding="utf-8") as fh:
+                m = json.load(fh)
+        except Exception:
+            continue
+        cv = m.get("frame_gap_cv")
+        if cv is not None:
+            out[m.get("dataset", "?")].append(float(cv))
+    return {k: (float(np.median(v)), float(np.max(v))) for k, v in out.items() if v}
+
+
 def main():
     dirs = sorted(glob.glob(os.path.join(OUT, "*", "*")))
     dirs = [d for d in dirs if os.path.isdir(d)]
     ok, fail = 0, []
-    per = {}
+    per, motion = {}, {}
     for d in dirs:
-        good, probs = check_sample(d)
+        res = check_sample(d)
+        good, probs = res[0], res[1]
+        mot = res[2] if len(res) > 2 else None
         ds = os.path.basename(os.path.dirname(d))
         per.setdefault(ds, [0, 0])
+        if mot is not None:
+            motion.setdefault(ds, []).append(mot)
         if good:
             ok += 1
             per[ds][0] += 1
@@ -138,6 +182,17 @@ def main():
         print("  BAD %s" % os.path.relpath(d, OUT))
         for p in probs:
             print("      - %s" % p)
+    if motion:
+        print("  scene motion (mean |first-last| DN; low = stopped vehicle, not a fault):")
+        for ds, v in sorted(motion.items()):
+            v = sorted(v)
+            print("      %-18s median %.1f   %d of %d below 1.0"
+                  % (ds, v[len(v) // 2], sum(1 for x in v if x < 1.0), len(v)))
+    jit = jitter(dirs)
+    if jit:
+        print("  frame-timing jitter (cv of inter-frame gap; 0 = uniform):")
+        for ds, v in sorted(jit.items()):
+            print("      %-18s median cv %.3f  worst %.3f" % (ds, v[0], v[1]))
     dups = duplicates(dirs)
     if dups:
         print("  DUPLICATE CONTENT under different scene ids: %d group(s)" % len(dups))
