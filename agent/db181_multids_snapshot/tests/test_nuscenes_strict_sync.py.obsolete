@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+from agent.db181_multids import nuscenes_adapter
+
+
+def test_half_cadence_window_rejects_nearly_one_frame_old_camera() -> None:
+    front = (1_000_000_000, 1_083_333_000, 1_166_666_000, 1_249_999_000)
+    rear = (1_050_000_000, 1_133_333_000, 1_216_666_000)
+    cadence = nuscenes_adapter._nominal_cadence_ns(rear, "CAM_BACK")
+    window = nuscenes_adapter._scaled_sync_window_ns(cadence, 0.5)
+
+    anchors = nuscenes_adapter._maximum_common_anchor_indices(
+        {"CAM_FRONT": front, "CAM_BACK": rear},
+        {"CAM_FRONT": window, "CAM_BACK": window},
+        "CAM_FRONT",
+    )
+    selected_anchors = tuple(front[index] for index in anchors)
+    rear_indices = nuscenes_adapter._match_ordered_distinct_indices(
+        rear,
+        selected_anchors,
+        "CAM_BACK",
+        window,
+    )
+
+    assert window == 41_666_500
+    assert anchors == (1, 2, 3)
+    assert tuple(rear[index] for index in rear_indices) == rear
+    assert max(
+        abs(rear[index] - selected_anchors[position])
+        for position, index in enumerate(rear_indices)
+    ) == 33_333_000
+
+
+def test_scaled_sync_window_rejects_invalid_fraction() -> None:
+    for invalid in (0.0, -0.1, 1.1, float("inf"), float("nan"), True):
+        try:
+            nuscenes_adapter._scaled_sync_window_ns(83_333_000, invalid)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"accepted invalid sync-window fraction: {invalid!r}")

@@ -1,0 +1,44 @@
+from __future__ import annotations
+
+import json
+import re
+
+from .scene_band_policy import SceneBandPolicy, apply_policy_to_db89_source
+
+
+def _replace_expression_once(source: str, name: str, expression: str) -> str:
+    pattern = re.compile(
+        rf"^(?P<prefix>\s*{re.escape(name)}\s*=\s*)"
+        rf"(?P<value>[^#\r\n]*?)(?P<suffix>\s*(?:#.*)?)$",
+        re.MULTILINE,
+    )
+    matches = tuple(pattern.finditer(source))
+    if not matches:
+        raise ValueError(f"missing DB89 assignment for {name}")
+    if len(matches) != 1:
+        raise ValueError(f"duplicate DB89 assignment for {name}: {len(matches)}")
+    return pattern.sub(
+        lambda match: match.group("prefix") + expression + match.group("suffix"),
+        source,
+        count=1,
+    )
+
+
+def build_scene_band_renderer_source(
+    source: str,
+    *,
+    policy: SceneBandPolicy,
+    data_root: str,
+    output_root: str,
+) -> str:
+    rendered = apply_policy_to_db89_source(source, policy)
+    rendered = _replace_expression_once(
+        rendered, "DATA_ROOT", f"pathlib.Path({json.dumps(data_root)})"
+    )
+    rendered = _replace_expression_once(
+        rendered, "REMOTE_OUT", f"pathlib.Path({json.dumps(output_root)})"
+    )
+    return rendered
+
+
+__all__ = ["build_scene_band_renderer_source"]

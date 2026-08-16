@@ -1,0 +1,79 @@
+from __future__ import annotations
+
+from agent.db181_multids import CameraRecord, ConversionManifest, FrameRecord, SourceArtifact
+from agent.db181_multids.scene_band_worker_config import validate_requested_anchors
+
+
+def _manifest(dataset: str, frames: tuple[FrameRecord, ...]) -> ConversionManifest:
+    cameras = tuple(frames[0].camera_timestamps_ns)
+    manifest = ConversionManifest(
+        schema_version="1.0",
+        dataset=dataset,
+        source_scene_id="source-scene",
+        output_log_id="pseudo-log",
+        mode="B",
+        cameras=cameras,
+        anchor_camera=cameras[0],
+        source_frame_count=len(frames),
+        output_frame_count=len(frames),
+        source_frame_rate_hz=10.0,
+        output_frame_rate_hz=10.0,
+        camera_records=tuple(
+            CameraRecord(
+                camera,
+                camera.upper(),
+                len(frames),
+                max(abs(frame.camera_timestamps_ns[camera] - frame.anchor_timestamp_ns) for frame in frames),
+            )
+            for camera in cameras
+        ),
+        frames=frames,
+        calibration_sha256="a" * 64,
+        source_artifacts=(SourceArtifact("source.bin", "b" * 64, 1),),
+        has_lidar=True,
+        has_ego_pose=True,
+        has_annotations=False,
+        real_mask_pattern=None,
+        faithfill_mask_pattern=None,
+        honest_black_mask_pattern=None,
+        supported_azimuth_deg=((0.0, 360.0),),
+        honest_black_azimuth_deg=(),
+        coordinate_convention_transform=(
+            (1.0, 0.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        converter_git_commit="1234567",
+        created_at="2026-07-31T12:00:00-07:00",
+    )
+    manifest.validate()
+    return manifest
+
+
+def test_nuscenes_requested_anchor_must_pass_strict_sync() -> None:
+    frames = (
+        FrameRecord(0, 100, {"ring_front_center": 100, "ring_side_left": 100}, 100),
+        FrameRecord(1, 200, {"ring_front_center": 200, "ring_side_left": 260}, 200),
+        FrameRecord(2, 300, {"ring_front_center": 300, "ring_side_left": 300}, 300),
+    )
+    manifest = _manifest("nuscenes", frames)
+
+    assert validate_requested_anchors(manifest, (0, 2)) == (0, 2)
+    try:
+        validate_requested_anchors(manifest, (1,))
+    except ValueError as error:
+        assert "strict sync rejected requested anchors: [1]" in str(error)
+    else:
+        raise AssertionError("nuScenes anchor 1 must fail the half-cadence gate")
+
+
+def test_requested_anchor_must_be_in_manifest_range() -> None:
+    frame = FrameRecord(0, 100, {"ring_front_center": 100}, 100)
+    manifest = _manifest("pandaset", (frame,))
+    try:
+        validate_requested_anchors(manifest, (1,))
+    except ValueError as error:
+        assert "outside manifest frame range" in str(error)
+    else:
+        raise AssertionError("out-of-range anchor must fail")
