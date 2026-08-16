@@ -76,25 +76,42 @@ def fetch_log(uuid, dest_root, split="val", n_frames=93, workers=12):
     return total
 
 
-def list_val_logs(limit=None):
-    pres, _ = _list("datasets/av2/sensor/val/")
-    ids = [p.rstrip("/").rsplit("/", 1)[-1] for p in pres]
+def list_logs(splits=("val", "train"), limit=None):
+    """Log ids across splits, val first.
+
+    val alone is 150 logs, which the producer exhausts well before the 400/source
+    target - after that the fetcher spins requesting offsets past the end of the
+    list and looks busy while doing nothing. train adds 700 more.
+    """
+    ids = []
+    for sp in splits:
+        pres, _ = _list("datasets/av2/sensor/%s/" % sp)
+        ids += [(sp, p.rstrip("/").rsplit("/", 1)[-1]) for p in pres]
     return ids[:limit] if limit else ids
+
+
+def list_val_logs(limit=None):
+    return [u for _s, u in list_logs(("val",), limit)]
 
 
 if __name__ == "__main__":
     dest = sys.argv[1]
     want = int(sys.argv[2]) if len(sys.argv) > 2 else 5
-    skip = int(sys.argv[3]) if len(sys.argv) > 3 else 0
-    ids = list_val_logs()
-    print("val logs available: %d" % len(ids), flush=True)
+    ids = list_logs()
+    have = set(os.listdir(dest)) if os.path.isdir(dest) else set()
+    # Skip by what is already on disk rather than by a caller-supplied offset:
+    # an offset walks off the end once a split is exhausted and the fetcher then
+    # spins doing nothing while looking busy.
+    todo = [(sp, u) for sp, u in ids if u not in have]
+    print("logs available: %d (%d already local, %d to go)"
+          % (len(ids), len(have), len(todo)), flush=True)
     done = 0
-    for uuid in ids[skip:]:
+    for sp, uuid in todo:
         if done >= want:
             break
         try:
-            mb = fetch_log(uuid, dest) / 1e6
+            mb = fetch_log(uuid, dest, split=sp) / 1e6
             done += 1
-            print("  [%d/%d] %s  %.0f MB" % (done, want, uuid, mb), flush=True)
+            print("  [%d/%d] %s/%s  %.0f MB" % (done, want, sp, uuid, mb), flush=True)
         except Exception as exc:                       # noqa: BLE001
             print("  skip %s: %s" % (uuid, str(exc)[:90]), flush=True)

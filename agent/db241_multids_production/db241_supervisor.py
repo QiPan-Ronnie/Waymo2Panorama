@@ -95,8 +95,11 @@ def main():
 
         if (fetch_proc is None or fetch_proc.poll() is not None) and counts["argoverse2"] < TARGET:
             fetch_round += 1
+            # No offset: the fetcher skips what is already on disk. Passing a
+            # growing offset walked off the end of the 150-log val split and the
+            # fetcher then spun for 95 rounds fetching nothing.
             with open(r"E:/w2p_data/av2_fetch.log", "a") as fh:
-                fetch_proc = subprocess.Popen(FETCH + [str(fetch_round * 40)], stdout=fh,
+                fetch_proc = subprocess.Popen(FETCH, stdout=fh,
                                               stderr=subprocess.STDOUT, env=env, cwd=SCRATCH)
             print("[supervisor] av2 fetch round %d" % fetch_round, flush=True)
 
