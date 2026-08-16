@@ -261,11 +261,21 @@ def convert(tfrecord, out_dir, e2e=False, max_frames=None, context_filter=None,
         os.path.join(out_dir, "calibration", "intrinsics.feather"))
     pd.DataFrame(extr_rows).to_feather(
         os.path.join(out_dir, "calibration", "egovehicle_SE3_sensor.feather"))
-    if pose_rows:
-        pd.DataFrame(pose_rows).to_feather(
-            os.path.join(out_dir, "city_SE3_egovehicle.feather"))
+    if not pose_rows:
+        # E2E zeroes its ego pose along with its timestamps.  The renderer still
+        # needs a pose table to interpolate against, and with no motion to
+        # compensate the honest table is the identity one: every camera is then
+        # posed by calibration alone, which is exactly the static-rig degradation
+        # the E2E profile already widens the skirt for.
+        pose_rows = [{"timestamp_ns": k * 100_000_000, "qw": 1.0, "qx": 0.0,
+                      "qy": 0.0, "qz": 0.0, "tx_m": 0.0, "ty_m": 0.0, "tz_m": 0.0}
+                     for k in range(max(wrote, 2))]
+    pd.DataFrame(pose_rows).to_feather(
+        os.path.join(out_dir, "city_SE3_egovehicle.feather"))
     return {"context": ctx_seen, "frames": wrote, "cameras": len(intr_rows),
-            "undistorted": sorted(RING[c] for c in maps)}
+            "undistorted": sorted(RING[c] for c in maps),
+            "ego_pose": "real" if any(r["tx_m"] or r["ty_m"] for r in pose_rows)
+                        else "identity (E2E ships none)"}
 
 
 if __name__ == "__main__":
