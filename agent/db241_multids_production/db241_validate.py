@@ -94,6 +94,28 @@ def check_sample(d):
     return not bad, bad
 
 
+def duplicates(dirs):
+    """Samples whose content is byte-identical under different scene ids.
+
+    Two producers sharing one scratch path race, and the loser converts the
+    winner's records into its own directory - the result is two scene ids with
+    the same pixels, which quietly breaks train/test independence because the
+    split thinks they are different scenes. Found 2 such pairs in 93 E2E samples
+    before the scratch paths were made per-process; the check stays because a
+    duplicate is invisible to every per-sample check.
+    """
+    import hashlib
+    from collections import defaultdict
+    by = defaultdict(list)
+    for d in dirs:
+        f = os.path.join(d, "frames", "fr_0037.png")
+        if not os.path.isfile(f):
+            continue
+        with open(f, "rb") as fh:
+            by[hashlib.md5(fh.read()).hexdigest()].append(d)
+    return [v for v in by.values() if len(v) > 1]
+
+
 def main():
     dirs = sorted(glob.glob(os.path.join(OUT, "*", "*")))
     dirs = [d for d in dirs if os.path.isdir(d)]
@@ -116,7 +138,14 @@ def main():
         print("  BAD %s" % os.path.relpath(d, OUT))
         for p in probs:
             print("      - %s" % p)
-    return 1 if fail else 0
+    dups = duplicates(dirs)
+    if dups:
+        print("  DUPLICATE CONTENT under different scene ids: %d group(s)" % len(dups))
+        for g in dups[:5]:
+            print("      " + ", ".join(os.path.relpath(x, OUT) for x in g))
+    else:
+        print("  no duplicate content")
+    return 1 if (fail or dups) else 0
 
 
 if __name__ == "__main__":

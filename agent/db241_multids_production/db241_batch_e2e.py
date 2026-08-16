@@ -25,7 +25,12 @@ import db241_waymo_tfrecord as W  # noqa: E402
 import db241_driver as D  # noqa: E402
 
 PLAN = r"E:/w2p_data/waymo_e2e/plan.json"
-TMP = r"E:/w2p_data/waymo_e2e/_seg.tfrecord"
+# Per-process scratch file. A fixed path races when two producers run at once -
+# the supervisor starts one and a manual run can start another - and the loser
+# converts the winner's records into its own log directory, producing two
+# samples with different scene ids and byte-identical frames. That happened:
+# 2 duplicate pairs out of 93 E2E samples before this was caught.
+TMP = r"E:/w2p_data/waymo_e2e/_seg_%d.tfrecord" % os.getpid()
 PSEUDO = r"E:/w2p_data/waymo_e2e/pseudo_av2"
 OUT = r"E:/w2p_data/dataset_out"
 
