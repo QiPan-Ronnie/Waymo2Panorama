@@ -7,6 +7,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import db241_driver as D  # noqa: E402
+import db241_shard as SH  # noqa: E402
 
 SRC = sys.argv[1] if len(sys.argv) > 1 else r"E:/w2p_data/av2"
 OUT = sys.argv[2] if len(sys.argv) > 2 else r"E:/w2p_data/dataset_out"
@@ -15,9 +16,9 @@ OUT = sys.argv[2] if len(sys.argv) > 2 else r"E:/w2p_data/dataset_out"
 def main():
     logs = sorted(d for d in os.listdir(SRC)
                   if os.path.isdir(os.path.join(SRC, d, "sensors", "cameras")))
-    print("AV2 logs found: %d" % len(logs), flush=True)
+    print("AV2 logs found: %d%s" % (len(logs), SH.label()), flush=True)
     res = []
-    for i, uuid in enumerate(logs):
+    for i, uuid in SH.mine(logs):
         sid = uuid.split("-")[0]
         if os.path.isfile(os.path.join(OUT, "argoverse2", sid, "manifest.json")):
             print("  %-10s already done" % sid, flush=True)

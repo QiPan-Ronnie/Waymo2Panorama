@@ -23,6 +23,7 @@ sys.path.insert(0, HERE)
 import db241_e2e_index as E  # noqa: E402
 import db241_waymo_tfrecord as W  # noqa: E402
 import db241_driver as D  # noqa: E402
+import db241_shard as SH  # noqa: E402
 
 PLAN = r"E:/w2p_data/waymo_e2e/plan.json"
 # Per-process scratch file. A fixed path races when two producers run at once -
@@ -40,10 +41,10 @@ def main():
     with open(PLAN, encoding="utf-8") as fh:
         plan = json.load(fh)
     keys = sorted(plan)
-    print("producible segments: %d, taking %d" % (len(keys), want), flush=True)
+    print("producible segments: %d, taking %d%s" % (len(keys), want, SH.label()), flush=True)
     os.makedirs(PSEUDO, exist_ok=True)
     done = 0
-    for key in keys:
+    for _pos, key in SH.mine(keys):
         if done >= want:
             break
         sid = key[:16]

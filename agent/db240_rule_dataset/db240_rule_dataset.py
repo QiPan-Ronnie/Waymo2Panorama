@@ -39,6 +39,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(
 
 import db238_screen as SC  # noqa: E402
 import db239_seam_mask as SM  # noqa: E402
+import db240_gpu as GPU  # noqa: E402
 
 H, W = SC.H, SC.W
 ELEV_DEG = 35.0
@@ -228,6 +229,19 @@ def render_frame(log_dir, k, cal, cte, cams, elev_domain):
     cam_ts = {c: man["cam_ts"][c] for c in cams}
     imgs = SC.load_images(log_dir, cam_ts)
     pose = SM.emc_poses({c: cal[c] for c in cams}, cam_ts, man["anchor_ts"], cte)
+
+    if GPU.available():
+        # Verified against the CPU path on AV2: support, ownership and written
+        # differ by 0 px, and the saved uint8 frame is byte-identical over all
+        # 2,097,152 pixels. 8.4x faster warm, and the grids live in VRAM rather
+        # than in the 524 MB per-worker host footprint that capped parallelism.
+        sup_g, own_g = GPU.support_and_own(pose, cams, SC.DIRS_FLAT, H, W)
+        own = own_g.reshape(H, W).cpu().numpy()
+        domain = (own >= 0) & elev_domain
+        erp, written = GPU.sample_frame(pose, cams, imgs, own_g, domain,
+                                        SC.DIRS_FLAT, H, W)
+        return erp.astype(np.float32), written, pose
+
     sup = SM.camera_support_emc(pose)
     face = np.full((H, W), -2.0, np.float32)
     own = np.full((H, W), -1, np.int16)

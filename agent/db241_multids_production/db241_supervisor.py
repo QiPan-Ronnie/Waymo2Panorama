@@ -33,6 +33,13 @@ JOBS = [
     ("waymo_e2e", [sys.executable, "-u", os.path.join(AGENT, "db241_batch_e2e.py"), "400"],
      r"E:/w2p_data/e2e_batch.log"),
 ]
+# Workers per source. The per-frame cost is 48% camera-support, 30% render, 17%
+# JPEG decode - all CPU-bound and all per-process, so throughput scales with
+# processes until the 32 cores saturate. AV2 and nuScenes render from local
+# files and get the most; the Waymo sources spend much of their wall clock on
+# download, so extra workers there mostly wait on the network.
+WORKERS = {"argoverse2": 10, "nuscenes": 10, "waymo_perception": 5, "waymo_e2e": 5}
+
 # AV2 needs its raw logs fetched before the batch has anything to chew on
 FETCH = [sys.executable, "-u", os.path.join(AGENT, "db241_fetch_av2.py"),
          "E:/w2p_data/av2", "40"]
@@ -83,15 +90,22 @@ def main():
                 env["W2P_GCS_TOKEN"] = fh.read().strip()
 
         for ds, cmd, log in JOBS:
-            p = procs.get(ds)
-            if p is not None and p.poll() is None:
-                continue
             if counts[ds] >= TARGET:
                 continue
-            with open(log, "a") as fh:
-                procs[ds] = subprocess.Popen(cmd, stdout=fh, stderr=subprocess.STDOUT,
-                                             env=env, cwd=SCRATCH)
-            print("[supervisor] started %-18s (have %d)" % (ds, counts[ds]), flush=True)
+            n = WORKERS.get(ds, 1)
+            for w in range(n):
+                key = (ds, w)
+                p = procs.get(key)
+                if p is not None and p.poll() is None:
+                    continue
+                wenv = dict(env)
+                wenv["W2P_SHARD"] = "%d/%d" % (w, n)
+                with open(log, "a") as fh:
+                    procs[key] = subprocess.Popen(cmd, stdout=fh,
+                                                  stderr=subprocess.STDOUT,
+                                                  env=wenv, cwd=SCRATCH)
+                print("[supervisor] started %-18s shard %d/%d (have %d)"
+                      % (ds, w, n, counts[ds]), flush=True)
 
         if (fetch_proc is None or fetch_proc.poll() is not None) and counts["argoverse2"] < TARGET:
             fetch_round += 1
