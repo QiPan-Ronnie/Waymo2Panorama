@@ -23,14 +23,28 @@ TOKEN = r"E:/w2p_data/gcs_token.txt"
 MIN_FREE_GB = 25
 TARGET = int(sys.argv[1]) if len(sys.argv) > 1 else 500
 
+# Sized by measured RAM, not by core count. Each worker peaked at 524 MB and this
+# box has 31 GB, of which ~21 GB is actually free: 30 workers died with
+# MemoryError mid-run. Eight leaves headroom for the JPEG decode spikes and for
+# the GPU workers' host-side buffers.
+WORKERS = {"argoverse2": 3, "nuscenes": 3, "waymo_perception": 1, "waymo_e2e": 1}
+
+# GPU interpreter: the default python here is torch-CPU. CSCI699 is the env on
+# this machine with CUDA plus every package the pipeline needs. Falls back to the
+# current interpreter if it is missing, and the code falls back to CPU if the GPU
+# is unusable, so neither is a hard dependency.
+GPU_PY = r"D:\miniconda3\envs\CSCI699\python.exe"
+PY_EXE = GPU_PY if os.path.isfile(GPU_PY) else sys.executable
+
+
 JOBS = [
-    ("argoverse2", [sys.executable, "-u", os.path.join(AGENT, "db241_batch_av2.py")],
+    ("argoverse2", [PY_EXE, "-u", os.path.join(AGENT, "db241_batch_av2.py")],
      r"E:/w2p_data/av2_batch.log"),
-    ("nuscenes", [sys.executable, "-u", os.path.join(SCRATCH, "batch_nusc_cams.py"), "300"],
+    ("nuscenes", [PY_EXE, "-u", os.path.join(SCRATCH, "batch_nusc_cams.py"), "300"],
      r"E:/w2p_data/nusc_batch.log"),
-    ("waymo_perception", [sys.executable, "-u", os.path.join(SCRATCH, "fetch_percep.py"), "200"],
+    ("waymo_perception", [PY_EXE, "-u", os.path.join(SCRATCH, "fetch_percep.py"), "200"],
      r"E:/w2p_data/percep_batch.log"),
-    ("waymo_e2e", [sys.executable, "-u", os.path.join(AGENT, "db241_batch_e2e.py"), "400"],
+    ("waymo_e2e", [PY_EXE, "-u", os.path.join(AGENT, "db241_batch_e2e.py"), "400"],
      r"E:/w2p_data/e2e_batch.log"),
 ]
 # Workers per source. The per-frame cost is 48% camera-support, 30% render, 17%
@@ -38,8 +52,6 @@ JOBS = [
 # processes until the 32 cores saturate. AV2 and nuScenes render from local
 # files and get the most; the Waymo sources spend much of their wall clock on
 # download, so extra workers there mostly wait on the network.
-WORKERS = {"argoverse2": 10, "nuscenes": 10, "waymo_perception": 5, "waymo_e2e": 5}
-
 # AV2 needs its raw logs fetched before the batch has anything to chew on
 FETCH = [sys.executable, "-u", os.path.join(AGENT, "db241_fetch_av2.py"),
          "E:/w2p_data/av2", "40"]
@@ -64,6 +76,7 @@ def count(ds):
 def main():
     env = dict(os.environ)
     env["W2P_GCS_TOKEN_FILE"] = TOKEN
+    env["W2P_GPU"] = "1"
     procs, fetch_proc, fetch_round = {}, None, 0
     while True:
         gb = free_gb()
