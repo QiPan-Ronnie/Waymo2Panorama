@@ -141,8 +141,16 @@ def box_shape():
                     break
     except Exception:                                          # noqa: BLE001
         pass
+    # 12 GB per worker, not 8, and MemTotal is only a proxy. The real ceiling is
+    # the jupyter-children cgroup, whose limit is hidden by the namespace
+    # (memory.max reads "max" from inside). Measured instead: the OOM killer
+    # fires at anon-rss ~22.7 GB on a box whose /proc/meminfo claims 52 GB and
+    # whose `free` still shows 43 GB available - so the machine-level number has
+    # no authority over whether the process is killed. Budgeting 12 GB against
+    # MemTotal lands the L4s at 4 workers, which keeps the peak under that
+    # observed ceiling; the 167/177 GB boxes stay unaffected at 7 and 12.
     if ram_gb:
-        cpu_workers = max(2, min(cpu_workers, int(ram_gb // 8)))
+        cpu_workers = max(2, min(cpu_workers, int(ram_gb // 12)))
     return {"cpu": cpu, "gpus": gpus, "vram_mb": vram, "ram_gb": round(ram_gb),
             "gpu_workers": gpu_workers or 2, "cpu_workers": cpu_workers}
 
