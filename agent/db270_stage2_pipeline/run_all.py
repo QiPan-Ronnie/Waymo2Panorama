@@ -123,7 +123,27 @@ def box_shape():
     gpu_workers = max(1, min(CFG["parallel"]["gpu_workers"],
                              (vram // 18000) or 1)) if gpus else 0
     cpu_workers = max(2, min(CFG["parallel"]["cpu_workers"], cpu - gpu_workers - 1))
-    return {"cpu": cpu, "gpus": gpus, "vram_mb": vram,
+    # System RAM is the third constraint and it was missing: pools were sized by
+    # cores and VRAM alone. A nuScenes scene carries 6 cameras x 93 frames -
+    # several times the working set of an AV2 or e2e scene - so the 10 CPU
+    # workers that were comfortable for the other three sources drove l4a to
+    # anon-rss 52 GB on a 52 GB box and the cgroup OOM killer took the whole run
+    # (EXIT=137, confirmed in dmesg). Measured cost was ~4.7 GB resident per
+    # concurrent scene; budgeting 8 GB each leaves ~70% headroom and only binds
+    # on the small-RAM boxes (L4 52 GB -> 6 workers; the 167/177 GB boxes are
+    # unaffected).
+    ram_gb = 0
+    try:
+        with open("/proc/meminfo") as fh:
+            for line in fh:
+                if line.startswith("MemTotal:"):
+                    ram_gb = int(line.split()[1]) / 1e6
+                    break
+    except Exception:                                          # noqa: BLE001
+        pass
+    if ram_gb:
+        cpu_workers = max(2, min(cpu_workers, int(ram_gb // 8)))
+    return {"cpu": cpu, "gpus": gpus, "vram_mb": vram, "ram_gb": round(ram_gb),
             "gpu_workers": gpu_workers or 2, "cpu_workers": cpu_workers}
 
 
