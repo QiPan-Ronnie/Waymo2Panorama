@@ -37,6 +37,7 @@ import os
 import subprocess
 import sys
 import tarfile
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -299,9 +300,48 @@ def nuscenes_shard(k, root, verbose=True, progress_gb=2):
     return base
 
 
+_NS_META_CACHE = {}
+_NS_META_LOCK = threading.Lock()
+
+
+def install_nuscenes_meta_cache():
+    """Share ONE parsed copy of the nuScenes tables across all worker threads.
+
+    db241_nuscenes_cams._load json.loads a table per call and convert_scene
+    calls it six times per scene - including sample_data.json, which is 1.35 GB
+    on disk and 4.42 GB as Python objects (2.63 M rows, both measured). With one
+    scene per worker that cost is paid PER WORKER, so the peak scales with the
+    pool: both L4s were OOM-killed at anon-rss ~51 GB, i.e. 6 workers x ~8.5 GB
+    of duplicated tables on a 52 GB box. Capping workers by RAM did not fix it
+    because the per-worker cost, not the worker count, was the problem.
+
+    Safe to share: convert_scene only reads these tables (it builds its own
+    dicts from them) and never mutates a row. One shared copy turns 6x into 1x.
+
+    Swapped in rather than forked - the same pattern db270_e2e_transport uses
+    for the E2E transport - because db241 is golden-tested and stays untouched.
+    """
+    import db241_nuscenes_cams as NC
+    if getattr(NC, "_w2p_meta_cached", False):
+        return
+
+    def _cached_load(meta, name):
+        key = (meta, name)
+        with _NS_META_LOCK:
+            if key not in _NS_META_CACHE:
+                with open(os.path.join(meta, name + ".json"),
+                          encoding="utf-8") as fh:
+                    _NS_META_CACHE[key] = json.load(fh)
+            return _NS_META_CACHE[key]
+
+    NC._load = _cached_load
+    NC._w2p_meta_cached = True
+
+
 def fetch_nuscenes(job, root):
     """Convert one scene out of an already-unpacked shard."""
     import db241_nuscenes_cams as NC
+    install_nuscenes_meta_cache()
     src = os.path.join(root, "data", "raw", "nuscenes")
     meta = nuscenes_meta(root)
     log = os.path.join(root, "data", "pseudo_av2", "ns_" + job["scene"])
