@@ -69,7 +69,19 @@ def _have(root, source):
         if _ARCH[0]:
             d = os.path.join(_ARCH[0], sp, source)
             if os.path.isdir(d):
-                seen.update(f[:-4] for f in os.listdir(d) if f.endswith(".tgz"))
+                # Strip Drive's clone suffix. When two boxes archive the same
+                # scene, Drive keeps "<scene> (1).tgz" beside "<scene>.tgz";
+                # counting that as a separate scene inflates progress and stops
+                # production early - waymo_e2e read 900/900 while holding only
+                # 895 distinct scenes, so the planner refused to fill a real
+                # 5-scene shortfall.
+                for f in os.listdir(d):
+                    if not f.endswith(".tgz"):
+                        continue
+                    name = f[:-4]
+                    if name.endswith(")") and " (" in name:
+                        name = name[:name.rindex(" (")]
+                    seen.add(name)
     return len(seen)
 
 

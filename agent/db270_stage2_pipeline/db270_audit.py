@@ -99,7 +99,9 @@ def main():
     done = {}
     if a.resume and os.path.isfile(out):
         done = json.load(open(out))
-        print("resuming: %d tars already audited" % len(done), flush=True)
+        npass = sum(1 for v in done.values() if v[0] == "PASS")
+        print("resuming: %d recorded (%d PASS kept, %d will be re-checked)"
+              % (len(done), npass, len(done) - npass), flush=True)
 
     tars, clones = [], []
     for dp, _, fs in os.walk(a.archive_root):
@@ -111,7 +113,11 @@ def main():
     print("found %d tars (+%d Drive clones)" % (len(tars), len(clones)),
           flush=True)
 
-    todo = [p for p in tars if p not in done]
+    # Re-check anything that is not a recorded PASS. Skipping every recorded
+    # entry would mean a repaired sample keeps its old FAIL forever - the audit
+    # would report failures that no longer exist and hide whether the fix
+    # worked. Only a PASS is worth trusting across runs.
+    todo = [p for p in tars if done.get(p, [None])[0] != "PASS"]
     t0 = time.time()
     n = [0]
 
