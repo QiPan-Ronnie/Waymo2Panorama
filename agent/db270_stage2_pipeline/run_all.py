@@ -84,9 +84,23 @@ def ledger_set(key, **kw):
         e = d["scenes"].setdefault(key, {})
         e.update(kw)
         e["t"] = time.strftime("%Y-%m-%dT%H:%M:%S")
-        tmp = LEDGER + ".tmp"
-        json.dump(d, open(tmp, "w"), indent=1)
-        os.replace(tmp, LEDGER)
+        # PID in the temp name: _LOCK only serialises threads, and more than one
+        # run_all process can share a box (a manual relaunch racing the
+        # sentinel's, or a stray survivor). With one fixed ".tmp" they clobber
+        # each other and the loser's os.replace raises FileNotFoundError - which
+        # this function's callers turn into a FAILED SCENE. A good sample was
+        # being thrown away over a bookkeeping race.
+        tmp = "%s.tmp.%d" % (LEDGER, os.getpid())
+        try:
+            json.dump(d, open(tmp, "w"), indent=1)
+            os.replace(tmp, LEDGER)
+        except Exception:                                  # noqa: BLE001
+            # The ledger is progress bookkeeping; the Drive archive is the
+            # durable truth. Never let a ledger hiccup fail a produced sample.
+            try:
+                os.path.isfile(tmp) and os.remove(tmp)
+            except OSError:
+                pass
 
 
 # ------------------------------------------------------------- box sizing
@@ -365,10 +379,25 @@ def run(jobs, shape, log_every=1):
                                         r["gap_pct"], r["gap_frames"], el,
                                         60 * done["ok"] / max(el, 1)), flush=True)
             except Exception:
+                # Drop the converted tree so the retry rebuilds it from source.
+                # Deciding whether a cached directory is "complete enough" is
+                # the guess that has now failed three times (calibration/ as the
+                # test, then a _CONVERT_OK stamp back-filled from ledger state
+                # that turned out to describe an EARLIER convert). A GPU failure
+                # is the ground truth that this tree is unusable, so stop
+                # guessing and let the next claim re-fetch. Costs one re-download
+                # for a genuinely transient failure; buys immunity to the whole
+                # poisoned-cache class, which otherwise fails forever.
+                try:
+                    import shutil
+                    shutil.rmtree(log, ignore_errors=True)
+                except Exception:                          # noqa: BLE001
+                    pass
                 ledger_set(key, stage="failed_gpu",
                            err=traceback.format_exc()[-300:])
                 done["fail"] += 1
-                print("  GPU-FAIL %s" % key, flush=True)
+                print("  GPU-FAIL %s (converted tree dropped for rebuild)"
+                      % key, flush=True)
 
     nc = shape["cpu_workers"]
     cts = [threading.Thread(target=cpu_loop, args=(jobs[i::nc],), daemon=True)
