@@ -27,6 +27,8 @@ import ssl
 import struct
 import sys
 import threading
+import time
+import urllib.error
 import urllib.request
 
 BUCKET = "waymo_open_dataset_end_to_end_camera_v_1_0_0"
@@ -65,6 +67,32 @@ def _tok():
     return t
 
 
+def _wait_fresh_token(max_wait=1500):
+    """Block until the token FILE changes, then let _tok() pick it up.
+
+    A 401 means the token aged out, and burning the scene is the wrong
+    response: the pump refreshes the file every ~10 min, so the right move is
+    to pause the download until a new token lands. The fleet-wide outage of
+    2026-08-19 turned a ~30-min token gap into 1022 failed_cpu scenes because
+    every 401 was treated as fatal. 25 min of patience covers two missed pump
+    cycles; only after that is the 401 allowed to propagate.
+    """
+    if not (TOKEN_FILE and os.path.isfile(TOKEN_FILE)):
+        return
+    try:
+        m0 = os.path.getmtime(TOKEN_FILE)
+    except OSError:
+        return
+    t0 = time.time()
+    while time.time() - t0 < max_wait:
+        time.sleep(20)
+        try:
+            if os.path.getmtime(TOKEN_FILE) != m0:
+                return
+        except OSError:
+            pass
+
+
 def _get(obj, a, b, retries=4):
     url = "%s/%s/%s" % (HOST, BUCKET, obj)
     for k in range(retries):
@@ -75,10 +103,19 @@ def _get(obj, a, b, retries=4):
             with urllib.request.urlopen(req, timeout=90,
                                         context=ssl.create_default_context()) as r:
                 return r.read(), int(r.headers.get("Content-Range", "/0").split("/")[-1])
+        except urllib.error.HTTPError as e:
+            # 401 = stale token, not a bad object: wait for a fresh token
+            # WITHOUT spending the retry budget, then go around again.
+            if e.code == 401:
+                _wait_fresh_token()
+                continue
+            if k == retries - 1:
+                raise
         except Exception:
             if k == retries - 1:
                 raise
-    return b"", 0
+    # only reachable when every round ended in 401 + a fruitless wait
+    raise RuntimeError("GCS 401 persisted after token-refresh waits: " + obj)
 
 
 # ------------------------------------------------------------------ proto bits
