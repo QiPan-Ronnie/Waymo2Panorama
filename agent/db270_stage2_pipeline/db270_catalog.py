@@ -192,7 +192,20 @@ def nuscenes(root, want=0, max_shards=10, verbose=True, max_new=None,
     if not want:
         return jobs
     mine = [k for k in range(1, max_shards + 1) if (k - 1) % shard_n == shard_i]
-    order = mine + [k for k in range(1, max_shards + 1) if k not in mine]
+    rest = [k for k in range(1, max_shards + 1) if k not in mine]
+    # The FALLBACK must be rotated too, not just the ownership. Ascending
+    # fallback means every box walks the same list in the same order, so the
+    # moment two boxes finish their own shards they both start pulling shard 01
+    # - 16.5 GB each, for scenes a third box may already have archived.
+    # Observed live on 08-20: l4a and l4b both streaming trainval01 while a100
+    # already held shard 01 locally. Rotating by shard_i spreads the entry
+    # points; it cannot fully prevent collisions (the .done marks are per-box,
+    # so no box knows what another has pulled) but it stops the deterministic
+    # pile-up on the lowest-numbered shard.
+    if rest:
+        off = shard_i % len(rest)
+        rest = rest[off:] + rest[:off]
+    order = mine + rest
     opened = 0
     for k in order:
         if len(jobs) >= want or (max_new is not None and opened >= max_new):
