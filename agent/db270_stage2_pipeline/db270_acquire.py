@@ -139,11 +139,32 @@ def fetch_argoverse2(job, root):
 
 
 # ------------------------------------------------------------ waymo perception
+def _convert_guard(log):
+    """Skip-or-rebuild decision for a converted scene directory.
+
+    "calibration/ exists" was the old completeness test, and it is exactly how
+    half-converted directories become PERMANENT poisoned caches: a convert cut
+    down mid-write (SIGKILL during the fleet restart, OOM) leaves calibration
+    in place with camera files missing, every retry trusts it, and the scene
+    fails forever in the GPU stage (pandas/PIL FileNotFoundError - seen on 3
+    boxes after the 401 outage). Completeness is now an explicit _CONVERT_OK
+    sentinel written AFTER convert returns; anything without it is torn down
+    and rebuilt from the source of truth.
+    """
+    ok = os.path.join(log, "_CONVERT_OK")
+    if os.path.isfile(ok):
+        return True
+    if os.path.isdir(log):
+        import shutil
+        shutil.rmtree(log, ignore_errors=True)
+    return False
+
+
 def fetch_waymo_perception(job, root):
     """Whole ~900 MB tfrecord, converted then deleted — there is no smaller unit."""
     import db241_waymo_tfrecord as W
     log = os.path.join(root, "data", "pseudo_av2", "wp_" + job["scene"])
-    if os.path.isdir(os.path.join(log, "calibration")):
+    if _convert_guard(log):
         return log
     tmp = os.path.join(root, "data", "raw", "_wp_%s_%d.tfrecord"
                        % (job["scene"][:10], os.getpid()))
@@ -158,6 +179,8 @@ def fetch_waymo_perception(job, root):
                     break
                 fh.write(b)
         W.convert(tmp, log, e2e=False, max_frames=100)
+        with open(os.path.join(log, "_CONVERT_OK"), "w") as fh:
+            fh.write("1")
     finally:
         if os.path.isfile(tmp):
             os.remove(tmp)
@@ -170,7 +193,7 @@ def fetch_waymo_e2e(job, root):
     import db241_e2e_index as E
     import db241_waymo_tfrecord as W
     log = os.path.join(root, "data", "pseudo_av2", "e2_" + job["scene"])
-    if os.path.isdir(os.path.join(log, "calibration")):
+    if _convert_guard(log):
         return log
     plan = json.load(open(os.path.join(root, "data", "raw", "e2e_plan.json")))
     tmp = os.path.join(root, "data", "raw", "_e2e_%s_%d.tfrecord"
@@ -179,6 +202,8 @@ def fetch_waymo_e2e(job, root):
     try:
         E.fetch_records([tuple(e) for e in plan[job["key"]]], tmp)
         W.convert(tmp, log, e2e=True, max_frames=93)
+        with open(os.path.join(log, "_CONVERT_OK"), "w") as fh:
+            fh.write("1")
     finally:
         if os.path.isfile(tmp):
             os.remove(tmp)
